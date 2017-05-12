@@ -1,0 +1,92 @@
+# -*-Makefile-*-
+#----------------------------------------------------------------------------
+#       Macros
+#----------------------------------------------------------------------------
+
+CC            = gcc
+CXX           = g++
+LD            = $(CXX) $(CCFLAGS) $(PICFLAGS) $(GENFLAGS)
+AR            = ar
+PICFLAGS      = -fPIC
+CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -pthread -std=c++11 -D_REENTRANT -I"." -I"$(BIOGEARS_ROOT)/library/include" -I"$(BIOGEARS_ROOT)/library/include/cdm" -I"$(BIOGEARS_ROOT)/library/include/log4cpp/include" -I"$(BIOGEARS_ROOT)/library/include/Eigen-3.3.1" -I"$(BIOGEARS_ROOT)/library/include/schema/bind" -I"$(BIOGEARS_ROOT)/library/include/schema" -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++/SACPP"
+OBJEXT        = .o
+OUTPUT_OPTION = -o "$@"
+COMPILE.c     = $(CC) $(CFLAGS) $(CPPFLAGS) -c
+COMPILE.cc    = $(CXX) $(CCFLAGS) $(CPPFLAGS) -c
+LDFLAGS       = -L"." -L"$(OSPL_HOME)/lib" -Wl,-rpath,$(BIOGEARS_ROOT)/library/lib
+CCC           = $(CXX)
+MAKEFILE      = Makefile.amm_physiology_manager
+DEPENDENCIES  = $(MAKEFILE)
+BTARGETDIR    = ../../bin/
+BIN           = $(BTARGETDIR)amm_physiology_manager$(EXESUFFIX)$(EXEEXT)
+CAT           = cat
+MV            = mv -f
+RM            = rm -rf
+CP            = cp -p
+NUL           = /dev/null
+MKDIR         = mkdir -p
+TESTDIRSTART  = test -d
+TESTDIREND    = ||
+TOUCH         = touch
+EXEEXT        = 
+LIBPREFIX     = lib
+LIBSUFFIX     = 
+GENFLAGS      = -std=c++11 
+LDLIBS        = -ldcpssacpp -lddskernel -ldl -Wl,-rpath,$(BIOGEARS_ROOT)/library/lib -lxerces-c-3.1 $(BIOGEARS_ROOT)/library/lib/BioGearsEngine.so $(BIOGEARS_ROOT)/library/lib/DataModelBindings.so $(BIOGEARS_ROOT)/library/lib/CommonDataModel.so $(BIOGEARS_ROOT)/library/lib/liblog4cpp.so -l"amm_types$(LIBSUFFIX)" -lpthread 
+OBJS          = .obj$(CFG)/CheckStatus$(OBJEXT) .obj$(CFG)/DDSEntityManager$(OBJEXT) .obj$(CFG)/BioGearsThread$(OBJEXT) .obj$(CFG)/PhysiologyManager$(OBJEXT)
+SRC           =  ../src/AMM/CheckStatus.cpp ../src/AMM/DDSEntityManager.cpp ../src/AMM/BioGearsThread.cpp ../src/PhysiologyManager.cpp
+LINK.cc       = $(LD) $(LDFLAGS)
+EXPORTFLAGS   = 
+
+#----------------------------------------------------------------------------
+#       Local targets
+#----------------------------------------------------------------------------
+
+all: $(BIN) deploy
+
+$(BIN): $(OBJS)
+	@$(TESTDIRSTART) "$(BTARGETDIR)" $(TESTDIREND) $(MKDIR) "$(BTARGETDIR)"
+	$(LINK.cc) $(OBJS) $(LDLIBS) $(OUTPUT_OPTION)
+
+generated: $(GENERATED_DIRTY)
+	@-:
+
+.obj$(CFG)/BioGearsThread$(OBJEXT): ../src/AMM/BioGearsThread.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/BioGearsThread.cpp
+	
+.obj$(CFG)/CheckStatus$(OBJEXT): ../src/AMM/CheckStatus.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/CheckStatus.cpp
+
+.obj$(CFG)/DDSEntityManager$(OBJEXT): ../src/AMM/DDSEntityManager.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/DDSEntityManager.cpp
+
+.obj$(CFG)/PhysiologyManager$(OBJEXT): ../src/PhysiologyManager.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/PhysiologyManager.cpp
+
+deploy: 
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/config $(BTARGETDIR)
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/patients $(BTARGETDIR)
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/environments $(BTARGETDIR)
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/nutrition $(BTARGETDIR)
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/ecg $(BTARGETDIR)
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/substances $(BTARGETDIR)
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/states $(BTARGETDIR)
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/xsd $(BTARGETDIR)
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/UCEDefs.txt $(BTARGETDIR)
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/log4j.properties $(BTARGETDIR)
+	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/BioGearsConfiguration.xml $(BTARGETDIR)
+
+clean:
+	-$(RM) $(OBJS)
+
+realclean: clean
+	-$(RM) $(BIN)
+	-$(RM) .obj$(CFG)/
+
+check-syntax:
+	$(COMPILE.cc) $(EXPORTFLAGS) $(CHK_SOURCES)
+
