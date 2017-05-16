@@ -8,6 +8,9 @@ if [ "${SPLICE_JDK:=}" = "" ]; then
     export SPLICE_JDK
 fi
 
+BIOGEARS_ROOT=/usr/local/BioGears
+source /usr/local/OpenSplice/release.com
+
 OSPL_URI=file://ospl.xml
 export OSPL_URI
 
