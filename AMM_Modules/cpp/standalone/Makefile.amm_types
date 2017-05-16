@@ -67,8 +67,8 @@ export LIBPATH           := $(LIBPATH):$(OSPL_HOME)/bin:$(OSPL_HOME)/lib
 export PATH              := $(PATH):$(OSPL_HOME)/bin:$(OSPL_HOME)/lib
 
 .NOTPARALLEL:
-AMMDcps_impl.h AMMSplDcps.cpp AMMDcps_impl.cpp AMM.cpp AMMDcps.cpp AMM.h ccpp_AMM.h AMMDcps.h AMMSplDcps.h: ../../idl/AMM.idl
-	"$(OSPL_HOME)/bin/idlpp" -I "$(OSPL_HOME)/etc/idl" -l cpp ../../idl/AMM.idl
+AMMDcps_impl.h AMMSplDcps.cpp AMMDcps_impl.cpp AMM.cpp AMMDcps.cpp AMM.h ccpp_AMM.h AMMDcps.h AMMSplDcps.h: ../../../IDL/AMM.idl
+	"$(OSPL_HOME)/bin/idlpp" -I "$(OSPL_HOME)/etc/idl" -l cpp ../../../IDL/AMM.idl
 
 .PRECIOUS: $(GENERATED_DIRTY)
 $(OBJS): $(GENERATED_DIRTY)
