@@ -1,0 +1,33 @@
+
+module AMM {
+  module Simulation {	
+    struct Tick {
+      long long frame; //@key
+      float time;
+    };
+    #pragma keylist Tick frame  
+  };
+  
+  module Physiology {	
+       
+    struct Data {
+      string node_path; // @key
+      string unit;
+      double dbl;
+      string str;
+    };
+    #pragma keylist Data node_path
+    
+    
+    struct HighFrequencyData {
+      string node_path; // @key
+      string unit;
+      double dbl;
+      string str;
+    };
+    #pragma keylist HighFrequencyData node_path
+    
+    
+  };
+};
+
