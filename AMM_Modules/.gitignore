@@ -276,3 +276,4 @@ __pycache__/
 .kdev4/AMM_Modules.kdev4.lock
 AMM_Modules.kdev4.lock
 nohup.out
+*.so
