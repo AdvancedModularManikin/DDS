@@ -8,7 +8,7 @@ CXX           = clang++
 LD            = $(CXX) $(CCFLAGS) $(PICFLAGS) $(GENFLAGS)
 AR            = ar
 PICFLAGS      = -fPIC
-CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -std=c++0x -D_REENTRANT -Wall -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++/SACPP" -I"." 
+CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -D_REENTRANT -Wall -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++/SACPP" -I"." 
 OBJEXT        = .o
 OUTPUT_OPTION = -o "$@"
 COMPILE.c     = $(CC) $(CFLAGS) $(CPPFLAGS) -c
@@ -29,7 +29,7 @@ TOUCH         = touch
 EXEEXT        = 
 LIBPREFIX     = lib
 LIBSUFFIX     = 
-GENFLAGS      = -std=c++0x -O3 -DNDEBUG
+GENFLAGS      = --std=c++11 -O3
 LDLIBS        = -l"dcpssacpp" -l"ddskernel" -ldl $(subst lib,-l,$(sort $(basename $(notdir $(wildcard /usr/lib/librt.so /lib/librt.so))))) -lpthread
 OBJS          = .obj$(CFG)/AMMSplDcps$(OBJEXT) .obj$(CFG)/AMMDcps_impl$(OBJEXT) .obj$(CFG)/AMM$(OBJEXT) .obj$(CFG)/AMMDcps$(OBJEXT)
 AREXT         = .a

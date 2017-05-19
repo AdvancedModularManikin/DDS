@@ -9,7 +9,7 @@
 
 
 // Forward declare what we will use in our thread
-class PhysiologyEngine;
+class PhysiologyInterface;
 
 using namespace AMM::Physiology;
 

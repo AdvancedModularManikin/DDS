@@ -8,7 +8,7 @@ CXX           = clang++
 LD            = $(CXX) $(CCFLAGS) $(PICFLAGS) $(GENFLAGS)
 AR            = ar
 PICFLAGS      = -fPIC
-CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -std=c++0x -pthread -D_REENTRANT -Wall -I"." -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++/SACPP"
+CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -pthread -D_REENTRANT -Wall -I"." -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++/SACPP"
 OBJEXT        = .o
 OUTPUT_OPTION = -o "$@"
 COMPILE.c     = $(CC) $(CFLAGS) $(CPPFLAGS) -c
@@ -31,7 +31,7 @@ TOUCH         = touch
 EXEEXT        = 
 LIBPREFIX     = lib
 LIBSUFFIX     = 
-GENFLAGS      = -std=c++0x -O3 -DNDEBUG
+GENFLAGS      = --std=c++11 -O3
 LDLIBS        = -l"amm_types$(LIBSUFFIX)" -l"dcpssacpp" -l"ddskernel" -ldl $(subst lib,-l,$(sort $(basename $(notdir $(wildcard /usr/lib/librt.so /lib/librt.so))))) -lpthread
 OBJS          = .obj$(CFG)/CheckStatus$(OBJEXT) .obj$(CFG)/DDSEntityManager$(OBJEXT) .obj$(CFG)/SimulationManager$(OBJEXT) .obj$(CFG)/SimManager$(OBJEXT)
 SRC           = ../src/AMM/CheckStatus.cpp ../src/AMM/DDSEntityManager.cpp ../src/AMM/SimulationManager.cpp ../src/SimManager.cpp

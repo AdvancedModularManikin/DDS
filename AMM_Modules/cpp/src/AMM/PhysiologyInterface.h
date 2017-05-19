@@ -68,9 +68,8 @@
 class PhysiologyInterface: public PhysiologyEngine {
 
 public:
-	PhysiologyInterface();
 
-	virtual ~PhysiologyInterface();
+	virtual ~PhysiologyInterface() {};
 
 	bool SaveState(std::string stateFile);
 
@@ -203,5 +202,10 @@ public:
 
 };
 
-std::unique_ptr<PhysiologyInterface> CreatePhysiologyEngine(const std::string& logfile);
+// std::unique_ptr<PhysiologyInterface> CreatePhysiologyEngine(const std::string& logfile);
 
+
+std::unique_ptr<PhysiologyInterface> CreatePhysiologyEngine(const std::string& logfile)
+{
+	return std::unique_ptr<PhysiologyEngine>(CreateBioGearsEngine(logfile));
+}

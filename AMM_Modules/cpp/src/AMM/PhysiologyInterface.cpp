@@ -1,23 +1,6 @@
 #include "PhysiologyInterface.h"
 
 
-class PhysiologyInterface;
-class PhysiologyEngine;
-
-std::unique_ptr<PhysiologyInterface> CreatePhysiologyEngine(const std::string& logfile)
-{
-	std::unique_ptr<PhysiologyEngine> engine = CreateBioGearsEngine(logfile);
-	return std::move(engine);
-}
-
-
-PhysiologyInterface::PhysiologyInterface() : PhysiologyEngine() {
-
-}
-
-PhysiologyInterface::~PhysiologyInterface() {
-
-}
 
 bool PhysiologyInterface::SaveState(std::string stateFile) {
 	this->SaveState(stateFile);
