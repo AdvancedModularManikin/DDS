@@ -83,14 +83,22 @@ void DDSEntityManager::deletePublisher()
 
 void DDSEntityManager::createWriter()
 {
-    DataWriterQos dw_qos;
-    status = publisher->get_default_datawriter_qos(dw_qos);
-    checkStatus(status, "DDS::DomainParticipant::get_default_publisher_qos");
-    status = publisher->copy_from_topic_qos(dw_qos, reliable_topic_qos);
-    checkStatus(status, "DDS::Publisher::copy_from_topic_qos");
-    dw_qos.writer_data_lifecycle.autodispose_unregistered_instances = true;
   writer = publisher->create_datawriter(topic.in(),
-    dw_qos, NULL, STATUS_MASK_NONE);
+    DATAWRITER_QOS_USE_TOPIC_QOS, NULL, STATUS_MASK_NONE);
+  checkHandle(writer, "DDS::Publisher::create_datawriter");
+}
+
+void DDSEntityManager::createWriter(bool autodispose_unregistered_instances)
+{
+  status = publisher->get_default_datawriter_qos(dw_qos);
+  checkStatus(status, "DDS::DomainParticipant::get_default_publisher_qos");
+  status = publisher->copy_from_topic_qos(dw_qos, reliable_topic_qos);
+  checkStatus(status, "DDS::Publisher::copy_from_topic_qos");
+
+  dw_qos.writer_data_lifecycle.autodispose_unregistered_instances =
+    autodispose_unregistered_instances;
+  writer = publisher->create_datawriter(topic.in(), dw_qos, NULL,
+    STATUS_MASK_NONE);
   checkHandle(writer, "DDS::Publisher::create_datawriter");
 }
 

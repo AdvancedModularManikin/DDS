@@ -42,11 +42,10 @@
 									<listOptionValue builtIn="false" value="/usr/local/OpenSplice/include/dcps/C++/SACPP"/>
 									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include"/>
 									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/cdm"/>
-									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/log4cpp/include"/>
-									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/schema"/>
-									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/schema/bind"/>
+									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/log4cpp"/>
+									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/bind"/>
+									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/Eigen"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/AMM/cpp/standalone}&quot;"/>
-									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/Eigen-3.3.1"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1055149391" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__GXX_EXPERIMENTAL_CXX0X__"/>

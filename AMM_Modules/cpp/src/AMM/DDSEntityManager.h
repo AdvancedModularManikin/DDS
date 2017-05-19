@@ -26,6 +26,7 @@ private:
       TopicQos setting_topic_qos;
       PublisherQos pub_qos;
       SubscriberQos sub_qos;
+      DataWriterQos dw_qos;
 
       DomainId_t domain;
       InstanceHandle_t userHandle;
@@ -54,6 +55,7 @@ private:
       void deletePublisher();
 
       void createWriter();
+      void createWriter(bool autodispose_unregistered_instances);
 
       void deleteWriter(DDS::DataWriter_ptr dataWriter);
 

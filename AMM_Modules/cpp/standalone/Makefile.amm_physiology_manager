@@ -3,12 +3,12 @@
 #       Macros
 #----------------------------------------------------------------------------
 
-CC            = gcc
-CXX           = g++
+CC            = clang
+CXX           = clang++
 LD            = $(CXX) $(CCFLAGS) $(PICFLAGS) $(GENFLAGS)
 AR            = ar
 PICFLAGS      = -fPIC
-CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -pthread -std=c++11 -D_REENTRANT -I"." -I"$(BIOGEARS_ROOT)/library/include" -I"$(BIOGEARS_ROOT)/library/include/cdm" -I"$(BIOGEARS_ROOT)/library/include/log4cpp/include" -I"$(BIOGEARS_ROOT)/library/include/Eigen-3.3.1" -I"$(BIOGEARS_ROOT)/library/include/schema/bind" -I"$(BIOGEARS_ROOT)/library/include/schema" -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++/SACPP"
+CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -std=c++0x -pthread -D_REENTRANT -I"." -I"$(BIOGEARS_ROOT)/library/include" -I"$(BIOGEARS_ROOT)/library/include/cdm" -I"$(BIOGEARS_ROOT)/library/include/log4cpp" -I"$(BIOGEARS_ROOT)/library/include/Eigen" -I"$(BIOGEARS_ROOT)/library/include/bind" -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++/SACPP"
 OBJEXT        = .o
 OUTPUT_OPTION = -o "$@"
 COMPILE.c     = $(CC) $(CFLAGS) $(CPPFLAGS) -c
@@ -31,10 +31,10 @@ TOUCH         = touch
 EXEEXT        = 
 LIBPREFIX     = lib
 LIBSUFFIX     = 
-GENFLAGS      = -std=c++11 
+GENFLAGS      = -std=c++0x  
 LDLIBS        = -ldcpssacpp -lddskernel -ldl -Wl,-rpath,$(BIOGEARS_ROOT)/library/lib -lxerces-c-3.1 $(BIOGEARS_ROOT)/library/lib/BioGearsEngine.so $(BIOGEARS_ROOT)/library/lib/DataModelBindings.so $(BIOGEARS_ROOT)/library/lib/CommonDataModel.so $(BIOGEARS_ROOT)/library/lib/liblog4cpp.so -l"amm_types$(LIBSUFFIX)" -lpthread 
-OBJS          = .obj$(CFG)/CheckStatus$(OBJEXT) .obj$(CFG)/DDSEntityManager$(OBJEXT) .obj$(CFG)/BioGearsThread$(OBJEXT) .obj$(CFG)/PhysiologyManager$(OBJEXT)
-SRC           =  ../src/AMM/CheckStatus.cpp ../src/AMM/DDSEntityManager.cpp ../src/AMM/BioGearsThread.cpp ../src/PhysiologyManager.cpp
+OBJS          = .obj$(CFG)/CheckStatus$(OBJEXT) .obj$(CFG)/DDSEntityManager$(OBJEXT) .obj$(CFG)/PhysiologyInterface$(OBJEXT) .obj$(CFG)/BioGearsThread$(OBJEXT) .obj$(CFG)/PhysiologyManager$(OBJEXT)
+SRC           =  ../src/AMM/CheckStatus.cpp ../src/AMM/DDSEntityManager.cpp ../src/AMM/PhysiologyInterface.cpp ../src/AMM/BioGearsThread.cpp ../src/PhysiologyManager.cpp
 LINK.cc       = $(LD) $(LDFLAGS)
 EXPORTFLAGS   = 
 
@@ -51,6 +51,14 @@ $(BIN): $(OBJS)
 generated: $(GENERATED_DIRTY)
 	@-:
 
+.obj$(CFG)/PhysiologyManager$(OBJEXT): ../src/PhysiologyManager.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/PhysiologyManager.cpp
+
+.obj$(CFG)/PhysiologyInterface$(OBJEXT): ../src/AMM/PhysiologyInterface.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/PhysiologyInterface.cpp
+	
 .obj$(CFG)/BioGearsThread$(OBJEXT): ../src/AMM/BioGearsThread.cpp
 	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
 	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/BioGearsThread.cpp
@@ -62,10 +70,6 @@ generated: $(GENERATED_DIRTY)
 .obj$(CFG)/DDSEntityManager$(OBJEXT): ../src/AMM/DDSEntityManager.cpp
 	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
 	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/DDSEntityManager.cpp
-
-.obj$(CFG)/PhysiologyManager$(OBJEXT): ../src/PhysiologyManager.cpp
-	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
-	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/PhysiologyManager.cpp
 
 deploy: 
 	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/config $(BTARGETDIR)

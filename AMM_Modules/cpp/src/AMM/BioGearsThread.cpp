@@ -1,22 +1,24 @@
 #include "BioGearsThread.h"
 
+#include "PhysiologyInterface.h"
+
 using namespace AMM::Physiology;
 
-BioGearsThread::BioGearsThread(const std::string& logfile) :
-		m_thread() {
-	// Create our engine with the standard patient
-	m_bg = CreateBioGearsEngine(logfile);
-	if (!m_bg->LoadState("./states/StandardMale@0s.xml")) {
-		m_bg->GetLogger()->Error("Could not load state, check the error");
-		return;
-	}
-
+BioGearsThread::BioGearsThread(const std::string& logFile) : m_thread() {
+	m_bg = CreatePhysiologyEngine(logFile);
 	m_runThread = false;
 }
 
 BioGearsThread::~BioGearsThread() {
 	m_runThread = false;
 	std::this_thread::sleep_for(std::chrono::seconds(2));
+}
+
+void BioGearsThread::Initialize() {
+	if (!m_bg->LoadState(_stateFile)) {
+		m_bg->GetLogger()->Error("Could not load state, check the error");
+		return;
+	}
 }
 
 void BioGearsThread::Shutdown() {
@@ -28,7 +30,7 @@ void BioGearsThread::Shutdown() {
 
 void BioGearsThread::StartSimulation() {
 	m_runThread = true;
-	m_thread = std::thread(&BioGearsThread::AdvanceTime, this);
+	m_thread = std::thread(&BioGearsThread::AdvanceSimTime, this);
 }
 
 void BioGearsThread::StopSimulation() {
@@ -36,10 +38,10 @@ void BioGearsThread::StopSimulation() {
 	m_thread.detach();
 }
 
-void BioGearsThread::AdvanceTime() {
+void BioGearsThread::AdvanceSimTime() {
 	while (m_runThread) {
 		m_mutex.lock();
-		m_bg->AdvanceModelTime(1, TimeUnit::s);
+		m_bg->AdvanceModelTime();
 		m_mutex.unlock();
 		std::this_thread::sleep_for(std::chrono::milliseconds(25)); // let other things happen
 	}
@@ -53,32 +55,33 @@ void BioGearsThread::AdvanceTimeTick() {
 	m_mutex.unlock();
 }
 
-double BioGearsThread::GetECGWaveForm() {
-	return m_bg->GetElectroCardioGram()->GetLead3ElectricPotential(
-			ElectricPotentialUnit::mV);
-}
-
-double BioGearsThread::GetHeartRate() {
-	return m_bg->GetCardiovascularSystem()->GetHeartRate(FrequencyUnit::Per_min);
-}
-
-double BioGearsThread::GetSimulationTime() {
-	return m_bg->GetSimulationTime(TimeUnit::s);
+void BioGearsThread::SetStateFile(const std::string& stateFile) {
+	_stateFile = stateFile;
 }
 
 Data BioGearsThread::GetNodePath(const std::string& nodePath) {
+
 	Data outputData;
 
 	if (nodePath == "ECG") {
-		outputData.node_path = DDS::string_dup("ECG");
+		outputData.node_path = "ECG";
 		outputData.unit = "mV";
-		outputData.dbl = GetECGWaveForm();
+		outputData.dbl = m_bg->GetECGWaveform();
+		outputData.str = "";
 	}
 
 	if (nodePath == "HR") {
-		outputData.node_path = DDS::string_dup("HR");
+		outputData.node_path = "HR";
 		outputData.unit = "bpm";
-		outputData.dbl = GetHeartRate();
+		outputData.dbl = m_bg->GetHeartRate();
+		outputData.str = "";
+	}
+
+	if (nodePath == "EXIT") {
+		outputData.node_path = "EXIT";
+		outputData.unit = "-1";
+		outputData.dbl = -1;
+		outputData.str = "-1";
 	}
 
 	return outputData;
@@ -86,39 +89,6 @@ Data BioGearsThread::GetNodePath(const std::string& nodePath) {
 
 void BioGearsThread::Status() { // On demand call to print vitals to the screen
 	m_mutex.lock();
-	m_bg->GetLogger()->Info("");
-	m_bg->GetLogger()->Info(
-			std::stringstream() << "Simulation Time : "
-					<< m_bg->GetSimulationTime(TimeUnit::s) << "s");
-	m_bg->GetLogger()->Info(
-			std::stringstream() << "Cardiac Output : "
-					<< m_bg->GetCardiovascularSystem()->GetCardiacOutput(
-							VolumePerTimeUnit::mL_Per_min)
-					<< VolumePerTimeUnit::mL_Per_min);
-	m_bg->GetLogger()->Info(
-			std::stringstream() << "Blood Volume : "
-					<< m_bg->GetCardiovascularSystem()->GetBloodVolume(
-							VolumeUnit::mL) << VolumeUnit::mL);
-	m_bg->GetLogger()->Info(
-			std::stringstream() << "Mean Arterial Pressure : "
-					<< m_bg->GetCardiovascularSystem()->GetMeanArterialPressure(
-							PressureUnit::mmHg) << PressureUnit::mmHg);
-	m_bg->GetLogger()->Info(
-			std::stringstream() << "Systolic Pressure : "
-					<< m_bg->GetCardiovascularSystem()->GetSystolicArterialPressure(
-							PressureUnit::mmHg) << PressureUnit::mmHg);
-	m_bg->GetLogger()->Info(
-			std::stringstream() << "Diastolic Pressure : "
-					<< m_bg->GetCardiovascularSystem()->GetDiastolicArterialPressure(
-							PressureUnit::mmHg) << PressureUnit::mmHg);
-	m_bg->GetLogger()->Info(
-			std::stringstream() << "Heart Rate : "
-					<< m_bg->GetCardiovascularSystem()->GetHeartRate(
-							FrequencyUnit::Per_min) << "bpm");
-	m_bg->GetLogger()->Info(
-			std::stringstream() << "Respiration Rate : "
-					<< m_bg->GetRespiratorySystem()->GetRespirationRate(
-							FrequencyUnit::Per_min) << "bpm");
-	m_bg->GetLogger()->Info("");
+	m_bg->Status();
 	m_mutex.unlock();
 }
