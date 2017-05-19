@@ -3,12 +3,12 @@
 #       Macros
 #----------------------------------------------------------------------------
 
-CC            = clang
-CXX           = clang++
+CC            = gcc
+CXX           = g++
 LD            = $(CXX) $(CCFLAGS) $(PICFLAGS) $(GENFLAGS)
 AR            = ar
 PICFLAGS      = -fPIC
-CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -pthread -D_REENTRANT -I"." -I"$(BIOGEARS_ROOT)/library/include" -I"$(BIOGEARS_ROOT)/library/include/cdm" -I"$(BIOGEARS_ROOT)/library/include/log4cpp" -I"$(BIOGEARS_ROOT)/library/include/Eigen" -I"$(BIOGEARS_ROOT)/library/include/bind" -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++/SACPP"
+CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -pthread -D_REENTRANT -I"." -I"../src/AMM/BioGears" -I"$(BIOGEARS_ROOT)/library/include" -I"$(BIOGEARS_ROOT)/library/include/cdm" -I"$(BIOGEARS_ROOT)/library/include/log4cpp" -I"$(BIOGEARS_ROOT)/library/include/Eigen" -I"$(BIOGEARS_ROOT)/library/include/bind" -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++/SACPP"
 OBJEXT        = .o
 OUTPUT_OPTION = -o "$@"
 COMPILE.c     = $(CC) $(CFLAGS) $(CPPFLAGS) -c
@@ -31,7 +31,7 @@ TOUCH         = touch
 EXEEXT        = 
 LIBPREFIX     = lib
 LIBSUFFIX     = 
-GENFLAGS      = -std=c++14
+GENFLAGS      = -std=c++11
 LDLIBS        = -ldcpssacpp -lddskernel -ldl -Wl,-rpath,$(BIOGEARS_ROOT)/library/lib -lxerces-c-3.1 $(BIOGEARS_ROOT)/library/lib/BioGearsEngine.so $(BIOGEARS_ROOT)/library/lib/DataModelBindings.so $(BIOGEARS_ROOT)/library/lib/CommonDataModel.so $(BIOGEARS_ROOT)/library/lib/liblog4cpp.so -l"amm_types$(LIBSUFFIX)" -lpthread 
 OBJS          = .obj$(CFG)/CheckStatus$(OBJEXT) .obj$(CFG)/DDSEntityManager$(OBJEXT) .obj$(CFG)/PhysiologyInterface$(OBJEXT) .obj$(CFG)/BioGearsThread$(OBJEXT) .obj$(CFG)/PhysiologyManager$(OBJEXT)
 SRC           =  ../src/AMM/CheckStatus.cpp ../src/AMM/DDSEntityManager.cpp ../src/AMM/PhysiologyInterface.cpp ../src/AMM/BioGearsThread.cpp ../src/PhysiologyManager.cpp

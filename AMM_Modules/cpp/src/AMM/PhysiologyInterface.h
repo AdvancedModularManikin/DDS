@@ -1,7 +1,7 @@
 #pragma once
 
 // BioGears core
-#include "bind/biogears-cdm.hxx"
+
 #include "CommonDataModel.h"
 #include "BioGearsPhysiologyEngine.h"
 #include "engine/PhysiologyEngineTrack.h"
@@ -65,13 +65,58 @@
 #include "substance/SESubstanceManager.h"
 #include "substance/SESubstance.h"
 
-class PhysiologyInterface: public PhysiologyEngine {
+#include "BioGears/Controller/BioGears.h"
 
+class PhysiologyInterface : public PhysiologyEngine, public BioGears
+{
 public:
 
-	virtual ~PhysiologyInterface() {};
+  PhysiologyInterface(Logger* logger);
+  PhysiologyInterface(const std::string&);
+  virtual ~PhysiologyInterface();
 
-	bool SaveState(std::string stateFile);
+  virtual bool LoadState(const std::string& file, const SEScalarTime* simTime = nullptr);
+  virtual bool LoadState(const CDM::PhysiologyEngineStateData& state, const SEScalarTime* simTime = nullptr);
+  virtual std::unique_ptr<CDM::PhysiologyEngineStateData> SaveState(const std::string& file = "");
+
+  virtual Logger* GetLogger();
+  virtual PhysiologyEngineTrack* GetEngineTrack();
+
+  virtual bool InitializeEngine(const std::string& patientFile, const std::vector<const SECondition*>* conditions = nullptr, const PhysiologyEngineConfiguration* config = nullptr);
+  virtual bool InitializeEngine(const SEPatient& patient, const std::vector<const SECondition*>* conditions = nullptr, const PhysiologyEngineConfiguration* config = nullptr);
+
+  virtual const PhysiologyEngineConfiguration* GetConfiguration();
+
+  virtual double GetTimeStep(const TimeUnit& unit);
+  virtual double GetSimulationTime(const TimeUnit& unit);
+
+  virtual void AdvanceModelTime();
+  virtual void AdvanceModelTime(double time, const TimeUnit& unit);
+  virtual bool ProcessAction(const SEAction& action);
+
+  virtual SESubstanceManager& GetSubstanceManager();
+  virtual void SetEventHandler(SEEventHandler* handler);
+  virtual const SEPatient& GetPatient();
+  virtual bool GetPatientAssessment(SEPatientAssessment& assessment);
+
+  virtual const SEEnvironment*                         GetEnvironment();
+  virtual const SEBloodChemistrySystem*                GetBloodChemistrySystem();
+  virtual const SECardiovascularSystem*                GetCardiovascularSystem();
+  virtual const SEDrugSystem*                          GetDrugSystem();
+  virtual const SEEndocrineSystem*                     GetEndocrineSystem();
+  virtual const SEEnergySystem*                        GetEnergySystem();
+  virtual const SEGastrointestinalSystem*              GetGastrointestinalSystem();
+  virtual const SEHepaticSystem*                       GetHepaticSystem();
+  virtual const SENervousSystem*                       GetNervousSystem();
+  virtual const SERenalSystem*                         GetRenalSystem();
+  virtual const SERespiratorySystem*                   GetRespiratorySystem();
+  virtual const SETissueSystem*                        GetTissueSystem();
+  virtual const SEAnesthesiaMachine*                   GetAnesthesiaMachine();
+  virtual const SEElectroCardioGram*                   GetElectroCardioGram();
+  virtual const SEInhaler*                             GetInhaler();
+
+  virtual const SECompartmentManager&                  GetCompartments();
+
 
 	bool LoadScenarioFile(std::string scenFile);
 
@@ -200,12 +245,15 @@ public:
 	// Get right alveoli baseline compliance (?) volume
 	double GetRightAlveoliBaselineCompliance();
 
+
+protected:
+
+  virtual bool IsReady();
+  virtual bool InitializeEngine(const std::vector<const SECondition*>* conditions = nullptr, const PhysiologyEngineConfiguration* config = nullptr);
+
+  SEEventHandler*                                 m_EventHandler;
+  PhysiologyEngineTrack                           m_EngineTrack;
+  std::stringstream                               m_ss;
 };
 
-// std::unique_ptr<PhysiologyInterface> CreatePhysiologyEngine(const std::string& logfile);
 
-
-std::unique_ptr<PhysiologyInterface> CreatePhysiologyEngine(const std::string& logfile)
-{
-	return std::unique_ptr<PhysiologyEngine>(CreateBioGearsEngine(logfile));
-}

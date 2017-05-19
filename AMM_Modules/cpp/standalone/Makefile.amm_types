@@ -3,8 +3,8 @@
 #       Macros
 #----------------------------------------------------------------------------
 
-CC            = clang
-CXX           = clang++
+CC            = gcc
+CXX           = g++
 LD            = $(CXX) $(CCFLAGS) $(PICFLAGS) $(GENFLAGS)
 AR            = ar
 PICFLAGS      = -fPIC
@@ -29,7 +29,7 @@ TOUCH         = touch
 EXEEXT        = 
 LIBPREFIX     = lib
 LIBSUFFIX     = 
-GENFLAGS      = --std=c++11 -O3
+GENFLAGS      = -std=c++14 -O3
 LDLIBS        = -l"dcpssacpp" -l"ddskernel" -ldl $(subst lib,-l,$(sort $(basename $(notdir $(wildcard /usr/lib/librt.so /lib/librt.so))))) -lpthread
 OBJS          = .obj$(CFG)/AMMSplDcps$(OBJEXT) .obj$(CFG)/AMMDcps_impl$(OBJEXT) .obj$(CFG)/AMM$(OBJEXT) .obj$(CFG)/AMMDcps$(OBJEXT)
 AREXT         = .a
