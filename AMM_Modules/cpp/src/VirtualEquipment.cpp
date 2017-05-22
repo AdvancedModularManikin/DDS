@@ -6,34 +6,35 @@ using namespace DDS;
 using namespace AMM::Physiology;
 
 int main(int argc, char *argv[]) {
+	char configFile[] = "OSPL_URI=file://ospl.xml";
+	putenv(configFile);
+
+	const char* nodePath = "";
+
+	if (argc > 1) {
+		 nodePath = argv[1];
+	} else {
+		cerr << "*** [AMM] Subscription node path not specified." << endl;
+		cerr << "*** usage : ./amm_virtual_equipment <node_path>" << endl;
+		return -1;
+	}
 
 	/* DDS entity manager */
 	DDSEntityManager mgr;
 	DataSeq msgList;
 	SampleInfoSeq infoSeq;
 
-	/* Others */
+	/** Initialization data **/
 	const char *partitionName = "AMM";
 	char topicName[] = "Data";
-	os_time delay_1s = { 1, 0 };
 	os_time delay_200ms = { 0, 200000000 };
 	ReturnCode_t status;
 	bool closed = false;
-	int action;
 	char buf[MAX_MSG_LEN];
 
 	/* Specific to this app */
-	const char *nodePath;
 	char sTopicName[] = "MyDataTopic";
 	StringSeq sSeqExpr;
-
-	if (argc > 1) {
-		nodePath = argv[1];
-	} else {
-		cerr << "*** [AMM] Subscription node path not specified." << endl;
-		cerr << "*** usage : ./amm_virtual_equipment <node_path>" << endl;
-		return -1;
-	}
 
 	// create domain participant
 	mgr.createParticipant(partitionName);
@@ -49,7 +50,6 @@ int main(int argc, char *argv[]) {
 	mgr.createSubscriber();
 
 	// create subscription filter
-
 	snprintf(buf, MAX_MSG_LEN, "node_path = '%s'", nodePath);
 	DDS::String_var sFilter = DDS::string_dup(buf);
 	sSeqExpr.length(0);

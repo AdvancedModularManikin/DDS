@@ -21,7 +21,7 @@ SimulationManager::SimulationManager() :
 	mgr.createPublisher();
 
 	// create DataWriter :
-	mgr.createWriter();
+	mgr.createWriters();
 
 	// Publish Events
 	dwriter = mgr.getWriter();

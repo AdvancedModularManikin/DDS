@@ -65,7 +65,9 @@
 #include "substance/SESubstanceManager.h"
 #include "substance/SESubstance.h"
 
-#include "SRC/Controller/BioGears.h"
+#include "Controller/BioGears.h"
+#include "Serializer.h"
+
 
 class PhysiologyInterface : public PhysiologyEngine, public BioGears
 {

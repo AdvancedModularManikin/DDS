@@ -1,15 +1,16 @@
 #include "stdafx.h"
 #include "ccpp_AMM.h"
 
-#include "AMM/DDSEntityManager.h"
 #include "AMM/SimulationManager.h"
 
-using namespace DDS;
 using namespace AMM;
 
 bool closed = false;
 
 int main(int argc, char *argv[]) {
+	char configFile[] = "OSPL_URI=file://ospl.xml";
+	putenv(configFile);
+
 
 	int action;
 	SimulationManager simManager;

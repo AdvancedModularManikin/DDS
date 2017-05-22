@@ -1,6 +1,26 @@
-
+/*
+ *                         OpenSplice DDS
+ *
+ *   This software and documentation are Copyright 2006 to 2013 PrismTech
+ *   Limited and its licensees. All rights reserved. See file:
+ *
+ *                     $OSPL_HOME/LICENSE
+ *
+ *   for full copyright notice and license terms.
+ *
+ */
 #include "DDSEntityManager.h"
 
+
+DDSEntityManager::DDSEntityManager()
+{
+  m_autodispose_unregistered_instances = false;
+}
+
+DDSEntityManager::DDSEntityManager(bool autodispose_unregistered_instances)
+{
+  m_autodispose_unregistered_instances = autodispose_unregistered_instances;
+}
 
 void DDSEntityManager::createParticipant(const char *partitiontName)
 {
@@ -17,7 +37,7 @@ void DDSEntityManager::createParticipant(const char *partitiontName)
 void DDSEntityManager::deleteParticipant()
 {
   status = dpf->delete_participant(participant.in());
-  checkStatus(status, "DDS::DomainParticipant::delete_participant");
+  checkStatus(status, "DDS::DomainParticipantFactory::delete_participant");
 }
 
 void DDSEntityManager::registerType(TypeSupport *ts)
@@ -27,6 +47,7 @@ void DDSEntityManager::registerType(TypeSupport *ts)
   checkStatus(status, "register_type");
 }
 
+
 void DDSEntityManager::createTopic(char *topicName)
 {
   status = participant->get_default_topic_qos(reliable_topic_qos);
@@ -34,10 +55,15 @@ void DDSEntityManager::createTopic(char *topicName)
   reliable_topic_qos.reliability.kind = RELIABLE_RELIABILITY_QOS;
   reliable_topic_qos.durability.kind = TRANSIENT_DURABILITY_QOS;
 
+  /* Set a the history Policy */
+  //reliable_topic_qos.history.kind = KEEP_LAST_HISTORY_QOS;
+  //reliable_topic_qos.history.depth = 1;
+
   /* Make the tailored QoS the new default. */
   status = participant->set_default_topic_qos(reliable_topic_qos);
   checkStatus(status, "DDS::DomainParticipant::set_default_topic_qos");
 
+  /* Use the changed policy when defining the Lifecycle topic */
   topic = participant->create_topic(topicName, typeName, reliable_topic_qos,
     NULL, STATUS_MASK_NONE);
   checkHandle(topic.in(), "DDS::DomainParticipant::create_topic ()");
@@ -52,15 +78,15 @@ void DDSEntityManager::createContentFilteredTopic(const char *topicName, const
     "DomainParticipant::create_contentfilteredtopic");
 }
 
-void DDSEntityManager::deleteFilteredTopic()
-{
-  status = participant->delete_contentfilteredtopic(filteredTopic);
-  checkStatus(status, "DDS.DomainParticipant.delete_topic");
-}
-
 void DDSEntityManager::deleteTopic()
 {
   status = participant->delete_topic(topic);
+  checkStatus(status, "DDS.DomainParticipant.delete_topic");
+}
+
+void DDSEntityManager::deleteFilteredTopic()
+{
+  status = participant->delete_contentfilteredtopic(filteredTopic);
   checkStatus(status, "DDS.DomainParticipant.delete_topic");
 }
 
@@ -78,26 +104,36 @@ void DDSEntityManager::createPublisher()
 void DDSEntityManager::deletePublisher()
 {
   status = participant->delete_publisher(publisher);
-  checkStatus(status, "DDS::DomainParticipant::delete_publisher");
+   // TODO : uncomment checkStatus(status, "DDS::DomainParticipant::delete_publisher");
 }
 
 void DDSEntityManager::createWriter()
 {
+    DataWriterQos dw_qos;
+    status = publisher->get_default_datawriter_qos(dw_qos);
+    checkStatus(status, "DDS::DomainParticipant::get_default_publisher_qos");
+    status = publisher->copy_from_topic_qos(dw_qos, reliable_topic_qos);
+    checkStatus(status, "DDS::Publisher::copy_from_topic_qos");
+    dw_qos.writer_data_lifecycle.autodispose_unregistered_instances = true;
   writer = publisher->create_datawriter(topic.in(),
-    DATAWRITER_QOS_USE_TOPIC_QOS, NULL, STATUS_MASK_NONE);
+    dw_qos, NULL, STATUS_MASK_NONE);
   checkHandle(writer, "DDS::Publisher::create_datawriter");
 }
 
-void DDSEntityManager::createWriter(bool autodispose_unregistered_instances)
+void DDSEntityManager::createWriters()
 {
   status = publisher->get_default_datawriter_qos(dw_qos);
   checkStatus(status, "DDS::DomainParticipant::get_default_publisher_qos");
   status = publisher->copy_from_topic_qos(dw_qos, reliable_topic_qos);
   checkStatus(status, "DDS::Publisher::copy_from_topic_qos");
-
+  // Set autodispose to false otherwise the instances of the
+  // topic will be suppressed from the persistence file when
+  // the writer is stopped
   dw_qos.writer_data_lifecycle.autodispose_unregistered_instances =
-    autodispose_unregistered_instances;
+    m_autodispose_unregistered_instances;
   writer = publisher->create_datawriter(topic.in(), dw_qos, NULL,
+    STATUS_MASK_NONE);
+  writer_stopper = publisher->create_datawriter(topic.in(), dw_qos, NULL,
     STATUS_MASK_NONE);
   checkHandle(writer, "DDS::Publisher::create_datawriter");
 }
@@ -110,19 +146,18 @@ void DDSEntityManager::deleteWriter(DDS::DataWriter_ptr dataWriter)
 
 void DDSEntityManager::createSubscriber()
 {
-  int status = participant->get_default_subscriber_qos(sub_qos);
+  status = participant->get_default_subscriber_qos(sub_qos);
   checkStatus(status, "DDS::DomainParticipant::get_default_subscriber_qos");
   sub_qos.partition.name.length(1);
   sub_qos.partition.name[0] = partition;
-
   subscriber = participant->create_subscriber(sub_qos, NULL, STATUS_MASK_NONE);
   checkHandle(subscriber.in(), "DDS::DomainParticipant::create_subscriber");
 }
 
 void DDSEntityManager::deleteSubscriber()
 {
-  status = participant->delete_subscriber(subscriber.in());
-  checkStatus(status, "DDS.DomainParticipant.delete_subscriber");
+  status = participant->delete_subscriber(subscriber);
+  checkStatus(status, "DDS::DomainParticipant::delete_subscriber");
 }
 
 void DDSEntityManager::createReader(bool filtered)
@@ -141,6 +176,17 @@ void DDSEntityManager::createReader(bool filtered)
   }
 }
 
+void DDSEntityManager::createReader()
+{
+  status = subscriber->get_default_datareader_qos(dr_qos);
+  checkStatus(status, "DDS::Subscriber::get_default_datareader_qos");
+  status = subscriber->copy_from_topic_qos(dr_qos, reliable_topic_qos);
+  checkStatus(status, "DDS::Subscriber::copy_from_topic_qos");
+  reader = subscriber->create_datareader(topic.in(), dr_qos, NULL,
+    STATUS_MASK_NONE);
+  checkHandle(reader, "DDS::Subscriber::create_datareader ()");
+}
+
 void DDSEntityManager::deleteReader(DDS::DataReader_ptr dataReader)
 {
    status = subscriber->delete_datareader(dataReader);
@@ -155,6 +201,11 @@ DataReader_ptr DDSEntityManager::getReader()
 DataWriter_ptr DDSEntityManager::getWriter()
 {
   return DataWriter::_duplicate(writer.in());
+}
+
+DataWriter_ptr DDSEntityManager::getWriter_stopper()
+{
+  return DataWriter::_duplicate(writer_stopper.in());
 }
 
 Publisher_ptr DDSEntityManager::getPublisher()
