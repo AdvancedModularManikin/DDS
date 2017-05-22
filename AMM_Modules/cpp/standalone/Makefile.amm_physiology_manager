@@ -32,9 +32,9 @@ EXEEXT        =
 LIBPREFIX     = lib
 LIBSUFFIX     = 
 GENFLAGS      = -std=c++11
-LDLIBS        = -ldcpssacpp -lddskernel -ldl -Wl,-rpath,$(BIOGEARS_ROOT)/library/lib -lxerces-c-3.1 $(BIOGEARS_ROOT)/library/lib/BioGearsEngine.so $(BIOGEARS_ROOT)/library/lib/DataModelBindings.so $(BIOGEARS_ROOT)/library/lib/CommonDataModel.so $(BIOGEARS_ROOT)/library/lib/liblog4cpp.so -l"amm_types$(LIBSUFFIX)" -lpthread 
-OBJS          = .obj$(CFG)/CheckStatus$(OBJEXT) .obj$(CFG)/DDSEntityManager$(OBJEXT) .obj$(CFG)/BioGearsWrapper$(OBJEXT) .obj$(CFG)/PhysiologyManager$(OBJEXT)
-SRC           =  ../src/AMM/CheckStatus.cpp ../src/AMM/DDSEntityManager.cpp ../src/AMM/BioGearsWrapper.cpp ../src/PhysiologyManager.cpp
+LDLIBS        = -ldcpssacpp -lddskernel -ldl -Wl,-rpath,$(BIOGEARS_ROOT)/library/lib $(BIOGEARS_ROOT)/library/lib/libxerces-c.so $(BIOGEARS_ROOT)/library/lib/BioGearsEngine.so $(BIOGEARS_ROOT)/library/lib/DataModelBindings.so $(BIOGEARS_ROOT)/library/lib/CommonDataModel.so $(BIOGEARS_ROOT)/library/lib/liblog4cpp.so -l"amm_types$(LIBSUFFIX)" -lpthread 
+OBJS          = .obj$(CFG)/CheckStatus$(OBJEXT) .obj$(CFG)/DDSEntityManager$(OBJEXT) .obj$(CFG)/BioGearsWrapper$(OBJEXT) .obj$(CFG)/TickDataListener$(OBJEXT) .obj$(CFG)/PhysiologyManager$(OBJEXT)
+SRC           =  ../src/AMM/CheckStatus.cpp ../src/AMM/DDSEntityManager.cpp ../src/AMM/BioGearsWrapper.cpp ../src/AMM/TickDataListener.cpp ../src/PhysiologyManager.cpp
 LINK.cc       = $(LD) $(LDFLAGS)
 EXPORTFLAGS   = 
 
@@ -55,6 +55,10 @@ generated: $(GENERATED_DIRTY)
 	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
 	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/PhysiologyManager.cpp
 
+.obj$(CFG)/TickDataListener$(OBJEXT): ../src/AMM/TickDataListener.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/TickDataListener.cpp
+	
 .obj$(CFG)/BioGearsWrapper$(OBJEXT): ../src/AMM/BioGearsWrapper.cpp
 	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
 	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/BioGearsWrapper.cpp

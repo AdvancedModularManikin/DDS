@@ -10,12 +10,12 @@ SimulationManager::SimulationManager() :
 		m_thread() {
 
 	char partition_name[] = "AMM";
-	char topic_name[] = "Tick";
+	char tick_topic_name[] = "Tick";
 
 	mgr.createParticipant(partition_name);
 	TickTypeSupport_var tt = new TickTypeSupport();
 	mgr.registerType(tt.in());
-	mgr.createTopic(topic_name);
+	mgr.createTopic(tick_topic_name);
 
 	//create Publisher
 	mgr.createPublisher();

@@ -4,9 +4,11 @@
 
 #include "AMM/DDSEntityManager.h"
 #include "AMM/BioGearsWrapper.h"
+#include "AMM/TickDataListener.h"
 
 using namespace DDS;
 using namespace AMM::Physiology;
+using namespace AMM::Simulation;
 
 int main(int argc, char *argv[]) {
 	char configFile[] = "OSPL_URI=file://ospl.xml";
@@ -14,6 +16,11 @@ int main(int argc, char *argv[]) {
 
 	bool closed = false;
 	int action;
+
+	Duration_t timeout = { 0, 200000000 };
+
+	TickSeq tickList;
+	SampleInfoSeq infoSeq;
 
 	cout << "=== [PhysiologyManager] Starting up." << endl;
 
@@ -30,9 +37,15 @@ int main(int argc, char *argv[]) {
 	DataTypeSupport_var mt = new DataTypeSupport();
 	mgr.registerType(mt.in());
 
+	TickTypeSupport_var st = new TickTypeSupport();
+	mgr.registerType(st.in());
+
 	//create Topic
-	char topic_name[] = "Data";
-	mgr.createTopic(topic_name);
+	char data_topic_name[] = "Data";
+	mgr.createTopic(data_topic_name);
+
+	char tick_topic_name[] = "Tick";
+	mgr.createTopic(tick_topic_name);
 
 	//create Publisher
 	mgr.createPublisher();
@@ -45,6 +58,18 @@ int main(int argc, char *argv[]) {
 	DataDataWriter_var LifecycleWriter_stopper = DataDataWriter::_narrow(
 			dwriter_stopper.in());
 
+	// Create readers
+	DataReader_var dreader = mgr.getReader();
+	TickDataListener *tickListener = new TickDataListener();
+	tickListener->m_TickReader = TickDataReader::_narrow(dreader.in());
+	checkHandle(tickListener->m_TickReader.in(), "TickDataReader::_narrow");
+
+	cout << "=== [ListenerDataSubscriber] set_listener" << endl;
+	DDS::StatusMask mask = DDS::DATA_AVAILABLE_STATUS
+			| DDS::REQUESTED_DEADLINE_MISSED_STATUS;
+	tickListener->m_TickReader->set_listener(tickListener, mask);
+	tickListener->m_closed = false;
+
 	// Create BioGears
 	cout << "=== [PhysiologyManager] Spinning up BioGears thread..." << endl;
 	BioGearsWrapper bg("wrapper.log");
@@ -53,6 +78,8 @@ int main(int argc, char *argv[]) {
 
 	cout << "=== [PhysiologyManager] Ready and waiting..." << endl;
 	ReturnCode_t status;
+
+	Data *dataInstance = new Data();
 
 	do {
 		cout
@@ -72,21 +99,25 @@ int main(int argc, char *argv[]) {
 			bg.StopSimulation();
 		} else if (action == 5) {
 			cout << "== Run based on Simulation Manager ticks..." << endl;
+			DDS::WaitSet_var ws = new DDS::WaitSet();
+			ws->attach_condition(tickListener->m_guardCond);
+			DDS::ConditionSeq condSeq;
+			while (!tickListener->m_closed) {
+				ws->wait(condSeq, timeout);
+				tickListener->m_guardCond->set_trigger_value(false);
+			}
 		} else if (action == 6) {
 			cout << "== Outputting ECG..." << endl;
-			Data *dataInstance = bg.GetNodePath("ECG");
+			dataInstance = bg.GetNodePath("ECG");
 			status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
 			status = LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
 			checkStatus(status, "DataDataWriter::write");
-			delete dataInstance;
 
 			cout << "== Outputting HR..." << endl;
-			Data *dataInstance = bg.GetNodePath("HR");
+			dataInstance = bg.GetNodePath("HR");
 			status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
 			status = LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
 			checkStatus(status, "DataDataWriter::write");
-			delete dataInstance;
-
 		} else if (action == 7) {
 			closed = true;
 		} else {
@@ -95,11 +126,10 @@ int main(int argc, char *argv[]) {
 	} while (!closed);
 
 	cout << "=== [PhysiologyManager] Sending -1 values to all topics." << endl;
-	Data *dataInstance = bg.GetNodePath("EXIT");
+	dataInstance = bg.GetNodePath("EXIT");
 	status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
 	status = LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
 	checkStatus(status, "DataDataWriter::write");
-	delete dataInstance;
 
 	cout << "=== [PhysiologyManager] Shutting down data writers." << endl;
 	mgr.deleteWriter(LifecycleWriter_stopper.in());
