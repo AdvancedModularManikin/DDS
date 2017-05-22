@@ -100,7 +100,7 @@ public:
 	void AdvanceTimeTick();
 	void AdvanceModelTime(double sec);
 
-	AMM::Physiology::Data GetNodePath(const std::string& nodePath);
+	AMM::Physiology::Data* GetNodePath(const std::string& nodePath);
 	void Status();
 
 	// Physiology accessors

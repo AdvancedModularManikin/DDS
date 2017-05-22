@@ -59,52 +59,59 @@ int main(int argc, char *argv[]) {
 				<< " [1]Status, [2]Advance Time Tick, [3]Start, [4]Stop, [5]Run, [6]Publish data, [7]Quit "
 				<< endl;
 		cin >> action;
-		switch (action) {
-		case 1:
+		if (action == 1) {
 			bg.Status();
-			break;
-		case 2:
+		} else if (action == 2) {
 			cout << "== Advancing time one tick" << endl;
 			bg.AdvanceTimeTick();
-			break;
-		case 3:
+		} else if (action == 3) {
 			cout << "== Starting simulation..." << endl;
 			bg.StartSimulation();
-			break;
-		case 4:
+		} else if (action == 4) {
 			cout << "== Stopping simulation..." << endl;
 			bg.StopSimulation();
-			break;
-		case 5:
+		} else if (action == 5) {
 			cout << "== Run based on Simulation Manager ticks..." << endl;
-			break;
-		case 6:
+		} else if (action == 6) {
 			cout << "== Outputting ECG..." << endl;
-			Data *dataInstance = new Data();
-			dataInstance->node_path = "ECG";
-			dataInstance->unit = "mV";
-			dataInstance->dbl = 123.4;
+			Data *dataInstance = bg.GetNodePath("ECG");
 			status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
 			status = LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
 			checkStatus(status, "DataDataWriter::write");
 			delete dataInstance;
 
-			/*cout << "== Outputting HR..." << endl;
+			cout << "== Outputting HR..." << endl;
 			Data *dataInstance = bg.GetNodePath("HR");
 			status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
 			status = LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
-			delete dataInstance;*/
-			break;
-		case 7:
-			closed = true;
-			break;
-		}
+			checkStatus(status, "DataDataWriter::write");
+			delete dataInstance;
 
+		} else if (action == 7) {
+			closed = true;
+		} else {
+
+		}
 	} while (!closed);
 
 	cout << "=== [PhysiologyManager] Sending -1 values to all topics." << endl;
+	Data *dataInstance = bg.GetNodePath("EXIT");
+	status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
+	status = LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
+	checkStatus(status, "DataDataWriter::write");
+	delete dataInstance;
 
 	cout << "=== [PhysiologyManager] Shutting down data writers." << endl;
+	mgr.deleteWriter(LifecycleWriter_stopper.in());
+
+	/* Remove the Publisher. */
+	mgr.deletePublisher();
+
+	/* Remove the Topics. */
+	mgr.deleteTopic();
+
+	mgr.deleteParticipant();
+
 	cout << "=== [PhysiologyManager] Data channel closed." << endl;
 
 	cout << "=== [PhysiologyManager] Shutting down BioGears." << endl;
