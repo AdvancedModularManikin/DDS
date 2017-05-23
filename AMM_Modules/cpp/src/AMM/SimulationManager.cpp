@@ -27,23 +27,31 @@ SimulationManager::SimulationManager() :
 	dwriter = mgr.getWriter();
 	TickWriter = TickDataWriter::_narrow(dwriter.in());
 
+	pauseTick.frame = -2;
+	shutdownTick.frame = -1;
+
 	m_runThread = false;
 
 }
 
 SimulationManager::~SimulationManager() {
-	m_runThread = false;
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+
 }
 
 void SimulationManager::StartSimulation() {
-	m_runThread = true;
-	m_thread = std::thread(&SimulationManager::TickLoop, this);
+	if (!m_runThread) {
+		m_runThread = true;
+		m_thread = std::thread(&SimulationManager::TickLoop, this);
+	}
 }
 
 void SimulationManager::StopSimulation() {
-	m_runThread = false;
-	m_thread.detach();
+	if (m_runThread) {
+		m_runThread = false;
+		ReturnCode_t status = TickWriter->write(pauseTick, DDS::HANDLE_NIL);
+		checkStatus(status, "TickDataWriter::write");
+		m_thread.detach();
+	}
 }
 
 int SimulationManager::GetTickCount() {
@@ -56,7 +64,8 @@ bool SimulationManager::isRunning() {
 
 void SimulationManager::TickLoop() {
 
-	using frames = duration<int64_t, ratio<1, 50>>; // 50hz
+	using frames = duration<int64_t, ratio<1, 50>>;
+	// 50hz
 	auto nextFrame = system_clock::now();
 	auto lastFrame = nextFrame - frames { 1 };
 
@@ -72,26 +81,26 @@ void SimulationManager::TickLoop() {
 	}
 }
 
-void SimulationManager::Shutdown() {
-		m_runThread = false;
-		m_thread.detach();
-
-		std::this_thread::sleep_for(std::chrono::seconds(2));
-
-		m_thread.~thread();
-		std::terminate();
-}
-
 void SimulationManager::Cleanup() {
 	/* Remove the DataWriters */
-	mgr.deleteWriter(dwriter);
+	mgr.deleteWriter(dwriter.in());
 
 	/* Remove the Publisher. */
 	mgr.deletePublisher();
 
-	/* Remove the Topics. */
-	mgr.deleteTopic();
-
-	/* Remove Participant. */
-	mgr.deleteParticipant();
 }
+
+void SimulationManager::Shutdown() {
+	if (m_runThread) {
+		m_runThread = false;
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+
+		ReturnCode_t status = TickWriter->write(shutdownTick, DDS::HANDLE_NIL);
+		checkStatus(status, "TickDataWriter::write");
+		m_thread.detach();
+	}
+
+	m_thread.~thread();
+	std::terminate();
+}
+

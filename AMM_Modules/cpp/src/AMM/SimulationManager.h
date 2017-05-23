@@ -38,5 +38,7 @@ protected:
 	TickDataWriter_var TickWriter;
 	int tickCount = 0;
 	Tick tick;
+	Tick pauseTick;
+	Tick shutdownTick;
 };
 

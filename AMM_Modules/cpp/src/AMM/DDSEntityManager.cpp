@@ -164,15 +164,29 @@ void DDSEntityManager::createReader(bool filtered)
 {
   if (!filtered)
   {
-    reader = subscriber->create_datareader(topic.in(),
-      DATAREADER_QOS_USE_TOPIC_QOS, NULL, STATUS_MASK_NONE);
-    checkHandle(reader, "DDS::Subscriber::create_datareader ()");
+	  status = subscriber->get_default_datareader_qos(dr_qos);
+	    checkStatus(status, "DDS::Subscriber::get_default_datareader_qos");
+	    status = subscriber->copy_from_topic_qos(dr_qos, reliable_topic_qos);
+	    checkStatus(status, "DDS::Subscriber::copy_from_topic_qos");
+	    // DeadlineQoSPolicy : period used to trigger
+	    // dr_qos.deadline.period.nanosec = 0;
+	    // dr_qos.deadline.period.sec = 1;
+	    reader = subscriber->create_datareader(topic.in(),
+	    dr_qos, NULL, STATUS_MASK_NONE);
+	    checkHandle(reader, "DDS::Subscriber::create_datareader ()");
   }
   else
   {
-    reader = subscriber->create_datareader(filteredTopic.in(),
-      DATAREADER_QOS_USE_TOPIC_QOS, NULL, STATUS_MASK_NONE);
-    checkHandle(reader, "DDS::Subscriber::create_datareader ()");
+	  status = subscriber->get_default_datareader_qos(dr_qos);
+	    checkStatus(status, "DDS::Subscriber::get_default_datareader_qos");
+	    status = subscriber->copy_from_topic_qos(dr_qos, reliable_topic_qos);
+	    checkStatus(status, "DDS::Subscriber::copy_from_topic_qos");
+	    // DeadlineQoSPolicy : period used to trigger
+	    // dr_qos.deadline.period.nanosec = 0;
+	    // dr_qos.deadline.period.sec = 1;
+	    reader = subscriber->create_datareader(filteredTopic.in(),
+	    dr_qos, NULL, STATUS_MASK_NONE);
+	    checkHandle(reader, "DDS::Subscriber::create_datareader ()");
   }
 }
 
@@ -182,10 +196,14 @@ void DDSEntityManager::createReader()
   checkStatus(status, "DDS::Subscriber::get_default_datareader_qos");
   status = subscriber->copy_from_topic_qos(dr_qos, reliable_topic_qos);
   checkStatus(status, "DDS::Subscriber::copy_from_topic_qos");
-  reader = subscriber->create_datareader(topic.in(), dr_qos, NULL,
-    STATUS_MASK_NONE);
+  // DeadlineQoSPolicy : period used to trigger
+  // dr_qos.deadline.period.nanosec = 0;
+  // dr_qos.deadline.period.sec = 1;
+  reader = subscriber->create_datareader(topic.in(),
+  dr_qos, NULL, STATUS_MASK_NONE);
   checkHandle(reader, "DDS::Subscriber::create_datareader ()");
 }
+
 
 void DDSEntityManager::deleteReader(DDS::DataReader_ptr dataReader)
 {
