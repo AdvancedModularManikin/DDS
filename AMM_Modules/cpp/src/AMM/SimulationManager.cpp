@@ -48,8 +48,8 @@ void SimulationManager::StartSimulation() {
 void SimulationManager::StopSimulation() {
 	if (m_runThread) {
 		m_runThread = false;
-		ReturnCode_t status = TickWriter->write(pauseTick, DDS::HANDLE_NIL);
-		checkStatus(status, "TickDataWriter::write");
+		// ReturnCode_t status = TickWriter->write(pauseTick, DDS::HANDLE_NIL);
+		// checkStatus(status, "TickDataWriter::write");
 		m_thread.detach();
 	}
 }
