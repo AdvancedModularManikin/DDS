@@ -5,18 +5,36 @@
 using namespace DDS;
 using namespace AMM::Physiology;
 
+static void show_usage(std::string name) {
+	cerr << "Usage: " << name << " <option(s)> node_paths" << "\nOptions:\n"
+			<< "\t-h,--help\t\tShow this help message\n" << endl;
+	cerr << "Example: " << name << " ECG HR " << endl;
+}
+
 int main(int argc, char *argv[]) {
 	char configFile[] = "OSPL_URI=file://ospl.xml";
 	putenv(configFile);
 
+	std::vector<std::string> node_paths;
 	const char* nodePath = "";
 
-	if (argc > 1) {
-		 nodePath = argv[1];
-	} else {
-		cerr << "*** [AMM] Subscription node path not specified." << endl;
-		cerr << "*** usage : ./amm_virtual_equipment <node_path>" << endl;
-		return -1;
+	if (argc < 1) {
+		show_usage(argv[0]);
+		return 1;
+	}
+
+	for (int i = 1; i < argc; ++i) {
+		std::string arg = argv[i];
+		if ((arg == "-h") || (arg == "--help")) {
+			show_usage(argv[0]);
+			return 0;
+		} else {
+			if (argc == 1) {
+				nodePath = argv[i];
+			} else {
+				node_paths.push_back(argv[i]);
+			}
+		}
 	}
 
 	/* DDS entity manager */
@@ -50,6 +68,7 @@ int main(int argc, char *argv[]) {
 	mgr.createSubscriber();
 
 	// create subscription filter
+
 	snprintf(buf, MAX_MSG_LEN, "node_path = '%s'", nodePath);
 	DDS::String_var sFilter = DDS::string_dup(buf);
 	sSeqExpr.length(0);

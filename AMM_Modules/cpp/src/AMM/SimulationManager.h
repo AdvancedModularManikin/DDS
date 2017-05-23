@@ -21,6 +21,9 @@ public:
 	void StopSimulation();
 	void Shutdown();
 
+	void SetSampleRate(int rate);
+	int GetSampleRate();
+
 	bool isRunning();
 
 	int GetTickCount();
@@ -37,6 +40,7 @@ protected:
 	DataWriter_var dwriter;
 	TickDataWriter_var TickWriter;
 	int tickCount = 0;
+	int sampleRate = 50;
 	Tick tick;
 	Tick pauseTick;
 	Tick shutdownTick;

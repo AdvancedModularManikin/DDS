@@ -10,9 +10,22 @@ using namespace DDS;
 using namespace AMM::Physiology;
 using namespace AMM::Simulation;
 
+static void show_usage(std::string name) {
+	cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n"
+			<< "\t-h,--help\t\tShow this help message\n" << endl;
+}
+
 int main(int argc, char *argv[]) {
 	char configFile[] = "OSPL_URI=file://ospl.xml";
 	putenv(configFile);
+
+	for (int i = 1; i < argc; ++i) {
+		std::string arg = argv[i];
+		if ((arg == "-h") || (arg == "--help")) {
+			show_usage(argv[0]);
+			return 0;
+		}
+	}
 
 	bool closed = false;
 	bool paused = false;

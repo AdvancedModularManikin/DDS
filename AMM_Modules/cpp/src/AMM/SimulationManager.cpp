@@ -62,10 +62,16 @@ bool SimulationManager::isRunning() {
 	return m_runThread;
 }
 
-void SimulationManager::TickLoop() {
+void SimulationManager::SetSampleRate(int rate) {
+	sampleRate = rate;
+}
 
-	using frames = duration<int64_t, ratio<1, 50>>;
-	// 50hz
+int SimulationManager::GetSampleRate() {
+	return sampleRate;
+}
+
+void SimulationManager::TickLoop() {
+	using frames = duration<int64_t, ratio<1, 50>>;    // 50hz
 	auto nextFrame = system_clock::now();
 	auto lastFrame = nextFrame - frames { 1 };
 
