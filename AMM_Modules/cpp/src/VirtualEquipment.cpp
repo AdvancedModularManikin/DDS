@@ -6,7 +6,7 @@ using namespace DDS;
 using namespace AMM::Physiology;
 
 static void show_usage(std::string name) {
-	cerr << "Usage: " << name << " <option(s)> node_paths" << "\nOptions:\n"
+	cerr << "Usage: " << name << " <option(s)> node_path node_path ..." << "\nOptions:\n"
 			<< "\t-h,--help\t\tShow this help message\n" << endl;
 	cerr << "Example: " << name << " ECG HR " << endl;
 }
@@ -16,7 +16,6 @@ int main(int argc, char *argv[]) {
 	putenv(configFile);
 
 	std::vector<std::string> node_paths;
-	const char* nodePath = "";
 
 	if (argc < 1) {
 		show_usage(argv[0]);
@@ -29,11 +28,7 @@ int main(int argc, char *argv[]) {
 			show_usage(argv[0]);
 			return 0;
 		} else {
-			if (argc == 1) {
-				nodePath = argv[i];
-			} else {
-				node_paths.push_back(argv[i]);
-			}
+			node_paths.push_back(arg);
 		}
 	}
 
@@ -68,11 +63,20 @@ int main(int argc, char *argv[]) {
 	mgr.createSubscriber();
 
 	// create subscription filter
-
-	snprintf(buf, MAX_MSG_LEN, "node_path = '%s'", nodePath);
+	ostringstream filterString;
+	bool first = true;
+	for (std::string np : node_paths) {
+		if (first) {
+			filterString << "node_path = '" << np << "'";
+			first = false;
+		} else {
+			filterString << " OR node_path = '" << np << "'";
+		}
+	}
+	const char* nodePath = filterString.str().c_str();
+	snprintf(buf, MAX_MSG_LEN, nodePath);
 	DDS::String_var sFilter = DDS::string_dup(buf);
 	sSeqExpr.length(0);
-
 	cout << "=== [VirtualEquipment] Subscription filter : " << sFilter << endl;
 
 	// create topic
