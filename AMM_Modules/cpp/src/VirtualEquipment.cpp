@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
 
 	std::vector<std::string> node_paths;
 
-	if (argc < 1) {
+	if (argc <= 1) {
 		show_usage(argv[0]);
 		return 1;
 	}
@@ -73,10 +73,12 @@ int main(int argc, char *argv[]) {
 			filterString << " OR node_path = '" << np << "'";
 		}
 	}
-	const char* nodePath = filterString.str().c_str();
+	std::string	fString = filterString.str();
+	const char* nodePath = fString.c_str();
 	snprintf(buf, MAX_MSG_LEN, nodePath);
 	DDS::String_var sFilter = DDS::string_dup(buf);
 	sSeqExpr.length(0);
+
 	cout << "=== [VirtualEquipment] Subscription filter : " << sFilter << endl;
 
 	// create topic
