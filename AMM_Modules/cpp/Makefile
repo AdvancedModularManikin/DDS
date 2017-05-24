@@ -27,3 +27,4 @@ project_name_list:
 	@echo amm_virtual_equipment
 	@echo amm_physiology_manager
 	@echo amm_types
+
