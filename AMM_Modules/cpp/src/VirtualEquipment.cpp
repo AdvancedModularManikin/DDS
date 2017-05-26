@@ -6,8 +6,9 @@ using namespace DDS;
 using namespace AMM::Physiology;
 
 static void show_usage(std::string name) {
-	cerr << "Usage: " << name << " <option(s)> node_path node_path ..." << "\nOptions:\n"
-			<< "\t-h,--help\t\tShow this help message\n" << endl;
+	cerr << "Usage: " << name << " <option(s)> node_path node_path ..."
+			<< "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
+			<< endl;
 	cerr << "Example: " << name << " ECG HR " << endl;
 }
 
@@ -34,7 +35,7 @@ int main(int argc, char *argv[]) {
 
 	/* DDS entity manager */
 	DDSEntityManager mgr;
-	DataSeq msgList;
+	NodeSeq msgList;
 	SampleInfoSeq infoSeq;
 
 	/** Initialization data **/
@@ -53,7 +54,8 @@ int main(int argc, char *argv[]) {
 	mgr.createParticipant(partitionName);
 
 	//create type
-	DataTypeSupport_var dt = new DataTypeSupport();
+
+	NodeTypeSupport_var dt = new NodeTypeSupport();
 	mgr.registerType(dt.in());
 
 	//create Topic
@@ -67,13 +69,13 @@ int main(int argc, char *argv[]) {
 	bool first = true;
 	for (std::string np : node_paths) {
 		if (first) {
-			filterString << "node_path = '" << np << "'";
+			filterString << "nodepath = '" << np << "'";
 			first = false;
 		} else {
-			filterString << " OR node_path = '" << np << "'";
+			filterString << " OR nodepath = '" << np << "'";
 		}
 	}
-	std::string	fString = filterString.str();
+	std::string fString = filterString.str();
 	const char* nodePath = fString.c_str();
 	snprintf(buf, MAX_MSG_LEN, nodePath);
 	DDS::String_var sFilter = DDS::string_dup(buf);
@@ -85,10 +87,12 @@ int main(int argc, char *argv[]) {
 	mgr.createContentFilteredTopic(sTopicName, sFilter.in(), sSeqExpr);
 	// create Filtered DataReader
 	mgr.createReader(true);
+
 	DataReader_var dreader = mgr.getReader();
-	DataDataReader_var PhysiologyDataReader = DataDataReader::_narrow(
+	NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(
 			dreader.in());
-	checkHandle(PhysiologyDataReader.in(), "DataDataReader::_narrow");
+
+	checkHandle(PhysiologyDataReader.in(), "NodeDataReader::_narrow");
 
 	cout << "=== [VirtualEquipment] Ready ..." << endl;
 
@@ -104,7 +108,8 @@ int main(int argc, char *argv[]) {
 				}
 			}
 			cout << "=== [VirtualEquipment] Received data :  ("
-					<< msgList[i].node_path << ", " << msgList[i].dbl << ')'
+					<< msgList[i].nodepath << ", " << msgList[i].dbl << ')'
+					<< "\t\t\t[frame: " << msgList[i].frame << "]"
 					<< endl;
 		}
 

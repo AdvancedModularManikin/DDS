@@ -10,22 +10,80 @@ module AMM {
   
   module Physiology {	
        
-    struct Data {
-      string node_path; //@key
+    struct Node {
+	  long long frame; //@key
+      string nodepath; 
       string unit;
       double dbl;
       string str;
     };
-    #pragma keylist Data node_path
+    #pragma keylist Node frame
     
-    struct HighFrequencyData {
-      string node_path;  //@key
+    struct HighFrequencyNode {
+	  long long frame; //@key
+      string nodepath;  
       string unit;
       double dbl;
       string str;
     };
-    #pragma keylist HighFrequencyData node_path
+    #pragma keylist HighFrequencyNode frame
     
   };
+  
+  module PatientAction {
+  
+	module BioGears {	
+		struct Command {
+			string message;
+		};
+		#pragma keylist Command message				
+	};
+  };    
+  
+  
+  module Performance {	
+	struct xAPIModifier {
+		string key;
+		string value;
+	};
+	#pragma keylist xAPIModifier key
+	
+	typedef sequence<xAPIModifier> xAPI_Modifiers;
+	
+    struct Statement {
+      string noun;   // @key
+	  xAPI_Modifiers noun_modifiers;
+      string verb;
+	  xAPI_Modifiers verb_modifiers;
+      string obj;
+	  xAPI_Modifiers obj_modifiers;
+    };
+    #pragma keylist Statement noun
+  };
+  
+  module Sys {
+    // events?  start?  stop?  pause?  restart?  reload?
+    // heartbeat?  errors?  general health?
+    
+    // This will NOT be in the spec
+    module Log {
+      struct info {
+		string message;
+      };      
+      
+      struct warning {
+		string message;
+      };
+      
+      struct error {
+		string message;
+      };
+      
+      struct debug {
+		string message;
+      };     
+    };
+  };
+  
 };
 

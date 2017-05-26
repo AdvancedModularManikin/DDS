@@ -18,6 +18,7 @@ CCC           = $(CXX)
 MAKEFILE      = Makefile.amm_sim_manager
 DEPENDENCIES  = $(MAKEFILE)
 BTARGETDIR    = ../../bin/
+LDFLAGS       = -L"." -L"$(BTARGETDIR)" -L"$(OSPL_HOME)/lib" -Wl,-rpath,$(BIOGEARS_ROOT)/library/lib
 BIN           = $(BTARGETDIR)amm_sim_manager$(EXESUFFIX)$(EXEEXT)
 CAT           = cat
 MV            = mv -f

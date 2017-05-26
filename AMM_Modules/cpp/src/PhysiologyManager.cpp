@@ -60,18 +60,18 @@ int main(int argc, char *argv[]) {
 			<< endl;
 	DDSEntityManager mgr(autodispose_unregistered_instances);
 	mgr.createParticipant(partition_name);
-	DataTypeSupport_var mt = new DataTypeSupport();
+	NodeTypeSupport_var mt = new NodeTypeSupport();
 	mgr.registerType(mt.in());
 	char data_topic_name[] = "Data";
 	mgr.createTopic(data_topic_name);
 	mgr.createPublisher();
 	mgr.createWriters();
 	DataWriter_var dwriter = mgr.getWriter();
-	DataDataWriter_var LifecycleWriter = DataDataWriter::_narrow(dwriter.in());
+	NodeDataWriter_var LifecycleWriter = NodeDataWriter::_narrow(dwriter.in());
 	DataWriter_var dwriter_stopper = mgr.getWriter_stopper();
-	DataDataWriter_var LifecycleWriter_stopper = DataDataWriter::_narrow(
+	NodeDataWriter_var LifecycleWriter_stopper = NodeDataWriter::_narrow(
 			dwriter_stopper.in());
-	Data *dataInstance = new Data();
+	Node *dataInstance = new Node();
 
 	/**
 	 * Tick DDS Entity Manager
@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 								DDS::HANDLE_NIL);
 						status = LifecycleWriter->dispose(*dataInstance,
 								DDS::HANDLE_NIL);
-						checkStatus(status, "DataDataWriter::write");
+						checkStatus(status, "NodeDataWriter::write");
 					} else if (tickList[j].frame == -2) {
 						// Pause signal
 						cout << "[PAUSE]";
@@ -169,11 +169,12 @@ int main(int argc, char *argv[]) {
 						bg.AdvanceTimeTick();
 						for (auto np : node_path_subscriptions) {
 							dataInstance = bg.GetNodePath(np);
+							dataInstance->frame = lastFrame;
 							status = LifecycleWriter->write(*dataInstance,
 									DDS::HANDLE_NIL);
 							status = LifecycleWriter->dispose(*dataInstance,
 									DDS::HANDLE_NIL);
-							checkStatus(status, "DataDataWriter::write");
+							checkStatus(status, "NodeDataWriter::write");
 						}
 					}
 				}
@@ -188,7 +189,7 @@ int main(int argc, char *argv[]) {
 				status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
 				status = LifecycleWriter->dispose(*dataInstance,
 						DDS::HANDLE_NIL);
-				checkStatus(status, "DataDataWriter::write");
+				checkStatus(status, "NodeDataWriter::write");
 			}
 
 		} else if (action == 7) {
@@ -202,7 +203,7 @@ int main(int argc, char *argv[]) {
 	dataInstance = bg.GetNodePath("EXIT");
 	status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
 	status = LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
-	checkStatus(status, "DataDataWriter::write");
+	checkStatus(status, "NodeDataWriter::write");
 
 	cout << "=== [PhysiologyManager][DDS] Shutting down DDS Connections."
 			<< endl;

@@ -18,6 +18,7 @@ CCC           = $(CXX)
 MAKEFILE      = Makefile.amm_virtual_equipment
 DEPENDENCIES  = $(MAKEFILE)
 BTARGETDIR    = ../../bin/
+LDFLAGS       = -L"." -L"$(BTARGETDIR)" -L"$(OSPL_HOME)/lib" -Wl,-rpath,$(BIOGEARS_ROOT)/library/lib
 BIN           = $(BTARGETDIR)amm_virtual_equipment$(EXESUFFIX)$(EXEEXT)
 CAT           = cat
 MV            = mv -f

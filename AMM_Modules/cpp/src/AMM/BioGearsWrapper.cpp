@@ -395,25 +395,25 @@ double BioGearsWrapper::GetRightAlveoliBaselineCompliance() {
 	return rightLung->GetVolume(VolumeUnit::mL);
 }
 
-AMM::Physiology::Data* BioGearsWrapper::GetNodePath(
+AMM::Physiology::Node* BioGearsWrapper::GetNodePath(
 		const std::string& nodePath) {
 
-	AMM::Physiology::Data* outputData = new AMM::Physiology::Data();
+	AMM::Physiology::Node* outputData = new AMM::Physiology::Node();
 
 	if (nodePath == "ECG") {
-		outputData->node_path = "ECG";
+		outputData->nodepath = "ECG";
 		outputData->unit = "mV";
 		outputData->dbl = GetECGWaveform();
 	}
 
 	if (nodePath == "HR") {
-		outputData->node_path = "HR";
+		outputData->nodepath = "HR";
 		outputData->unit = "bpm";
 		outputData->dbl = GetHeartRate();
 	}
 
 	if (nodePath == "EXIT") {
-		outputData->node_path = "EXIT";
+		outputData->nodepath = "EXIT";
 		outputData->unit = "-1";
 		outputData->dbl = -1;
 	}
