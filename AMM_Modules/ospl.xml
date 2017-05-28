@@ -19,7 +19,7 @@
    </Domain>
    <DDSI2Service name="ddsi2">
       <General>
-            <NetworkInterfaceAddress>192.168.168.127</NetworkInterfaceAddress>
+            <NetworkInterfaceAddress>AUTO</NetworkInterfaceAddress>
             <UseIPv6>false</UseIPv6>
             <AllowMulticast>true</AllowMulticast>
             <EnableMulticastLoopback>true</EnableMulticastLoopback>
