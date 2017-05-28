@@ -3,12 +3,12 @@
 #include "ccpp_AMM.h"
 
 #include "AMM/DDSEntityManager.h"
-#include "AMM/BioGearsWrapper.h"
-#include "AMM/TickDataListener.h"
+#include "AMM/BioGearsThread.h"
 
 using namespace DDS;
 using namespace AMM::Physiology;
 using namespace AMM::Simulation;
+using namespace AMM::PatientAction::BioGears;
 
 static void show_usage(std::string name) {
 	cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n"
@@ -31,11 +31,15 @@ int main(int argc, char *argv[]) {
 	bool paused = false;
 	int action;
 	char partition_name[] = "AMM";
+	char data_topic_name[] = "Data";
+	char tick_topic_name[] = "Tick";
+	char command_topic_name[] = "Command";
 
 	vector<string> node_path_subscriptions = { "ECG", "HR" };
 
 	Duration_t timeout = { 0, 200000000 };
 	TickSeq tickList;
+	CommandSeq cmdList;
 	SampleInfoSeq infoSeq;
 	bool autodispose_unregistered_instances = true;
 	ReturnCode_t status;
@@ -46,11 +50,8 @@ int main(int argc, char *argv[]) {
 	/**
 	 * BioGears initialization
 	 */
-	cout << "=== [PhysiologyManager][BG] Spinning up BioGears thread..."
-			<< endl;
-	BioGearsWrapper bg("wrapper.log");
-	bg.SetStateFile("./states/StandardMale@0s.xml");
-	bg.InitializeEngine();
+	cout << "=== [PhysiologyManager] Spinning up BioGears thread..." << endl;
+	BioGearsThread bg("biogears.log");
 
 	/**
 	 * Physiology Data DDS Entity manager
@@ -62,7 +63,7 @@ int main(int argc, char *argv[]) {
 	mgr.createParticipant(partition_name);
 	NodeTypeSupport_var mt = new NodeTypeSupport();
 	mgr.registerType(mt.in());
-	char data_topic_name[] = "Data";
+
 	mgr.createTopic(data_topic_name);
 	mgr.createPublisher();
 	mgr.createWriters();
@@ -79,29 +80,34 @@ int main(int argc, char *argv[]) {
 	cout
 			<< "=== [PhysiologyManager][DDS] Initializing DDS entity manager (TICK)."
 			<< endl;
-	DDSEntityManager mgr2(autodispose_unregistered_instances);
-	mgr2.createParticipant(partition_name);
-	TickTypeSupport_var st = new TickTypeSupport();
-	mgr2.registerType(st.in());
-	char tick_topic_name[] = "Tick";
-	mgr2.createTopic(tick_topic_name);
-	mgr2.createSubscriber();
-	mgr2.createReader();
-	DataReader_var dreader = mgr2.getReader();
-	TickDataReader_var TickReader = TickDataReader::_narrow(dreader.in());
+	DDSEntityManager tickMgr(autodispose_unregistered_instances);
+	tickMgr.createParticipant(partition_name);
+	TickTypeSupport_var tt = new TickTypeSupport();
+	tickMgr.registerType(tt.in());
+	tickMgr.createTopic(tick_topic_name);
+	tickMgr.createSubscriber();
+	tickMgr.createReader();
+	DataReader_var tdreader = tickMgr.getReader();
+	TickDataReader_var TickReader = TickDataReader::_narrow(tdreader.in());
 	checkHandle(TickReader.in(), "TickDataReader::_narrow");
 
 	/**
-	 * Listener code:
-	 TickDataListener *tickListener = new TickDataListener();
-	 tickListener->m_TickReader = TickDataReader::_narrow(dreader.in());
-	 checkHandle(tickListener->m_TickReader.in(), "TickDataReader::_narrow");
-
-	 DDS::StatusMask mask = DDS::DATA_AVAILABLE_STATUS
-	 | DDS::REQUESTED_DEADLINE_MISSED_STATUS;
-	 tickListener->m_TickReader->set_listener(tickListener, mask);
-	 tickListener->m_closed = false;
-	 **/
+	 * Command DDS Entity Manager
+	 */
+	cout
+			<< "=== [PhysiologyManager][DDS] Initializing DDS entity manager (COMMAND)."
+			<< endl;
+	DDSEntityManager cmdMgr(autodispose_unregistered_instances);
+	cmdMgr.createParticipant(partition_name);
+	CommandTypeSupport_var ct = new CommandTypeSupport();
+	cmdMgr.registerType(ct.in());
+	cmdMgr.createTopic(command_topic_name);
+	cmdMgr.createSubscriber();
+	cmdMgr.createReader();
+	DataReader_var cdreader = cmdMgr.getReader();
+	CommandDataReader_var CommandReader = CommandDataReader::_narrow(
+			cdreader.in());
+	checkHandle(CommandReader.in(), "CommandDataReader::_narrow");
 
 	cout << "=== [PhysiologyManager] Ready and waiting..." << endl << endl;
 
@@ -119,6 +125,7 @@ int main(int argc, char *argv[]) {
 		} else if (action == 3) {
 			cout << " == Starting simulation..." << endl;
 			bg.StartSimulation();
+
 		} else if (action == 4) {
 			cout << " == Stopping simulation..." << endl;
 			bg.StopSimulation();
@@ -126,17 +133,19 @@ int main(int argc, char *argv[]) {
 			cout
 					<< " == Run based on Simulation Manager ticks (use Sim Manager to pause/stop)";
 			cout.flush();
-			/**
-			 * Testing the listener code --
-			 DDS::WaitSet_var ws = new DDS::WaitSet();
-			 ws->attach_condition(tickListener->m_guardCond);
-			 DDS::ConditionSeq condSeq;
-			 while (!tickListener->m_closed) {
-			 ws->wait(condSeq, timeout);
-			 tickListener->m_guardCond->set_trigger_value(false);
-			 }
-			 **/
 			while (!closed) {
+
+				// Check for a command
+				status = CommandReader->take(cmdList, infoSeq, LENGTH_UNLIMITED,
+						ANY_SAMPLE_STATE, ANY_VIEW_STATE, ANY_INSTANCE_STATE);
+				checkStatus(status, "CommandDataReader::take");
+				for (DDS::ULong j = 0; j < cmdList.length(); j++) {
+					bg.LoadScenarioFile(cmdList[j].message.m_ptr);
+				}
+				status = CommandReader->return_loan(cmdList, infoSeq);
+				checkStatus(status, "CommandDataReader::return_loan");
+
+				// Check for a tick
 				status = TickReader->take(tickList, infoSeq, LENGTH_UNLIMITED,
 						ANY_SAMPLE_STATE, ANY_VIEW_STATE, ANY_INSTANCE_STATE);
 				checkStatus(status, "TickDataReader::take");
@@ -145,7 +154,9 @@ int main(int argc, char *argv[]) {
 						cout << "[SHUTDOWN]";
 						// Shut down signal
 						closed = true;
-						dataInstance = bg.GetNodePath("EXIT");
+						dataInstance->nodepath = DDS::string_dup("EXIT");
+						dataInstance->dbl = -1;
+						dataInstance->frame = lastFrame;
 						status = LifecycleWriter->write(*dataInstance,
 								DDS::HANDLE_NIL);
 						status = LifecycleWriter->dispose(*dataInstance,
@@ -167,8 +178,10 @@ int main(int argc, char *argv[]) {
 
 						// Per-frame stuff happens here
 						bg.AdvanceTimeTick();
-						for (auto np : node_path_subscriptions) {
-							dataInstance = bg.GetNodePath(np);
+						for (string np : node_path_subscriptions) {
+							const char *cnp = np.c_str();
+							dataInstance->nodepath = DDS::string_dup(cnp);
+							dataInstance->dbl = bg.GetNodePath(np);
 							dataInstance->frame = lastFrame;
 							status = LifecycleWriter->write(*dataInstance,
 									DDS::HANDLE_NIL);
@@ -180,12 +193,16 @@ int main(int argc, char *argv[]) {
 				}
 				status = TickReader->return_loan(tickList, infoSeq);
 				checkStatus(status, "TickDataReader::return_loan");
+
 			}
 			cout << endl;
 		} else if (action == 6) {
-			for (auto np : node_path_subscriptions) {
+			for (string np : node_path_subscriptions) {
 				cout << " == Outputting " << np << " ..." << endl;
-				dataInstance = bg.GetNodePath(np);
+				const char *cnp = np.c_str();
+				dataInstance->nodepath = DDS::string_dup(cnp);
+				dataInstance->dbl = bg.GetNodePath(np);
+				dataInstance->frame = lastFrame;
 				status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
 				status = LifecycleWriter->dispose(*dataInstance,
 						DDS::HANDLE_NIL);
@@ -200,7 +217,7 @@ int main(int argc, char *argv[]) {
 	} while (!closed);
 
 	cout << "=== [PhysiologyManager] Sending -1 values to all topics." << endl;
-	dataInstance = bg.GetNodePath("EXIT");
+	dataInstance->dbl = -1;
 	status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
 	status = LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
 	checkStatus(status, "NodeDataWriter::write");
@@ -218,10 +235,10 @@ int main(int argc, char *argv[]) {
 	/**
 	 * Shutdown Tick DDS Entity Manager
 	 */
-	mgr2.deleteReader(TickReader.in());
-	mgr2.deleteSubscriber();
-	mgr2.deleteTopic();
-	mgr2.deleteParticipant();
+	tickMgr.deleteReader(TickReader.in());
+	tickMgr.deleteSubscriber();
+	tickMgr.deleteTopic();
+	tickMgr.deleteParticipant();
 
 	cout << "=== [PhysiologyManager][BG] Shutting down BioGears." << endl;
 	bg.StopSimulation();
