@@ -1,9 +1,9 @@
 #include "BioGearsThread.h"
 
-BioGearsThread::BioGearsThread(const std::string& logfile) :
+BioGearsThread::BioGearsThread(const std::string &logFile) :
 		m_thread() {
 	// Create our engine with the standard patient
-	m_bg = CreateBioGearsEngine(logfile);
+	m_bg = CreateBioGearsEngine(logFile);
 	if (!m_bg->LoadState("./states/StandardMale@0s.xml")) {
 		m_bg->GetLogger()->Error("Could not load state, check the error");
 		return;
@@ -34,7 +34,7 @@ void BioGearsThread::StopSimulation() {
 	m_thread.detach();
 }
 
-bool BioGearsThread::LoadState(std::string stateFile, double sec) {
+bool BioGearsThread::LoadState(const std::string &stateFile, double sec) {
 	SEScalarTime startTime;
 	startTime.SetValue(sec, TimeUnit::s);
 
@@ -47,16 +47,20 @@ bool BioGearsThread::LoadState(std::string stateFile, double sec) {
 	return true;
 }
 
-bool BioGearsThread::SaveState(std::string stateFile) {
+bool BioGearsThread::SaveState(const std::string &stateFile) {
 	m_bg->SaveState(stateFile);
 	return true;
 }
 
+bool BioGearsThread::ExecuteCommand(const std::string &cmd) {
+	return LoadScenarioFile("Actions/" + cmd + ".xml");
+}
+
 // Load a scenario from an XML file, apply conditions and iterate through the actions
 // This bypasses the standard BioGears ExecuteScenario method to avoid resetting the BioGears engine
-bool BioGearsThread::LoadScenarioFile(std::string scenFile) {
+bool BioGearsThread::LoadScenarioFile(const std::string &scenarioFile) {
 	SEScenario sce(m_bg->GetSubstanceManager());
-	sce.LoadFile(scenFile);
+	sce.LoadFile(scenarioFile);
 
 	double dT_s = m_bg->GetTimeStep(TimeUnit::s);
 	double scenarioTime_s;
@@ -111,6 +115,18 @@ void BioGearsThread::AdvanceTimeTick() {
 
 double BioGearsThread::GetSimulationTime() {
 	return m_bg->GetSimulationTime(TimeUnit::s);
+}
+
+double BioGearsThread::GetNodePath(const std::string &nodePath) {
+	if (nodePath == "ECG") {
+		return GetECGWaveform();
+	}
+
+	if (nodePath == "HR") {
+		return GetHeartRate();
+	}
+
+	return 0;
 }
 
 double BioGearsThread::GetHeartRate() {
@@ -382,18 +398,6 @@ double BioGearsThread::GetRightAlveoliBaselineCompliance() {
 			m_bg->GetCompartments().GetGasCompartment(
 			BGE::PulmonaryCompartment::RightAlveoli);
 	return rightLung->GetVolume(VolumeUnit::mL);
-}
-
-double BioGearsThread::GetNodePath(const std::string& nodePath) {
-	if (nodePath == "ECG") {
-		return GetECGWaveform();
-	}
-
-	if (nodePath == "HR") {
-		return GetHeartRate();
-	}
-
-	return 0;
 }
 
 void BioGearsThread::Status() {

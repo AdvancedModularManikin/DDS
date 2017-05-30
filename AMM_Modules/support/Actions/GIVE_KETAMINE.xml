@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>ARM_GIVE_MEDS_SEDATIVE_PARALYTIC_KETAMINE_100MG</Name>
+	<Description>Give patient Ketamine 50 mg</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>
+	<!-- ARM_GIVE_MEDS_SEDATIVE_PARALYTIC_KETAMINE_100MG -->
+	<!-- Give patient Ketamine 100 mg -->
+	<Action xsi:type="SubstanceBolusData" AdminRoute="Intravenous">
+		<Substance>Ketamine</Substance>
+		<Concentration value="1000.0" unit="ug/mL"/>
+		<Dose value="20.0" unit="mL"/>
+	</Action>
+</Scenario>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>GIVE_PROPOFOL</Name>
+	<Description>Give patient Rocuronium 50 mg</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	           	  
+	<!-- GIVE_PROPOFOL -->
+	<!-- Give patient Propofol 100 mg -->
+	<Action xsi:type="SubstanceBolusData" AdminRoute="Intravenous">
+		<Substance>Propofol</Substance>
+		<Concentration value="1000" unit="ug/mL"/>
+		<Dose value="2.5" unit="mL"/>
+	</Action>
+</Scenario>

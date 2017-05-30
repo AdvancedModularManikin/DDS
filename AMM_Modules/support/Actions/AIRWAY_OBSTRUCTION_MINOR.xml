@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>AIRWAY_OBSTRUCTION_MINOR</Name>
+	<Description>Airway Obstruction Severity 0.2</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	           	  
+	<!-- AIRWAY_OBSTRUCTION_MINOR -->  
+	<!-- Airway Obstruction Severity 0.2 -->        
+	<Action xsi:type="AirwayObstructionData">
+		<Severity value="0.2"/>       
+	</Action>  
+</Scenario>

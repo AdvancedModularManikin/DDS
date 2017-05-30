@@ -125,7 +125,6 @@ int main(int argc, char *argv[]) {
 		} else if (action == 3) {
 			cout << " == Starting simulation..." << endl;
 			bg.StartSimulation();
-
 		} else if (action == 4) {
 			cout << " == Stopping simulation..." << endl;
 			bg.StopSimulation();
@@ -140,7 +139,7 @@ int main(int argc, char *argv[]) {
 						ANY_SAMPLE_STATE, ANY_VIEW_STATE, ANY_INSTANCE_STATE);
 				checkStatus(status, "CommandDataReader::take");
 				for (DDS::ULong j = 0; j < cmdList.length(); j++) {
-					bg.LoadScenarioFile(cmdList[j].message.m_ptr);
+					bg.ExecuteCommand(cmdList[j].message.m_ptr);
 				}
 				status = CommandReader->return_loan(cmdList, infoSeq);
 				checkStatus(status, "CommandDataReader::return_loan");
@@ -179,8 +178,7 @@ int main(int argc, char *argv[]) {
 						// Per-frame stuff happens here
 						bg.AdvanceTimeTick();
 						for (string np : node_path_subscriptions) {
-							const char *cnp = np.c_str();
-							dataInstance->nodepath = DDS::string_dup(cnp);
+							dataInstance->nodepath = DDS::string_dup(np.c_str());
 							dataInstance->dbl = bg.GetNodePath(np);
 							dataInstance->frame = lastFrame;
 							status = LifecycleWriter->write(*dataInstance,
@@ -199,8 +197,7 @@ int main(int argc, char *argv[]) {
 		} else if (action == 6) {
 			for (string np : node_path_subscriptions) {
 				cout << " == Outputting " << np << " ..." << endl;
-				const char *cnp = np.c_str();
-				dataInstance->nodepath = DDS::string_dup(cnp);
+				dataInstance->nodepath = DDS::string_dup(np.c_str());
 				dataInstance->dbl = bg.GetNodePath(np);
 				dataInstance->frame = lastFrame;
 				status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);

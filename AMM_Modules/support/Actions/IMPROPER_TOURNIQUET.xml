@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>IMPROPER_TOURNIQUET</Name>
+	<Description>Improper Tourniquet Placement</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	  
+	<!-- IMPROPER_TOURNIQUET -->
+	<!-- Improper Tourniquet Placement -->          
+	<Action xsi:type="HemorrhageData" Compartment="RightLeg">
+		<Comment>Intervention: Bleeding reduced (manual pressure applied)</Comment>
+		<Rate value="50" unit="mL/min"/>
+	</Action>	
+</Scenario>

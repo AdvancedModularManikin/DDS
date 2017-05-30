@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>LEG_INFUSE_FLUIDS_2_L</Name>
+	<Description>Infuse fluids</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	  
+
+	<!-- LEG_INFUSE_FLUIDS_2_L -->
+	<!-- Infuse fluids-->          
+	<Action xsi:type="SubstanceCompoundInfusionData">
+		<SubstanceCompound>Saline</SubstanceCompound>
+		<BagVolume value="1000" unit="mL"/>
+		<Rate value="500" unit="mL/min"/>
+	</Action>
+</Scenario>

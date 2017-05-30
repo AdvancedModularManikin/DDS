@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>OPEN_AIRWAY</Name>
+	<Description>Airway Obstruction Severity 0.0</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	           	  
+	<!-- OPEN_AIRWAY -->  
+	<!-- Airway Obstruction Severity 0.0 -->        
+	<Action xsi:type="AirwayObstructionData">
+		<Severity value="0.0"/>       
+	</Action>  
+</Scenario>

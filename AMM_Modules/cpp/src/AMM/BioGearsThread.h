@@ -71,7 +71,6 @@
 #include "substance/SESubstanceManager.h"
 #include "substance/SESubstance.h"
 
-
 // Forward declare what we will use in our thread
 class SESubstance;
 class SEEnergySystem;
@@ -82,113 +81,65 @@ class PhysiologyEngine;
 
 class BioGearsThread {
 public:
-	BioGearsThread(const std::string& logfile);
+	BioGearsThread(const std::string &logFile);
 	virtual ~BioGearsThread();
-
 	bool InitializeEngine();
-	bool LoadState(std::string stateFile, double sec);
-	bool SaveState(std::string stateFile);
-	bool LoadScenarioFile(std::string scenFile);
-
+	bool LoadState(const std::string &stateFile, double sec);
+	bool SaveState(const std::string &stateFile);
+	bool ExecuteCommand(const std::string &cmd);
 	void Shutdown();
-
 	void StartSimulation();
-
 	void StopSimulation();
-
 	void AdvanceTimeTick();
 	void AdvanceModelTime(double sec);
-
 	double GetSimulationTime();
-	double GetNodePath(const std::string& nodePath);
-
-	// Physiology accessors
-	double GetHeartRate();
-
-	double GetBloodVolume();
-
-	double GetArterialSystolicPressure();
-
-	double GetArterialDiastolicPressure();
-
-	double GetMeanArterialPressure();
-
-	double GetArterialPressure();
-
-	double GetMeanCentralVenousPressure();
-
-	double GetEndTidalCarbonDioxideFraction();
-
-	double GetOxygenSaturation();
-
-	double GetRespirationRate();
-
-	double GetCoreTemperature();
-
-	double GetECGWaveform();
-
-	double GetSodiumConcentration();
-
-	double GetSodium();
-
-	double GetGlucoseConcentration();
-
-	double GetBUN();
-
-	double GetCreatinineConcentration();
-
-	double GetWhiteBloodCellCount();
-
-	double GetRedBloodCellCount();
-
-	double GetHemoglobinConcentration();
-
-	double GetHematocrit();
-
-	double GetBloodPH();
-
-	double GetArterialCarbonDioxidePressure();
-
-	double GetArterialOxygenPressure();
-
-	double GetBicarbonateConcentration();
-
-	double GetBicarbonate();
-
-	double GetBaseExcess();
-
-	double GetCO2();
-
-	bool UpdateMetabolicPanel();
-
-	double GetPotassium();
-
-	double GetChloride();
-
-	bool UpdateCompleteBloodCount();
-
-	double GetPlateletCount();
-
-	double GetExhaledCO2();
-
-	double GetTidalVolume();
-
-	double GetTotalLungVolume();
-
-	double GetLeftLungVolume();
-
-	double GetRightLungVolume();
-
-	double GetLeftPleuralCavityVolume();
-
-	double GetRightPleuralCavityVolume();
-
-	double GetLeftAlveoliBaselineCompliance();
-
-	double GetRightAlveoliBaselineCompliance();
-
+	double GetNodePath(const std::string &nodePath);
 	void Status();
 
+private:
+	bool LoadScenarioFile(const std::string &scenarioFile);
+	bool UpdateMetabolicPanel();
+	bool UpdateCompleteBloodCount();
+	double GetHeartRate();
+	double GetBloodVolume();
+	double GetArterialSystolicPressure();
+	double GetArterialDiastolicPressure();
+	double GetMeanArterialPressure();
+	double GetArterialPressure();
+	double GetMeanCentralVenousPressure();
+	double GetEndTidalCarbonDioxideFraction();
+	double GetOxygenSaturation();
+	double GetRespirationRate();
+	double GetCoreTemperature();
+	double GetECGWaveform();
+	double GetSodiumConcentration();
+	double GetSodium();
+	double GetGlucoseConcentration();
+	double GetBUN();
+	double GetCreatinineConcentration();
+	double GetWhiteBloodCellCount();
+	double GetRedBloodCellCount();
+	double GetHemoglobinConcentration();
+	double GetHematocrit();
+	double GetBloodPH();
+	double GetArterialCarbonDioxidePressure();
+	double GetArterialOxygenPressure();
+	double GetBicarbonateConcentration();
+	double GetBicarbonate();
+	double GetBaseExcess();
+	double GetCO2();
+	double GetPotassium();
+	double GetChloride();
+	double GetPlateletCount();
+	double GetExhaledCO2();
+	double GetTidalVolume();
+	double GetTotalLungVolume();
+	double GetLeftLungVolume();
+	double GetRightLungVolume();
+	double GetLeftPleuralCavityVolume();
+	double GetRightPleuralCavityVolume();
+	double GetLeftAlveoliBaselineCompliance();
+	double GetRightAlveoliBaselineCompliance();
 	Logger* GetLogger() {
 		return m_bg->GetLogger();
 	}
