@@ -4,6 +4,7 @@
 
 #include "AMM/DDSEntityManager.h"
 #include "AMM/BioGearsThread.h"
+#include "AMM/TickDataListener.h"
 
 using namespace DDS;
 using namespace AMM::Physiology;
@@ -29,7 +30,7 @@ int main(int argc, char *argv[]) {
 
 	bool closed = false;
 	bool paused = false;
-	int action;
+	string action = "";
 	char partition_name[] = "AMM";
 	char data_topic_name[] = "Data";
 	char tick_topic_name[] = "Tick";
@@ -109,26 +110,30 @@ int main(int argc, char *argv[]) {
 			cdreader.in());
 	checkHandle(CommandReader.in(), "CommandDataReader::_narrow");
 
+	std::map<std::string, double (BioGearsThread::*)()> nodePathMap =
+			bg.nodePathTable;
+
 	cout << "=== [PhysiologyManager] Ready and waiting..." << endl << endl;
 
 	do {
 		cout
 				<< " [1]Status, [2]Advance Time Tick, [3]Start, [4]Stop, [5]Run, [6]Publish data, [7]Quit "
 				<< endl;
-		cin >> action;
+		getline(cin, action);
+		transform(action.begin(), action.end(), action.begin(), ::toupper);
 
-		if (action == 1) {
+		if (action == "1") {
 			bg.Status();
-		} else if (action == 2) {
+		} else if (action == "2") {
 			cout << " == Advancing time one tick" << endl;
 			bg.AdvanceTimeTick();
-		} else if (action == 3) {
+		} else if (action == "3") {
 			cout << " == Starting simulation..." << endl;
 			bg.StartSimulation();
-		} else if (action == 4) {
+		} else if (action == "4") {
 			cout << " == Stopping simulation..." << endl;
 			bg.StopSimulation();
-		} else if (action == 5) {
+		} else if (action == "5") {
 			cout
 					<< " == Run based on Simulation Manager ticks (use Sim Manager to pause/stop)";
 			cout.flush();
@@ -177,16 +182,24 @@ int main(int argc, char *argv[]) {
 
 						// Per-frame stuff happens here
 						bg.AdvanceTimeTick();
-						for (string np : node_path_subscriptions) {
-							dataInstance->nodepath = DDS::string_dup(np.c_str());
-							dataInstance->dbl = bg.GetNodePath(np);
+
+						std::map<std::string, double (BioGearsThread::*)()>::iterator it =
+								nodePathMap.begin();
+
+						while (it != nodePathMap.end()) {
+							dataInstance->nodepath = DDS::string_dup(
+									it->first.c_str());
+							dataInstance->dbl = bg.GetNodePath(it->first);
 							dataInstance->frame = lastFrame;
+
 							status = LifecycleWriter->write(*dataInstance,
 									DDS::HANDLE_NIL);
 							status = LifecycleWriter->dispose(*dataInstance,
 									DDS::HANDLE_NIL);
 							checkStatus(status, "NodeDataWriter::write");
+							it++;
 						}
+
 					}
 				}
 				status = TickReader->return_loan(tickList, infoSeq);
@@ -194,22 +207,39 @@ int main(int argc, char *argv[]) {
 
 			}
 			cout << endl;
-		} else if (action == 6) {
-			for (string np : node_path_subscriptions) {
-				cout << " == Outputting " << np << " ..." << endl;
-				dataInstance->nodepath = DDS::string_dup(np.c_str());
-				dataInstance->dbl = bg.GetNodePath(np);
+		} else if (action == "6") {
+
+			std::map<std::string, double (BioGearsThread::*)()>::iterator it =
+					nodePathMap.begin();
+			while (it != nodePathMap.end()) {
+				cout << " == Outputting " << it->first << " ..." << endl;
+				dataInstance->nodepath = DDS::string_dup(it->first.c_str());
+				dataInstance->dbl = bg.GetNodePath(it->first);
 				dataInstance->frame = lastFrame;
+
 				status = LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
 				status = LifecycleWriter->dispose(*dataInstance,
 						DDS::HANDLE_NIL);
 				checkStatus(status, "NodeDataWriter::write");
+				it++;
 			}
 
-		} else if (action == 7) {
+		} else if (action == "7") {
 			closed = true;
-		} else {
+		} else if (action == "LIST") {
+			cout << " == Outputting available node path maps." << endl;
 
+			std::map<std::string, double (BioGearsThread::*)()> nodePathMap =
+					bg.nodePathTable;
+
+			std::map<std::string, double (BioGearsThread::*)()>::iterator it =
+					nodePathMap.begin();
+
+			while (it != nodePathMap.end()) {
+				std::string word = it->first;
+				cout << word << endl;
+				it++;
+			}
 		}
 	} while (!closed);
 

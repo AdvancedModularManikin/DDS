@@ -445,6 +445,10 @@ double BioGearsThread::GetRightAlveoliBaselineCompliance() {
 	return rightLung->GetVolume(VolumeUnit::mL);
 }
 
+void BioGearsThread::DisplayNodePaths(const std::string& filter) {
+
+}
+
 void BioGearsThread::Status() {
 	m_bg->GetLogger()->Info("");
 	m_bg->GetLogger()->Info(

@@ -1,6 +1,6 @@
 #include "TickDataListener.h"
-#include "CheckStatus.h"
-#include <sstream>
+
+
 
 using namespace DDS;
 using namespace AMM::Simulation;

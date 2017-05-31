@@ -4,6 +4,7 @@
 #include <sstream>
 #include <iostream>
 #include "ccpp_dds_dcps.h"
+
 #include "CheckStatus.h"
 #include "ccpp_AMM.h"
 

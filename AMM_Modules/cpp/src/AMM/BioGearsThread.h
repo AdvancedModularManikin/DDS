@@ -98,12 +98,12 @@ public:
 	void AdvanceModelTime(double sec);
 	double GetSimulationTime();
 	double GetNodePath(const std::string &nodePath);
-	void PopulateNodePathMap();
+	void DisplayNodePaths(const std::string &filter);
 	void Status();
+	static std::map<std::string, double (BioGearsThread::*)() > nodePathTable;
 
 
 private:
-	static std::map<std::string, double (BioGearsThread::*)() > nodePathTable;
 	bool LoadScenarioFile(const std::string &scenarioFile);
 	double GetHeartRate(void);
 	double GetBloodVolume();
