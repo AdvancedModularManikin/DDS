@@ -4,8 +4,8 @@
 #include <mutex>
 #include <thread>
 
-#include <map>
-#include <functional>
+#include <boost/assign/std/vector.hpp>
+#include <boost/assign/list_of.hpp>
 
 #include "ccpp_AMM.h"
 
@@ -84,8 +84,6 @@ class PhysiologyEngine;
 
 class BioGearsThread {
 
-	typedef double (*func_ptr_t)();
-
 public:
 	BioGearsThread(const std::string &logFile);
 	virtual ~BioGearsThread();
@@ -100,11 +98,13 @@ public:
 	void AdvanceModelTime(double sec);
 	double GetSimulationTime();
 	double GetNodePath(const std::string &nodePath);
+	void PopulateNodePathMap();
 	void Status();
 
+
 private:
+	static std::map<std::string, double (BioGearsThread::*)() > nodePathTable;
 	bool LoadScenarioFile(const std::string &scenarioFile);
-	void PopulateNodePathMap();
 	double GetHeartRate(void);
 	double GetBloodVolume();
 	double GetArterialSystolicPressure();
@@ -148,6 +148,7 @@ private:
 	Logger* GetLogger() {
 		return m_bg->GetLogger();
 	}
+
 
 protected:
 	void AdvanceTime();

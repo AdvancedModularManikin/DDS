@@ -29,7 +29,9 @@
 								</outputEntries>
 							</builder>
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.compiler.1002890390" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
-								<option id="gnu.c.compiler.option.include.paths.1709375064" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false"/>
+								<option id="gnu.c.compiler.option.include.paths.1709375064" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/include/boost"/>
+								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.790278381" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.1338907274" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
@@ -44,6 +46,7 @@
 									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/bind"/>
 									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/Eigen"/>
 									<listOptionValue builtIn="false" value="/media/sf_workspace/Vcom3D/AMM/AMM_Github/AMM_Modules/cpp/standalone"/>
+									<listOptionValue builtIn="false" value="/usr/include/boost"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1055149391" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__GXX_EXPERIMENTAL_CXX0X__"/>
@@ -63,7 +66,9 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.archiver.983678126" name="Cross GCC Archiver" superClass="cdt.managedbuild.tool.gnu.cross.archiver"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.assembler.619023801" name="Cross GCC Assembler" superClass="cdt.managedbuild.tool.gnu.cross.assembler">
-								<option id="gnu.both.asm.option.include.paths.1506318230" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths"/>
+								<option id="gnu.both.asm.option.include.paths.1506318230" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/include/boost"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.587481426" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
