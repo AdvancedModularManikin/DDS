@@ -1,5 +1,7 @@
 #include "BioGearsThread.h"
 
+using namespace std;
+
 BioGearsThread::BioGearsThread(const std::string &logFile) :
 		m_thread() {
 	// Create our engine with the standard patient
@@ -8,6 +10,8 @@ BioGearsThread::BioGearsThread(const std::string &logFile) :
 		m_bg->GetLogger()->Error("Could not load state, check the error");
 		return;
 	}
+
+	PopulateNodePathMap();
 
 	m_runThread = false;
 }
@@ -117,19 +121,95 @@ double BioGearsThread::GetSimulationTime() {
 	return m_bg->GetSimulationTime(TimeUnit::s);
 }
 
-double BioGearsThread::GetNodePath(const std::string &nodePath) {
-	if (nodePath == "ECG") {
-		return GetECGWaveform();
-	}
+void BioGearsThread::PopulateNodePathMap() {
 
-	if (nodePath == "HR") {
-		return GetHeartRate();
-	}
-
-	return 0;
 }
 
-double BioGearsThread::GetHeartRate() {
+double BioGearsThread::GetNodePath(const std::string &nodePath) {
+	// std::unordered_map<std::string, std::function<double(void)>> nodePathMap;
+	// nodePathMap["HR"] = &BioGearsThread::GetHeartRate;
+	/*
+
+
+	 // Old style for testing
+	 {	"ECG", GetECGWaveform},
+	 {	"HR", GetHeartRate},
+
+	 // Cardiovascular System
+	 {	"Cardiovascular_HeartRate", GetHeartRate},
+	 {	"Cardiovascular_BloodVolume", GetBloodVolume},
+	 {	"Cardiovascular_Arterial_Pressure", GetArterialPressure},
+	 {	"Cardiovascular_Arterial_Mean_Pressure", GetMeanArterialPressure},
+	 {	"Cardiovascular_Arterial_Systolic_Pressure", GetArterialSystolicPressure},
+	 {	"Cardiovascular_Arterial_Diastolic_Pressure", GetArterialDiastolicPressure},
+	 {	"Cardiovascular_CentralVenous_Mean_Pressure", GetMeanCentralVenousPressure},
+
+	 // Respiratory System
+	 {	"Respiratory_Respiration_Rate", GetRespirationRate},
+	 {	"Respiration_EndTidalCarbonDioxide", GetEndTidalCarbonDioxideFraction},
+	 {	"Respiratory_Tidal_Volume", GetTidalVolume},
+	 {	"Respiratory_LungTotal_Volume", GetTotalLungVolume},
+	 {	"Respiratory_LeftPleuralCavity_Volume", GetLeftPleuralCavityVolume},
+	 {	"Respiratory_LeftLung_Volume", GetLeftLungVolume},
+	 {	"Respiratory_LeftAlveoli_BaseCompliance", GetLeftAlveoliBaselineCompliance},
+	 {	"Respiratory_RightPleuralCavity_Volume", GetRightPleuralCavityVolume},
+	 {	"Respiratory_RightLung_Volume", GetRightLungVolume},
+	 {	"Respiratory_RightAlveoli_BaseCompliance", GetRightAlveoliBaselineCompliance},
+	 {	"Respiratory_CarbonDioxide_Exhaled", GetExhaledCO2},
+
+	 // Energy system
+	 {	"Energy_Core_Temperature", GetCoreTemperature},
+
+	 // Blood chemistry system
+	 {	"BloodChemistry_WhiteBloodCell_Count", GetWhiteBloodCellCount},
+	 {	"BloodChemistry_RedBloodCell_Count", GetRedBloodCellCount},
+	 {	"BloodChemistry_BloodUreaNitrogen_Concentration", GetBUN},
+	 {	"BloodChemistry_Oxygen_Saturation", GetOxygenSaturation},
+	 {	"BloodChemistry_Hemaocrit", GetHematocrit},
+	 {	"BloodChemistry_BloodPH", GetBloodPH},
+	 {	"BloodChemistry_Arterial_CarbonDioxide_Pressure", GetArterialCarbonDioxidePressure},
+	 {	"BloodChemistry_Arterial_Oxygen_Pressure", GetArterialOxygenPressure},
+
+	 // Substances
+	 {	"Substance_Sodium", GetSodium},
+	 {	"Substance_Sodium_Concentration", GetSodiumConcentration},
+	 {	"Substance_Bicarbonate", GetBicarbonate},
+	 {	"Substance_Bicarbonate_Concentration", GetBicarbonateConcentration},
+	 {	"Substance_BaseExcess", GetBaseExcess},
+	 {	"Substance_Glucose_Concentration", GetGlucoseConcentration},
+	 {	"Substance_Creatinine_Concentration", GetCreatinineConcentration},
+	 {	"Substance_Hemoglobin_Concentration", GetHemoglobinConcentration},
+
+	 {	"MetabolicPanel_CarbonDioxide", GetCO2},
+	 {	"MetabolicPanel_Potassium", GetPotassium},
+	 {	"MetabolicPanel_Chloride", GetChloride},
+
+	 {	"CompleteBloodCount_Platelet", GetPlateletCount},
+
+	 };
+	 */
+
+	double tempVal = 0;
+	std::map<const std::string, func_ptr_t> func_map = {
+
+			{ "HR", &BioGearsThread::GetHeartRate }
+
+	};
+
+	std::map<std::string, func_ptr_t>::iterator it = func_map.find(nodePath);
+
+	if (it != func_map.end()) {
+		func_ptr_t func_ptr = it->second;
+		tempVal = (*func_ptr)();
+	} else {
+		std::cout << "wrong function name!" << std::endl;
+		return 0;
+	}
+
+	return tempVal;
+}
+
+double BioGearsThread::GetHeartRate(void) {
 	return m_bg->GetCardiovascularSystem()->GetHeartRate(FrequencyUnit::Per_min);
 }
 
@@ -278,7 +358,7 @@ double BioGearsThread::GetBicarbonateConcentration() {
 
 // HCO3 - Bicarbonate - Convert to mmol/L
 double BioGearsThread::GetBicarbonate() {
-	// SESubstance* bicarbonate = m_bg->GetSubstanceManager().GetSubstance("Bicarbonate");
+// SESubstance* bicarbonate = m_bg->GetSubstanceManager().GetSubstance("Bicarbonate");
 	return GetBicarbonateConcentration() * 0.1639;
 }
 
@@ -294,13 +374,6 @@ double BioGearsThread::GetCO2() {
 	return CO2.GetValue(AmountPerVolumeUnit::mmol_Per_L);
 }
 
-// Metabolic panel
-bool BioGearsThread::UpdateMetabolicPanel() {
-	SEComprehensiveMetabolicPanel metabolicPanel(m_bg->GetLogger());
-	m_bg->GetPatientAssessment(metabolicPanel);
-	return true;
-}
-
 double BioGearsThread::GetPotassium() {
 	SEComprehensiveMetabolicPanel metabolicPanel(m_bg->GetLogger());
 	m_bg->GetPatientAssessment(metabolicPanel);
@@ -313,13 +386,6 @@ double BioGearsThread::GetChloride() {
 	m_bg->GetPatientAssessment(metabolicPanel);
 	SEScalarAmountPerVolume chloride = metabolicPanel.GetChloride();
 	return chloride.GetValue(AmountPerVolumeUnit::ct_Per_uL);
-}
-
-// CBC
-bool BioGearsThread::UpdateCompleteBloodCount() {
-	SECompleteBloodCount CBC(m_bg->GetLogger());
-	m_bg->GetPatientAssessment(CBC);
-	return true;
 }
 
 // PLT - Platelet Count - ct/uL

@@ -4,6 +4,9 @@
 #include <mutex>
 #include <thread>
 
+#include <map>
+#include <functional>
+
 #include "ccpp_AMM.h"
 
 // BioGears core
@@ -80,6 +83,9 @@ class SECompleteBloodCount;
 class PhysiologyEngine;
 
 class BioGearsThread {
+
+	typedef double (*func_ptr_t)();
+
 public:
 	BioGearsThread(const std::string &logFile);
 	virtual ~BioGearsThread();
@@ -98,9 +104,8 @@ public:
 
 private:
 	bool LoadScenarioFile(const std::string &scenarioFile);
-	bool UpdateMetabolicPanel();
-	bool UpdateCompleteBloodCount();
-	double GetHeartRate();
+	void PopulateNodePathMap();
+	double GetHeartRate(void);
 	double GetBloodVolume();
 	double GetArterialSystolicPressure();
 	double GetArterialDiastolicPressure();
@@ -150,6 +155,5 @@ protected:
 	std::thread m_thread;
 	std::mutex m_mutex;
 	bool m_runThread;
-
 	std::unique_ptr<PhysiologyEngine> m_bg;
 };

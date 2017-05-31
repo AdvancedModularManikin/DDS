@@ -3,7 +3,10 @@
 
 #include "AMM/SimulationManager.h"
 
+#include <algorithm>
+
 using namespace AMM;
+using namespace std;
 
 static void show_usage(std::string name) {
 	cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n"
@@ -41,29 +44,26 @@ int main(int argc, char *argv[]) {
 
 	do {
 		cout
-				<< " [1]Status, [2]Run/Resume, [3]Pause/Stop, [4]Shutdown, [7]Quit  "
+				<< " [1]Status, [2]Run/Resume, [3]Pause/Stop, [4]Shutdown, [5]Command console  "
 				<< endl;
 		cin >> action;
 
-		switch (action) {
-		case 1:
+		if (action == 1) {
 			if (simManager.isRunning()) {
 				cout << " == Running!  At tick count: ";
 			} else {
 				cout << " == Not currently running, paused at tick count: ";
 			}
 			cout << simManager.GetTickCount() << endl;
-			// cout << "  = Operating at " << simManager.GetSampleRate() << " frames per second." << endl;
-			break;
-		case 2:
+			cout << "  = Operating at " << simManager.GetSampleRate()
+					<< " frames per second." << endl;
+		} else if (action == 2) {
 			cout << " == Starting simulation..." << endl;
 			simManager.StartSimulation();
-			break;
-		case 3:
+		} else if (action == 3) {
 			cout << " == Stopping simulation..." << endl;
 			simManager.StopSimulation();
-			break;
-		case 4:
+		} else if (action == 4) {
 			cout << " == Stopping simulation and sending shutdown notice..."
 					<< endl;
 			simManager.StopSimulation();
@@ -73,15 +73,29 @@ int main(int argc, char *argv[]) {
 			cout << "=== [SimManager] Shutting down Simulation Manager."
 					<< endl;
 			closed = true;
-			break;
-		case 7:
-			cout << "=== [SimManager] Quitting Simulation Manager." << endl;
-			closed = true;
-			break;
+		} else if (action == 5) {
+			std::string command = "";
+			bool consoleclosed = false;
+			do {
+				cout << " Enter a command (exit to return to menu) >>> ";
+				getline(cin, command);
+				transform(command.begin(), command.end(), command.begin(),::toupper);
+				if (command == "EXIT") {
+					consoleclosed = true;
+				} else {
+					if (command == "") {
+						continue;
+					}
+					simManager.SendCommand(command);
+				}
+			} while (!consoleclosed);
+		} else if (action == 6) {
+		} else if (action == 7) {
+		} else {
+
 		}
 	} while (!closed);
 
-	simManager.Cleanup();
 	simManager.Shutdown();
 	return 0;
 }

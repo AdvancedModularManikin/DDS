@@ -11,24 +11,29 @@ SimulationManager::SimulationManager() :
 
 	char partition_name[] = "AMM";
 	char tick_topic_name[] = "Tick";
+	char cmd_topic_name[] = "Command";
 
-	mgr.createParticipant(partition_name);
+	// Set up tick manager
+	tickMgr.createParticipant(partition_name);
 	TickTypeSupport_var tt = new TickTypeSupport();
-	mgr.registerType(tt.in());
-	mgr.createTopic(tick_topic_name);
-
-	//create Publisher
-	mgr.createPublisher();
-
-	// create DataWriter :
-	mgr.createWriters();
-
-	// Publish Events
-	dwriter = mgr.getWriter();
-	TickWriter = TickDataWriter::_narrow(dwriter.in());
-
+	tickMgr.registerType(tt.in());
+	tickMgr.createTopic(tick_topic_name);
+	tickMgr.createPublisher();
+	tickMgr.createWriters();
+	tickdwriter = tickMgr.getWriter();
+	TickWriter = TickDataWriter::_narrow(tickdwriter.in());
 	pauseTick.frame = -2;
 	shutdownTick.frame = -1;
+
+	// Set up command manager
+	cmdMgr.createParticipant(partition_name);
+	CommandTypeSupport_var dt = new CommandTypeSupport();
+	cmdMgr.registerType(dt.in());
+	cmdMgr.createTopic(cmd_topic_name);
+	cmdMgr.createPublisher();
+	cmdMgr.createWriter();
+	cmddwriter = cmdMgr.getWriter();
+	CommandWriter = CommandDataWriter::_narrow(cmddwriter.in());
 
 	m_runThread = false;
 
@@ -48,8 +53,8 @@ void SimulationManager::StartSimulation() {
 void SimulationManager::StopSimulation() {
 	if (m_runThread) {
 		m_runThread = false;
-		// ReturnCode_t status = TickWriter->write(pauseTick, DDS::HANDLE_NIL);
-		// checkStatus(status, "TickDataWriter::write");
+		ReturnCode_t status = TickWriter->write(pauseTick, DDS::HANDLE_NIL);
+		checkStatus(status, "TickDataWriter::write");
 		m_thread.detach();
 	}
 }
@@ -70,8 +75,18 @@ int SimulationManager::GetSampleRate() {
 	return sampleRate;
 }
 
+void SimulationManager::SendCommand(const std::string &command) {
+	Command cmdInstance;
+	cmdInstance.message = DDS::string_dup(command.c_str());
+	cout << "=== [CommandExecutor] Sending a command containing:" << endl;
+	cout << "    Command : \"" << cmdInstance.message << "\"" << endl;
+	ReturnCode_t status = CommandWriter->write(cmdInstance, DDS::HANDLE_NIL);
+	checkStatus(status, "CommandWriter::write");
+}
+
 void SimulationManager::TickLoop() {
-	using frames = duration<int64_t, ratio<1, 50>>;    // 50hz
+	using frames = duration<int64_t, ratio<1, 50>>;
+	// 50hz
 	auto nextFrame = system_clock::now();
 	auto lastFrame = nextFrame - frames { 1 };
 
@@ -88,11 +103,16 @@ void SimulationManager::TickLoop() {
 }
 
 void SimulationManager::Cleanup() {
-	/* Remove the DataWriters */
-	mgr.deleteWriter(dwriter.in());
 
-	/* Remove the Publisher. */
-	mgr.deletePublisher();
+	tickMgr.deleteWriter(tickdwriter.in());
+	tickMgr.deletePublisher();
+	tickMgr.deleteTopic();
+	tickMgr.deleteParticipant();
+
+	cmdMgr.deleteWriter(cmddwriter.in());
+	cmdMgr.deletePublisher();
+	cmdMgr.deleteTopic();
+	cmdMgr.deleteParticipant();
 
 }
 
@@ -100,11 +120,13 @@ void SimulationManager::Shutdown() {
 	if (m_runThread) {
 		m_runThread = false;
 		std::this_thread::sleep_for(std::chrono::seconds(1));
-
-		ReturnCode_t status = TickWriter->write(shutdownTick, DDS::HANDLE_NIL);
-		checkStatus(status, "TickDataWriter::write");
 		m_thread.detach();
 	}
+
+	ReturnCode_t status = TickWriter->write(shutdownTick, DDS::HANDLE_NIL);
+	checkStatus(status, "TickDataWriter::write");
+
+	Cleanup();
 
 	m_thread.~thread();
 	std::terminate();
