@@ -141,7 +141,8 @@ int main(int argc, char *argv[]) {
 
 				// Check for a command
 				status = CommandReader->take(cmdList, infoSeq, LENGTH_UNLIMITED,
-						ANY_SAMPLE_STATE, ANY_VIEW_STATE, ANY_INSTANCE_STATE);
+						NOT_READ_SAMPLE_STATE, NEW_VIEW_STATE,
+						ANY_INSTANCE_STATE);
 				checkStatus(status, "CommandDataReader::take");
 				for (DDS::ULong j = 0; j < cmdList.length(); j++) {
 					bg.ExecuteCommand(cmdList[j].message.m_ptr);
@@ -151,7 +152,8 @@ int main(int argc, char *argv[]) {
 
 				// Check for a tick
 				status = TickReader->take(tickList, infoSeq, LENGTH_UNLIMITED,
-						ANY_SAMPLE_STATE, ANY_VIEW_STATE, ANY_INSTANCE_STATE);
+						NOT_READ_SAMPLE_STATE, NEW_VIEW_STATE,
+						ANY_INSTANCE_STATE);
 				checkStatus(status, "TickDataReader::take");
 				for (DDS::ULong j = 0; j < tickList.length(); j++) {
 					if (tickList[j].frame == -1) {
@@ -187,16 +189,24 @@ int main(int argc, char *argv[]) {
 								nodePathMap.begin();
 
 						while (it != nodePathMap.end()) {
-							dataInstance->nodepath = DDS::string_dup(
-									it->first.c_str());
-							dataInstance->dbl = bg.GetNodePath(it->first);
-							dataInstance->frame = lastFrame;
+							// If it's a high frequency node or it's frame-time
+							if (std::find(bg.highFrequencyNodes.begin(),
+									bg.highFrequencyNodes.end(), it->first)
+									!= bg.highFrequencyNodes.end()
+									|| ((lastFrame % 33) == 0)) {
+								dataInstance->nodepath = DDS::string_dup(
+										it->first.c_str());
+								dataInstance->dbl = bg.GetNodePath(it->first);
+								dataInstance->frame = lastFrame;
 
-							status = LifecycleWriter->write(*dataInstance,
-									DDS::HANDLE_NIL);
-							status = LifecycleWriter->dispose(*dataInstance,
-									DDS::HANDLE_NIL);
-							checkStatus(status, "NodeDataWriter::write");
+								status = LifecycleWriter->write(*dataInstance,
+										DDS::HANDLE_NIL);
+								status = LifecycleWriter->dispose(*dataInstance,
+										DDS::HANDLE_NIL);
+								checkStatus(status, "NodeDataWriter::write");
+
+							}
+
 							it++;
 						}
 
@@ -254,7 +264,7 @@ int main(int argc, char *argv[]) {
 	/**
 	 * Shutdown Physiology Data DDS Entity Manager
 	 */
-	mgr.deleteWriter(LifecycleWriter_stopper.in());
+	mgr.deleteWriter(LifecycleWriter.in());
 	mgr.deletePublisher();
 	mgr.deleteTopic();
 	mgr.deleteParticipant();

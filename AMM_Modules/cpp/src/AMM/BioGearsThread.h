@@ -101,7 +101,7 @@ public:
 	void DisplayNodePaths(const std::string &filter);
 	void Status();
 	static std::map<std::string, double (BioGearsThread::*)() > nodePathTable;
-
+	static std::vector<std::string> highFrequencyNodes;
 
 private:
 	bool LoadScenarioFile(const std::string &scenarioFile);

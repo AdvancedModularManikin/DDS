@@ -85,6 +85,7 @@ deploy:
 	-$(CP) -r ../../support/BioGearsConfiguration.xml $(BTARGETDIR)
 	-$(CP) -r ../../support/Actions $(BTARGETDIR)
 	-$(CP) -r ../../support/states $(BTARGETDIR)
+	-$(CP) -r ../../support/ecg $(BTARGETDIR)
 
 clean:
 	-$(RM) $(OBJS)

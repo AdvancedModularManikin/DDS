@@ -14,7 +14,7 @@
 
 DDSEntityManager::DDSEntityManager()
 {
-  m_autodispose_unregistered_instances = false;
+  m_autodispose_unregistered_instances = true;
 }
 
 DDSEntityManager::DDSEntityManager(bool autodispose_unregistered_instances)
@@ -104,7 +104,7 @@ void DDSEntityManager::createPublisher()
 void DDSEntityManager::deletePublisher()
 {
   status = participant->delete_publisher(publisher);
-   // TODO : uncomment checkStatus(status, "DDS::DomainParticipant::delete_publisher");
+   checkStatus(status, "DDS::DomainParticipant::delete_publisher");
 }
 
 void DDSEntityManager::createWriter()
@@ -244,6 +244,13 @@ Topic_ptr DDSEntityManager::getTopic()
 DomainParticipant_ptr DDSEntityManager::getParticipant()
 {
   return DomainParticipant::_duplicate(participant.in());
+}
+
+void DDSEntityManager::deleteContainedEntities()
+{
+  /* Free all resources */
+  status = dpf->delete_contained_entities();
+  checkStatus(status, "DDS::DomainParticipant::delete_contained_entities");
 }
 
 DDSEntityManager::~DDSEntityManager(){

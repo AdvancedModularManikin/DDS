@@ -2,64 +2,99 @@
 
 using namespace std;
 
-std::map<std::string, double (BioGearsThread::*)() > BioGearsThread::nodePathTable =  {
-		// Old style for testing
-		 {	"ECG", &BioGearsThread::GetECGWaveform},
-		 {	"HR", &BioGearsThread::GetHeartRate},
+std::vector<std::string> BioGearsThread::highFrequencyNodes = { "ECG",
+		"Cardiovascular_Arterial_Pressure", "EXHALED_CO2" };
 
-		 // Cardiovascular System
-		 {	"Cardiovascular_HeartRate", &BioGearsThread::GetHeartRate},
-		 {	"Cardiovascular_BloodVolume", &BioGearsThread::GetBloodVolume},
-		 {	"Cardiovascular_Arterial_Pressure", &BioGearsThread::GetArterialPressure},
-		 {	"Cardiovascular_Arterial_Mean_Pressure", &BioGearsThread::GetMeanArterialPressure},
-		 {	"Cardiovascular_Arterial_Systolic_Pressure", &BioGearsThread::GetArterialSystolicPressure},
-		 {	"Cardiovascular_Arterial_Diastolic_Pressure", &BioGearsThread::GetArterialDiastolicPressure},
-		 {	"Cardiovascular_CentralVenous_Mean_Pressure", &BioGearsThread::GetMeanCentralVenousPressure},
+std::map<std::string, double (BioGearsThread::*)()> BioGearsThread::nodePathTable =
+		{
+				// Old style for testing
+				{ "ECG", &BioGearsThread::GetECGWaveform }, { "HR",
+						&BioGearsThread::GetHeartRate }, { "SIM_TIME",
+						&BioGearsThread::GetSimulationTime },
 
-		 // Respiratory System
-		 {	"Respiratory_Respiration_Rate", &BioGearsThread::GetRespirationRate},
-		 {	"Respiration_EndTidalCarbonDioxide", &BioGearsThread::GetEndTidalCarbonDioxideFraction},
-		 {	"Respiratory_Tidal_Volume", &BioGearsThread::GetTidalVolume},
-		 {	"Respiratory_LungTotal_Volume", &BioGearsThread::GetTotalLungVolume},
-		 {	"Respiratory_LeftPleuralCavity_Volume", &BioGearsThread::GetLeftPleuralCavityVolume},
-		 {	"Respiratory_LeftLung_Volume", &BioGearsThread::GetLeftLungVolume},
-		 {	"Respiratory_LeftAlveoli_BaseCompliance", &BioGearsThread::GetLeftAlveoliBaselineCompliance},
-		 {	"Respiratory_RightPleuralCavity_Volume", &BioGearsThread::GetRightPleuralCavityVolume},
-		 {	"Respiratory_RightLung_Volume", &BioGearsThread::GetRightLungVolume},
-		 {	"Respiratory_RightAlveoli_BaseCompliance", &BioGearsThread::GetRightAlveoliBaselineCompliance},
-		 {	"Respiratory_CarbonDioxide_Exhaled", &BioGearsThread::GetExhaledCO2},
+				// Cardiovascular System
+				{ "Cardiovascular_HeartRate", &BioGearsThread::GetHeartRate }, {
+						"Cardiovascular_BloodVolume",
+						&BioGearsThread::GetBloodVolume }, {
+						"Cardiovascular_Arterial_Pressure",
+						&BioGearsThread::GetArterialPressure }, {
+						"Cardiovascular_Arterial_Mean_Pressure",
+						&BioGearsThread::GetMeanArterialPressure }, {
+						"Cardiovascular_Arterial_Systolic_Pressure",
+						&BioGearsThread::GetArterialSystolicPressure }, {
+						"Cardiovascular_Arterial_Diastolic_Pressure",
+						&BioGearsThread::GetArterialDiastolicPressure }, {
+						"Cardiovascular_CentralVenous_Mean_Pressure",
+						&BioGearsThread::GetMeanCentralVenousPressure },
 
-		 // Energy system
-		 {	"Energy_Core_Temperature", &BioGearsThread::GetCoreTemperature},
+				// Respiratory System
+				{ "Respiratory_Respiration_Rate",
+						&BioGearsThread::GetRespirationRate }, {
+						"Respiration_EndTidalCarbonDioxide",
+						&BioGearsThread::GetEndTidalCarbonDioxideFraction }, {
+						"Respiratory_Tidal_Volume",
+						&BioGearsThread::GetTidalVolume }, {
+						"Respiratory_LungTotal_Volume",
+						&BioGearsThread::GetTotalLungVolume }, {
+						"Respiratory_LeftPleuralCavity_Volume",
+						&BioGearsThread::GetLeftPleuralCavityVolume }, {
+						"Respiratory_LeftLung_Volume",
+						&BioGearsThread::GetLeftLungVolume }, {
+						"Respiratory_LeftAlveoli_BaseCompliance",
+						&BioGearsThread::GetLeftAlveoliBaselineCompliance }, {
+						"Respiratory_RightPleuralCavity_Volume",
+						&BioGearsThread::GetRightPleuralCavityVolume }, {
+						"Respiratory_RightLung_Volume",
+						&BioGearsThread::GetRightLungVolume }, {
+						"Respiratory_RightAlveoli_BaseCompliance",
+						&BioGearsThread::GetRightAlveoliBaselineCompliance }, {
+						"Respiratory_CarbonDioxide_Exhaled",
+						&BioGearsThread::GetExhaledCO2 },
 
-		 // Blood chemistry system
-		 {	"BloodChemistry_WhiteBloodCell_Count", &BioGearsThread::GetWhiteBloodCellCount},
-		 {	"BloodChemistry_RedBloodCell_Count", &BioGearsThread::GetRedBloodCellCount},
-		 {	"BloodChemistry_BloodUreaNitrogen_Concentration", &BioGearsThread::GetBUN},
-		 {	"BloodChemistry_Oxygen_Saturation", &BioGearsThread::GetOxygenSaturation},
-		 {	"BloodChemistry_Hemaocrit", &BioGearsThread::GetHematocrit},
-		 {	"BloodChemistry_BloodPH", &BioGearsThread::GetBloodPH},
-		 {	"BloodChemistry_Arterial_CarbonDioxide_Pressure", &BioGearsThread::GetArterialCarbonDioxidePressure},
-		 {	"BloodChemistry_Arterial_Oxygen_Pressure", &BioGearsThread::GetArterialOxygenPressure},
+				// Energy system
+				{ "Energy_Core_Temperature", &BioGearsThread::GetCoreTemperature },
 
-		 // Substances
-		 {	"Substance_Sodium", &BioGearsThread::GetSodium},
-		 {	"Substance_Sodium_Concentration", &BioGearsThread::GetSodiumConcentration},
-		 {	"Substance_Bicarbonate", &BioGearsThread::GetBicarbonate},
-		 {	"Substance_Bicarbonate_Concentration", &BioGearsThread::GetBicarbonateConcentration},
-		 {	"Substance_BaseExcess", &BioGearsThread::GetBaseExcess},
-		 {	"Substance_Glucose_Concentration", &BioGearsThread::GetGlucoseConcentration},
-		 {	"Substance_Creatinine_Concentration", &BioGearsThread::GetCreatinineConcentration},
-		 {	"Substance_Hemoglobin_Concentration", &BioGearsThread::GetHemoglobinConcentration},
+				// Blood chemistry system
+				{ "BloodChemistry_WhiteBloodCell_Count",
+						&BioGearsThread::GetWhiteBloodCellCount }, {
+						"BloodChemistry_RedBloodCell_Count",
+						&BioGearsThread::GetRedBloodCellCount }, {
+						"BloodChemistry_BloodUreaNitrogen_Concentration",
+						&BioGearsThread::GetBUN }, {
+						"BloodChemistry_Oxygen_Saturation",
+						&BioGearsThread::GetOxygenSaturation }, {
+						"BloodChemistry_Hemaocrit",
+						&BioGearsThread::GetHematocrit }, {
+						"BloodChemistry_BloodPH", &BioGearsThread::GetBloodPH },
+				{ "BloodChemistry_Arterial_CarbonDioxide_Pressure",
+						&BioGearsThread::GetArterialCarbonDioxidePressure }, {
+						"BloodChemistry_Arterial_Oxygen_Pressure",
+						&BioGearsThread::GetArterialOxygenPressure },
 
-		 {	"MetabolicPanel_CarbonDioxide", &BioGearsThread::GetCO2},
-		 {	"MetabolicPanel_Potassium", &BioGearsThread::GetPotassium},
-		 {	"MetabolicPanel_Chloride", &BioGearsThread::GetChloride},
+				// Substances
+				{ "Substance_Sodium", &BioGearsThread::GetSodium }, {
+						"Substance_Sodium_Concentration",
+						&BioGearsThread::GetSodiumConcentration },
+				{ "Substance_Bicarbonate", &BioGearsThread::GetBicarbonate }, {
+						"Substance_Bicarbonate_Concentration",
+						&BioGearsThread::GetBicarbonateConcentration },
+				{ "Substance_BaseExcess", &BioGearsThread::GetBaseExcess }, {
+						"Substance_Glucose_Concentration",
+						&BioGearsThread::GetGlucoseConcentration }, {
+						"Substance_Creatinine_Concentration",
+						&BioGearsThread::GetCreatinineConcentration }, {
+						"Substance_Hemoglobin_Concentration",
+						&BioGearsThread::GetHemoglobinConcentration },
 
-		 {	"CompleteBloodCount_Platelet", &BioGearsThread::GetPlateletCount},
+				{ "MetabolicPanel_CarbonDioxide", &BioGearsThread::GetCO2 }, {
+						"MetabolicPanel_Potassium",
+						&BioGearsThread::GetPotassium },
+				{ "MetabolicPanel_Chloride", &BioGearsThread::GetChloride },
 
-	};
+				{ "CompleteBloodCount_Platelet",
+						&BioGearsThread::GetPlateletCount },
 
+		};
 
 BioGearsThread::BioGearsThread(const std::string &logFile) :
 		m_thread() {
@@ -178,7 +213,7 @@ double BioGearsThread::GetSimulationTime() {
 	return m_bg->GetSimulationTime(TimeUnit::s);
 }
 
-double BioGearsThread::GetNodePath(const std::string &nodePath)  {
+double BioGearsThread::GetNodePath(const std::string &nodePath) {
 	auto entry = nodePathTable.find(nodePath.c_str());
 	if (entry != nodePathTable.end()) {
 		return (this->*(entry->second))();

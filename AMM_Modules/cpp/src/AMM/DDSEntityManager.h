@@ -63,6 +63,7 @@
       Subscriber_ptr getSubscriber();
       Topic_ptr getTopic();
       DomainParticipant_ptr getParticipant();
+      void deleteContainedEntities();
       ~DDSEntityManager();
     private:
       bool m_autodispose_unregistered_instances;

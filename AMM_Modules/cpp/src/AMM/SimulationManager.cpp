@@ -22,6 +22,7 @@ SimulationManager::SimulationManager() :
 	tickMgr.createWriters();
 	tickdwriter = tickMgr.getWriter();
 	TickWriter = TickDataWriter::_narrow(tickdwriter.in());
+
 	pauseTick.frame = -2;
 	shutdownTick.frame = -1;
 
@@ -86,7 +87,6 @@ void SimulationManager::SendCommand(const std::string &command) {
 
 void SimulationManager::TickLoop() {
 	using frames = duration<int64_t, ratio<1, 50>>;
-	// 50hz
 	auto nextFrame = system_clock::now();
 	auto lastFrame = nextFrame - frames { 1 };
 
@@ -103,17 +103,15 @@ void SimulationManager::TickLoop() {
 }
 
 void SimulationManager::Cleanup() {
-
-	tickMgr.deleteWriter(tickdwriter.in());
+	tickMgr.deleteWriter(TickWriter.in());
 	tickMgr.deletePublisher();
 	tickMgr.deleteTopic();
 	tickMgr.deleteParticipant();
 
-	cmdMgr.deleteWriter(cmddwriter.in());
+	cmdMgr.deleteWriter(CommandWriter.in());
 	cmdMgr.deletePublisher();
 	cmdMgr.deleteTopic();
 	cmdMgr.deleteParticipant();
-
 }
 
 void SimulationManager::Shutdown() {
