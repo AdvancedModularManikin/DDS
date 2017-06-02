@@ -114,10 +114,7 @@ BioGearsThread::~BioGearsThread() {
 }
 
 void BioGearsThread::Shutdown() {
-	m_runThread = false;
-	std::this_thread::sleep_for(std::chrono::seconds(2));
-	m_thread.~thread();
-	std::terminate();
+
 }
 
 void BioGearsThread::StartSimulation() {
@@ -126,8 +123,10 @@ void BioGearsThread::StartSimulation() {
 }
 
 void BioGearsThread::StopSimulation() {
-	m_runThread = false;
-	m_thread.detach();
+	if (m_runThread) {
+		m_runThread = false;
+		m_thread.join();
+	}
 }
 
 bool BioGearsThread::LoadState(const std::string &stateFile, double sec) {

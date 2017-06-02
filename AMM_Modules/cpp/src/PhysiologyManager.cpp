@@ -236,6 +236,7 @@ int main(int argc, char *argv[]) {
 
 		} else if (action == "7") {
 			closed = true;
+			bg.StopSimulation();
 		} else if (action == "LIST") {
 			cout << " == Outputting available node path maps." << endl;
 
@@ -264,7 +265,7 @@ int main(int argc, char *argv[]) {
 	/**
 	 * Shutdown Physiology Data DDS Entity Manager
 	 */
-	mgr.deleteWriter(LifecycleWriter.in());
+	mgr.deleteWriters();
 	mgr.deletePublisher();
 	mgr.deleteTopic();
 	mgr.deleteParticipant();
@@ -278,7 +279,6 @@ int main(int argc, char *argv[]) {
 	tickMgr.deleteParticipant();
 
 	cout << "=== [PhysiologyManager][BG] Shutting down BioGears." << endl;
-	bg.StopSimulation();
 	bg.Shutdown();
 
 	cout << "=== [PhysiologyManager] Exiting." << endl;

@@ -144,6 +144,14 @@ void DDSEntityManager::deleteWriter(DDS::DataWriter_ptr dataWriter)
    checkStatus(status, "DDS::Publisher::delete_datawriter ");
 }
 
+void DDSEntityManager::deleteWriters() {
+	status = publisher->delete_datawriter(writer.in());
+	checkStatus(status, "DDS::Publisher::delete_datawriter ");
+
+	status = publisher->delete_datawriter(writer_stopper.in());
+	checkStatus(status, "DDS::Publisher::delete_datawriter ");
+}
+
 void DDSEntityManager::createSubscriber()
 {
   status = participant->get_default_subscriber_qos(sub_qos);

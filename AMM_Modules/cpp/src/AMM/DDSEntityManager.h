@@ -51,6 +51,7 @@
       void createWriter();
       void createWriters();
       void deleteWriter(DDS::DataWriter_ptr dataWriter);
+      void deleteWriters();
       void createSubscriber();
       void deleteSubscriber();
       void createReader();

@@ -32,7 +32,7 @@ SimulationManager::SimulationManager() :
 	cmdMgr.registerType(dt.in());
 	cmdMgr.createTopic(cmd_topic_name);
 	cmdMgr.createPublisher();
-	cmdMgr.createWriter();
+	cmdMgr.createWriters();
 	cmddwriter = cmdMgr.getWriter();
 	CommandWriter = CommandDataWriter::_narrow(cmddwriter.in());
 
@@ -103,12 +103,12 @@ void SimulationManager::TickLoop() {
 }
 
 void SimulationManager::Cleanup() {
-	tickMgr.deleteWriter(TickWriter.in());
+	tickMgr.deleteWriters();
 	tickMgr.deletePublisher();
 	tickMgr.deleteTopic();
 	tickMgr.deleteParticipant();
 
-	cmdMgr.deleteWriter(CommandWriter.in());
+	cmdMgr.deleteWriters();
 	cmdMgr.deletePublisher();
 	cmdMgr.deleteTopic();
 	cmdMgr.deleteParticipant();
@@ -118,7 +118,7 @@ void SimulationManager::Shutdown() {
 	if (m_runThread) {
 		m_runThread = false;
 		std::this_thread::sleep_for(std::chrono::seconds(1));
-		m_thread.detach();
+		m_thread.join();
 	}
 
 	ReturnCode_t status = TickWriter->write(shutdownTick, DDS::HANDLE_NIL);
@@ -126,7 +126,5 @@ void SimulationManager::Shutdown() {
 
 	Cleanup();
 
-	m_thread.~thread();
-	std::terminate();
 }
 

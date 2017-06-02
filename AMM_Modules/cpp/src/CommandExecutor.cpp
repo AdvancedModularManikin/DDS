@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
 		}
 	} while (!closed);
 
-	mgr.deleteWriter(CommandWriter.in());
+	mgr.deleteWriters();
 	mgr.deletePublisher();
 	mgr.deleteTopic();
 	mgr.deleteParticipant();
