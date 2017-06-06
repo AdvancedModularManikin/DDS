@@ -3,7 +3,7 @@
 using namespace std;
 
 std::vector<std::string> BioGearsThread::highFrequencyNodes = { "ECG",
-		"Cardiovascular_Arterial_Pressure", "EXHALED_CO2" };
+		"Cardiovascular_Arterial_Pressure", "EXHALED_CO2", "Respiratory_Respiration_Rate" };
 
 std::map<std::string, double (BioGearsThread::*)()> BioGearsThread::nodePathTable =
 		{

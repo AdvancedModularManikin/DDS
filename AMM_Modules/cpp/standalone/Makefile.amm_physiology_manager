@@ -78,7 +78,6 @@ deploy:
 	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/nutrition $(BTARGETDIR)
 	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/ecg $(BTARGETDIR)
 	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/substances $(BTARGETDIR)
-	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/states $(BTARGETDIR)
 	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/xsd $(BTARGETDIR)
 	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/UCEDefs.txt $(BTARGETDIR)
 	-$(CP) -r $(BIOGEARS_ROOT)/library/bin/log4j.properties $(BTARGETDIR)

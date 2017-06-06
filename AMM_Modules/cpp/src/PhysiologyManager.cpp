@@ -193,7 +193,7 @@ int main(int argc, char *argv[]) {
 							if (std::find(bg.highFrequencyNodes.begin(),
 									bg.highFrequencyNodes.end(), it->first)
 									!= bg.highFrequencyNodes.end()
-									|| ((lastFrame % 33) == 0)) {
+									|| ((lastFrame % 10) == 0)) {
 								dataInstance->nodepath = DDS::string_dup(
 										it->first.c_str());
 								dataInstance->dbl = bg.GetNodePath(it->first);
