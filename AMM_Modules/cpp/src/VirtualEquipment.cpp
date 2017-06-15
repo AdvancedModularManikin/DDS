@@ -6,9 +6,8 @@ using namespace DDS;
 using namespace AMM::Physiology;
 
 static void show_usage(std::string name) {
-	cerr << "Usage: " << name << " <option(s)> node_path node_path ..."
-			<< "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
-			<< endl;
+	cerr << "Usage: " << name << " <option(s)> node_path node_path ..." << "\nOptions:\n"
+			<< "\t-h,--help\t\tShow this help message\n" << endl;
 	cerr << "Example: " << name << " ECG HR " << endl;
 }
 
@@ -89,16 +88,15 @@ int main(int argc, char *argv[]) {
 	mgr.createReader(true);
 
 	DataReader_var dreader = mgr.getReader();
-	NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(
-			dreader.in());
+	NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(dreader.in());
 
 	checkHandle(PhysiologyDataReader.in(), "NodeDataReader::_narrow");
 
 	cout << "=== [VirtualEquipment] Ready ..." << endl;
 
 	while (!closed) {
-		status = PhysiologyDataReader->take(msgList, infoSeq, LENGTH_UNLIMITED,
-				ANY_SAMPLE_STATE, ANY_VIEW_STATE, ANY_INSTANCE_STATE);
+		status = PhysiologyDataReader->take(msgList, infoSeq, LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE,
+				ANY_INSTANCE_STATE);
 		checkStatus(status, "DataReader::take");
 		for (DDS::ULong i = 0; i < msgList.length(); i++) {
 			if (infoSeq[i].valid_data) {
@@ -106,16 +104,15 @@ int main(int argc, char *argv[]) {
 					closed = true;
 					break;
 				}
+				cout << "=== [VirtualEquipment] Received data :  (" << msgList[i].nodepath << ", " << msgList[i].dbl << ')'
+						<< "\t\t\t[frame: " << msgList[i].frame << "]" << endl;
 			}
-			cout << "=== [VirtualEquipment] Received data :  ("
-					<< msgList[i].nodepath << ", " << msgList[i].dbl << ')'
-					<< "\t\t\t[frame: " << msgList[i].frame << "]"
-					<< endl;
+
 		}
 
 		status = PhysiologyDataReader->return_loan(msgList, infoSeq);
 		checkStatus(status, "DataReader::return_loan");
-		os_nanoSleep(delay_200ms);
+		// os_nanoSleep(delay_200ms);
 	}
 
 	cout << "=== [VirtualEquipment] Simulation stopped." << endl;

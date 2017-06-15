@@ -49,7 +49,6 @@ protected:
 	DataWriter_var cmddwriter;
 	CommandDataWriter_var CommandWriter;
 
-
 	int tickCount = 0;
 	int sampleRate = 50;
 	Tick tick;

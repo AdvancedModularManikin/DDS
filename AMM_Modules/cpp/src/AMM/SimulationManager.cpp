@@ -53,9 +53,12 @@ void SimulationManager::StartSimulation() {
 
 void SimulationManager::StopSimulation() {
 	if (m_runThread) {
+		m_mutex.lock();
 		m_runThread = false;
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 		ReturnCode_t status = TickWriter->write(pauseTick, DDS::HANDLE_NIL);
 		checkStatus(status, "TickDataWriter::write");
+		m_mutex.unlock();
 		m_thread.detach();
 	}
 }
@@ -117,7 +120,7 @@ void SimulationManager::Cleanup() {
 void SimulationManager::Shutdown() {
 	if (m_runThread) {
 		m_runThread = false;
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 		m_thread.join();
 	}
 

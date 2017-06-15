@@ -73,6 +73,7 @@ int main(int argc, char *argv[]) {
 			cout << "=== [SimManager] Shutting down Simulation Manager."
 					<< endl;
 			closed = true;
+			simManager.Shutdown();
 		} else if (action == 5) {
 			std::string command = "";
 			bool consoleclosed = false;
@@ -89,14 +90,12 @@ int main(int argc, char *argv[]) {
 					simManager.SendCommand(command);
 				}
 			} while (!consoleclosed);
-		} else if (action == 6) {
-		} else if (action == 7) {
 		} else {
 
 		}
 	} while (!closed);
 
-	simManager.Shutdown();
+
 	return 0;
 }
 
