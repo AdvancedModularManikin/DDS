@@ -98,13 +98,15 @@ int main(int argc, char *argv[]) {
 		checkStatus(status, "DataReader::take");
 		for (DDS::ULong i = 0; i < msgList.length(); i++) {
 			if (infoSeq[i].valid_data) {
-				if (msgList[i].dbl == -1.0f) {
+				if (msgList[i].dbl == -1.0f || msgList[i].nodepath == "-1") {
 					closed = true;
 					break;
 				}
 				
-				displayString = "HR: " << msgList.dbl;
-				display(str1, displayString, RGB_RED);
+				if (msgList[i].nodepath == "HR") {
+					displayString = "HR: " << msgList[i].dbl;
+					display(str1, displayString, RGB_RED);
+				}
 			}
 
 		}
