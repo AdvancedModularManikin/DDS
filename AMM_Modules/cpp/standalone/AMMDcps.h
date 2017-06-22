@@ -4,7 +4,7 @@
 //  
 //  File name: AMMDcps.h
 //  Source: AMMDcps.idl
-//  Generated: Fri Jun  2 15:37:56 2017
+//  Generated: Thu Jun 15 09:24:51 2017
 //  OpenSplice V6.4.140407OSS
 //  
 //******************************************************************

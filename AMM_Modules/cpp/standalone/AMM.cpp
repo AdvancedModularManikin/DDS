@@ -4,7 +4,7 @@
 //  
 //  File name: AMM.cpp
 //  Source: ../../../IDL/AMM.idl
-//  Generated: Fri Jun  2 15:37:56 2017
+//  Generated: Thu Jun 15 09:24:52 2017
 //  OpenSplice V6.4.140407OSS
 //  
 //******************************************************************
