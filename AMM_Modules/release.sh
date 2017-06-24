@@ -14,7 +14,7 @@ if [ "${SPLICE_JDK:=}" = "" ]; then
     export SPLICE_JDK
 fi
 
-BIOGEARS_ROOT=/usr/local/BioGears
+BIOGEARS_ROOT=/usr/local/physiology
 export BIOGEARS_ROOT
 
 source /usr/local/OpenSplice/release.com

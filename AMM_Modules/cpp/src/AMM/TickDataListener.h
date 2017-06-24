@@ -1,3 +1,5 @@
+#pragma once
+
 #define __LISTENER_H__
 
 #include <string>
@@ -8,23 +10,34 @@
 #include "CheckStatus.h"
 #include "ccpp_AMM.h"
 
-using namespace AMM::Simulation;
+#include "PhysiologyEngineManager.h"
 
-// ------------------------------ Listeners ------------------------------
-class TickDataListener: public virtual DDS::DataReaderListener {
+using namespace AMM::Simulation;
+using namespace DDS;
+
+class PhysiologyEngineManager;
+
+class TickDataListener: public virtual DataReaderListener {
 
 public:
-
 	bool m_closed;
 	TickDataReader_var m_TickReader;
-	DDS::GuardCondition_var m_guardCond;
+	GuardCondition_var m_guardCond;
+	PhysiologyEngineManager* m_pe;
 
 	TickDataListener() {
-		m_guardCond = new DDS::GuardCondition();
+		m_guardCond = new GuardCondition();
 		m_closed = false;
 	}
 
-	virtual ~TickDataListener();
+	virtual ~TickDataListener() {
+
+	};
+
+	void set(PhysiologyEngineManager* pe)
+	{
+		m_pe = pe;
+	}
 
 	/* Callback method implementation. */
 	virtual void on_data_available(DDS::DataReader_ptr reader)

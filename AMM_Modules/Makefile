@@ -31,7 +31,7 @@ amm_virtual_equipment: amm_types
 	@cd cpp/standalone && $(MAKE) -f Makefile.amm_virtual_equipment all
 
 .PHONY: amm_lcd_heartrate
-amm_virtual_equipment: amm_types
+amm_lcd_heartrate: amm_types
 	@cd cpp/standalone && $(MAKE) -f Makefile.amm_lcd_heartrate all
 	
 .PHONY: amm_command_exec

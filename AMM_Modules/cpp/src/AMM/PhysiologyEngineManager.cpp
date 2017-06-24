@@ -25,7 +25,7 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
 	mgr.createTopic("Data");
 	mgr.createPublisher();
 	mgr.createWriters();
-	DataWriter_var dwriter = mgr.getWriter();
+	dwriter = mgr.getWriter();
 	LifecycleWriter = NodeDataWriter::_narrow(dwriter.in());
 
 	/**
@@ -38,7 +38,7 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
 	tickMgr.createTopic("Tick");
 	tickMgr.createSubscriber();
 	tickMgr.createReader();
-	DataReader_var tdreader = tickMgr.getReader();
+	tdreader = tickMgr.getReader();
 	TickReader = TickDataReader::_narrow(tdreader.in());
 	checkHandle(TickReader.in(), "TickDataReader::_narrow");
 
@@ -52,16 +52,37 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
 	cmdMgr.createTopic("Command");
 	cmdMgr.createSubscriber();
 	cmdMgr.createReader();
-	DataReader_var cdreader = cmdMgr.getReader();
+	cdreader = cmdMgr.getReader();
 	CommandReader = CommandDataReader::_narrow(cdreader.in());
 	checkHandle(CommandReader.in(), "CommandDataReader::_narrow");
 
 	nodePathMap = bg->nodePathTable;
+
 }
 
 bool PhysiologyEngineManager::isRunning() {
 	return !closed;
 }
+
+void PhysiologyEngineManager::TickListenerLoop() {
+	tickListener = new TickDataListener();
+	tickListener->m_pe = this;
+	tickListener->m_TickReader = TickDataReader::_narrow(tdreader.in());
+	DDS::StatusMask mask =		           DDS::DATA_AVAILABLE_STATUS | DDS::REQUESTED_DEADLINE_MISSED_STATUS;
+	tickListener->m_TickReader->set_listener(tickListener, mask);
+	cout << "=== [ListenerDataSubscriber] Ready ..." << endl;
+	tickListener->m_closed = false;
+
+	DDS::WaitSet_var ws = new DDS::WaitSet();
+	ws->attach_condition(tickListener->m_guardCond);
+
+	while (!tickListener->m_closed){
+	    ws->wait(condSeq, timeout);
+	    tickListener->m_guardCond->set_trigger_value(false);
+	 }
+
+}
+
 
 void PhysiologyEngineManager::TickLoop() {
 	ReadCommands();
