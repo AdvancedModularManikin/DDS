@@ -104,8 +104,8 @@ int main(int argc, char *argv[]) {
 				}
 				
 				if (msgList[i].nodepath == "HR") {
-					displayString = "HR: " << msgList[i].dbl;
-					display(str1, displayString, RGB_RED);
+					displayString << msgList[i].dbl;
+					display("HR", displayString, RGB_RED);
 				}
 			}
 
