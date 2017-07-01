@@ -27,6 +27,8 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
 	mgr.createWriters();
 	dwriter = mgr.getWriter();
 	LifecycleWriter = NodeDataWriter::_narrow(dwriter.in());
+	dwriter_stopper = mgr.getWriter_stopper();
+	LifecycleWriter_stopper = NodeDataWriter::_narrow(dwriter_stopper.in());
 
 	/**
 	 * Tick DDS Entity Manager
@@ -64,24 +66,6 @@ bool PhysiologyEngineManager::isRunning() {
 	return !closed;
 }
 
-void PhysiologyEngineManager::TickListenerLoop() {
-	tickListener = new TickDataListener();
-	tickListener->m_pe = this;
-	tickListener->m_TickReader = TickDataReader::_narrow(tdreader.in());
-	DDS::StatusMask mask = DDS::DATA_AVAILABLE_STATUS | DDS::REQUESTED_DEADLINE_MISSED_STATUS;
-	tickListener->m_TickReader->set_listener(tickListener, mask);
-	cout << "=== [ListenerDataSubscriber] Ready ..." << endl;
-	tickListener->m_closed = false;
-
-	DDS::WaitSet_var ws = new DDS::WaitSet();
-	ws->attach_condition(tickListener->m_guardCond);
-
-	while (!tickListener->m_closed) {
-		ws->wait(condSeq, timeout);
-		tickListener->m_guardCond->set_trigger_value(false);
-	}
-
-}
 
 void PhysiologyEngineManager::TickLoop() {
 	ReadCommands();
@@ -208,7 +192,7 @@ void PhysiologyEngineManager::Shutdown() {
 	/**
 	 * Shutdown Physiology Data DDS Entity Manager
 	 */
-	mgr.deleteWriters();
+	mgr.deleteWriter(LifecycleWriter_stopper.in ());
 	mgr.deletePublisher();
 	mgr.deleteTopic();
 	mgr.deleteParticipant();

@@ -40,7 +40,6 @@ int main(int argc, char *argv[]) {
 	/** Initialization data **/
 	const char *partitionName = "AMM";
 	char topicName[] = "Data";
-	os_time delay_200ms = { 0, 200000000 };
 	ReturnCode_t status;
 	bool closed = false;
 	char buf[MAX_MSG_LEN];

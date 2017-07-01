@@ -2,7 +2,6 @@
 
 #include "DDSEntityManager.h"
 #include "BioGearsThread.h"
-#include "TickDataListener.h"
 
 #include "ccpp_AMM.h"
 
@@ -71,10 +70,14 @@ protected:
 	DDSEntityManager cmdMgr = new DDSEntityManager(autodispose_unregistered_instances);
 
 	DataWriter_var dwriter;
+	DataWriter_var dwriter_stopper;
+
 	DataReader_var tdreader;
 	DataReader_var cdreader;
 
 	NodeDataWriter_var LifecycleWriter;
+	NodeDataWriter_var LifecycleWriter_stopper;
+
 	DataWriter_var cmddwriter;
 	CommandDataWriter_var CommandWriter;
 
@@ -82,9 +85,5 @@ protected:
 	CommandDataReader_var CommandReader;
 	BioGearsThread* bg = new BioGearsThread("biogears.log", "./states/StandardMale@0s.xml");
 
-	TickDataListener *tickListener;
-
-	ConditionSeq condSeq;
-	WaitSet_var ws;
 };
 
