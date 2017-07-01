@@ -52,4 +52,5 @@ project_name_list:
 
 deploy:
 	-$(CP) -r support/ospl.xml $(BTARGETDIR)
+	-$(CP) -r support/release.sh $(BTARGETDIR)
 	
