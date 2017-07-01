@@ -17,7 +17,7 @@ fi
 BIOGEARS_ROOT=/usr/local/physiology
 export BIOGEARS_ROOT
 
-source /usr/local/opensplice/release.com
+source /usr/local/opensplice/install/HDE/armv6l.linux/release.com
 
 
 

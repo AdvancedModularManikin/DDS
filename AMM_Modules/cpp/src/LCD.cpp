@@ -44,20 +44,14 @@ int main(int argc, char *argv[]) {
 	os_time delay_200ms = { 0, 200000000 };
 	ReturnCode_t status;
 	bool closed = false;
-	char buf[MAX_MSG_LEN];
 
 	// LCD accessor
 	lcd = new upm::Jhd1313m1(I2C_BUS, 0x3e, 0x62);
 	
-	/* Specific to this app */
-	char sTopicName[] = "MyDataTopic";
-	StringSeq sSeqExpr;
-
 	// create domain participant
 	mgr.createParticipant(partitionName);
 
 	//create type
-
 	NodeTypeSupport_var dt = new NodeTypeSupport();
 	mgr.registerType(dt.in());
 
@@ -67,22 +61,6 @@ int main(int argc, char *argv[]) {
 	//create Subscriber
 	mgr.createSubscriber();
 
-	// create subscription filter
-	bool first = true;
-/**
-	ostringstream filterString = "nodepath = 'HR'";
-	std::string fString = filterString.str();
-	const char* nodePath = fString.c_str();
-	snprintf(buf, MAX_MSG_LEN, nodePath);
-	DDS::String_var sFilter = DDS::string_dup(buf);
-	sSeqExpr.length(0);
-
-	cout << "=== [LCD-HeartRate] Subscription filter : " << sFilter << endl;
-
-	// create topic
-	mgr.createContentFilteredTopic(sTopicName, sFilter.in(), sSeqExpr);
-	// create Filtered DataReader
-**/
 	mgr.createReader(false);
 
 	DataReader_var dreader = mgr.getReader();
@@ -91,8 +69,7 @@ int main(int argc, char *argv[]) {
 	checkHandle(PhysiologyDataReader.in(), "NodeDataReader::_narrow");
 
 	cout << "=== [LCD-HeartRate] Ready ..." << endl;
-	
-ostringstream displayString;
+	ostringstream displayString;
 
 	while (!closed) {
 		status = PhysiologyDataReader->take(msgList, infoSeq, LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE,
@@ -104,23 +81,17 @@ ostringstream displayString;
 					closed = true;
 					break;
 				}
-<<<<<<< HEAD
-				displayString << "" << msgList[i].dbl;
-				display("HR:", displayString.str(), RGB_RED);
-=======
-				
 				if (msgList[i].nodepath == "HR") {
 					displayString << msgList[i].dbl;
-					display("HR", displayString, RGB_RED);
+					display("HR", displayString.str(), RGB_RED);
 				}
->>>>>>> b49b59ae981aa4bcf8af4c6d608674a707a29381
 			}
 
 		}
 
 		status = PhysiologyDataReader->return_loan(msgList, infoSeq);
 		checkStatus(status, "DataReader::return_loan");
-		// os_nanoSleep(delay_200ms);
+		os_nanoSleep(delay_200ms);
 	}
 
 	cout << "=== [LCD-HeartRate] Simulation stopped." << endl;
@@ -128,7 +99,6 @@ ostringstream displayString;
 	//cleanup
 	mgr.deleteReader(PhysiologyDataReader.in());
 	mgr.deleteSubscriber();
-	mgr.deleteFilteredTopic();
 	mgr.deleteTopic();
 	mgr.deleteParticipant();
 	
