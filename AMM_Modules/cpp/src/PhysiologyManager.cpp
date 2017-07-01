@@ -49,9 +49,11 @@ int main(int argc, char *argv[]) {
 					<< " == Run based on Simulation Manager ticks (use Sim Manager to pause/stop)";
 			cout.flush();
 			// std::thread PEThread(pe.TickLoop);
-			while (!pe.closed) {
-				pe.TickLoop();
-			}
+			pe.TickListenerLoop();
+
+			//while (!pe.closed) {
+//				pe.TickLoop();
+			//}
 			cout << endl;
 		} else if (action == "6") {
 			cout << " == Publishing data" << endl;

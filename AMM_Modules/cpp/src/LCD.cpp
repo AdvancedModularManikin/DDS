@@ -100,12 +100,20 @@ ostringstream displayString;
 		checkStatus(status, "DataReader::take");
 		for (DDS::ULong i = 0; i < msgList.length(); i++) {
 			if (infoSeq[i].valid_data) {
-				if (msgList[i].dbl == -1.0f) {
+				if (msgList[i].dbl == -1.0f || msgList[i].nodepath == "-1") {
 					closed = true;
 					break;
 				}
+<<<<<<< HEAD
 				displayString << "" << msgList[i].dbl;
 				display("HR:", displayString.str(), RGB_RED);
+=======
+				
+				if (msgList[i].nodepath == "HR") {
+					displayString << msgList[i].dbl;
+					display("HR", displayString, RGB_RED);
+				}
+>>>>>>> b49b59ae981aa4bcf8af4c6d608674a707a29381
 			}
 
 		}
