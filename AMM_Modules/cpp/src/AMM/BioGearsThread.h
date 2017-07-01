@@ -1,6 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
 #include <mutex>
 #include <thread>
 
@@ -10,8 +9,6 @@
 #include "ccpp_AMM.h"
 
 // BioGears core
-#include "bind/biogears-cdm.hxx"
-#include "CommonDataModel.h"
 #include "BioGearsPhysiologyEngine.h"
 #include "engine/PhysiologyEngineTrack.h"
 #include "scenario/requests/SEDataRequest.h"

@@ -4,7 +4,8 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include "os.h"
+#include <vector>
+#include "vortex_os.h"
 
 #include "os_if.h"
 

@@ -68,9 +68,9 @@ int main(int argc, char *argv[]) {
 	mgr.createSubscriber();
 
 	// create subscription filter
-	ostringstream filterString;
 	bool first = true;
-	filterString << "nodepath = 'HR'";
+/**
+	ostringstream filterString = "nodepath = 'HR'";
 	std::string fString = filterString.str();
 	const char* nodePath = fString.c_str();
 	snprintf(buf, MAX_MSG_LEN, nodePath);
@@ -82,7 +82,8 @@ int main(int argc, char *argv[]) {
 	// create topic
 	mgr.createContentFilteredTopic(sTopicName, sFilter.in(), sSeqExpr);
 	// create Filtered DataReader
-	mgr.createReader(true);
+**/
+	mgr.createReader(false);
 
 	DataReader_var dreader = mgr.getReader();
 	NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(dreader.in());
@@ -90,8 +91,9 @@ int main(int argc, char *argv[]) {
 	checkHandle(PhysiologyDataReader.in(), "NodeDataReader::_narrow");
 
 	cout << "=== [LCD-HeartRate] Ready ..." << endl;
-	std::string displayString = "";
 	
+ostringstream displayString;
+
 	while (!closed) {
 		status = PhysiologyDataReader->take(msgList, infoSeq, LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE,
 				ANY_INSTANCE_STATE);
@@ -102,9 +104,8 @@ int main(int argc, char *argv[]) {
 					closed = true;
 					break;
 				}
-				
-				displayString = "HR: " << msgList.dbl;
-				display(str1, displayString, RGB_RED);
+				displayString << "" << msgList[i].dbl;
+				display("HR:", displayString.str(), RGB_RED);
 			}
 
 		}

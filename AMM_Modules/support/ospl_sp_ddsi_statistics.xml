@@ -1,11 +1,14 @@
 <OpenSplice>
     <Domain>
-        <Name>AMM</Name>
+        <Name>ospl_sp_ddsi_statistics</Name>
         <Id>0</Id>
         <SingleProcess>true</SingleProcess>
         <Description>Stand-alone 'single-process' deployment with DDSI networking and enabled statistics.</Description>
         <Service name="ddsi2">
             <Command>ddsi2</Command>
+        </Service>
+        <Service name="cmsoap">
+            <Command>cmsoap</Command>
         </Service>
         <Statistics>
             <Category enabled="true" name="reader"/>
@@ -31,4 +34,9 @@
             <!-- <ExplicitlyPublishQosSetToDefault>true</ExplicitlyPublishQosSetToDefault> -->
         </Compatibility>
     </DDSI2Service>
+    <TunerService name="cmsoap">
+        <Server>
+            <PortNr>Auto</PortNr>
+        </Server>
+    </TunerService>
 </OpenSplice>
