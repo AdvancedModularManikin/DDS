@@ -24,7 +24,9 @@ class PhysiologyEngineManager {
 public:
 
 	PhysiologyEngineManager();
-	virtual ~PhysiologyEngineManager() {};
+	virtual ~PhysiologyEngineManager() {
+	}
+	;
 
 	void StartSimulation();
 	void StopSimulation();
@@ -40,7 +42,7 @@ public:
 
 	void SendCommand(const std::string &command);
 	void SendShutdown();
-
+	void WriteNodeData(string node);
 	void TickLoop();
 	void TickListenerLoop();
 
@@ -49,21 +51,18 @@ public:
 	bool paused = false;
 	int lastFrame = 0;
 
-
 private:
-		void ReadCommands();
-		void ReadTicks();
-		Duration_t timeout = { 0, 200000000 };
-		bool autodispose_unregistered_instances = true;
+	void ReadCommands();
+	void ReadTicks();
+	Duration_t timeout = { 0, 200000000 };
+	bool autodispose_unregistered_instances = true;
 
-		// Initialize some data structures
-		TickSeq tickList;
-		CommandSeq cmdList;
-		SampleInfoSeq infoSeq;
+	// Initialize some data structures
+	TickSeq tickList;
+	CommandSeq cmdList;
+	SampleInfoSeq infoSeq;
 
-		std::map<std::string, double (BioGearsThread::*)()> nodePathMap;
-		Node *dataInstance;
-
+	std::map<std::string, double (BioGearsThread::*)()> nodePathMap;
 
 protected:
 
@@ -72,8 +71,8 @@ protected:
 	DDSEntityManager cmdMgr = new DDSEntityManager(autodispose_unregistered_instances);
 
 	DataWriter_var dwriter;
-		DataReader_var tdreader;
-		DataReader_var cdreader;
+	DataReader_var tdreader;
+	DataReader_var cdreader;
 
 	NodeDataWriter_var LifecycleWriter;
 	DataWriter_var cmddwriter;

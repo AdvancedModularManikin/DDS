@@ -68,7 +68,7 @@ void PhysiologyEngineManager::TickListenerLoop() {
 	tickListener = new TickDataListener();
 	tickListener->m_pe = this;
 	tickListener->m_TickReader = TickDataReader::_narrow(tdreader.in());
-	DDS::StatusMask mask =		           DDS::DATA_AVAILABLE_STATUS | DDS::REQUESTED_DEADLINE_MISSED_STATUS;
+	DDS::StatusMask mask = DDS::DATA_AVAILABLE_STATUS | DDS::REQUESTED_DEADLINE_MISSED_STATUS;
 	tickListener->m_TickReader->set_listener(tickListener, mask);
 	cout << "=== [ListenerDataSubscriber] Ready ..." << endl;
 	tickListener->m_closed = false;
@@ -76,13 +76,12 @@ void PhysiologyEngineManager::TickListenerLoop() {
 	DDS::WaitSet_var ws = new DDS::WaitSet();
 	ws->attach_condition(tickListener->m_guardCond);
 
-	while (!tickListener->m_closed){
-	    ws->wait(condSeq, timeout);
-	    tickListener->m_guardCond->set_trigger_value(false);
-	 }
+	while (!tickListener->m_closed) {
+		ws->wait(condSeq, timeout);
+		tickListener->m_guardCond->set_trigger_value(false);
+	}
 
 }
-
 
 void PhysiologyEngineManager::TickLoop() {
 	ReadCommands();
@@ -98,11 +97,13 @@ void PhysiologyEngineManager::ReadCommands() {
 }
 
 void PhysiologyEngineManager::SendShutdown() {
+	Node *dataInstance = new Node();
 	dataInstance->nodepath = DDS::string_dup("EXIT");
-				dataInstance->dbl = -1;
-				dataInstance->frame = -1;
-				LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
-				LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
+	dataInstance->dbl = -1;
+	dataInstance->frame = -1;
+	LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
+	LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
+	delete dataInstance;
 }
 
 void PhysiologyEngineManager::ReadTicks() {
@@ -156,17 +157,23 @@ int PhysiologyEngineManager::GetNodePathCount() {
 	return nodePathMap.size();
 }
 
+void PhysiologyEngineManager::WriteNodeData(string node) {
+	Node *dataInstance = new Node();
+	dataInstance->nodepath = DDS::string_dup(node.c_str());
+	dataInstance->dbl = bg->GetNodePath(node);
+	dataInstance->frame = lastFrame;
+	LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
+	LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
+	delete dataInstance;
+}
+
 void PhysiologyEngineManager::PublishData(bool force = false) {
 	std::map<std::string, double (BioGearsThread::*)()>::iterator it = nodePathMap.begin();
 	while (it != nodePathMap.end()) {
 
 		if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) != bg->highFrequencyNodes.end())
 				|| (lastFrame % 10) == 0 || force) {
-			dataInstance->nodepath = DDS::string_dup(it->first.c_str());
-			dataInstance->dbl = bg->GetNodePath(it->first);
-			dataInstance->frame = lastFrame;
-			LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
-			LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
+			WriteNodeData(it->first);
 		}
 
 		it++;
