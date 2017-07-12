@@ -1,9 +1,7 @@
-#pragma once
-
 #include "DDSEntityManager.h"
-#include "BioGearsThread.h"
-
 #include "ccpp_AMM.h"
+
+#include "BioGearsThread.h"
 
 #include <mutex>
 #include <thread>
@@ -24,12 +22,15 @@ public:
 
 	PhysiologyEngineManager();
 	virtual ~PhysiologyEngineManager() {
-	}
-	;
+	};
 
 	void StartSimulation();
 	void StopSimulation();
 	void Shutdown();
+
+	void StartTickSimulation();
+	void StopTickSimulation();
+
 
 	void PublishData(bool force);
 	void PrintAvailableNodePaths();
@@ -43,7 +44,6 @@ public:
 	void SendShutdown();
 	void WriteNodeData(string node);
 	void TickLoop();
-	void TickListenerLoop();
 
 	void AdvanceTimeTick();
 	bool closed = false;
@@ -84,6 +84,10 @@ protected:
 	TickDataReader_var TickReader;
 	CommandDataReader_var CommandReader;
 	BioGearsThread* bg = new BioGearsThread("biogears.log", "./states/StandardMale@0s.xml");
+
+	std::thread m_thread;
+		std::mutex m_mutex;
+		bool m_runThread;
 
 };
 

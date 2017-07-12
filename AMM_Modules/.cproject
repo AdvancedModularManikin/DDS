@@ -37,16 +37,16 @@
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.cross.cpp.compiler.1256494374" name="Cross G++ Compiler" superClass="cdt.managedbuild.tool.gnu.cross.cpp.compiler">
 								<option id="gnu.cpp.compiler.option.include.paths.547510527" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="/usr/local/OpenSplice/include"/>
-									<listOptionValue builtIn="false" value="/usr/local/OpenSplice/include/sys"/>
-									<listOptionValue builtIn="false" value="/usr/local/OpenSplice/include/dcps/C++/SACPP"/>
-									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include"/>
-									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/cdm"/>
-									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/log4cpp"/>
-									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/bind"/>
-									<listOptionValue builtIn="false" value="/usr/local/BioGears/library/include/Eigen"/>
 									<listOptionValue builtIn="false" value="/media/sf_workspace/Vcom3D/AMM/AMM_Github/AMM_Modules/cpp/standalone"/>
 									<listOptionValue builtIn="false" value="/usr/include/boost"/>
+									<listOptionValue builtIn="false" value="&quot;${BIOGEARS_ROOT}/library/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${BIOGEARS_ROOT}/library/include/log4cpp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${BIOGEARS_ROOT}/library/include/cdm&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${BIOGEARS_ROOT}/library/include/bind&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${BIOGEARS_ROOT}/library/include/Eigen&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${OSPL_HOME}/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${OSPL_HOME}/include/sys&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${OSPL_HOME}/include/dcps/C++/SACPP&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1055149391" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__GXX_EXPERIMENTAL_CXX0X__"/>

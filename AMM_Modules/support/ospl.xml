@@ -1,7 +1,7 @@
 <OpenSplice>
     <Domain>
         <Name>AMM</Name>
-        <Id>0</Id>
+        <Id>15</Id>
         <SingleProcess>true</SingleProcess>
         <Description>Stand-alone 'single-process' deployment with DDSI networking and enabled statistics.</Description>
         <Service name="ddsi2">

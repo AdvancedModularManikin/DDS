@@ -1,7 +1,7 @@
 eclipse.preferences.version=1
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.909199035/BIOGEARS_ROOT/delimiter=\:
-environment/project/cdt.managedbuild.toolchain.gnu.cross.base.909199035/BIOGEARS_ROOT/operation=append
-environment/project/cdt.managedbuild.toolchain.gnu.cross.base.909199035/BIOGEARS_ROOT/value=/usr/local/BioGears
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.909199035/BIOGEARS_ROOT/operation=replace
+environment/project/cdt.managedbuild.toolchain.gnu.cross.base.909199035/BIOGEARS_ROOT/value=/usr/local/physiology
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.909199035/OSPL_HOME/delimiter=\:
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.909199035/OSPL_HOME/operation=append
 environment/project/cdt.managedbuild.toolchain.gnu.cross.base.909199035/OSPL_HOME/value=/usr/local/OpenSplice

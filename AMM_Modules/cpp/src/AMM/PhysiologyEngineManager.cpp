@@ -10,7 +10,8 @@ using namespace DDS;
 using namespace std;
 using namespace std::chrono;
 
-PhysiologyEngineManager::PhysiologyEngineManager() {
+PhysiologyEngineManager::PhysiologyEngineManager() :
+		m_thread() {
 
 	cout << "=== [PhysiologyManager] Starting up." << endl;
 
@@ -60,16 +61,19 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
 
 	nodePathMap = bg->nodePathTable;
 
+	m_runThread = false;
+
 }
 
 bool PhysiologyEngineManager::isRunning() {
-	return !closed;
+	return m_runThread;
 }
 
-
 void PhysiologyEngineManager::TickLoop() {
-	ReadCommands();
-	ReadTicks();
+	while (m_runThread) {
+		ReadCommands();
+		ReadTicks();
+	}
 }
 
 void PhysiologyEngineManager::ReadCommands() {
@@ -96,7 +100,7 @@ void PhysiologyEngineManager::ReadTicks() {
 	for (DDS::ULong j = 0; j < tickList.length(); j++) {
 		if (tickList[j].frame == -1) {
 			cout << "[SHUTDOWN]";
-			closed = true;
+			StopTickSimulation();
 			SendShutdown();
 		} else if (tickList[j].frame == -2) {
 			// Pause signal
@@ -164,6 +168,27 @@ void PhysiologyEngineManager::PublishData(bool force = false) {
 	}
 }
 
+void PhysiologyEngineManager::StartTickSimulation() {
+	if (!m_runThread) {
+		m_runThread = true;
+		// while (m_runThread) {
+		//	ReadCommands();
+		//	ReadTicks();
+		// }
+		m_thread = std::thread(&PhysiologyEngineManager::TickLoop, this);
+	}
+}
+
+void PhysiologyEngineManager::StopTickSimulation() {
+	if (m_runThread) {
+		m_mutex.lock();
+		m_runThread = false;
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		m_mutex.unlock();
+		m_thread.detach();
+	}
+}
+
 void PhysiologyEngineManager::StartSimulation() {
 	bg->StartSimulation();
 }
@@ -179,6 +204,7 @@ void PhysiologyEngineManager::AdvanceTimeTick() {
 int PhysiologyEngineManager::GetTickCount() {
 	return lastFrame;
 }
+
 void PhysiologyEngineManager::Status() {
 	bg->Status();
 }
@@ -192,7 +218,7 @@ void PhysiologyEngineManager::Shutdown() {
 	/**
 	 * Shutdown Physiology Data DDS Entity Manager
 	 */
-	mgr.deleteWriter(LifecycleWriter_stopper.in ());
+	mgr.deleteWriter(LifecycleWriter_stopper.in());
 	mgr.deletePublisher();
 	mgr.deleteTopic();
 	mgr.deleteParticipant();

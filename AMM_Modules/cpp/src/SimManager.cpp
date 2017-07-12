@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "ccpp_AMM.h"
 
 #include "AMM/SimulationManager.h"
 
@@ -9,8 +8,7 @@ using namespace AMM;
 using namespace std;
 
 static void show_usage(std::string name) {
-	cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n"
-			<< "\t-h,--help\t\tShow this help message\n"
+	cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
 			<< "\t-r,--rate <sample_rate>\tSpecify the sample rate to run at (samples per second) - doesn't do anything yet!"
 			<< endl;
 }
@@ -19,7 +17,7 @@ int main(int argc, char *argv[]) {
 	char configFile[] = "OSPL_URI=file://ospl.xml";
 	putenv(configFile);
 
-	int action;
+	string action = "";
 	SimulationManager simManager;
 	os_time delay_1s = { 1, 0 };
 	bool closed = false;
@@ -40,47 +38,48 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	cout << " === Simulation Manager" << endl;
-
 	do {
-		cout
-				<< " [1]Status, [2]Run/Resume, [3]Pause/Stop, [4]Shutdown, [5]Command console  "
-				<< endl;
-		cin >> action;
+		cout << endl;
+		cout << " === [AMM - Simulation Manager] ===" << endl;
+		cout << " [1]Status " << endl;
+		cout << " [2]Run/Resume" << endl;
+		cout << " [3]Pause/Stop" << endl;
+		cout << " [4]Shutdown" << endl;
+		cout << " [5]Command console" << endl;
+		cout << " >> ";
 
-		if (action == 1) {
+		getline(cin, action);
+		transform(action.begin(), action.end(), action.begin(), ::toupper);
+
+		if (action == "1") {
 			if (simManager.isRunning()) {
 				cout << " == Running!  At tick count: ";
 			} else {
 				cout << " == Not currently running, paused at tick count: ";
 			}
 			cout << simManager.GetTickCount() << endl;
-			cout << "  = Operating at " << simManager.GetSampleRate()
-					<< " frames per second." << endl;
-		} else if (action == 2) {
+			cout << "  = Operating at " << simManager.GetSampleRate() << " frames per second." << endl;
+		} else if (action == "2") {
 			cout << " == Starting simulation..." << endl;
 			simManager.StartSimulation();
-		} else if (action == 3) {
+		} else if (action == "3") {
 			cout << " == Stopping simulation..." << endl;
 			simManager.StopSimulation();
-		} else if (action == 4) {
-			cout << " == Stopping simulation and sending shutdown notice..."
-					<< endl;
+		} else if (action == "4") {
+			cout << " == Stopping simulation and sending shutdown notice..." << endl;
 			simManager.StopSimulation();
-			cout << " == Exited after " << simManager.GetTickCount()
-					<< " ticks." << endl;
+			cout << " == Exited after " << simManager.GetTickCount() << " ticks." << endl;
 			os_nanoSleep(delay_1s);
-			cout << "=== [SimManager] Shutting down Simulation Manager."
-					<< endl;
+			cout << "=== [SimManager] Shutting down Simulation Manager." << endl;
 			closed = true;
 			simManager.Shutdown();
-		} else if (action == 5) {
+		} else if (action == "5") {
 			std::string command = "";
 			bool consoleclosed = false;
 			do {
 				cout << " Enter a command (exit to return to menu) >>> ";
 				getline(cin, command);
-				transform(command.begin(), command.end(), command.begin(),::toupper);
+				transform(command.begin(), command.end(), command.begin(), ::toupper);
 				if (command == "EXIT") {
 					consoleclosed = true;
 				} else {
@@ -94,7 +93,6 @@ int main(int argc, char *argv[]) {
 
 		}
 	} while (!closed);
-
 
 	return 0;
 }

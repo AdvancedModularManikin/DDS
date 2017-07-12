@@ -3,8 +3,7 @@
 #include "AMM/PhysiologyEngineManager.h"
 
 static void show_usage(std::string name) {
-	cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n"
-			<< "\t-h,--help\t\tShow this help message\n" << endl;
+	cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n" << endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -20,21 +19,32 @@ int main(int argc, char *argv[]) {
 	}
 
 	bool closed = false;
-	bool paused = false;
 	string action = "";
 	PhysiologyEngineManager pe;
 
-	cout << "=== [PhysiologyManager] Ready and waiting..." << endl << endl;
-
 	do {
-		cout
-				<< " [1]Status, [2]Advance Time Tick, [3]Start, [4]Stop, [5]Run, [6]Publish data, [7]Quit "
-				<< endl;
+		cout << endl;
+		cout << " === [AMM - Physiology Manager] ===" << endl;
+		cout << " [1]Status" << endl;
+		cout << " [2]Advance Time Tick" << endl;
+		cout << " [3]Start (no tick)\t\tRun BioGears as fast as possible, no publishing" << endl;
+		cout << " [4]Stop (no tick)\t\tPause BioGears" << endl;
+		cout << " [5]Start (tick)\t\tRun BioGears with simulation-manager ticks" << endl;
+		cout << " [6]Stop (tick)\t\t\tStop running based on simulation-manager ticks" << endl;
+		cout << " [7]Publish data\t\tPublish all data, right now (running or not)" << endl;
+		cout << " [8]Quit" << endl;
+		cout << " >> ";
 		getline(cin, action);
 		transform(action.begin(), action.end(), action.begin(), ::toupper);
 
 		if (action == "1") {
 			pe.Status();
+			if (pe.isRunning()) {
+				cout << " == Running!  At tick count: ";
+			} else {
+				cout << " == Not currently running, paused at tick count: ";
+			}
+			cout << pe.GetTickCount() << endl;
 		} else if (action == "2") {
 			cout << " == Advancing time one tick" << endl;
 			pe.AdvanceTimeTick();
@@ -45,28 +55,22 @@ int main(int argc, char *argv[]) {
 			cout << " == Stopping simulation..." << endl;
 			pe.StopSimulation();
 		} else if (action == "5") {
-			cout
-					<< " == Run based on Simulation Manager ticks (use Sim Manager to pause/stop)";
-			cout.flush();
-			// std::thread PEThread(pe.TickLoop);
-			// pe.TickListenerLoop();
-			while (!pe.closed) {
-				pe.TickLoop();
-			}
-			cout << endl;
+			cout << " == Starting simulation based on ticks..." << endl;
+			pe.StartTickSimulation();
 		} else if (action == "6") {
-			cout << " == Publishing data" << endl;
+			cout << " == Stopping simulation based on ticks..." << endl;
+			pe.StopTickSimulation();
+		} else if (action == "7") {
+			cout << " == Publishing all data" << endl;
 			pe.PublishData(true);
 			cout << " == Done publishing " << pe.GetNodePathCount() << " items." << endl;
-		} else if (action == "7") {
+		} else if (action == "8") {
 			pe.StopSimulation();
 			pe.Shutdown();
 		} else if (action == "LIST") {
 
 		}
 	} while (!closed);
-
-
 
 	cout << "=== [PhysiologyManager] Exiting." << endl;
 
