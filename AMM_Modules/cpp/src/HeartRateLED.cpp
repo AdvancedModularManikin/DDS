@@ -152,10 +152,10 @@ int main(int argc, char *argv[]) {
 		//do SPI communication
 		int spi_tr_res = spi_transfer(spi_fd, &spi_send, &spi_rcvd, 4);
 		
-		std::cout << "spi_msg " << std::hex << std::setw(2)
-			<< std::setfill('0') << (unsigned int) spi_msg << std::endl;
-		std::cout << "spi_rcvd " << std::hex << std::setw(2)
-			<< std::setfill('0') << (unsigned int) spi_rcvd << std::endl;
+		//std::cout << "spi_msg " << std::hex << std::setw(2)
+		//	<< std::setfill('0') << (unsigned int) spi_msg << std::endl;
+		//std::cout << "spi_rcvd " << std::hex << std::setw(2)
+		//	<< std::setfill('0') << (unsigned int) spi_rcvd << std::endl;
 		//send press messages based on received SPI
 		//the buttons send 1 when they are up and 0 when they are pressed
 		if (spi_rcvd[1]) {

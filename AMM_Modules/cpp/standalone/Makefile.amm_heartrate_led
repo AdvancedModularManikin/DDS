@@ -8,8 +8,7 @@ CXX           = g++
 LD            = $(CXX) $(CCFLAGS) $(PICFLAGS) $(GENFLAGS)
 AR            = ar
 PICFLAGS      = -fPIC
-CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -pthread -D_REENTRANT -Wall -I"." -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++
-/SACPP"
+CPPFLAGS      = $(PICFLAGS) $(GENFLAGS) -pthread -D_REENTRANT -Wall -I"." -I"$(OSPL_HOME)/include" -I"$(OSPL_HOME)/include/sys" -I"$(OSPL_HOME)/include/dcps/C++/SACPP"
 OBJEXT        = .o
 OUTPUT_OPTION = -o "$@"
 COMPILE.c     = $(CC) $(CFLAGS) $(CPPFLAGS) -c

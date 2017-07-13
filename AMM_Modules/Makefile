@@ -15,6 +15,7 @@ clean depend generated realclean check-syntax $(CUSTOM_TARGETS):
 	@cd cpp/standalone && $(MAKE) -f Makefile.amm_sim_manager $(@)
 	@cd cpp/standalone && $(MAKE) -f Makefile.amm_virtual_equipment $(@)
 	@cd cpp/standalone && $(MAKE) -f Makefile.amm_lcd_heartrate $(@)
+	@cd cpp/standalone && $(MAKE) -f Makefile.amm_heartrate_led $(@)
 	@cd cpp/standalone && $(MAKE) -f Makefile.amm_command_exec $(@)
 	@cd cpp/standalone && $(MAKE) -f Makefile.amm_physiology_manager $(@)
 
@@ -34,6 +35,10 @@ amm_virtual_equipment: amm_types
 amm_lcd_heartrate: amm_types
 	@cd cpp/standalone && $(MAKE) -f Makefile.amm_lcd_heartrate all
 	
+.PHONY: amm_heartrate_led
+amm_heartrate_led: amm_types
+	@cd cpp/standalone && $(MAKE) -f Makefile.amm_heartrate_led all
+
 .PHONY: amm_command_exec
 amm_command_exec: amm_types
 	@cd cpp/standalone && $(MAKE) -f Makefile.amm_command_exec all
