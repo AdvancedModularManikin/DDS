@@ -47,6 +47,7 @@
 									<listOptionValue builtIn="false" value="&quot;${OSPL_HOME}/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${OSPL_HOME}/include/sys&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${OSPL_HOME}/include/dcps/C++/SACPP&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.preprocessor.def.1055149391" name="Defined symbols (-D)" superClass="gnu.cpp.compiler.option.preprocessor.def" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__GXX_EXPERIMENTAL_CXX0X__"/>

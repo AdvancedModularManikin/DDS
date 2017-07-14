@@ -21,6 +21,10 @@ amm_sim_manager: amm_types
 amm_virtual_equipment: amm_types
 	@$(MAKE) -f Makefile.amm_virtual_equipment all
 
+.PHONY: amm_rest_adapter
+amm_rest_adapter: amm_types
+	@$(MAKE) -f Makefile.amm_rest_adapter all
+
 .PHONY: amm_lcd_heartrate
 amm_lcd_heartrate: amm_types
 	@$(MAKE) -f Makefile.amm_lcd_heartrate all
