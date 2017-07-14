@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <pistache/http.h>
+#include <pistache/http_header.h>
 #include <pistache/router.h>
 #include <pistache/endpoint.h>
 
@@ -165,6 +166,7 @@ private:
 	void doGetAllNodes(const Rest::Request& request, Http::ResponseWriter response) {
 		StringBuffer s;
 		Writer<StringBuffer> writer(s);
+		writer.StartArray();
 		std::map<std::string, double>::iterator it = nodeDataStorage.begin();
 		while (it != nodeDataStorage.end()) {
 			writer.StartObject();
@@ -175,7 +177,10 @@ private:
 			writer.EndObject();
 			it++;
 		}
-		response.send(Http::Code::Ok, s.GetString());
+		writer.EndArray();
+		// response.headers().add(<Pistache::Http::Header::AccessControlAllowOrigin>("*"));
+
+		response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
 	}
 
 	void doGetNode(const Rest::Request& request, Http::ResponseWriter response) {
@@ -192,7 +197,8 @@ private:
 			ns << it->second;
 			writer.String(ns.str().c_str());
 			writer.EndObject();
-			response.send(Http::Code::Ok, s.GetString());
+			// response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+			response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
 		} else {
 			response.send(Http::Code::Not_Found, "Node data does not exist");
 		}

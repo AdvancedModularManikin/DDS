@@ -156,7 +156,7 @@ void PhysiologyEngineManager::WriteNodeData(string node) {
 	dataInstance->dbl = bg->GetNodePath(node);
 	dataInstance->frame = lastFrame;
 	LifecycleWriter->write(*dataInstance, DDS::HANDLE_NIL);
-	LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
+	// LifecycleWriter->dispose(*dataInstance, DDS::HANDLE_NIL);
 	delete dataInstance;
 }
 
