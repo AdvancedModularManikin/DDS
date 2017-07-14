@@ -95,8 +95,8 @@ int main(int argc, char *argv[]) {
 
 	cout << "=== [HeartRateLED] Ready ..." << endl;
 
-	float heartrate = 60.0;
-	float breathrate = 15.0;
+	float heartrate = 40.0;
+	float breathrate = 12.0;
 	bool tourniquet = false;
 	bool hemorrhage = false;
 	bool closed = false;
