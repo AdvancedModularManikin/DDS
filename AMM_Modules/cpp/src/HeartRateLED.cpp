@@ -35,7 +35,6 @@ int main(int argc, char *argv[]) {
 	char configFile[] = "OSPL_URI=file://ospl.xml";
 	putenv(configFile);
 
-
 	const char *tourniquet_action = "PROPER_TOURNIQUET";
 	os_time delay_200ms = { 0, 200000000 };
 	char buf[MAX_MSG_LEN];
@@ -69,15 +68,16 @@ int main(int argc, char *argv[]) {
 	mgr.createReader(false);
 
 	DataReader_var dreader = mgr.getReader();
-		NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(dreader.in());
+	NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(dreader.in());
 
 	//make command writer
-	CommandTypeSupport_var cdt = new CommandTypeSupport();
-	mgrcmd.registerType(cdt.in());
+	DDSEntityManager mgrcmd;
+	mgrcmd.createParticipant(partition_name);
+	CommandTypeSupport_var ct = new CommandTypeSupport();
+	mgrcmd.registerType(ct.in());
 	mgrcmd.createTopic(topicName);
-	mgrcmd.createPublisher();
-	mgrcmd.createWriter();
-	mgrcmd.createReader(true);
+	mgrcmd.createSubscriber();
+	mgrcmd.createReader();
 
 	// Publish Events
 	DataWriter_var dwriter = mgrcmd.getWriter();
