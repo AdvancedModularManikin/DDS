@@ -163,13 +163,10 @@ void PhysiologyEngineManager::WriteNodeData(string node) {
 void PhysiologyEngineManager::PublishData(bool force = false) {
 	std::map<std::string, double (BioGearsThread::*)()>::iterator it = nodePathMap.begin();
 	while (it != nodePathMap.end()) {
-		WriteNodeData(it->first);
-		/*if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) != bg->highFrequencyNodes.end())
+		if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) != bg->highFrequencyNodes.end())
 				|| (lastFrame % 10) == 0 || force) {
-			cout << " -Publishing " << it->first << endl;
 			WriteNodeData(it->first);
-		}*/
-
+		}
 		it++;
 	}
 }
