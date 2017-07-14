@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
 
 	const char *tourniquet_action = "PROPER_TOURNIQUET";
 	const char *hemorrhage_action = "LEG_HEMORRHAGE";
-	os_time delay_200ms = { 0, 200000000 };
+	os_time delay_20ms = { 0, 20000000 };
 	char buf[MAX_MSG_LEN];
 	char topicName[] = "Command";
 	int spi_fd = open(device, O_RDWR);
@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
 			cout << "sent that command" << endl;
 		}
 
-		os_nanoSleep(delay_200ms);
+		os_nanoSleep(delay_20ms);
 		++count;
 	}
 
