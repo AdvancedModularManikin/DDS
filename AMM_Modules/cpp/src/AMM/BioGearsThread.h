@@ -146,6 +146,7 @@ private:
 	double GetRightPleuralCavityVolume();
 	double GetLeftAlveoliBaselineCompliance();
 	double GetRightAlveoliBaselineCompliance();
+	double GetCardiacOutput();
 	Logger* GetLogger() {
 			return m_bg->GetLogger();
 		}

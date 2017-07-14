@@ -39,6 +39,7 @@ void BioGearsThread::PopulateNodePathTable() {
 	nodePathTable["Cardiovascular_Arterial_Systolic_Pressure"] = &BioGearsThread::GetArterialSystolicPressure;
 	nodePathTable["Cardiovascular_Arterial_Diastolic_Pressure"] = &BioGearsThread::GetArterialDiastolicPressure;
 	nodePathTable["Cardiovascular_CentralVenous_Mean_Pressure"] = &BioGearsThread::GetMeanCentralVenousPressure;
+	nodePathTable["Cardiovascular_CardiacOutput"] = &BioGearsThread::GetCardiacOutput;
 
 	// Respiratory System
 	nodePathTable["Respiratory_Respiration_Rate"] = &BioGearsThread::GetRespirationRate;
@@ -447,6 +448,10 @@ double BioGearsThread::GetRightAlveoliBaselineCompliance() {
 	const SEGasCompartment* rightLung = m_bg->GetCompartments().GetGasCompartment(
 	BGE::PulmonaryCompartment::RightAlveoli);
 	return rightLung->GetVolume(VolumeUnit::mL);
+}
+
+double BioGearsThread::GetCardiacOutput() {
+	return m_bg->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min);
 }
 
 void BioGearsThread::DisplayNodePaths(const std::string& filter) {
