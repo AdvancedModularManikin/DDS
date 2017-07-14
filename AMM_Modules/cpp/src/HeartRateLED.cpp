@@ -35,9 +35,6 @@ int main(int argc, char *argv[]) {
 	char configFile[] = "OSPL_URI=file://ospl.xml";
 	putenv(configFile);
 
-	std::vector<std::string> node_paths;
-	node_paths.push_back("Respiratory_Respiration_Rate");
-	node_paths.push_back("HR");
 
 	const char *tourniquet_action = "PROPER_TOURNIQUET";
 	os_time delay_200ms = { 0, 200000000 };
@@ -69,27 +66,10 @@ int main(int argc, char *argv[]) {
 	mgr.createTopic(topic_name);
 	//create Subscriber
 	mgr.createSubscriber();
-
-	ostringstream filterString;
-	bool first = true;
-	for (std::string np : node_paths) {
-		if (first) {
-			filterString << "nodepath = '" << np << "'";
-			first = false;
-		} else {
-			filterString << " OR nodepath = '" << np << "'";
-		}
-	}
-	std::string fString = filterString.str();
-	const char* nodePath = fString.c_str();
-	snprintf(buf, MAX_MSG_LEN, nodePath);
-	DDS::String_var sFilter = DDS::string_dup(buf);
-	sSeqExpr.length(0);
-	cout << "=== [HeartRateLED] Subscription filter : " << sFilter << endl;
-	mgr.createReader(true);
+	mgr.createReader(false);
 
 	DataReader_var dreader = mgr.getReader();
-	NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(dreader.in());
+		NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(dreader.in());
 
 	//make command writer
 	CommandTypeSupport_var cdt = new CommandTypeSupport();
@@ -199,7 +179,6 @@ int main(int argc, char *argv[]) {
 	//cleanup
 	mgr.deleteReader(PhysiologyDataReader.in());
 	mgr.deleteSubscriber();
-	mgr.deleteFilteredTopic();
 	mgr.deleteTopic();
 	mgr.deleteParticipant();
 	mgrcmd.deleteWriter(CommandWriter.in());
