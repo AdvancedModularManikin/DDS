@@ -8,7 +8,7 @@ BTARGETDIR    = bin/
 #----------------------------------------------------------------------------
 #       Local targets
 #----------------------------------------------------------------------------
-all: amm_types amm_sim_manager amm_virtual_equipment amm_command_exec amm_physiology_manager deploy
+all: amm_types amm_sim_manager amm_virtual_equipment amm_command_exec amm_physiology_manager amm_heartrate_led deploy
 
 clean depend generated realclean check-syntax $(CUSTOM_TARGETS):
 	@cd cpp/standalone && $(MAKE) -f Makefile.amm_types $(@)

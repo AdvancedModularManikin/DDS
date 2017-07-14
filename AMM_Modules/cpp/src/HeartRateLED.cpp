@@ -44,7 +44,9 @@ int main(int argc, char *argv[]) {
 	putenv(configFile);
 
 	// usage : VirtualEquipment <subscription_string>
-	const char *nodePath = "Respiratory_Respiration_Rate";//"HR";
+	const char *breath_nodepath = "Respiratory_Respiration_Rate";
+	const char *hr_nodepath = "HR";
+	const char *tourniquet_action = "PROPER_TOURNIQUET";
 	os_time delay_200ms = { 0, 200000000 };
 	char buf[MAX_MSG_LEN];
 	char topicName[] = "Command";
@@ -52,6 +54,8 @@ int main(int argc, char *argv[]) {
 
 	NodeSeq msgList;
 	SampleInfoSeq infoSeq;
+	CommandSeq cmdList;
+	SampleInfoSeq cmdInfoSeq;
 
 	DDSEntityManager mgr;
 	DDSEntityManager mgrcmd;
@@ -73,8 +77,8 @@ int main(int argc, char *argv[]) {
 
 	char sTopicName[] = "MyDataTopic";
 	// create subscription filter
-	snprintf(buf, MAX_MSG_LEN, "nodepath = '%s'",
-			nodePath);
+	snprintf(buf, MAX_MSG_LEN, "nodepath = '%s' OR nodepath = '%s'",
+			breath_nodepath, hr_nodepath);
 	DDS::String_var sFilter = DDS::string_dup(buf);
 
 	// Filter expression
@@ -84,7 +88,7 @@ int main(int argc, char *argv[]) {
 	cout << sTopicName << " " << sFilter << " " << endl;
 	mgr.createContentFilteredTopic(sTopicName, sFilter.in(), sSeqExpr);
 	// create Filtered DataReader
-	cout << "=== [VirtualEquipment] Subscription filter : "
+	cout << "=== [HeartRateLED] Subscription filter : "
 			<< sFilter << endl;
 	mgr.createReader(true);
 
@@ -99,16 +103,24 @@ int main(int argc, char *argv[]) {
 	mgrcmd.createTopic(topicName);
 	mgrcmd.createPublisher();
 	mgrcmd.createWriter();
+	mgrcmd.createReader();
 
 	// Publish Events
 	DataWriter_var dwriter = mgrcmd.getWriter();
 	CommandDataWriter_var CommandWriter = CommandDataWriter::_narrow(
 			dwriter.in());
 	checkHandle(CommandWriter.in(), "CommandDataWriter::_narrow");
+	//need to receive tourniquet message
+	DataReader_var cmd_dreader = mgrcmd.getReader();
+	CommandDataReader_var CommandReader = CommandDataReader::_narrow(
+			cmd_dreader.in());
+	checkHandle(CommandReader.in(), "CommandDataReader::_narrow");
 
-	cout << "=== [VirtualEquipment] Ready ..." << endl;
+	cout << "=== [HeartRateLED] Ready ..." << endl;
 
 	float heartrate = 60.0;
+	float breathrate = 15.0;
+	bool tourniquet = false;
 	bool closed = false;
 	ReturnCode_t status = -1;
 	int count = 0;
@@ -124,12 +136,31 @@ int main(int argc, char *argv[]) {
 					closed = true;
 					break;
 				}
-				heartrate = msgList[i].dbl;
+				if (strcmp(msgList[i].nodepath, hr_nodepath) == 0) {
+					heartrate = msgList[i].dbl;
+				}
+				if (strcmp(msgList[i].nodepath, breath_nodepath) == 0) {
+					breathrate = msgList[i].dbl;
+				}
 			}
 			cout
-					<< "=== [VirtualEquipment] Received data :  ("
+					<< "=== [HeartRateLED] Received data :  ("
 					<< msgList[i].nodepath << ", " << msgList[i].dbl << ')'
 					<< endl;
+		}
+		status = CommandReader->take(cmdList, cmdInfoSeq,
+				LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE,
+				ANY_INSTANCE_STATE);
+		checkStatus(status, "CommandReader::take");
+		for (DDS::ULong i = 0; i < cmdList.length(); i++) {
+			if (cmdInfoSeq[i].valid_data) {
+				if (strcmp(cmdList[i].message, tourniquet_action)==0) {
+					tourniquet = true;
+				}
+			}
+			cout
+				<< "=== [HeartRateLED] Received data :  ("
+				<< cmdList[i].message << ')' << endl;
 		}
 		//prepare SPI message
 		/*
@@ -146,7 +177,8 @@ int main(int argc, char *argv[]) {
 		//int spi_msg_full = 1.0/(heartrate * (1.0/60.0) * 0.001);
 		unsigned char spi_send[4];
 		spi_send[0] = heartrate;
-		//TODO spi_send[1] = tourniquet sent?
+		spi_send[1] = breathrate;
+		spi_send[2] = tourniquet;
 		unsigned char spi_rcvd[4];
 		
 		//do SPI communication
@@ -169,16 +201,6 @@ int main(int argc, char *argv[]) {
 			checkStatus(status, "CommandWriter::write");
 			cout << "sent that command" << endl;
 		}
-		if (spi_rcvd[2]) {
-			//button 1 was pressed
-			//send tourniquet action
-			Command cmdInstance;
-			cmdInstance.message = DDS::string_dup("START");
-			cout << "=== [CommandExecutor] Sending a command containing:" << endl;
-			cout << "    Command : \"" << cmdInstance.message << "\"" << endl;
-			status = CommandWriter->write(cmdInstance, DDS::HANDLE_NIL);
-			checkStatus(status, "CommandWriter::write");
-		}
 
 		status = PhysiologyDataReader->return_loan(msgList, infoSeq);
 		checkStatus(status, "DataDataReader::return_loan");
@@ -186,7 +208,7 @@ int main(int argc, char *argv[]) {
 		++count;
 	}
 
-	cout << "=== [VirtualEquipment] Simulation stopped."
+	cout << "=== [HeartRateLED] Simulation stopped."
 			<< endl;
 
 	//cleanup
