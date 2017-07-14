@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
 	mgrcmd.createTopic(topicName);
 	mgrcmd.createPublisher();
 	mgrcmd.createWriter();
-	mgrcmd.createReader();
+	mgrcmd.createReader(true);
 
 	// Publish Events
 	DataWriter_var dwriter = mgrcmd.getWriter();
