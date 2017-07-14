@@ -164,7 +164,7 @@ void PhysiologyEngineManager::PublishData(bool force = false) {
 	std::map<std::string, double (BioGearsThread::*)()>::iterator it = nodePathMap.begin();
 	while (it != nodePathMap.end()) {
 		if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) != bg->highFrequencyNodes.end())
-				|| (lastFrame % 10) == 0 || force) {
+				|| (lastFrame % 3) == 0 || force) {
 			WriteNodeData(it->first);
 		}
 		it++;

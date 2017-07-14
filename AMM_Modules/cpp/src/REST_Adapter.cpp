@@ -165,7 +165,6 @@ private:
 	void doGetAllNodes(const Rest::Request& request, Http::ResponseWriter response) {
 		StringBuffer s;
 		Writer<StringBuffer> writer(s);
-		writer.StartArray();
 		std::map<std::string, double>::iterator it = nodeDataStorage.begin();
 		while (it != nodeDataStorage.end()) {
 			writer.StartObject();
@@ -176,7 +175,6 @@ private:
 			writer.EndObject();
 			it++;
 		}
-		writer.EndArray();
 		response.send(Http::Code::Ok, s.GetString());
 	}
 
