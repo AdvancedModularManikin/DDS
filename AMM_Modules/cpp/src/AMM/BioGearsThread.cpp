@@ -85,6 +85,7 @@ void BioGearsThread::PopulateNodePathTable() {
 
 	// Label which nodes are high-frequency
 	highFrequencyNodes= {
+		"Cardiovascular_HeartRate",
 		"ECG",
 		"Cardiovascular_Arterial_Pressure",
 		"EXHALED_CO2",

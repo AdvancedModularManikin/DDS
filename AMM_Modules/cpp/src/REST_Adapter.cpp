@@ -170,7 +170,9 @@ private:
 		while (it != nodeDataStorage.end()) {
 			writer.StartObject();
 			writer.Key(it->first.c_str());
-			writer.Double(it->second);
+			std::ostringstream s;
+			s << it->second;
+			writer.String(s.str().c_str());
 			writer.EndObject();
 			it++;
 		}
@@ -188,7 +190,9 @@ private:
 			Writer<StringBuffer> writer(s);
 			writer.StartObject();
 			writer.Key(it->first.c_str());
-			writer.Double(it->second);
+			std::ostringstream ns;
+			ns << it->second;
+			writer.String(ns.str().c_str());
 			writer.EndObject();
 			response.send(Http::Code::Ok, s.GetString());
 		} else {
