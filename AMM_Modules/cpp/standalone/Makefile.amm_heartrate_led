@@ -46,34 +46,34 @@ EXPORTFLAGS   =
 all: $(BIN)
 
 $(BIN): $(OBJS)
-        @$(TESTDIRSTART) "$(BTARGETDIR)" $(TESTDIREND) $(MKDIR) "$(BTARGETDIR)"
-        $(LINK.cc) $(OBJS) $(LDLIBS) $(OUTPUT_OPTION)
+	@$(TESTDIRSTART) "$(BTARGETDIR)" $(TESTDIREND) $(MKDIR) "$(BTARGETDIR)"
+	$(LINK.cc) $(OBJS) $(LDLIBS) $(OUTPUT_OPTION)
 
 generated: $(GENERATED_DIRTY)
-        @-:
+	@-:
 
 .obj$(CFG)/CheckStatus$(OBJEXT): ../src/AMM/CheckStatus.cpp
-        @$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
-        $(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/CheckStatus.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/CheckStatus.cpp
 
 .obj$(CFG)/DDSEntityManager$(OBJEXT): ../src/AMM/DDSEntityManager.cpp
-        @$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
-        $(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/DDSEntityManager.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/AMM/DDSEntityManager.cpp
 
 .obj$(CFG)/HeartRateLED$(OBJEXT): ../src/HeartRateLED.cpp
-        @$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
-        $(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/HeartRateLED.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/HeartRateLED.cpp
 
 .obj$(CFG)/CommandExecutor$(OBJEXT): ../src/CommandExecutor.cpp
-        @$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
-        $(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/CommandExecutor.cpp
+	@$(TESTDIRSTART) ".obj$(CFG)/" $(TESTDIREND) $(MKDIR) ".obj$(CFG)/"
+	$(COMPILE.cc) $(EXPORTFLAGS) $(OUTPUT_OPTION) ../src/CommandExecutor.cpp
 
 clean:
-        -$(RM) $(OBJS)
+	-$(RM) $(OBJS)
 
 realclean: clean
-        -$(RM) $(BIN)
-        -$(RM) .obj$(CFG)/
+	-$(RM) $(BIN)
+	-$(RM) .obj$(CFG)/
 
 check-syntax:
-        $(COMPILE.cc) $(EXPORTFLAGS) $(CHK_SOURCES)
+	$(COMPILE.cc) $(EXPORTFLAGS) $(CHK_SOURCES)

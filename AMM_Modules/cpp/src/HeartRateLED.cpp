@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 		unsigned char spi_rcvd[4];
 		
 		//do SPI communication
-		int spi_tr_res = spi_transfer(spi_fd, &spi_send, &spi_rcvd, 4);
+		int spi_tr_res = spi_transfer(spi_fd, spi_send, spi_rcvd, 4);
 		
 		//std::cout << "spi_msg " << std::hex << std::setw(2)
 		//	<< std::setfill('0') << (unsigned int) spi_msg << std::endl;

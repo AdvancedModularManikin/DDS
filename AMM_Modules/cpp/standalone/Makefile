@@ -6,6 +6,7 @@ clean depend generated realclean check-syntax $(CUSTOM_TARGETS):
 	@$(MAKE) -f Makefile.amm_sim_manager $(@)
 	@$(MAKE) -f Makefile.amm_virtual_equipment $(@)
 	@$(MAKE) -f Makefile.amm_lcd_heartrate $(@)
+	@$(MAKE) -f Makefile.amm_heartrate_led $(@)
 	@$(MAKE) -f Makefile.amm_command_exec $(@)
 	@$(MAKE) -f Makefile.amm_physiology_manager $(@)
 
