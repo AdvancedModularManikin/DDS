@@ -11,22 +11,22 @@ module AMM {
   module Physiology {	
        
     struct Node {
-	  long long frame; //@key
-      string nodepath; 
+      long long frame; 
+      string nodepath; //@key
       string unit;
       double dbl;
       string str;
     };
-    #pragma keylist Node frame
+    #pragma keylist Node nodepath
     
     struct HighFrequencyNode {
-	  long long frame; //@key
-      string nodepath;  
+	  long long frame; 
+      string nodepath;  //@key
       string unit;
       double dbl;
       string str;
     };
-    #pragma keylist HighFrequencyNode frame
+    #pragma keylist HighFrequencyNode nodepath
     
   };
   
