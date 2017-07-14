@@ -1,11 +1,12 @@
 
-all: amm_types amm_sim_manager amm_virtual_equipment amm_physiology_manager amm_command_exec
+all: amm_types amm_sim_manager amm_virtual_equipment amm_physiology_manager amm_command_exec amm_heartrate_led
 
 clean depend generated realclean check-syntax $(CUSTOM_TARGETS):
 	@$(MAKE) -f Makefile.amm_types $(@)
 	@$(MAKE) -f Makefile.amm_sim_manager $(@)
 	@$(MAKE) -f Makefile.amm_virtual_equipment $(@)
 	@$(MAKE) -f Makefile.amm_lcd_heartrate $(@)
+	@$(MAKE) -f Makefile.amm_heartrate_led $(@)
 	@$(MAKE) -f Makefile.amm_command_exec $(@)
 	@$(MAKE) -f Makefile.amm_physiology_manager $(@)
 
@@ -29,6 +30,10 @@ amm_rest_adapter: amm_types
 amm_lcd_heartrate: amm_types
 	@$(MAKE) -f Makefile.amm_lcd_heartrate all
 
+.PHONY: amm_heartrate_led
+amm_heartrate_led: amm_types
+	@$(MAKE) -f Makefile.amm_heartrate_led all
+
 .PHONY: amm_command_exec
 amm_command_exec: amm_types
 	@$(MAKE) -f Makefile.amm_command_exec all
@@ -42,4 +47,5 @@ project_name_list:
 	@echo amm_virtual_equipment
 	@echo amm_command_exec
 	@echo amm_physiology_manager
+	@echo amm_heartrate_led
 	@echo amm_types
