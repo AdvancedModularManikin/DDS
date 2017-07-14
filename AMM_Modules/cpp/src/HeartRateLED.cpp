@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
 					closed = true;
 					break;
 				}
-				if (msgList[i].nodepath == "HR") {
+				if (msgList[i].nodepath == "Cardiovascular_HeartRate") {
 					heartrate = msgList[i].dbl;
 				}
 				if (msgList[i].nodepath == "Respiratory_Respiration_Rate") {
