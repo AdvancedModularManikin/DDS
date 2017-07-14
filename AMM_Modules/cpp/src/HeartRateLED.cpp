@@ -80,9 +80,14 @@ int main(int argc, char *argv[]) {
 	mgrcmd.createReader();
 
 	// Publish Events
-	DataWriter_var dwriter = mgrcmd.getWriter();
-	CommandDataWriter_var CommandWriter = CommandDataWriter::_narrow(dwriter.in());
+	mgrcmd.createPublisher();
+	mgrcmd.createWriter();
+
+	DataWriter_var dwriter = mgr.getWriter();
+	CommandDataWriter_var CommandWriter = CommandDataWriter::_narrow(
+			dwriter.in());
 	checkHandle(CommandWriter.in(), "CommandDataWriter::_narrow");
+
 	//need to receive tourniquet message
 	DataReader_var cmd_dreader = mgrcmd.getReader();
 	CommandDataReader_var CommandReader = CommandDataReader::_narrow(cmd_dreader.in());
