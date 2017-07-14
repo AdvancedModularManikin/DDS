@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
 			cout << "sent that command" << endl;
 		}
 
-		os_nanoSleep(delay_200ms);
+		//os_nanoSleep(delay_200ms);
 		++count;
 	}
 
