@@ -71,7 +71,6 @@ int main(int argc, char *argv[]) {
 	NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(dreader.in());
 
 	//make command writer
-	DDSEntityManager mgrcmd;
 	mgrcmd.createParticipant(partition_name);
 	CommandTypeSupport_var ct = new CommandTypeSupport();
 	mgrcmd.registerType(ct.in());
@@ -83,7 +82,7 @@ int main(int argc, char *argv[]) {
 	mgrcmd.createPublisher();
 	mgrcmd.createWriter();
 
-	DataWriter_var dwriter = mgr.getWriter();
+	DataWriter_var dwriter = mgrcmd.getWriter();
 	CommandDataWriter_var CommandWriter = CommandDataWriter::_narrow(
 			dwriter.in());
 	checkHandle(CommandWriter.in(), "CommandDataWriter::_narrow");
@@ -103,9 +102,8 @@ int main(int argc, char *argv[]) {
 	int count = 0;
 	while (!closed) {
 		// Read node data
-		status = PhysiologyDataReader->take(msgList, infoSeq, LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE,
+		PhysiologyDataReader->take(msgList, infoSeq, LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE,
 				ANY_INSTANCE_STATE);
-		checkStatus(status, "NodeDataReader::take");
 		for (DDS::ULong i = 0; i < msgList.length(); i++) {
 			if (infoSeq[i].valid_data) {
 				if (msgList[i].dbl == -1.0f) {
@@ -121,10 +119,10 @@ int main(int argc, char *argv[]) {
 			}
 			cout << "=== [HeartRateLED] Received data :  (" << msgList[i].nodepath << ", " << msgList[i].dbl << ')' << endl;
 		}
+		PhysiologyDataReader->return_loan(msgList, infoSeq);
 
 		// Read commands
-		status = CommandReader->take(cmdList, cmdInfoSeq, LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE, ANY_INSTANCE_STATE);
-		checkStatus(status, "CommandReader::take");
+		CommandReader->take(cmdList, infoSeq, LENGTH_UNLIMITED, NOT_READ_SAMPLE_STATE, NEW_VIEW_STATE, ANY_INSTANCE_STATE);
 		for (DDS::ULong i = 0; i < cmdList.length(); i++) {
 			if (cmdInfoSeq[i].valid_data) {
 				if (strcmp(cmdList[i].message, tourniquet_action) == 0) {
@@ -133,6 +131,8 @@ int main(int argc, char *argv[]) {
 			}
 			cout << "=== [HeartRateLED] Received data :  (" << cmdList[i].message << ')' << endl;
 		}
+		CommandReader->return_loan(cmdList, infoSeq);
+
 		//prepare SPI message
 		/*
 		 heartrate = 60 (Example)
