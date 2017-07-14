@@ -11,27 +11,19 @@
 
 using namespace DDS;
 using namespace AMM::Physiology;
-using namespace AMM::PatientAction::BioGears; // ?
-
+using namespace AMM::PatientAction::BioGears;
+// ?
 
 static const char *device = "/dev/spidev0.0";
 static uint8_t mode;
 static uint8_t bits = 8;
-static uint32_t speed = 1<<23;
+static uint32_t speed = 1 << 23;
 static uint16_t delay;
 
-int
-spi_transfer(int fd, unsigned char *tx_buf, unsigned char *rx_buf, int buflen)
-{
+int spi_transfer(int fd, unsigned char *tx_buf, unsigned char *rx_buf, int buflen) {
 	int ret;
-	struct spi_ioc_transfer tr = {
-		tx_buf : (unsigned long)tx_buf,
-		rx_buf : (unsigned long)rx_buf,
-		len : buflen,
-		speed_hz : speed,
-		delay_usecs : delay,
-		bits_per_word : bits,
-	};
+	struct spi_ioc_transfer tr = { tx_buf : (unsigned long) tx_buf, rx_buf : (unsigned long) rx_buf, len : buflen, speed_hz : speed,
+			delay_usecs : delay, bits_per_word : bits, };
 
 	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
 	if (ret < 1)
@@ -43,9 +35,10 @@ int main(int argc, char *argv[]) {
 	char configFile[] = "OSPL_URI=file://ospl.xml";
 	putenv(configFile);
 
-	// usage : VirtualEquipment <subscription_string>
-	const char *breath_nodepath = "Respiratory_Respiration_Rate";
-	const char *hr_nodepath = "HR";
+	std::vector<std::string> node_paths;
+	node_paths.push_back("Respiratory_Respiration_Rate");
+	node_paths.push_back("HR");
+
 	const char *tourniquet_action = "PROPER_TOURNIQUET";
 	os_time delay_200ms = { 0, 200000000 };
 	char buf[MAX_MSG_LEN];
@@ -59,6 +52,8 @@ int main(int argc, char *argv[]) {
 
 	DDSEntityManager mgr;
 	DDSEntityManager mgrcmd;
+
+	StringSeq sSeqExpr;
 
 	// create domain participant
 	char partition_name[] = "AMM";
@@ -75,28 +70,27 @@ int main(int argc, char *argv[]) {
 	//create Subscriber
 	mgr.createSubscriber();
 
-	char sTopicName[] = "MyDataTopic";
-	// create subscription filter
-	snprintf(buf, MAX_MSG_LEN, "nodepath = '%s' OR nodepath = '%s'",
-			breath_nodepath, hr_nodepath);
+	ostringstream filterString;
+	bool first = true;
+	for (std::string np : node_paths) {
+		if (first) {
+			filterString << "nodepath = '" << np << "'";
+			first = false;
+		} else {
+			filterString << " OR nodepath = '" << np << "'";
+		}
+	}
+	std::string fString = filterString.str();
+	const char* nodePath = fString.c_str();
+	snprintf(buf, MAX_MSG_LEN, nodePath);
 	DDS::String_var sFilter = DDS::string_dup(buf);
-
-	// Filter expression
-	StringSeq sSeqExpr;
 	sSeqExpr.length(0);
-	// create topic
-	cout << sTopicName << " " << sFilter << " " << endl;
-	mgr.createContentFilteredTopic(sTopicName, sFilter.in(), sSeqExpr);
-	// create Filtered DataReader
-	cout << "=== [HeartRateLED] Subscription filter : "
-			<< sFilter << endl;
+	cout << "=== [HeartRateLED] Subscription filter : " << sFilter << endl;
 	mgr.createReader(true);
 
 	DataReader_var dreader = mgr.getReader();
-	NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(
-			dreader.in());
-	checkHandle(PhysiologyDataReader.in(), "NodeDataReader::_narrow");
-	
+	NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(dreader.in());
+
 	//make command writer
 	CommandTypeSupport_var cdt = new CommandTypeSupport();
 	mgrcmd.registerType(cdt.in());
@@ -107,13 +101,11 @@ int main(int argc, char *argv[]) {
 
 	// Publish Events
 	DataWriter_var dwriter = mgrcmd.getWriter();
-	CommandDataWriter_var CommandWriter = CommandDataWriter::_narrow(
-			dwriter.in());
+	CommandDataWriter_var CommandWriter = CommandDataWriter::_narrow(dwriter.in());
 	checkHandle(CommandWriter.in(), "CommandDataWriter::_narrow");
 	//need to receive tourniquet message
 	DataReader_var cmd_dreader = mgrcmd.getReader();
-	CommandDataReader_var CommandReader = CommandDataReader::_narrow(
-			cmd_dreader.in());
+	CommandDataReader_var CommandReader = CommandDataReader::_narrow(cmd_dreader.in());
 	checkHandle(CommandReader.in(), "CommandDataReader::_narrow");
 
 	cout << "=== [HeartRateLED] Ready ..." << endl;
@@ -124,10 +116,9 @@ int main(int argc, char *argv[]) {
 	bool closed = false;
 	ReturnCode_t status = -1;
 	int count = 0;
-	while (!closed)
-	{
-		status = PhysiologyDataReader->take(msgList, infoSeq,
-				LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE,
+	while (!closed) {
+		// Read node data
+		status = PhysiologyDataReader->take(msgList, infoSeq, LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE,
 				ANY_INSTANCE_STATE);
 		checkStatus(status, "NodeDataReader::take");
 		for (DDS::ULong i = 0; i < msgList.length(); i++) {
@@ -136,54 +127,49 @@ int main(int argc, char *argv[]) {
 					closed = true;
 					break;
 				}
-				if (strcmp(msgList[i].nodepath, hr_nodepath) == 0) {
+				if (msgList[i].nodepath == "HR") {
 					heartrate = msgList[i].dbl;
 				}
-				if (strcmp(msgList[i].nodepath, breath_nodepath) == 0) {
+				if (msgList[i].nodepath == "Respiratory_Respiration_Rate") {
 					breathrate = msgList[i].dbl;
 				}
 			}
-			cout
-					<< "=== [HeartRateLED] Received data :  ("
-					<< msgList[i].nodepath << ", " << msgList[i].dbl << ')'
-					<< endl;
+			cout << "=== [HeartRateLED] Received data :  (" << msgList[i].nodepath << ", " << msgList[i].dbl << ')' << endl;
 		}
-		status = CommandReader->take(cmdList, cmdInfoSeq,
-				LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE,
-				ANY_INSTANCE_STATE);
+
+		// Read commands
+		status = CommandReader->take(cmdList, cmdInfoSeq, LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE, ANY_INSTANCE_STATE);
 		checkStatus(status, "CommandReader::take");
 		for (DDS::ULong i = 0; i < cmdList.length(); i++) {
 			if (cmdInfoSeq[i].valid_data) {
-				if (strcmp(cmdList[i].message, tourniquet_action)==0) {
+				if (strcmp(cmdList[i].message, tourniquet_action) == 0) {
 					tourniquet = true;
 				}
 			}
-			cout
-				<< "=== [HeartRateLED] Received data :  ("
-				<< cmdList[i].message << ')' << endl;
+			cout << "=== [HeartRateLED] Received data :  (" << cmdList[i].message << ')' << endl;
 		}
 		//prepare SPI message
 		/*
-			heartrate = 60 (Example)
-			heartrate/60 = 1 = beats/second
-			seconds/ms = 1/1000
-			want ms/beat
-			beats/second*seconds/ms = beats/ms
-			1/beats/ms = ms/beat
-			
-			answer = 1/(beats/min * min/sec * sec/ms)
-			answer = 1/(hr * (1/60) * 0.001)
-		*/
+		 heartrate = 60 (Example)
+		 heartrate/60 = 1 = beats/second
+		 seconds/ms = 1/1000
+		 want ms/beat
+		 beats/second*seconds/ms = beats/ms
+		 1/beats/ms = ms/beat
+
+		 answer = 1/(beats/min * min/sec * sec/ms)
+		 answer = 1/(hr * (1/60) * 0.001)
+		 */
 		//int spi_msg_full = 1.0/(heartrate * (1.0/60.0) * 0.001);
 		unsigned char spi_send[4];
 		spi_send[0] = heartrate;
 		spi_send[1] = breathrate;
 		spi_send[2] = tourniquet;
 		unsigned char spi_rcvd[4];
-		
+
 		//do SPI communication
 		int spi_tr_res = spi_transfer(spi_fd, spi_send, spi_rcvd, 4);
-		
+
 		//std::cout << "spi_msg " << std::hex << std::setw(2)
 		//	<< std::setfill('0') << (unsigned int) spi_msg << std::endl;
 		//std::cout << "spi_rcvd " << std::hex << std::setw(2)
@@ -208,8 +194,7 @@ int main(int argc, char *argv[]) {
 		++count;
 	}
 
-	cout << "=== [HeartRateLED] Simulation stopped."
-			<< endl;
+	cout << "=== [HeartRateLED] Simulation stopped." << endl;
 
 	//cleanup
 	mgr.deleteReader(PhysiologyDataReader.in());
@@ -221,7 +206,6 @@ int main(int argc, char *argv[]) {
 	mgrcmd.deletePublisher();
 	mgrcmd.deleteTopic();
 	mgrcmd.deleteParticipant();
-
 
 	return 0;
 
