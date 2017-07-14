@@ -34,6 +34,7 @@ public:
 
 	void PublishData(bool force);
 	void PrintAvailableNodePaths();
+	void PrintAllCurrentData();
 	void Status();
 
 	int GetNodePathCount();

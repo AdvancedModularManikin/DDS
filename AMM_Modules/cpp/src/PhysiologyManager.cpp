@@ -27,12 +27,10 @@ int main(int argc, char *argv[]) {
 		cout << " === [AMM - Physiology Manager] ===" << endl;
 		cout << " [1]Status" << endl;
 		cout << " [2]Advance Time Tick" << endl;
-		cout << " [3]Start (no tick)\t\tRun BioGears as fast as possible, no publishing" << endl;
-		cout << " [4]Stop (no tick)\t\tPause BioGears" << endl;
-		cout << " [5]Start (tick)\t\tRun BioGears with simulation-manager ticks" << endl;
-		cout << " [6]Stop (tick)\t\t\tStop running based on simulation-manager ticks" << endl;
-		cout << " [7]Publish data\t\tPublish all data, right now (running or not)" << endl;
-		cout << " [8]Quit" << endl;
+		cout << " [3]Start\t\t\tRun BioGears with simulation-manager ticks" << endl;
+		cout << " [4]Stop\t\t\tStop running based on simulation-manager ticks" << endl;
+		cout << " [5]Publish data\t\tPublish all data, right now (running or not)" << endl;
+		cout << " [6]Quit" << endl;
 		cout << " >> ";
 		getline(cin, action);
 		transform(action.begin(), action.end(), action.begin(), ::toupper);
@@ -49,26 +47,22 @@ int main(int argc, char *argv[]) {
 			cout << " == Advancing time one tick" << endl;
 			pe.AdvanceTimeTick();
 		} else if (action == "3") {
-			cout << " == Starting simulation..." << endl;
-			pe.StartSimulation();
-		} else if (action == "4") {
-			cout << " == Stopping simulation..." << endl;
-			pe.StopSimulation();
-		} else if (action == "5") {
 			cout << " == Starting simulation based on ticks..." << endl;
 			pe.StartTickSimulation();
-		} else if (action == "6") {
+		} else if (action == "4") {
 			cout << " == Stopping simulation based on ticks..." << endl;
 			pe.StopTickSimulation();
-		} else if (action == "7") {
+		} else if (action == "5") {
 			cout << " == Publishing all data" << endl;
 			pe.PublishData(true);
 			cout << " == Done publishing " << pe.GetNodePathCount() << " items." << endl;
-		} else if (action == "8") {
+		} else if (action == "6") {
 			pe.StopSimulation();
 			pe.Shutdown();
 		} else if (action == "LIST") {
-
+			pe.PrintAvailableNodePaths();
+		} else if (action == "PRINT") {
+			pe.PrintAllCurrentData();
 		}
 	} while (!closed);
 

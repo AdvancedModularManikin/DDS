@@ -43,7 +43,6 @@ PhysiologyEngineManager::PhysiologyEngineManager() :
 	tickMgr.createReader();
 	tdreader = tickMgr.getReader();
 	TickReader = TickDataReader::_narrow(tdreader.in());
-	checkHandle(TickReader.in(), "TickDataReader::_narrow");
 
 	/**
 	 * Command DDS Entity Manager
@@ -57,10 +56,7 @@ PhysiologyEngineManager::PhysiologyEngineManager() :
 	cmdMgr.createReader();
 	cdreader = cmdMgr.getReader();
 	CommandReader = CommandDataReader::_narrow(cdreader.in());
-	checkHandle(CommandReader.in(), "CommandDataReader::_narrow");
-
 	nodePathMap = bg->nodePathTable;
-
 	m_runThread = false;
 
 }
@@ -131,12 +127,21 @@ void PhysiologyEngineManager::ReadTicks() {
 
 void PhysiologyEngineManager::PrintAvailableNodePaths() {
 	nodePathMap = bg->nodePathTable;
-
 	std::map<std::string, double (BioGearsThread::*)()>::iterator it = nodePathMap.begin();
-
 	while (it != nodePathMap.end()) {
 		std::string word = it->first;
 		cout << word << endl;
+		it++;
+	}
+}
+
+void PhysiologyEngineManager::PrintAllCurrentData() {
+	nodePathMap = bg->nodePathTable;
+	std::map<std::string, double (BioGearsThread::*)()>::iterator it = nodePathMap.begin();
+	while (it != nodePathMap.end()) {
+		std::string node = it->first;
+		double dbl = bg->GetNodePath(node);
+		cout << node << "\t\t\t" << dbl << endl;
 		it++;
 	}
 }
@@ -171,10 +176,6 @@ void PhysiologyEngineManager::PublishData(bool force = false) {
 void PhysiologyEngineManager::StartTickSimulation() {
 	if (!m_runThread) {
 		m_runThread = true;
-		// while (m_runThread) {
-		//	ReadCommands();
-		//	ReadTicks();
-		// }
 		m_thread = std::thread(&PhysiologyEngineManager::TickLoop, this);
 	}
 }
@@ -214,11 +215,14 @@ void PhysiologyEngineManager::Shutdown() {
 	cout << "=== [PhysiologyManager] Sending -1 values to all topics." << endl;
 	SendShutdown();
 
+	cout << "=== [PhysiologyManager][BG] Shutting down BioGears." << endl;
+	bg->Shutdown();
+
 	cout << "=== [PhysiologyManager][DDS] Shutting down DDS Connections." << endl;
 	/**
 	 * Shutdown Physiology Data DDS Entity Manager
 	 */
-	mgr.deleteWriter(LifecycleWriter_stopper.in());
+	mgr.deleteWriters();
 	mgr.deletePublisher();
 	mgr.deleteTopic();
 	mgr.deleteParticipant();
@@ -231,6 +235,4 @@ void PhysiologyEngineManager::Shutdown() {
 	tickMgr.deleteTopic();
 	tickMgr.deleteParticipant();
 
-	cout << "=== [PhysiologyManager][BG] Shutting down BioGears." << endl;
-	bg->Shutdown();
 }
