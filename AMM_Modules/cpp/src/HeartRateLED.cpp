@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 		PhysiologyDataReader->return_loan(msgList, infoSeq);
 
 		// Read commands
-		CommandReader->take(cmdList, infoSeq, LENGTH_UNLIMITED, NOT_READ_SAMPLE_STATE, NEW_VIEW_STATE, ANY_INSTANCE_STATE);
+		CommandReader->take(cmdList, cmdInfoSeq, LENGTH_UNLIMITED, NOT_READ_SAMPLE_STATE, NEW_VIEW_STATE, ANY_INSTANCE_STATE);
 		for (DDS::ULong i = 0; i < cmdList.length(); i++) {
 			if (cmdInfoSeq[i].valid_data) {
 				if (strcmp(cmdList[i].message, tourniquet_action) == 0) {
@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
 			}
 			cout << "=== [HeartRateLED] Received data :  (" << cmdList[i].message << ')' << endl;
 		}
-		CommandReader->return_loan(cmdList, infoSeq);
+		CommandReader->return_loan(cmdList, cmdInfoSeq);
 
 		//prepare SPI message
 		/*
