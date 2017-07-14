@@ -112,14 +112,21 @@ int main(int argc, char *argv[]) {
 					closed = true;
 					break;
 				}
-				if (msgList[i].nodepath == "Cardiovascular_HeartRate") {
+				bool print = false;
+				if (strcmp(msgList[i].nodepath, "Cardiovascular_HeartRate") == 0) {
 					heartrate = msgList[i].dbl;
+					print = true;
 				}
-				if (msgList[i].nodepath == "Respiratory_Respiration_Rate") {
+				if (strcmp(msgList[i].nodepath, "Respiratory_Respiration_Rate") == 0) {
 					breathrate = msgList[i].dbl;
+					print = true;
+				}
+				if (print) {
+					cout << "=== [HeartRateLED] Received data :  ("
+						<< msgList[i].nodepath << ", " << msgList[i].dbl << ')'
+						<< endl;
 				}
 			}
-			cout << "=== [HeartRateLED] Received data :  (" << msgList[i].nodepath << ", " << msgList[i].dbl << ')' << endl;
 		}
 		PhysiologyDataReader->return_loan(msgList, infoSeq);
 
@@ -179,8 +186,6 @@ int main(int argc, char *argv[]) {
 			cout << "sent that command" << endl;
 		}
 
-		status = PhysiologyDataReader->return_loan(msgList, infoSeq);
-		checkStatus(status, "DataDataReader::return_loan");
 		os_nanoSleep(delay_200ms);
 		++count;
 	}
