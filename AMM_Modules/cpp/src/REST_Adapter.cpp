@@ -160,6 +160,7 @@ private:
 		writer.Key("Sent command");
 		writer.String(name.c_str());
 		writer.EndObject();
+		response.headers().addRaw(Http::Header::Raw("Access-Control-Allow-Origin","*"));
 		response.send(Http::Code::Ok, s.GetString());
 	}
 
@@ -179,7 +180,7 @@ private:
 		}
 		writer.EndArray();
 		// response.headers().add(<Pistache::Http::Header::AccessControlAllowOrigin>("*"));
-
+		response.headers().addRaw(Http::Header::Raw("Access-Control-Allow-Origin","*"));
 		response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
 	}
 
@@ -197,7 +198,7 @@ private:
 			ns << it->second;
 			writer.String(ns.str().c_str());
 			writer.EndObject();
-			// response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+			response.headers().addRaw(Http::Header::Raw("Access-Control-Allow-Origin","*"));
 			response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
 		} else {
 			response.send(Http::Code::Not_Found, "Node data does not exist");
