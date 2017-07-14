@@ -36,6 +36,7 @@ int main(int argc, char *argv[]) {
 	putenv(configFile);
 
 	const char *tourniquet_action = "PROPER_TOURNIQUET";
+	const char *hemorrhage_action = "LEG_HEMORRHAGE";
 	os_time delay_200ms = { 0, 200000000 };
 	char buf[MAX_MSG_LEN];
 	char topicName[] = "Command";
@@ -97,6 +98,7 @@ int main(int argc, char *argv[]) {
 	float heartrate = 60.0;
 	float breathrate = 15.0;
 	bool tourniquet = false;
+	bool hemorrhage = false;
 	bool closed = false;
 	ReturnCode_t status = -1;
 	int count = 0;
@@ -128,6 +130,9 @@ int main(int argc, char *argv[]) {
 				if (strcmp(cmdList[i].message, tourniquet_action) == 0) {
 					tourniquet = true;
 				}
+				if (strcmp(cmdList[i].message, hemorrhage_action) == 0) {
+					hemorrhage = true;
+				}
 			}
 			cout << "=== [HeartRateLED] Received data :  (" << cmdList[i].message << ')' << endl;
 		}
@@ -150,6 +155,7 @@ int main(int argc, char *argv[]) {
 		spi_send[0] = heartrate;
 		spi_send[1] = breathrate;
 		spi_send[2] = tourniquet;
+		spi_send[3] = hemorrhage;
 		unsigned char spi_rcvd[4];
 
 		//do SPI communication
@@ -165,7 +171,7 @@ int main(int argc, char *argv[]) {
 			//button 2 was pressed
 			//send hemorrhage action
 			Command cmdInstance;
-			cmdInstance.message = DDS::string_dup("LEG_HEMORRHAGE");
+			cmdInstance.message = DDS::string_dup(hemorrhage_action);
 			cout << "=== [CommandExecutor] Sending a command containing:" << endl;
 			cout << "    Command : \"" << cmdInstance.message << "\"" << endl;
 			status = CommandWriter->write(cmdInstance, DDS::HANDLE_NIL);
