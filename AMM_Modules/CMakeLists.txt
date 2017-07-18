@@ -14,8 +14,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
 SET(ENV{OSPL_HOME} "/usr/local/opensplice")
 SET(ENV{BIOGEARS_HOME} "/usr/local/physiology")
 
-include (MacroOpenSplice)
+
 include (osmacros)
+include (MacroOpenSplice)
 
 find_package (OpenSplice REQUIRED)
 find_package (BioGears REQUIRED)
@@ -125,59 +126,15 @@ target_link_libraries (${REST_ADAPTER_EXE}
         )
 endif()
 
-add_custom_command(
-        TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/support/Actions
-        ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
-add_custom_command(
-        TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/support/config
-        ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
-add_custom_command(
-        TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/support/environments
-        ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
-add_custom_command(
-        TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/support/nutrition
-        ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
-add_custom_command(
-        TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/support/patients
-        ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
-add_custom_command(
-        TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/support/states
-        ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
-add_custom_command(
-        TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        ${PROJECT_SOURCE_DIR}/support/substances
-        ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
-add_custom_command(
-        TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        $ENV{BIOGEARS_HOME}/library/bin/xsd
-        ${CMAKE_CURRENT_BINARY_DIR}/bin)
-
-add_custom_command(
-        TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy
-        $ENV{BIOGEARS_HOME}/library/bin/UCEDefs.txt
-        ${CMAKE_CURRENT_BINARY_DIR}/bin)
+file(COPY support/Actions DESTINATION bin)
+file(COPY support/config DESTINATION bin)
+file(COPY support/environments DESTINATION bin)
+file(COPY support/nutrition DESTINATION bin)
+file(COPY support/patients DESTINATION bin)
+file(COPY support/states DESTINATION bin)
+file(COPY support/substances DESTINATION bin)
+file(COPY $ENV{BIOGEARS_HOME}/library/bin/xsd DESTINATION bin)
+file(COPY $ENV{BIOGEARS_HOME}/library/bin/UCEDefs.txt DESTINATION bin)
 
 configure_file(${PROJECT_SOURCE_DIR}/support/BioGearsConfiguration.xml ${CMAKE_CURRENT_BINARY_DIR}/bin COPYONLY)
 configure_file(${PROJECT_SOURCE_DIR}/support/log4j.properties ${CMAKE_CURRENT_BINARY_DIR}/bin COPYONLY)
