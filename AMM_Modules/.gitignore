@@ -277,3 +277,16 @@ __pycache__/
 AMM_Modules.kdev4.lock
 nohup.out
 *.so
+
+
+# Cmake artifacts
+build/
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
