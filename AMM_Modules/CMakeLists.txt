@@ -128,6 +128,7 @@ endif()
 
 file(COPY support/Actions DESTINATION bin)
 file(COPY support/config DESTINATION bin)
+file(COPY support/ecg DESTINATION bin)
 file(COPY support/environments DESTINATION bin)
 file(COPY support/nutrition DESTINATION bin)
 file(COPY support/patients DESTINATION bin)
