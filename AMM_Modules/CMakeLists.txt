@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.1)
 project(AMM_Modules)
 
-set(CMAKE_MODULE_PATH support/cmake)
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/support/cmake)
 set(CMAKE_CXX_STANDARD 11)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
 
 SET(ENV{OSPL_HOME} "/usr/local/opensplice")
 SET(ENV{BIOGEARS_HOME} "/usr/local/physiology")
@@ -15,14 +17,18 @@ SET(ENV{BIOGEARS_HOME} "/usr/local/physiology")
 include (MacroOpenSplice)
 include (osmacros)
 
-find_package (Threads REQUIRED)
 find_package (OpenSplice REQUIRED)
 find_package (BioGears REQUIRED)
+find_package (Threads)
+find_package (Boost)
 find_package (RapidJSON)
 find_package (Pistache)
 
 include_directories(
         ${PROJECT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/src/AMM
+        ${CMAKE_BINARY_DIR}/gen
         ${BioGears_INCLUDE_DIRS}
         ${OpenSplice_INCLUDE_DIRS}
 )
@@ -44,6 +50,7 @@ foreach(idl ${idls})
 endforeach(idl)
 
 set (DATAMODEL amm_types)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/)
 
 set (SIM_MANAGER_SOURCES src/SimManager.cpp src/AMM/SimulationManager.cpp src/AMM/DDSEntityManager.cpp src/AMM/CheckStatus.cpp)
 set (SIM_MANAGER_EXE amm_sim_manager)
@@ -60,6 +67,16 @@ add_executable (${VIRTUAL_EQUIPMENT_EXE} ${VIRTUAL_EQUIPMENT_SOURCES})
 set (COMMAND_EXECUTOR_SOURCES src/CommandExecutor.cpp src/AMM/DDSEntityManager.cpp src/AMM/CheckStatus.cpp)
 set (COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable (${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
+
+set (HEART_RATE_LED_SOURCES src/HeartRateLED.cpp src/AMM/DDSEntityManager.cpp src/AMM/CheckStatus.cpp)
+set (HEART_RATE_LED_EXE amm_heartrate_led)
+add_executable (${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES})
+
+if (RAPIDJSON_FOUND AND Pistache_FOUND)
+    set (REST_ADAPTER_SOURCES src/REST_Adapter.cpp src/AMM/DDSEntityManager.cpp src/AMM/CheckStatus.cpp)
+    set (REST_ADAPTER_EXE amm_rest_adapter)
+    add_executable (${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES})
+endif()
 
 add_library (${DATAMODEL} SHARED ${OpenSplice_DATAMODEL})
 
@@ -95,61 +112,74 @@ target_link_libraries (${COMMAND_EXECUTOR_EXE}
         ${DATAMODEL}
         )
 
+target_link_libraries (${HEART_RATE_LED_EXE}
+        ${OpenSplice_LIBRARIES}
+        ${DATAMODEL}
+        )
+
+if (RAPIDJSON_FOUND AND Pistache_FOUND)
+target_link_libraries (${REST_ADAPTER_EXE}
+        ${OpenSplice_LIBRARIES} ${RAPIDJSON_LIBRARIES} ${Pistache_LIBRARY}
+        Threads::Threads
+        ${DATAMODEL}
+        )
+endif()
+
 add_custom_command(
         TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        support/Actions
+        ${PROJECT_SOURCE_DIR}/support/Actions
         ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        support/config
+        ${PROJECT_SOURCE_DIR}/support/config
         ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        support/environments
+        ${PROJECT_SOURCE_DIR}/support/environments
         ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        support/nutrition
+        ${PROJECT_SOURCE_DIR}/support/nutrition
         ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        support/patients
+        ${PROJECT_SOURCE_DIR}/support/patients
         ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        support/states
+        ${PROJECT_SOURCE_DIR}/support/states
         ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        support/substances
+        ${PROJECT_SOURCE_DIR}/support/substances
         ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${BIOGEARS_HOME}/library/bin/xsd
+        $ENV{BIOGEARS_HOME}/library/bin/xsd
         ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 add_custom_command(
         TARGET ${PHYSIOLOGY_MANAGER_EXE} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
-        ${BIOGEARS_HOME}/library/bin/UCEDefs.txt
+        $ENV{BIOGEARS_HOME}/library/bin/UCEDefs.txt
         ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
-configure_file(support/BioGearsConfiguration.xml ${CMAKE_BINARY_DIR}/bin COPYONLY)
-configure_file(support/log4j.properties ${CMAKE_BINARY_DIR}/bin COPYONLY)
-configure_file(support/ospl.xml ${CMAKE_BINARY_DIR}/bin COPYONLY)
-configure_file(support/release.sh ${CMAKE_BINARY_DIR}/bin COPYONLY)
+configure_file(${PROJECT_SOURCE_DIR}/support/BioGearsConfiguration.xml ${CMAKE_CURRENT_BINARY_DIR}/bin COPYONLY)
+configure_file(${PROJECT_SOURCE_DIR}/support/log4j.properties ${CMAKE_CURRENT_BINARY_DIR}/bin COPYONLY)
+configure_file(${PROJECT_SOURCE_DIR}/support/ospl.xml ${CMAKE_CURRENT_BINARY_DIR}/bin COPYONLY)
+configure_file(${PROJECT_SOURCE_DIR}/support/release.sh ${CMAKE_CURRENT_BINARY_DIR}/bin COPYONLY)
