@@ -41,8 +41,7 @@ else()
 
     find_library(Pistache_LIBRARY
             NAMES
-            libnet.so
-            libnet_static.sa
+            libpistache.a
             HINTS
             ${Pistache_ROOT_DIR}
             PATHS
