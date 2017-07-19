@@ -281,6 +281,7 @@ nohup.out
 
 # Cmake artifacts
 build/
+auto_build/
 CMakeCache.txt
 CMakeFiles
 CMakeScripts
