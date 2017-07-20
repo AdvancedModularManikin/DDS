@@ -5,85 +5,87 @@ module AMM {
       long long frame; //@key
       float time;
     };
-    #pragma keylist Tick frame  
+#pragma keylist Tick frame  
   };
   
   module Physiology {	
-       
+    
     struct Node {
       long long frame; 
-      string nodepath; //@key
+      string nodepath;
       string unit;
       double dbl;
       string str;
     };
-    #pragma keylist Node nodepath
+#pragma keylist Node frame nodepath
     
     struct HighFrequencyNode {
-	  long long frame; 
-      string nodepath;  //@key
+      long long frame; 
+      string nodepath; 
       string unit;
       double dbl;
       string str;
     };
-    #pragma keylist HighFrequencyNode nodepath
+#pragma keylist HighFrequencyNode frame nodepath
     
   };
-  
-  module PatientAction {
-  
-	module BioGears {	
-		struct Command {
-			string message;
-		};
-		#pragma keylist Command message				
-	};
+    
+    module PatientAction {  
+    module BioGears {	
+    struct Command {
+    string message;
+  };
+#pragma keylist Command
+  };
   };    
-  
-  
+    
+    
   module Performance {	
 	struct xAPIModifier {
 		string key;
 		string value;
 	};
-	#pragma keylist xAPIModifier key
+
 	
 	typedef sequence<xAPIModifier> xAPI_Modifiers;
 	
     struct Statement {
-      string noun;   // @key
-	  xAPI_Modifiers noun_modifiers;
+      string noun;
+      xAPI_Modifiers noun_modifiers;
       string verb;
-	  xAPI_Modifiers verb_modifiers;
+      xAPI_Modifiers verb_modifiers;
       string obj;
-	  xAPI_Modifiers obj_modifiers;
+      xAPI_Modifiers obj_modifiers;
     };
-    #pragma keylist Statement noun
+    #pragma keylist Statement
   };
   
-  module Sys {
+    module Sys {
     // events?  start?  stop?  pause?  restart?  reload?
     // heartbeat?  errors?  general health?
     
     // This will NOT be in the spec
     module Log {
-      struct info {
-		string message;
-      };      
-      
-      struct warning {
-		string message;
-      };
-      
-      struct error {
-		string message;
-      };
-      
-      struct debug {
-		string message;
-      };     
-    };
+    struct info {
+    string message;
+  };      
+#pragma keylist info
+    
+    struct warning {
+    string message;
   };
-  
+#pragma keylist warning
+    
+    struct error {
+    string message;
+  };
+#pragma keylist error
+    
+    struct debug {
+      string message;
+    };
+#pragma keylist debug
+  };
+};
 };
 

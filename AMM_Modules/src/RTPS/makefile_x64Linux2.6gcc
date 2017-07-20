@@ -1,0 +1,66 @@
+CPP= g++
+CPPFLAGS = -c -Wall -fpic -m64 -O2 -std=c++0x
+LN= g++
+AR=ar
+LDFLAGS= -m64
+SYSLIBS= -ldl -lnsl -lm -lpthread -lrt
+DEFINES= 
+
+INCLUDES= -I. 
+
+LIBS =  -lfastcdr -lfastrtps $(SYSLIBS)
+
+DIRECTORIES= output.dir output/x64Linux2.6gcc.dir lib.dir lib/x64Linux2.6gcc.dir bin.dir bin/x64Linux2.6gcc.dir
+
+all: $(DIRECTORIES) AMM AMMPublisherSubscriber
+
+
+AMM_TARGET= lib/x64Linux2.6gcc/libAMM.so
+AMM_TARGET_Z= lib/x64Linux2.6gcc/libAMM.a
+
+AMM_CLIENT_EXAMPLE_TARGET= bin/x64Linux2.6gcc/AMMPublisherSubscriber
+AMM_COMMON_SRC_CXXFILES = AMM.cxx
+
+AMM_COMMON_SRC_CPPFILES=
+
+AMM_CLIENTSOURCES = AMMPubSubTypes.cxx \
+	AMMPublisher.cxx \
+	AMMSubscriber.cxx \
+	AMMPubSubMain.cxx
+
+AMM_COMMONOBJS    = $(AMM_COMMON_SRC_CXXFILES:%.cxx=output/x64Linux2.6gcc/%.o) $(AMM_COMMON_SRC_CPPFILES:%.cpp=output/x64Linux2.6gcc/%.o)
+
+AMM_CLIENTOBJS    = $(AMM_CLIENTSOURCES:%.cxx=output/x64Linux2.6gcc/%.o)
+
+AMMOBJS+= $(AMM_COMMONOBJS) $(AMM_CLIENTOBJS)
+OBJS+= $(AMMOBJS)
+
+$(AMM_TARGET): $(AMM_COMMONOBJS)
+	$(LN) $(LDFLAGS) -shared -o $(AMM_TARGET) $(AMM_COMMONOBJS) $(LIBS) -Llib/x64Linux2.6gcc 
+
+$(AMM_TARGET_Z): $(AMM_COMMONOBJS)
+	$(AR) -cru $(AMM_TARGET_Z) $(AMM_COMMONOBJS)
+
+$(AMM_CLIENT_EXAMPLE_TARGET): $(AMMOBJS) lib/x64Linux2.6gcc/libAMM.a 
+	$(LN) $(LDFLAGS) -o $@ $(AMMOBJS) -Wl,-Bstatic -Llib/x64Linux2.6gcc -lAMM  -Wl,-Bdynamic $(LIBS)
+
+AMMPublisherSubscriber : $(AMM_CLIENT_EXAMPLE_TARGET)
+AMM: $(AMM_TARGET) $(AMM_TARGET_Z) AMMPublisherSubscriber
+
+output/x64Linux2.6gcc/%.o:%.cxx
+	$(CPP) $(CPPFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
+
+output/x64Linux2.6gcc/%.o:%.cpp
+	$(CPP) $(CPPFLAGS) $(INCLUDES) $(DEFINES) -c $< -o $@
+
+.PHONY: AMM AMMPublisherSubscriber
+
+clean:
+	@rm -f $(OBJS)
+
+%.dir : 
+	@echo "Checking directory $*"
+	@if [ ! -d $* ]; then \
+		echo "Making directory $*"; \
+		mkdir -p $* ; \
+	fi;

@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.1)
 project(AMM_Modules)
 
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/support/cmake)
+LIST(APPEND CMAKE_MODULE_PATH /usr/local/lib/fastrtps/cmake /usr/local/lib/fastcdr/cmake ${PROJECT_SOURCE_DIR}/support/cmake)
+
 set(CMAKE_CXX_STANDARD 11)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
-
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
@@ -14,13 +14,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 SET(ENV{OSPL_HOME} "/usr/local/opensplice")
 SET(ENV{BIOGEARS_HOME} "/usr/local/physiology")
 
-
-
 include (osmacros)
 include (MacroOpenSplice)
 
 find_package (OpenSplice REQUIRED)
 find_package (BioGears REQUIRED)
+
+find_package(FastRTPS REQUIRED MODULE)
+
 find_package (Threads)
 find_package (Boost)
 find_package (RapidJSON)
@@ -33,6 +34,7 @@ include_directories(
         ${CMAKE_BINARY_DIR}/gen
         ${BioGears_INCLUDE_DIRS}
         ${OpenSplice_INCLUDE_DIRS}
+        ${FastRTPS_INCLUDE_DIR}
 )
 
 set (idls AMM.idl)

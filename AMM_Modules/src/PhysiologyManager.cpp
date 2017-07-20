@@ -59,6 +59,7 @@ int main(int argc, char *argv[]) {
 		} else if (action == "6") {
 			pe.StopSimulation();
 			pe.Shutdown();
+			closed = true;
 		} else if (action == "LIST") {
 			pe.PrintAvailableNodePaths();
 		} else if (action == "PRINT") {
