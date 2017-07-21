@@ -1,5 +1,13 @@
 #include "stdafx.h"
 
+#include "RTPS/AMMSubscriber.h"
+
+#include <fastrtps/Domain.h>
+
+using namespace std;
+using namespace eprosima;
+using namespace eprosima::fastrtps;
+
 using namespace AMM::Physiology;
 
 static void show_usage(std::string name) {
@@ -44,7 +52,7 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	cout << "=== [VirtualEquipment] Subscription filter : " << filterString << endl;
+	cout << "=== [VirtualEquipment] Subscription filter : " << filterString.str() << endl;
 
 
 	cout << "=== [VirtualEquipment] Ready ..." << endl;

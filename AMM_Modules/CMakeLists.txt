@@ -68,6 +68,10 @@ set (VIRTUAL_EQUIPMENT_SOURCES src/VirtualEquipment.cpp src/AMM/DDSEntityManager
 set (VIRTUAL_EQUIPMENT_EXE amm_virtual_equipment)
 add_executable (${VIRTUAL_EQUIPMENT_EXE} ${VIRTUAL_EQUIPMENT_SOURCES})
 
+set (RTPS_VIRTUAL_EQUIPMENT_SOURCES src/RTPS_VirtualEquipment.cpp)
+set (RTPS_VIRTUAL_EQUIPMENT_EXE rtps_virtual_equipment)
+add_executable (${RTPS_VIRTUAL_EQUIPMENT_EXE} ${RTPS_VIRTUAL_EQUIPMENT_SOURCES})
+
 set (COMMAND_EXECUTOR_SOURCES src/CommandExecutor.cpp src/AMM/DDSEntityManager.cpp src/AMM/CheckStatus.cpp)
 set (COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable (${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
