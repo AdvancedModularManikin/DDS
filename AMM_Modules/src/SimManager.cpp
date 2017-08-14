@@ -4,7 +4,6 @@
 
 #include <algorithm>
 
-using namespace AMM;
 using namespace std;
 
 static void show_usage(std::string name) {
@@ -19,7 +18,6 @@ int main(int argc, char *argv[]) {
 
 	string action = "";
 	SimulationManager simManager;
-	os_time delay_1s = { 1, 0 };
 	bool closed = false;
 
 	for (int i = 1; i < argc; ++i) {
@@ -37,6 +35,11 @@ int main(int argc, char *argv[]) {
 			simManager.SetSampleRate(sampleRate);
 		}
 	}
+
+    if (!simManager.Init()) {
+        cout << "Unable to initialize simulation manager." << endl;
+        return -1;
+    }
 
 	do {
 		cout << endl;
@@ -69,7 +72,6 @@ int main(int argc, char *argv[]) {
 			cout << " == Stopping simulation and sending shutdown notice..." << endl;
 			simManager.StopSimulation();
 			cout << " == Exited after " << simManager.GetTickCount() << " ticks." << endl;
-			os_nanoSleep(delay_1s);
 			cout << "=== [SimManager] Shutting down Simulation Manager." << endl;
 			closed = true;
 			simManager.Shutdown();

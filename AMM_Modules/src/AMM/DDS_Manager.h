@@ -1,8 +1,16 @@
 
+#include <fastrtps/participant/Participant.h>
+#include <fastrtps/attributes/ParticipantAttributes.h>
 
-#include <mutex>
-#include <thread>
+#include <fastrtps/publisher/Publisher.h>
+#include <fastrtps/attributes/PublisherAttributes.h>
 
+#include <fastrtps/subscriber/Subscriber.h>
+#include <fastrtps/attributes/SubscriberAttributes.h>
+
+#include <fastrtps/Domain.h>
+
+#include <fastrtps/utils/eClock.h>
 
 #include <fastrtps/fastrtps_fwd.h>
 #include <fastrtps/subscriber/SubscriberListener.h>
@@ -16,37 +24,15 @@
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
-using namespace std;
-using namespace std::chrono;
 
-class SimulationManager {
-
+class DDS_Manager
+{
 public:
-	SimulationManager();
-	virtual ~SimulationManager();
-
-    bool Init();
-	void StartSimulation();
-	void StopSimulation();
-	void Shutdown();
-
-	void SetSampleRate(int rate);
-	int GetSampleRate();
-
-	bool isRunning();
-
-	int GetTickCount();
-
-	void SendCommand(const std::string &command);
-
-	void Cleanup();
-	void TickLoop();
-
-protected:
-
-	std::thread m_thread;
-	std::mutex m_mutex;
-	bool m_runThread;
+    DDS_Manager();
+    virtual ~DDS_Manager();
+    bool init();
+    void run();
+private:
 
     Participant *mp_participant;
 
@@ -58,8 +44,9 @@ protected:
     Subscriber *command_subscriber;
     Subscriber *node_subscriber;
 
-	int tickCount = 0;
-	int sampleRate = 50;
+    int tickCount = 0;
+    int sampleRate = 50;
+
 
     class PubListener : public PublisherListener
     {
@@ -70,21 +57,19 @@ protected:
         int n_matched;
     } pub_listener;
 
-    class NodeSubListener : public SubscriberListener
+    class SubListener : public SubscriberListener
     {
     public:
-        NodeSubListener() : n_matched(0),n_msg(0){};
-        ~NodeSubListener(){};
+        SubListener() : n_matched(0),n_msg(0){};
+        ~SubListener(){};
         void onSubscriptionMatched(Subscriber* sub,MatchingInfo& info);
         void onNewDataMessage(Subscriber* sub);
         SampleInfo_t m_info;
         int n_matched;
         int n_msg;
-    } node_sub_listener;
+    } sub_listener;
 
     AMM::Simulation::TickPubSubType tickType;
     AMM::Physiology::NodePubSubType nodeType;
     AMM::PatientAction::BioGears::CommandPubSubType commandType;
-
 };
-

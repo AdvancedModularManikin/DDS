@@ -1,9 +1,65 @@
 #include "stdafx.h"
-#include "ccpp_AMM.h"
-#include "AMM/DDSEntityManager.h"
 
-using namespace DDS;
-using namespace AMM::Physiology;
+#include <fastrtps/participant/Participant.h>
+#include <fastrtps/attributes/ParticipantAttributes.h>
+
+#include <fastrtps/publisher/Publisher.h>
+#include <fastrtps/attributes/PublisherAttributes.h>
+
+#include <fastrtps/subscriber/Subscriber.h>
+#include <fastrtps/attributes/SubscriberAttributes.h>
+
+#include <fastrtps/Domain.h>
+
+#include <fastrtps/utils/eClock.h>
+
+#include <fastrtps/fastrtps_fwd.h>
+#include <fastrtps/subscriber/SubscriberListener.h>
+#include <fastrtps/publisher/PublisherListener.h>
+#include <fastrtps/subscriber/SampleInfo.h>
+
+#include "AMMPubSubTypes.h"
+
+#include <fastrtps/Domain.h>
+
+using namespace eprosima;
+using namespace eprosima::fastrtps;
+using namespace std;
+
+
+class NodeSubListener : public SubscriberListener
+{
+public:
+    NodeSubListener() : n_matched(0),n_msg(0){};
+    ~NodeSubListener(){};
+
+    void onNewDataMessage(Subscriber* sub);
+
+    SampleInfo_t m_info;
+    int n_matched;
+    int n_msg;
+} node_sub_listener;
+
+void NodeSubListener::onNewDataMessage(Subscriber* sub)
+{
+    // Take data
+    AMM::Physiology::Node n;
+
+    if(sub->takeNextData(&n, &m_info))
+    {
+        if(m_info.sampleKind == ALIVE)
+        {
+            cout << "-- Data rec'd " << endl;
+            cout << "\tFrame\t\t" << n.frame() << endl;
+            cout << "\tNodePath\t\t" << n.nodepath() << endl;
+            cout << "\tValue\t\t" << n.dbl() << endl;
+
+            // Print your structure data here.
+            ++n_msg;
+            std::cout << "Sample received, count=" << n_msg << std::endl;
+        }
+    }
+}
 
 static void show_usage(std::string name) {
 	cerr << "Usage: " << name << " <option(s)> node_path node_path ..." << "\nOptions:\n"
@@ -12,9 +68,6 @@ static void show_usage(std::string name) {
 }
 
 int main(int argc, char *argv[]) {
-	char configFile[] = "OSPL_URI=file://ospl.xml";
-	putenv(configFile);
-
 	std::vector<std::string> node_paths;
 
 	if (argc <= 1) {
@@ -32,35 +85,20 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	/* DDS entity manager */
-	DDSEntityManager mgr;
-	NodeSeq msgList;
-	SampleInfoSeq infoSeq;
+    Participant *mp_participant;
 
-	/** Initialization data **/
-	const char *partitionName = "AMM";
-	char topicName[] = "Data";
-	ReturnCode_t status;
-	bool closed = false;
-	char buf[MAX_MSG_LEN];
 
-	/* Specific to this app */
-	char sTopicName[] = "MyDataTopic";
-	StringSeq sSeqExpr;
+	ParticipantAttributes PParam;
+	PParam.rtps.builtin.domainId = 0;
+	PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
+	PParam.rtps.setName("AMM");  //You can put here the name you want
+	mp_participant = Domain::createParticipant(PParam);
+	if(mp_participant == nullptr)
+		return false;
 
-	// create domain participant
-	mgr.createParticipant(partitionName);
+	AMM::Physiology::NodePubSubType nodeType;
+	Domain::registerType(mp_participant,(TopicDataType*) &nodeType);
 
-	//create type
-
-	NodeTypeSupport_var dt = new NodeTypeSupport();
-	mgr.registerType(dt.in());
-
-	//create Topic
-	mgr.createTopic(topicName);
-
-	//create Subscriber
-	mgr.createSubscriber();
 
 	// create subscription filter
 	ostringstream filterString;
@@ -74,54 +112,31 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	std::string fString = filterString.str();
-	const char* nodePath = fString.c_str();
-	snprintf(buf, MAX_MSG_LEN, nodePath);
-	DDS::String_var sFilter = DDS::string_dup(buf);
-	sSeqExpr.length(0);
+	cout << "=== [VirtualEquipment] Subscription filter : " << fString << endl;
 
-	cout << "=== [VirtualEquipment] Subscription filter : " << sFilter << endl;
 
-	// create topic
-	mgr.createContentFilteredTopic(sTopicName, sFilter.in(), sSeqExpr);
-	// create Filtered DataReader
-	mgr.createReader(true);
+    Subscriber *node_subscriber;
+	SubscriberAttributes nodeRparam;
+	nodeRparam.topic.topicKind = NO_KEY;
+	nodeRparam.topic.topicDataType = nodeType.getName(); //Must be registered before the creation of the subscriber
+	nodeRparam.topic.topicName = "NodeData";
+	node_subscriber = Domain::createSubscriber(mp_participant,nodeRparam,(SubscriberListener*)&node_sub_listener);
 
-	DataReader_var dreader = mgr.getReader();
-	NodeDataReader_var PhysiologyDataReader = NodeDataReader::_narrow(dreader.in());
+	if(node_subscriber == nullptr)
+		return false;
 
-	checkHandle(PhysiologyDataReader.in(), "NodeDataReader::_narrow");
+	std::cout << "Initialized node subscriber." << std::endl;
+
 
 	cout << "=== [VirtualEquipment] Ready ..." << endl;
 
-	while (!closed) {
-		status = PhysiologyDataReader->take(msgList, infoSeq, LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE,
-				ANY_INSTANCE_STATE);
-		checkStatus(status, "DataReader::take");
-		for (DDS::ULong i = 0; i < msgList.length(); i++) {
-			if (infoSeq[i].valid_data) {
-				if (msgList[i].dbl == -1.0f) {
-					closed = true;
-					break;
-				}
-				cout << "=== [VirtualEquipment] Received data :  (" << msgList[i].nodepath << ", " << msgList[i].dbl << ')'
-						<< "\t\t\t[frame: " << msgList[i].frame << "]" << endl;
-			}
-
-		}
-
-		status = PhysiologyDataReader->return_loan(msgList, infoSeq);
-		checkStatus(status, "DataReader::return_loan");
-		// os_nanoSleep(delay_200ms);
-	}
+	//while (!closed) {
+        cout << "Waiting for Data, press Enter to stop the Subscriber. "<<endl;
+        std::cin.ignore();
+        cout << "Shutting down the Subscriber." << endl;
+	//}
 
 	cout << "=== [VirtualEquipment] Simulation stopped." << endl;
-
-	//cleanup
-	mgr.deleteReader(PhysiologyDataReader.in());
-	mgr.deleteSubscriber();
-	mgr.deleteFilteredTopic();
-	mgr.deleteTopic();
-	mgr.deleteParticipant();
 
 	return 0;
 

@@ -12,35 +12,35 @@ FIND_LIBRARY(ENGINE_LIBRARY
 	NAMES
 		BioGearsEngine.so
 	PATHS
-		$ENV{BIOGEARS_HOME}/library/lib
+		$ENV{BIOGEARS_HOME}/library/lib/release
 )
 
 FIND_LIBRARY(CDM_LIBRARY
 	NAMES
 		CommonDataModel.so
 	PATHS
-		$ENV{BIOGEARS_HOME}/library/lib
+		$ENV{BIOGEARS_HOME}/library/lib/release
 )
 
 FIND_LIBRARY(DMB_LIBRARY
 	NAMES
 		DataModelBindings.so
 	PATHS
-		$ENV{BIOGEARS_HOME}/library/lib
+		$ENV{BIOGEARS_HOME}/library/lib/release
 )
 
 FIND_LIBRARY(LOG4CPP_LIBRARY
 		NAMES
 		log4cpp
 		PATHS
-		$ENV{BIOGEARS_HOME}/library/lib
+		$ENV{BIOGEARS_HOME}/library/lib/release
 		)
 
 FIND_LIBRARY(XERCES_LIBRARY
 		NAMES
 		xerces-c
 		PATHS
-		$ENV{BIOGEARS_HOME}/library/lib
+		$ENV{BIOGEARS_HOME}/library/lib/release
 		)
 
 SET(BioGears_LIBRARIES

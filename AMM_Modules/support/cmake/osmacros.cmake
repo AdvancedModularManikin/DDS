@@ -1,23 +1,37 @@
-IF (WIN32)
-  SET  (DEFINITIONS "/DSIMD_NOSTARTOSPL=0")
-ELSE (WIN32)
-  SET (DEFINITIONS "-DNDEBUG -g -O2 -std=c++11  -pipe -Wall")
-ENDIF (WIN32)
 
-# SET (DEFINITIONS "-g  -O2 -pipe -std=c++0x ")
-# IF (WIN32)
-#         IF(DEBUG)
-#                 SET (DEFINITIONS "-DNDEBUG -std=c++0x")
-#         ENDIF(DEBUG)
-# ELSE (WIN32)
-#         IF(DEBUG)
-#                 SET (DEFINITIONS "-ansi -g3 -pg -pipe -std=c++0x")
-#         ELSE(DEBUG)
-#                 IF(PEDANTIC)
-#                         SET (DEFINITIONS "-ansi -g -pg -pipe -Wall -Wstrict-null-sentinel -Weffc++ -Wold-style-cast -pedantic -std=c++0x")
-#                         SET (DEBUG 1)
-#                 ELSE(PEDANTIC)
-#                         SET (DEFINITIONS "-DNDEBUG -O5 -pipe -std=c++0x")
-#                 ENDIF(PEDANTIC)
-#         ENDIF(DEBUG)
-# ENDIF (WIN32)
+
+# Set C++11
+include(CheckCXXCompilerFlag)
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG OR
+        CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    check_cxx_compiler_flag(--std=c++11 SUPPORTS_CXX11)
+    if(SUPPORTS_CXX11)
+        add_compile_options(--std=c++11)
+    else()
+        message(FATAL_ERROR "Compiler doesn't support C++11")
+    endif()
+endif()
+
+
+
+MACRO (DEFINE_FastRTPS_SOURCES idlfilename)
+  SET(outsources)
+  GET_FILENAME_COMPONENT(it ${idlfilename} ABSOLUTE)
+  GET_FILENAME_COMPONENT(nfile ${idlfilename} NAME_WE)
+  SET(outsources ${outsources} gen/${nfile}.cxx gen/${nfile}.h)
+  SET(outsources ${outsources} gen/${nfile}PubSubTypes.cxx gen/${nfile}PubSubTypes.h)
+ENDMACRO (DEFINE_FastRTPS_SOURCES)
+
+MACRO (FastRTPS_IDLGEN idlfilename)
+  GET_FILENAME_COMPONENT(it ${idlfilename} ABSOLUTE)
+  GET_FILENAME_COMPONENT(idlfilename ${idlfilename} NAME)
+  DEFINE_FastRTPS_SOURCES(${ARGV})
+  ADD_CUSTOM_COMMAND (
+          OUTPUT ${outsources}
+          COMMAND fastrtpsgen
+          ARGS
+          #-example x64Linux2.6gcc
+          -replace -d gen ${idlfilename}
+          DEPENDS ${it}
+  )
+ENDMACRO (FastRTPS_IDLGEN)

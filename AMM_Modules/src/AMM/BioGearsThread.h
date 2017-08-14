@@ -6,7 +6,8 @@
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
 
-#include "ccpp_AMM.h"
+#include "AMM.h"
+#include "AMMPubSubTypes.h"
 
 // BioGears core
 #include "BioGearsPhysiologyEngine.h"
