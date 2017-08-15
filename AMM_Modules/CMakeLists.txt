@@ -57,9 +57,9 @@ set (SIM_MANAGER_SOURCES src/SimManager.cpp src/AMM/SimulationManager.cpp ${DATA
 set (SIM_MANAGER_EXE amm_sim_manager)
 add_executable (${SIM_MANAGER_EXE} ${SIM_MANAGER_SOURCES})
 
-set (PHYSIOLOGY_MANAGER_SOURCES src/PhysiologyManager.cpp src/AMM/PhysiologyEngineManager.cpp src/AMM/BioGearsThread.cpp ${DATAMODEL_SOURCE})
+set (PHYSIOLOGY_MANAGER_SOURCES src/PhysiologyManager.cpp src/AMM/PhysiologyEngineManager.cpp src/AMM/BioGearsThread.cpp src/AMM/DDS_Manager.cpp ${DATAMODEL_SOURCE})
 set (PHYSIOLOGY_MANAGER_EXE amm_physiology_manager)
-#add_executable (${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES})
+add_executable (${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES})
 
 set (VIRTUAL_EQUIPMENT_SOURCES src/VirtualEquipment.cpp src/AMM/DDS_Manager.cpp ${DATAMODEL_SOURCE})
 set (VIRTUAL_EQUIPMENT_EXE amm_virtual_equipment)

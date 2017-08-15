@@ -30,7 +30,15 @@ class DDS_Manager
 public:
     DDS_Manager();
     virtual ~DDS_Manager();
-    bool init();
+    bool Initialize();
+    void RegisterTypes();
+    Subscriber* InitializeTickSubscriber(SubscriberListener* sub_listener);
+    Publisher* InitializeTickPublisher(PublisherListener* pub_listener);
+    Subscriber* InitializeCommandSubscriber(SubscriberListener* sub_listener);
+    Publisher* InitializeCommandPublisher(PublisherListener* pub_listener);
+    Subscriber* InitializeNodeSubscriber(SubscriberListener* sub_listener);
+    Publisher* InitializeNodePublisher(PublisherListener* pub_listener);
+    
     void run();
 private:
 
@@ -47,27 +55,6 @@ private:
     int tickCount = 0;
     int sampleRate = 50;
 
-
-    class PubListener : public PublisherListener
-    {
-    public:
-        PubListener() : n_matched(0){};
-        ~PubListener(){};
-        void onPublicationMatched(Publisher* pub,MatchingInfo& info);
-        int n_matched;
-    } pub_listener;
-
-    class SubListener : public SubscriberListener
-    {
-    public:
-        SubListener() : n_matched(0),n_msg(0){};
-        ~SubListener(){};
-        void onSubscriptionMatched(Subscriber* sub,MatchingInfo& info);
-        void onNewDataMessage(Subscriber* sub);
-        SampleInfo_t m_info;
-        int n_matched;
-        int n_msg;
-    } sub_listener;
 
     AMM::Simulation::TickPubSubType tickType;
     AMM::Physiology::NodePubSubType nodeType;

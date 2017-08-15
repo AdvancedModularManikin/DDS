@@ -30,7 +30,7 @@ SimulationManager::~SimulationManager() {
 
 bool SimulationManager::Init() {
     ParticipantAttributes PParam;
-    PParam.rtps.builtin.domainId = 0;
+    PParam.rtps.builtin.domainId = 15;
     PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
     PParam.rtps.setName("AMM");  //You can put here the name you want
     mp_participant = Domain::createParticipant(PParam);
@@ -154,6 +154,8 @@ void SimulationManager::Shutdown() {
 
 
 
+
+
 void SimulationManager::NodeSubListener::onSubscriptionMatched(Subscriber* sub,MatchingInfo& info)
 {
     if (info.status == MATCHED_MATCHING)
@@ -197,3 +199,5 @@ void SimulationManager::PubListener::onPublicationMatched(Publisher* pub,Matchin
         std::cout << "Publisher unmatched" << std::endl;
     }
 }
+
+

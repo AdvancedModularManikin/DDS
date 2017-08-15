@@ -1,5 +1,4 @@
-#include "DDSEntityManager.h"
-#include "ccpp_AMM.h"
+#include "DDS_Manager.h"
 
 #include "BioGearsThread.h"
 
@@ -10,11 +9,8 @@ using namespace AMM;
 using namespace AMM::Simulation;
 using namespace AMM::Physiology;
 using namespace AMM::PatientAction::BioGears;
-using namespace DDS;
 using namespace std;
 using namespace std::chrono;
-
-class TickDataListener;
 
 class PhysiologyEngineManager {
 
@@ -54,41 +50,72 @@ public:
 private:
 	void ReadCommands();
 	void ReadTicks();
-	Duration_t timeout = { 0, 200000000 };
+
 	bool autodispose_unregistered_instances = true;
 
-	// Initialize some data structures
-	TickSeq tickList;
-	CommandSeq cmdList;
-	SampleInfoSeq infoSeq;
 
 	std::map<std::string, double (BioGearsThread::*)()> nodePathMap;
 
 protected:
+	Publisher* tick_publisher;
+	Publisher* command_publisher;
+	Publisher* node_publisher;
 
-	DDSEntityManager mgr = new DDSEntityManager(autodispose_unregistered_instances);
-	DDSEntityManager tickMgr = new DDSEntityManager(autodispose_unregistered_instances);
-	DDSEntityManager cmdMgr = new DDSEntityManager(autodispose_unregistered_instances);
+	Subscriber* tick_subscriber;
+	Subscriber* command_subscriber;
+	Subscriber* node_subscriber;
+	DDS_Manager* mgr = new DDS_Manager();
 
-	DataWriter_var dwriter;
-	DataWriter_var dwriter_stopper;
-
-	DataReader_var tdreader;
-	DataReader_var cdreader;
-
-	NodeDataWriter_var LifecycleWriter;
-	NodeDataWriter_var LifecycleWriter_stopper;
-
-	DataWriter_var cmddwriter;
-	CommandDataWriter_var CommandWriter;
-
-	TickDataReader_var TickReader;
-	CommandDataReader_var CommandReader;
 	BioGearsThread* bg = new BioGearsThread("biogears.log", "./states/StandardMale@0s.xml");
 
 	std::thread m_thread;
 		std::mutex m_mutex;
 		bool m_runThread;
+
+	class PubListener : public PublisherListener
+	{
+	public:
+		PubListener() : n_matched(0){};
+		~PubListener(){};
+		void onPublicationMatched(Publisher* pub,MatchingInfo& info);
+		int n_matched;
+	} pub_listener;
+
+	class NodeSubListener : public SubscriberListener
+	{
+	public:
+		NodeSubListener() : n_matched(0),n_msg(0){};
+		~NodeSubListener(){};
+		void onSubscriptionMatched(Subscriber* sub,MatchingInfo& info);
+		void onNewDataMessage(Subscriber* sub);
+		SampleInfo_t m_info;
+		int n_matched;
+		int n_msg;
+	} node_sub_listener;
+
+	class CommandSubListener : public SubscriberListener
+	{
+	public:
+		CommandSubListener() : n_matched(0),n_msg(0){};
+		~CommandSubListener(){};
+		void onSubscriptionMatched(Subscriber* sub,MatchingInfo& info);
+		void onNewDataMessage(Subscriber* sub);
+		SampleInfo_t m_info;
+		int n_matched;
+		int n_msg;
+	} command_sub_listener;
+
+	class TickSubListener : public SubscriberListener
+	{
+	public:
+		TickSubListener() : n_matched(0),n_msg(0){};
+		~TickSubListener(){};
+		void onSubscriptionMatched(Subscriber* sub,MatchingInfo& info);
+		void onNewDataMessage(Subscriber* sub);
+		SampleInfo_t m_info;
+		int n_matched;
+		int n_msg;
+	} tick_sub_listener;
 
 };
 
