@@ -273,6 +273,7 @@ __pycache__/
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
+*.kdev4
 .kdev4/AMM_Modules.kdev4.lock
 AMM_Modules.kdev4.lock
 nohup.out
