@@ -62,7 +62,7 @@ set (PHYSIOLOGY_MANAGER_SOURCES src/PhysiologyManager.cpp src/AMM/PhysiologyEngi
 set (PHYSIOLOGY_MANAGER_EXE amm_physiology_manager)
 add_executable (${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (VIRTUAL_EQUIPMENT_SOURCES src/VirtualEquipment.cpp)
+set (VIRTUAL_EQUIPMENT_SOURCES src/VirtualEquipment.cpp src/AMM/VirtualEquipmentListener.cpp src/AMM/VirtualEquipmentListener.h)
 set (VIRTUAL_EQUIPMENT_EXE amm_virtual_equipment)
 add_executable (${VIRTUAL_EQUIPMENT_EXE} ${VIRTUAL_EQUIPMENT_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 

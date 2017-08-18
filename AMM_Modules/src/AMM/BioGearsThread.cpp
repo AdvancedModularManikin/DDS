@@ -30,7 +30,7 @@ void BioGearsThread::PopulateNodePathTable() {
 	nodePathTable["ECG"] = &BioGearsThread::GetECGWaveform;
 	nodePathTable["HR"] = &BioGearsThread::GetHeartRate;
 	nodePathTable["SIM_TIME"] = &BioGearsThread::GetSimulationTime;
-
+	nodePathTable["EXIT"] = &BioGearsThread::GetShutdownMessage;
 	// Cardiovascular System
 	nodePathTable["Cardiovascular_HeartRate"] = &BioGearsThread::GetHeartRate;
 	nodePathTable["Cardiovascular_BloodVolume"] = &BioGearsThread::GetBloodVolume;
@@ -186,6 +186,10 @@ void BioGearsThread::AdvanceTimeTick() {
 	m_bg->AdvanceModelTime();
 	m_runThread = false;
 	m_mutex.unlock();
+}
+
+double BioGearsThread::GetShutdownMessage() {
+	return -1;
 }
 
 double BioGearsThread::GetSimulationTime() {

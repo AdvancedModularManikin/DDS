@@ -2,11 +2,6 @@
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 
-using namespace AMM;
-using namespace AMM::Simulation;
-using namespace AMM::Physiology;
-using namespace AMM::PatientAction::BioGears;
-
 using namespace std;
 using namespace std::chrono;
 
@@ -19,10 +14,13 @@ PhysiologyEngineManager::PhysiologyEngineManager() : m_thread() {
 	 */
 	cout << "=== [PhysiologyManager][DDS] Initializing DDS entity manager (DATA)." << endl;
 
+    auto* tick_sub_listener = new DDS_Listeners::TickSubListener();
+    tick_sub_listener->SetUpstream(this);
 
-    SubscriberListener* tick_sub_listener = new DDS_Listeners::TickSubListener();
-    SubscriberListener* command_sub_listener = new DDS_Listeners::CommandSubListener();
-    PublisherListener* pub_listener = new DDS_Listeners::PubListener();
+    auto* command_sub_listener = new DDS_Listeners::CommandSubListener();
+	command_sub_listener->SetUpstream(this);
+
+    auto* pub_listener = new DDS_Listeners::PubListener();
 
 	tick_subscriber = mgr->InitializeTickSubscriber(tick_sub_listener);
 	command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
@@ -39,58 +37,12 @@ bool PhysiologyEngineManager::isRunning() {
 
 void PhysiologyEngineManager::TickLoop() {
 	while (m_runThread) {
-		// ReadCommands();
-		// ReadTicks();
+		// Do this while the tickloop is running...  data process is handled by the listener events now
 	}
 }
 
-void PhysiologyEngineManager::ReadCommands() {
-
-}
-
 void PhysiologyEngineManager::SendShutdown() {
-
-}
-
-void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n) {
-
-}
-
-void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
-
-}
-
-void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick t) {
-    cout << "We got a tick!" << endl;
-    if (t.frame() == -1) {
-        cout << "[SHUTDOWN]";
-        StopTickSimulation();
-        SendShutdown();
-    } else if (t.frame() == -2) {
-        cout << "[PAUSE]";
-        paused = true;
-    } else if (t.frame() > 0 || !paused) {
-        if (paused) {
-            cout << "[RESUME]";
-            paused = false;
-        }
-
-        // Did we get a frame out of order?  Just mark it with an X for now.
-        if (t.frame() <= lastFrame) {
-            cout << "x";
-        } else {
-            cout << ".";
-        }
-        lastFrame = t.frame();
-
-        // Per-frame stuff happens here
-        bg->AdvanceTimeTick();
-        PublishData(false);
-    }
-}
-
-void PhysiologyEngineManager::ReadTicks() {
-
+    return WriteNodeData("EXIT");
 }
 
 void PhysiologyEngineManager::PrintAvailableNodePaths() {
@@ -177,8 +129,8 @@ void PhysiologyEngineManager::Status() {
 	bg->Status();
 }
 
-void PhysiologyEngineManager::Shutdown() {
 
+void PhysiologyEngineManager::Shutdown() {
 	cout << "=== [PhysiologyManager] Sending -1 values to all topics." << endl;
 	SendShutdown();
 
@@ -186,6 +138,45 @@ void PhysiologyEngineManager::Shutdown() {
 	bg->Shutdown();
 
 	cout << "=== [PhysiologyManager][DDS] Shutting down DDS Connections." << endl;
+}
 
 
+// Listener events
+void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n) {
+
+}
+
+void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+	cout << "[PhysiologyManager] Command received: " << c.message() << endl;
+    bg->ExecuteCommand(c.message());
+}
+
+void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick t) {
+    if (m_runThread) {
+        if (t.frame() == -1) {
+            cout << "[SHUTDOWN]";
+            StopTickSimulation();
+            SendShutdown();
+        } else if (t.frame() == -2) {
+            cout << "[PAUSE]";
+            paused = true;
+        } else if (t.frame() > 0 || !paused) {
+            if (paused) {
+                cout << "[RESUME]";
+                paused = false;
+            }
+
+            // Did we get a frame out of order?  Just mark it with an X for now.
+            if (t.frame() <= lastFrame) {
+                cout << "x";
+            } else {
+                cout << ".";
+            }
+            lastFrame = t.frame();
+
+            // Per-frame stuff happens here
+            bg->AdvanceTimeTick();
+            PublishData(false);
+        }
+    }
 }

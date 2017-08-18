@@ -106,6 +106,7 @@ public:
 private:
 	bool LoadScenarioFile(const std::string &scenarioFile);
 	void PopulateNodePathTable();
+	double GetShutdownMessage();
 	double GetHeartRate(void);
 	double GetBloodVolume();
 	double GetArterialSystolicPressure();

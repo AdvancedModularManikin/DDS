@@ -36,11 +36,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-    if (!simManager.Init()) {
-        cout << "Unable to initialize simulation manager." << endl;
-        return -1;
-    }
-
 	do {
 		cout << endl;
 		cout << " === [AMM - Simulation Manager] ===" << endl;

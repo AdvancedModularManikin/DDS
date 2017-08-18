@@ -22,7 +22,8 @@
 
 #include <fastrtps/Domain.h>
 
-#include "ListenerInterface.h"
+#include "AMM/DDS_Listeners.h"
+#include "AMM/ListenerInterface.h"
 
 using namespace eprosima;
 using namespace eprosima::fastrtps;
@@ -36,12 +37,12 @@ class DDS_Manager
 public:
     DDS_Manager();
     virtual ~DDS_Manager() {};
-    Subscriber* InitializeTickSubscriber(SubscriberListener* sub_listener);
-    Publisher* InitializeTickPublisher(PublisherListener* pub_listener);
-    Subscriber* InitializeCommandSubscriber(SubscriberListener* sub_listener);
-    Publisher* InitializeCommandPublisher(PublisherListener* pub_listener);
-    Subscriber* InitializeNodeSubscriber(SubscriberListener* sub_listener);
-    Publisher* InitializeNodePublisher(PublisherListener* pub_listener);
+    Subscriber* InitializeTickSubscriber(DDS_Listeners::TickSubListener* sub_listener);
+    Publisher* InitializeTickPublisher(DDS_Listeners::PubListener* pub_listener);
+    Subscriber* InitializeCommandSubscriber(DDS_Listeners::CommandSubListener* sub_listener);
+    Publisher* InitializeCommandPublisher(DDS_Listeners::PubListener* pub_listener);
+    Subscriber* InitializeNodeSubscriber(DDS_Listeners::NodeSubListener* sub_listener);
+    Publisher* InitializeNodePublisher(DDS_Listeners::PubListener* pub_listener);
 
 private:
 

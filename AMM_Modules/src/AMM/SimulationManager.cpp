@@ -1,74 +1,21 @@
 #include "SimulationManager.h"
 
-#include <fastrtps/participant/Participant.h>
-#include <fastrtps/attributes/ParticipantAttributes.h>
-
-#include <fastrtps/publisher/Publisher.h>
-#include <fastrtps/attributes/PublisherAttributes.h>
-
-#include <fastrtps/subscriber/Subscriber.h>
-#include <fastrtps/attributes/SubscriberAttributes.h>
-
-#include <fastrtps/Domain.h>
-
-#include <fastrtps/utils/eClock.h>
-
-
 using namespace std;
 using namespace std::chrono;
 
-SimulationManager::SimulationManager() :
-		m_thread() {
+SimulationManager::SimulationManager() : m_thread() {
+
+    auto* command_sub_listener = new DDS_Listeners::CommandSubListener();
+    command_sub_listener->SetUpstream(this);
+
+    auto* pub_listener = new DDS_Listeners::PubListener();
+
+    command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
+    tick_publisher = mgr->InitializeTickPublisher(pub_listener);
+    command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
 	m_runThread = false;
 
-}
-
-SimulationManager::~SimulationManager() {
-
-}
-
-bool SimulationManager::Init() {
-    ParticipantAttributes PParam;
-    PParam.rtps.builtin.domainId = 15;
-    PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
-    PParam.rtps.setName("AMM");  //You can put here the name you want
-    mp_participant = Domain::createParticipant(PParam);
-    if(mp_participant == nullptr)
-        return false;
-
-    //Register the types
-
-    Domain::registerType(mp_participant,(TopicDataType*) &tickType);
-    Domain::registerType(mp_participant,(TopicDataType*) &nodeType);
-    Domain::registerType(mp_participant,(TopicDataType*) &commandType);
-
-    // Create Publisher
-    PublisherAttributes tickWparam;
-    tickWparam.topic.topicKind = NO_KEY;
-    tickWparam.topic.topicDataType = tickType.getName();  //This type MUST be registered
-    tickWparam.topic.topicName = "Tick";
-    tick_publisher = Domain::createPublisher(mp_participant,tickWparam,(PublisherListener*)&pub_listener);
-
-    PublisherAttributes commandWparam;
-    commandWparam.topic.topicKind = NO_KEY;
-    commandWparam.topic.topicDataType = tickType.getName();  //This type MUST be registered
-    commandWparam.topic.topicName = "Command";
-    command_publisher = Domain::createPublisher(mp_participant,commandWparam,(PublisherListener*)&pub_listener);
-
-
-    SubscriberAttributes nodeRparam;
-    nodeRparam.topic.topicKind = NO_KEY;
-    nodeRparam.topic.topicDataType = nodeType.getName(); //Must be registered before the creation of the subscriber
-    nodeRparam.topic.topicName = "Node";
-    node_subscriber = Domain::createSubscriber(mp_participant,nodeRparam,(SubscriberListener*)&node_sub_listener);
-
-
-    if(tick_publisher == nullptr || command_publisher == nullptr || node_subscriber == nullptr)
-        return false;
-
-    std::cout << "Initialized publishers and subscribers." << std::endl;
-    return true;
 }
 
 void SimulationManager::StartSimulation() {
@@ -83,7 +30,6 @@ void SimulationManager::StopSimulation() {
 		m_mutex.lock();
 		m_runThread = false;
 		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-		// TODO: write a tick
 		m_mutex.unlock();
 		m_thread.detach();
 	}
@@ -108,7 +54,7 @@ int SimulationManager::GetSampleRate() {
 void SimulationManager::SendCommand(const std::string &command) {
     AMM::PatientAction::BioGears::Command cmdInstance;
     cmdInstance.message(command);
-    cout << "=== [CommandExecutor] Sending a command containing:" << endl;
+    cout << "=== [SimManager][CommandExecutor] Sending a command containing:" << endl;
     cout << "    Command : \"" << cmdInstance.message() << "\"" << endl;
     command_publisher->write(&cmdInstance);
 }
@@ -117,8 +63,6 @@ void SimulationManager::TickLoop() {
 	using frames = duration<int64_t, ratio<1, 50>>;
 	auto nextFrame = system_clock::now();
 	auto lastFrame = nextFrame - frames { 1 };
-
-
 
 	while (m_runThread) {
 
@@ -154,48 +98,16 @@ void SimulationManager::Shutdown() {
 
 }
 
-void SimulationManager::NodeSubListener::onSubscriptionMatched(Subscriber* sub,MatchingInfo& info)
-{
-    if (info.status == MATCHED_MATCHING)
-    {
-        n_matched++;
-        std::cout << "[SIM] Node subscriber matched" << std::endl;
-    }
-    else
-    {
-        n_matched--;
-        std::cout << "[SIM] Node subscriber unmatched" << std::endl;
-    }
+
+// Listener events
+void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+    cout << "[SimManager] Command received: " << c.message() << endl;
 }
 
-void SimulationManager::NodeSubListener::onNewDataMessage(Subscriber* sub)
-{
-    // Take data
-    AMM::Physiology::Node st;
+void SimulationManager::onNewNodeData(AMM::Physiology::Node n) {
 
-    if(sub->takeNextData(&st, &m_info))
-    {
-        if(m_info.sampleKind == ALIVE)
-        {
-            // Print your structure data here.
-            ++n_msg;
-            std::cout << "[SIM] Sample received, count=" << n_msg << std::endl;
-        }
-    }
 }
 
-void SimulationManager::PubListener::onPublicationMatched(Publisher* pub,MatchingInfo& info)
-{
-    if (info.status == MATCHED_MATCHING)
-    {
-        n_matched++;
-        std::cout << "[SIM] Publisher matched" << std::endl;
-    }
-    else
-    {
-        n_matched--;
-        std::cout << "[SIM] Publisher unmatched" << std::endl;
-    }
+void SimulationManager::onNewTickData(AMM::Simulation::Tick t) {
+
 }
-
-

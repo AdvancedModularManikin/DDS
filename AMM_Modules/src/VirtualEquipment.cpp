@@ -1,36 +1,8 @@
 #include "stdafx.h"
 
-#include "AMMPubSubTypes.h"
-
-#include "AMM/DDS_Manager.h"
-
-#include "AMM/DDS_Listeners.h"
-
-#include "AMM/ListenerInterface.h"
-
-using namespace eprosima;
-using namespace eprosima::fastrtps;
-
-using namespace AMM::Physiology;
-using namespace AMM::Simulation;
-using namespace AMM::PatientAction::BioGears;
+#include "AMM/VirtualEquipmentListener.h"
 
 using namespace std;
-
-class VirtualEquipmentListener : public ListenerInterface {
-
-    void onNewNodeData(AMM::Physiology::Node n) {
-        cout << "New node data came in" << endl;
-    }
-
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
-        cout << "New command data came in" << endl;
-    }
-
-    void onNewTickData(AMM::Simulation::Tick t) {
-        cout << "New tick data came in" << endl;
-    }
-};
 
 static void show_usage(std::string name) {
     cerr << "Usage: " << name << " <option(s)> node_path node_path ..." << "\nOptions:\n"
@@ -70,15 +42,20 @@ int main(int argc, char *argv[]) {
     std::string fString = filterString.str();
     cout << "=== [VirtualEquipment] Subscription filter : " << fString << endl;
 
-    VirtualEquipmentListener *vel;
-    DDS_Manager *mgr = new DDS_Manager();
-    DDS_Listeners::NodeSubListener *node_sub_listener = new DDS_Listeners::NodeSubListener();
-    node_sub_listener->SetUpstream(vel);
+    auto *mgr = new DDS_Manager();
 
-    Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
+    auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
+    auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
 
-    if (node_subscriber == nullptr)
+
+    Subscriber * node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
+    Subscriber * tick_subscriber = mgr->InitializeTickSubscriber(tick_sub_listener);
+
+    if (node_subscriber == nullptr) {
+        cout << "Unable to initialize node data subscriber." << endl;
         return false;
+    }
+
 
     std::cout << "Initialized node subscriber and listener." << std::endl;
 

@@ -41,7 +41,7 @@ public:
         void SetUpstream(ListenerInterface* l);
         ListenerInterface* upstream;
 
-    } pub_listener;
+    };
 
     class NodeSubListener : public SubscriberListener {
     public:
@@ -57,7 +57,7 @@ public:
         int n_msg;
         void SetUpstream(ListenerInterface* l);
         ListenerInterface* upstream;
-    } node_sub_listener;
+    };
 
     class CommandSubListener : public SubscriberListener {
     public:
@@ -75,7 +75,7 @@ public:
         int n_msg;
         void SetUpstream(ListenerInterface* l);
         ListenerInterface* upstream;
-    } command_sub_listener;
+    };
 
     class TickSubListener : public SubscriberListener {
     public:
@@ -92,7 +92,7 @@ public:
         int n_msg;
         void SetUpstream(ListenerInterface* l);
         ListenerInterface* upstream;
-    } tick_sub_listener;
+    };
 
 };
 

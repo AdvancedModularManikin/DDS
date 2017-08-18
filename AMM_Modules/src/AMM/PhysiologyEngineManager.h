@@ -11,11 +11,6 @@
 #include <mutex>
 #include <thread>
 
-using namespace AMM;
-using namespace AMM::Simulation;
-using namespace AMM::Physiology;
-using namespace AMM::PatientAction::BioGears;
-
 using namespace std;
 using namespace std::chrono;
 
@@ -23,67 +18,72 @@ class PhysiologyEngineManager : public ListenerInterface {
 
 public:
 
-	PhysiologyEngineManager();
-	virtual ~PhysiologyEngineManager() {
-	};
+    PhysiologyEngineManager();
 
-	void StartSimulation();
-	void StopSimulation();
-	void Shutdown();
+    virtual ~PhysiologyEngineManager() {
+    };
 
-	void StartTickSimulation();
-	void StopTickSimulation();
+    void StartSimulation();
+
+    void StopSimulation();
+
+    void Shutdown();
+
+    void StartTickSimulation();
+
+    void StopTickSimulation();
 
 
-	void PublishData(bool force);
-	void PrintAvailableNodePaths();
-	void PrintAllCurrentData();
-	void Status();
+    void PublishData(bool force);
 
-	int GetNodePathCount();
-	int GetTickCount();
-	bool isRunning();
+    void PrintAvailableNodePaths();
 
-	void SendCommand(const std::string &command);
-	void SendShutdown();
-	void WriteNodeData(string node);
-	void TickLoop();
+    void PrintAllCurrentData();
 
-	void AdvanceTimeTick();
-	bool closed = false;
-	bool paused = false;
-	int lastFrame = 0;
+    void Status();
+
+    int GetNodePathCount();
+
+    int GetTickCount();
+
+    bool isRunning();
+
+    void SendCommand(const std::string &command);
+
+    void SendShutdown();
+
+    void WriteNodeData(string node);
+
+    void TickLoop();
+
+    void AdvanceTimeTick();
+
+    bool closed = false;
+    bool paused = false;
+    int lastFrame = 0;
 
     void onNewNodeData(AMM::Physiology::Node n);
+
     void onNewTickData(AMM::Simulation::Tick t);
+
     void onNewCommandData(AMM::PatientAction::BioGears::Command c);
 
 private:
-	void ReadCommands();
-	void ReadTicks();
-
-	bool autodispose_unregistered_instances = true;
-
-
-	std::map<std::string, double (BioGearsThread::*)()> nodePathMap;
+    bool autodispose_unregistered_instances = true;
+    std::map<std::string, double (BioGearsThread::*)()> nodePathMap;
 
 protected:
-	// Publisher* tick_publisher;
-	// Publisher* command_publisher;
-	Publisher* node_publisher;
+    DDS_Manager *mgr = new DDS_Manager();
 
-	Subscriber* tick_subscriber;
-	Subscriber* command_subscriber;
-	// Subscriber* node_subscriber;
-	DDS_Manager* mgr = new DDS_Manager();
+    Publisher *node_publisher;
+    Subscriber *tick_subscriber;
+    Subscriber *command_subscriber;
 
-	BioGearsThread* bg = new BioGearsThread("biogears.log", "./states/StandardMale@0s.xml");
+    BioGearsThread *bg = new BioGearsThread("biogears.log", "./states/StandardMale@0s.xml");
 
-	std::thread m_thread;
-		std::mutex m_mutex;
-		bool m_runThread;
-
-
+    std::thread m_thread;
+    std::mutex m_mutex;
+    bool m_runThread;
 
 };
 

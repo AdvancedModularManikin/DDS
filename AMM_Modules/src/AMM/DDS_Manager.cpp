@@ -22,7 +22,7 @@ DDS_Manager::DDS_Manager() {
 }
 
 Publisher* DDS_Manager::InitializeTickPublisher(
-		PublisherListener* pub_listener) {
+		DDS_Listeners::PubListener* pub_listener) {
 	PublisherAttributes tickWparam;
 	tickWparam.topic.topicDataType = tickType.getName();
 	tickWparam.topic.topicName = "Tick";
@@ -32,7 +32,7 @@ Publisher* DDS_Manager::InitializeTickPublisher(
 }
 
 Subscriber* DDS_Manager::InitializeTickSubscriber(
-		SubscriberListener* sub_listener) {
+		DDS_Listeners::TickSubListener* sub_listener) {
 	SubscriberAttributes tickRparam;
 	tickRparam.topic.topicDataType = tickType.getName();
 	tickRparam.topic.topicName = "Tick";
@@ -42,7 +42,7 @@ Subscriber* DDS_Manager::InitializeTickSubscriber(
 }
 
 Publisher* DDS_Manager::InitializeNodePublisher(
-		PublisherListener* pub_listener) {
+		DDS_Listeners::PubListener* pub_listener) {
 	PublisherAttributes nodeWparam;
 	nodeWparam.topic.topicDataType = tickType.getName();
 	nodeWparam.topic.topicName = "Node";
@@ -52,7 +52,7 @@ Publisher* DDS_Manager::InitializeNodePublisher(
 }
 
 Subscriber* DDS_Manager::InitializeNodeSubscriber(
-		SubscriberListener* sub_listener) {
+		DDS_Listeners::NodeSubListener* sub_listener) {
 	SubscriberAttributes nodeRparam;
 	nodeRparam.topic.topicDataType = nodeType.getName();
 	nodeRparam.topic.topicName = "Node";
@@ -62,7 +62,7 @@ Subscriber* DDS_Manager::InitializeNodeSubscriber(
 }
 
 Publisher* DDS_Manager::InitializeCommandPublisher(
-		PublisherListener* pub_listener) {
+		DDS_Listeners::PubListener* pub_listener) {
 	PublisherAttributes commandWparam;
 	commandWparam.topic.topicDataType = tickType.getName();
 	commandWparam.topic.topicName = "Command";
@@ -72,7 +72,7 @@ Publisher* DDS_Manager::InitializeCommandPublisher(
 }
 
 Subscriber* DDS_Manager::InitializeCommandSubscriber(
-		SubscriberListener* sub_listener) {
+		DDS_Listeners::CommandSubListener* sub_listener) {
 	SubscriberAttributes commandRparam;
 	commandRparam.topic.topicDataType = commandType.getName();
 	commandRparam.topic.topicName = "Command";

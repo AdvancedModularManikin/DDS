@@ -40,13 +40,12 @@ void DDS_Listeners::NodeSubListener::onNewDataMessage(Subscriber* sub) {
                 upstream->onNewNodeData(n);
             }
 
-			cout << "-- Data rec'd " << endl;
+			++n_msg;
+			cout << "-- Data received, count=" << n_msg << std::endl;
 			cout << "\tFrame\t\t" << n.frame() << endl;
 			cout << "\tNodePath\t\t" << n.nodepath() << endl;
 			cout << "\tValue\t\t" << n.dbl() << endl;
 
-			++n_msg;
-			std::cout << "Sample received, count=" << n_msg << std::endl;
 		}
 	}
 }
@@ -71,7 +70,7 @@ void DDS_Listeners::CommandSubListener::onNewDataMessage(Subscriber* sub) {
                 upstream->onNewCommandData(st);
             }
 			++n_msg;
-			std::cout << "Sample received, count=" << n_msg << std::endl;
+			// std::cout << "Sample received, count=" << n_msg << std::endl;
 		}
 	}
 }
@@ -96,7 +95,7 @@ void DDS_Listeners::TickSubListener::onNewDataMessage(Subscriber* sub) {
                 upstream->onNewTickData(st);
             }
 			++n_msg;
-			std::cout << "[TICK] Frame " << st.frame() << ", count " << n_msg << endl;
+			// std::cout << "[TICK] Frame " << st.frame() << ", count " << n_msg << endl;
 		}
 	}
 }
