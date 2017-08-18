@@ -60,7 +60,7 @@ bool SimulationManager::Init() {
     SubscriberAttributes nodeRparam;
     nodeRparam.topic.topicKind = NO_KEY;
     nodeRparam.topic.topicDataType = nodeType.getName(); //Must be registered before the creation of the subscriber
-    nodeRparam.topic.topicName = "NodeData";
+    nodeRparam.topic.topicName = "Node";
     node_subscriber = Domain::createSubscriber(mp_participant,nodeRparam,(SubscriberListener*)&node_sub_listener);
 
 
@@ -118,12 +118,14 @@ void SimulationManager::TickLoop() {
 	auto nextFrame = system_clock::now();
 	auto lastFrame = nextFrame - frames { 1 };
 
-    AMM::Simulation::Tick tick;
+
 
 	while (m_runThread) {
+
 		this_thread::sleep_until(nextFrame);
 		m_mutex.lock();
 
+        AMM::Simulation::Tick tick;
         tick.frame(tickCount++);
         tick_publisher->write(&tick);
 
@@ -152,21 +154,17 @@ void SimulationManager::Shutdown() {
 
 }
 
-
-
-
-
 void SimulationManager::NodeSubListener::onSubscriptionMatched(Subscriber* sub,MatchingInfo& info)
 {
     if (info.status == MATCHED_MATCHING)
     {
         n_matched++;
-        std::cout << "Subscriber matched" << std::endl;
+        std::cout << "[SIM] Node subscriber matched" << std::endl;
     }
     else
     {
         n_matched--;
-        std::cout << "Subscriber unmatched" << std::endl;
+        std::cout << "[SIM] Node subscriber unmatched" << std::endl;
     }
 }
 
@@ -181,7 +179,7 @@ void SimulationManager::NodeSubListener::onNewDataMessage(Subscriber* sub)
         {
             // Print your structure data here.
             ++n_msg;
-            std::cout << "Sample received, count=" << n_msg << std::endl;
+            std::cout << "[SIM] Sample received, count=" << n_msg << std::endl;
         }
     }
 }
@@ -191,12 +189,12 @@ void SimulationManager::PubListener::onPublicationMatched(Publisher* pub,Matchin
     if (info.status == MATCHED_MATCHING)
     {
         n_matched++;
-        std::cout << "Publisher matched" << std::endl;
+        std::cout << "[SIM] Publisher matched" << std::endl;
     }
     else
     {
         n_matched--;
-        std::cout << "Publisher unmatched" << std::endl;
+        std::cout << "[SIM] Publisher unmatched" << std::endl;
     }
 }
 

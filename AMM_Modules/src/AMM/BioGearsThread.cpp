@@ -192,13 +192,13 @@ double BioGearsThread::GetSimulationTime() {
 	return m_bg->GetSimulationTime(TimeUnit::s);
 }
 
-Node *BioGearsThread::GetNodeByPath(const std::string &nodePath) {
+AMM::Physiology::Node *BioGearsThread::GetNodeByPath(const std::string &nodePath) {
 	std::map<std::string, double (BioGearsThread::*)()>::iterator entry;
 	entry = nodePathTable.find(nodePath);
 	if (entry != nodePathTable.end()) {
-		Node *returnData;
-		returnData->nodepath = DDS::string_dup(nodePath.c_str());
-		returnData->dbl = (this->*(entry->second))();
+		AMM::Physiology::Node *returnData;
+		returnData->nodepath(nodePath);
+		returnData->dbl((this->*(entry->second))());
 		return returnData;
 	}
 

@@ -7,7 +7,6 @@ SET(ENV{FASTRTPS_HOME} "/usr/local")
 
 set(fastcdr_DIR "$ENV{FASTRTPS_HOME}/lib/fastcdr/cmake")
 set(fastrtps_DIR "$ENV{FASTRTPS_HOME}/lib/fastrtps/cmake")
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/support/cmake ${fastcdr_DIR} ${fastrtps_DIR})
 
 include (osmacros)
@@ -16,6 +15,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/gen/)
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
@@ -23,9 +23,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 find_package (BioGears REQUIRED)
 find_package (fastrtps REQUIRED)
 find_package (fastcdr REQUIRED)
+find_package (Threads REQUIRED)
+find_package (Boost REQUIRED)
 
-find_package (Threads)
-find_package (Boost)
 find_package (RapidJSON)
 find_package (Pistache)
 
@@ -38,48 +38,47 @@ include_directories(
         ${fastcdr_INCLUDE_DIR}
 )
 
-set (idls AMM.idl)
+set (DATAMODEL amm_types)
+set (DDS_MANAGER dds_manager)
 
+set (idls AMM.idl)
 foreach(idl ${idls})
     FastRTPS_IDLGEN (${PROJECT_SOURCE_DIR}/../IDL/${idl})
     string (REGEX REPLACE "\(.*\).idl" "./gen/\\1.cxx" VARS_1 ${idl})
     string (REGEX REPLACE "\(.*\).idl" "./gen/\\1.h" VARS_2 ${idl})
     string (REGEX REPLACE "\(.*\).idl" "./gen/\\1PubSubTypes.cxx" VARS_3 ${idl})
     string (REGEX REPLACE "\(.*\).idl" "./gen/\\1PubSubTypes.h" VARS_4 ${idl})
-    set(AMM_DATAMODEL ${AMM_DATAMODEL} ${VARS_1} ${VARS_2} ${VARS_3} ${VARS_4})
+    set(DATAMODEL_SOURCES ${DATAMODEL_SOURCES} ${VARS_1} ${VARS_2} ${VARS_3} ${VARS_4})
 endforeach(idl)
-set (DATAMODEL amm_types)
+set(DDS_MANAGER_SOURCES src/AMM/DDS_Manager.cpp src/AMM/DDS_Listeners.cpp src/AMM/ListenerInterface.h)
 
-file(GLOB DATAMODEL_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/gen/*.cxx)
-#list(APPEND DATAMODEL_SOURCE src/AMM/DDS_Manager.cpp)
+add_library (${DATAMODEL} SHARED ${DATAMODEL_SOURCES})
 
-set (SIM_MANAGER_SOURCES src/SimManager.cpp src/AMM/SimulationManager.cpp ${DATAMODEL_SOURCE})
+set (SIM_MANAGER_SOURCES src/SimManager.cpp src/AMM/SimulationManager.cpp)
 set (SIM_MANAGER_EXE amm_sim_manager)
-add_executable (${SIM_MANAGER_EXE} ${SIM_MANAGER_SOURCES})
+add_executable (${SIM_MANAGER_EXE} ${SIM_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (PHYSIOLOGY_MANAGER_SOURCES src/PhysiologyManager.cpp src/AMM/PhysiologyEngineManager.cpp src/AMM/BioGearsThread.cpp src/AMM/DDS_Manager.cpp ${DATAMODEL_SOURCE})
+set (PHYSIOLOGY_MANAGER_SOURCES src/PhysiologyManager.cpp src/AMM/PhysiologyEngineManager.cpp src/AMM/BioGearsThread.cpp)
 set (PHYSIOLOGY_MANAGER_EXE amm_physiology_manager)
-add_executable (${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES})
+add_executable (${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (VIRTUAL_EQUIPMENT_SOURCES src/VirtualEquipment.cpp src/AMM/DDS_Manager.cpp ${DATAMODEL_SOURCE})
+set (VIRTUAL_EQUIPMENT_SOURCES src/VirtualEquipment.cpp)
 set (VIRTUAL_EQUIPMENT_EXE amm_virtual_equipment)
-add_executable (${VIRTUAL_EQUIPMENT_EXE} ${VIRTUAL_EQUIPMENT_SOURCES})
+add_executable (${VIRTUAL_EQUIPMENT_EXE} ${VIRTUAL_EQUIPMENT_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (COMMAND_EXECUTOR_SOURCES src/CommandExecutor.cpp ${DATAMODEL_SOURCE})
+set (COMMAND_EXECUTOR_SOURCES src/CommandExecutor.cpp)
 set (COMMAND_EXECUTOR_EXE amm_command_executor)
-#add_executable (${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
+#add_executable (${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (HEART_RATE_LED_SOURCES src/HeartRateLED.cpp ${DATAMODEL_SOURCE})
+set (HEART_RATE_LED_SOURCES src/HeartRateLED.cpp)
 set (HEART_RATE_LED_EXE amm_heartrate_led)
-#add_executable (${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES})
+#add_executable (${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
 if (RAPIDJSON_FOUND AND Pistache_FOUND)
-    set (REST_ADAPTER_SOURCES src/REST_Adapter.cpp ${DATAMODEL_SOURCE})
+    set (REST_ADAPTER_SOURCES src/REST_Adapter.cpp)
     set (REST_ADAPTER_EXE amm_rest_adapter)
-#    add_executable (${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES})
+#    add_executable (${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 endif()
-
-add_library (${DATAMODEL} SHARED ${AMM_DATAMODEL})
 
 
 target_link_libraries (
@@ -87,17 +86,19 @@ target_link_libraries (
         fastrtps fastcdr
 )
 
+
 target_link_libraries (${SIM_MANAGER_EXE}
         fastrtps fastcdr
         Threads::Threads
         ${DATAMODEL}
         )
 
-#target_link_libraries (${PHYSIOLOGY_MANAGER_EXE}
-#        fastrtps fastcdr ${BioGears_LIBRARIES}
-#        Threads::Threads
-#        ${DATAMODEL}
-#        )
+target_link_libraries (${PHYSIOLOGY_MANAGER_EXE}
+        fastrtps fastcdr
+        ${BioGears_LIBRARIES}
+        Threads::Threads
+        ${DATAMODEL}
+        )
 
 target_link_libraries (${VIRTUAL_EQUIPMENT_EXE}
         fastrtps fastcdr
@@ -107,11 +108,13 @@ target_link_libraries (${VIRTUAL_EQUIPMENT_EXE}
 #target_link_libraries (${COMMAND_EXECUTOR_EXE}
 #        fastrtps fastcdr
 #        ${DATAMODEL}
+#        ${DDS_MANAGER}
 #        )
 
 #target_link_libraries (${HEART_RATE_LED_EXE}
 #        fastrtps fastcdr
 #        ${DATAMODEL}
+#        ${DDS_MANAGER}
 #        )
 
 if (RAPIDJSON_FOUND AND Pistache_FOUND)
@@ -119,6 +122,7 @@ if (RAPIDJSON_FOUND AND Pistache_FOUND)
 #        fastrtps fastcdr ${RAPIDJSON_LIBRARIES} ${Pistache_LIBRARY}
 #        Threads::Threads
 #        ${DATAMODEL}
+#        ${DDS_MANAGER}
 #        )
 endif()
 

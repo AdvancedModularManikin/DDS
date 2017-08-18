@@ -1,3 +1,4 @@
+#pragma once
 
 #include <fastrtps/participant/Participant.h>
 #include <fastrtps/attributes/ParticipantAttributes.h>
@@ -21,25 +22,27 @@
 
 #include <fastrtps/Domain.h>
 
+#include "ListenerInterface.h"
+
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
+using namespace AMM::Physiology;
+using namespace AMM::Simulation;
+using namespace AMM::PatientAction::BioGears;
 
 class DDS_Manager
 {
 public:
     DDS_Manager();
-    virtual ~DDS_Manager();
-    bool Initialize();
-    void RegisterTypes();
+    virtual ~DDS_Manager() {};
     Subscriber* InitializeTickSubscriber(SubscriberListener* sub_listener);
     Publisher* InitializeTickPublisher(PublisherListener* pub_listener);
     Subscriber* InitializeCommandSubscriber(SubscriberListener* sub_listener);
     Publisher* InitializeCommandPublisher(PublisherListener* pub_listener);
     Subscriber* InitializeNodeSubscriber(SubscriberListener* sub_listener);
     Publisher* InitializeNodePublisher(PublisherListener* pub_listener);
-    
-    void run();
+
 private:
 
     Participant *mp_participant;
@@ -56,7 +59,7 @@ private:
     int sampleRate = 50;
 
 
-    AMM::Simulation::TickPubSubType tickType;
-    AMM::Physiology::NodePubSubType nodeType;
-    AMM::PatientAction::BioGears::CommandPubSubType commandType;
+    TickPubSubType tickType;
+    NodePubSubType nodeType;
+    CommandPubSubType commandType;
 };
