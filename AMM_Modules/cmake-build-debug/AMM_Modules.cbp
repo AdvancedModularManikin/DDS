@@ -351,6 +351,12 @@
 		<Unit filename="/var/workspace/Vcom3D/AMM/DDS/AMM_Modules/src/AMM/SimulationManager.h">
 			<Option target="amm_sim_manager"/>
 		</Unit>
+		<Unit filename="/var/workspace/Vcom3D/AMM/DDS/AMM_Modules/src/AMM/VirtualEquipmentListener.cpp">
+			<Option target="amm_virtual_equipment"/>
+		</Unit>
+		<Unit filename="/var/workspace/Vcom3D/AMM/DDS/AMM_Modules/src/AMM/VirtualEquipmentListener.h">
+			<Option target="amm_virtual_equipment"/>
+		</Unit>
 		<Unit filename="/var/workspace/Vcom3D/AMM/DDS/AMM_Modules/src/PhysiologyManager.cpp">
 			<Option target="amm_physiology_manager"/>
 		</Unit>

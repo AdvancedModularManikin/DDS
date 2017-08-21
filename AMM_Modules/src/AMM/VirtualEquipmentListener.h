@@ -10,10 +10,12 @@ using namespace std;
 
 class VirtualEquipmentListener : public ListenerInterface {
 
+public:
+
     VirtualEquipmentListener();
     virtual ~VirtualEquipmentListener() {};
 
-public:
+
     void onNewNodeData(AMM::Physiology::Node n);
     void onNewCommandData(AMM::PatientAction::BioGears::Command c);
     void onNewTickData(AMM::Simulation::Tick t);

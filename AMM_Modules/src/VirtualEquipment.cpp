@@ -47,6 +47,9 @@ int main(int argc, char *argv[]) {
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
 
+    VirtualEquipmentListener vel;
+    tick_sub_listener->SetUpstream(&vel);
+    node_sub_listener->SetUpstream(&vel);
 
     Subscriber * node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
     Subscriber * tick_subscriber = mgr->InitializeTickSubscriber(tick_sub_listener);

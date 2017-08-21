@@ -178,5 +178,6 @@ void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick t) {
             bg->AdvanceTimeTick();
             PublishData(false);
         }
+        cout.flush();
     }
 }

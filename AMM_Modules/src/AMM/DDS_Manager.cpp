@@ -44,8 +44,8 @@ Subscriber* DDS_Manager::InitializeTickSubscriber(
 Publisher* DDS_Manager::InitializeNodePublisher(
 		DDS_Listeners::PubListener* pub_listener) {
 	PublisherAttributes nodeWparam;
-	nodeWparam.topic.topicDataType = tickType.getName();
-	nodeWparam.topic.topicName = "Node";
+	nodeWparam.topic.topicDataType = nodeType.getName();
+	nodeWparam.topic.topicName = "Data";
 	node_publisher = Domain::createPublisher(mp_participant, nodeWparam,
 			pub_listener);
 	return node_publisher;
@@ -55,7 +55,7 @@ Subscriber* DDS_Manager::InitializeNodeSubscriber(
 		DDS_Listeners::NodeSubListener* sub_listener) {
 	SubscriberAttributes nodeRparam;
 	nodeRparam.topic.topicDataType = nodeType.getName();
-	nodeRparam.topic.topicName = "Node";
+	nodeRparam.topic.topicName = "Data";
 	node_subscriber = Domain::createSubscriber(mp_participant, nodeRparam,
 			sub_listener);
 	return node_subscriber;
@@ -64,7 +64,7 @@ Subscriber* DDS_Manager::InitializeNodeSubscriber(
 Publisher* DDS_Manager::InitializeCommandPublisher(
 		DDS_Listeners::PubListener* pub_listener) {
 	PublisherAttributes commandWparam;
-	commandWparam.topic.topicDataType = tickType.getName();
+	commandWparam.topic.topicDataType = commandType.getName();
 	commandWparam.topic.topicName = "Command";
 	command_publisher = Domain::createPublisher(mp_participant, commandWparam,
 			pub_listener);
@@ -76,8 +76,8 @@ Subscriber* DDS_Manager::InitializeCommandSubscriber(
 	SubscriberAttributes commandRparam;
 	commandRparam.topic.topicDataType = commandType.getName();
 	commandRparam.topic.topicName = "Command";
-	tick_subscriber = Domain::createSubscriber(mp_participant, commandRparam,
+	command_subscriber = Domain::createSubscriber(mp_participant, commandRparam,
 			sub_listener);
-	return tick_subscriber;
+	return command_subscriber;
 }
 
