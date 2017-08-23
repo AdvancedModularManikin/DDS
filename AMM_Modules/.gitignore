@@ -281,6 +281,9 @@ nohup.out
 
 
 # Cmake artifacts
+cmake-build-debug
+*.cbp
+*.kdev4
 build/
 auto_build/
 CMakeCache.txt
