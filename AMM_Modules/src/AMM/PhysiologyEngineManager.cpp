@@ -71,12 +71,11 @@ int PhysiologyEngineManager::GetNodePathCount() {
 }
 
 void PhysiologyEngineManager::WriteNodeData(string node) {
-	AMM::Physiology::Node *dataInstance = new AMM::Physiology::Node();
-	dataInstance->nodepath(node);
-	dataInstance->dbl(bg->GetNodePath(node));
-	dataInstance->frame(lastFrame);
+	AMM::Physiology::Node dataInstance;
+	dataInstance.nodepath(node);
+	dataInstance.dbl(bg->GetNodePath(node));
+	dataInstance.frame(lastFrame);
 	node_publisher->write(&dataInstance);
-	delete dataInstance;
 }
 
 void PhysiologyEngineManager::PublishData(bool force = false) {

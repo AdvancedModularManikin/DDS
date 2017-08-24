@@ -5,10 +5,10 @@ using namespace std::chrono;
 
 SimulationManager::SimulationManager() : m_thread() {
 
-    auto* command_sub_listener = new DDS_Listeners::CommandSubListener();
+    auto * command_sub_listener = new DDS_Listeners::CommandSubListener();
     command_sub_listener->SetUpstream(this);
 
-    auto* pub_listener = new DDS_Listeners::PubListener();
+    auto * pub_listener = new DDS_Listeners::PubListener();
 
     command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
     tick_publisher = mgr->InitializeTickPublisher(pub_listener);

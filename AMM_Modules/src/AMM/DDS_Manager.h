@@ -37,12 +37,19 @@ class DDS_Manager
 public:
     DDS_Manager();
     virtual ~DDS_Manager() {};
+
     Subscriber* InitializeTickSubscriber(DDS_Listeners::TickSubListener* sub_listener);
     Publisher* InitializeTickPublisher(DDS_Listeners::PubListener* pub_listener);
+
     Subscriber* InitializeCommandSubscriber(DDS_Listeners::CommandSubListener* sub_listener);
     Publisher* InitializeCommandPublisher(DDS_Listeners::PubListener* pub_listener);
+
     Subscriber* InitializeNodeSubscriber(DDS_Listeners::NodeSubListener* sub_listener);
     Publisher* InitializeNodePublisher(DDS_Listeners::PubListener* pub_listener);
+
+    const std::string tickTopic = "Tick";
+    const std::string commandTopic = "Command";
+    const std::string nodeTopic = "Data";
 
 private:
 
@@ -55,10 +62,6 @@ private:
     Subscriber *tick_subscriber;
     Subscriber *command_subscriber;
     Subscriber *node_subscriber;
-
-    int tickCount = 0;
-    int sampleRate = 50;
-
 
     TickPubSubType tickType;
     NodePubSubType nodeType;

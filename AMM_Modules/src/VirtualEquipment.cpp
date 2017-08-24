@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
 
+    // Attach an upstream listener to do stuff
     VirtualEquipmentListener vel;
     tick_sub_listener->SetUpstream(&vel);
     node_sub_listener->SetUpstream(&vel);

@@ -2,8 +2,15 @@ cmake_minimum_required(VERSION 3.1)
 
 project(AMM_Modules)
 
-SET(ENV{BIOGEARS_HOME} "/usr/local/physiology")
-SET(ENV{FASTRTPS_HOME} "/usr/local")
+IF (WIN32)
+    SET(ENV{BIOGEARS_HOME} "c:/tools/physiology/install")
+    SET(ENV{FASTRTPS_HOME} "C:/tools/fast-rtps")
+ELSE()
+    SET(ENV{BIOGEARS_HOME} "/usr/local/physiology")
+    SET(ENV{FASTRTPS_HOME} "/usr/local")
+ENDIF()
+
+
 
 set(fastcdr_DIR "$ENV{FASTRTPS_HOME}/lib/fastcdr/cmake")
 set(fastrtps_DIR "$ENV{FASTRTPS_HOME}/lib/fastrtps/cmake")

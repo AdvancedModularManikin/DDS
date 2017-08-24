@@ -5,6 +5,9 @@ VirtualEquipmentListener::VirtualEquipmentListener() {};
 
 void VirtualEquipmentListener::onNewNodeData(AMM::Physiology::Node n) {
     cout << "New node data came in" << endl;
+    cout << "\tFrame\t\t" << n.frame() << endl;
+    cout << "\tNodePath\t\t" << n.nodepath() << endl;
+    cout << "\tValue\t\t" << n.dbl() << endl;
 }
 
 void VirtualEquipmentListener::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
