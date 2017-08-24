@@ -34,18 +34,41 @@ public:
 
     class PubListener : public PublisherListener {
     public:
-    	PubListener() : n_matched(0) {};
-    	virtual ~PubListener() {};
-        void onPublicationMatched(Publisher *pub, MatchingInfo &info);
-        int n_matched;
-        void SetUpstream(ListenerInterface* l);
-        ListenerInterface* upstream;
+        PubListener() : n_matched(0) {};
 
+        virtual ~PubListener() {};
+
+        void onPublicationMatched(Publisher *pub, MatchingInfo &info);
+
+        int n_matched;
+
+        void SetUpstream(ListenerInterface *l) { upstream = l; };
+        ListenerInterface *upstream;
+
+    };
+
+    class DefaultSubListener : public SubscriberListener {
+    public:
+        DefaultSubListener() : n_matched(0), n_msg(0) {};
+
+        ~DefaultSubListener() {};
+
+        void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info);
+
+        void onNewDataMessage(Subscriber *sub);
+
+        SampleInfo_t m_info;
+        int n_matched;
+        int n_msg;
+
+        void SetUpstream(ListenerInterface *l) { upstream = l; };
+        ListenerInterface *upstream;
     };
 
     class NodeSubListener : public SubscriberListener {
     public:
         NodeSubListener() : n_matched(0), n_msg(0) {};
+
         ~NodeSubListener() {};
 
         void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info);
@@ -55,8 +78,9 @@ public:
         SampleInfo_t m_info;
         int n_matched;
         int n_msg;
-        void SetUpstream(ListenerInterface* l);
-        ListenerInterface* upstream;
+
+        void SetUpstream(ListenerInterface *l) { upstream = l; };
+        ListenerInterface *upstream;
     };
 
     class CommandSubListener : public SubscriberListener {
@@ -73,8 +97,9 @@ public:
         SampleInfo_t m_info;
         int n_matched;
         int n_msg;
-        void SetUpstream(ListenerInterface* l);
-        ListenerInterface* upstream;
+
+        void SetUpstream(ListenerInterface *l) { upstream = l; };
+        ListenerInterface *upstream;
     };
 
     class TickSubListener : public SubscriberListener {
@@ -90,8 +115,9 @@ public:
         SampleInfo_t m_info;
         int n_matched;
         int n_msg;
-        void SetUpstream(ListenerInterface* l);
-        ListenerInterface* upstream;
+
+        void SetUpstream(ListenerInterface *l) { upstream = l; };
+        ListenerInterface *upstream;
     };
 
 };

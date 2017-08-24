@@ -1,13 +1,17 @@
 
-
 # AMM Modules using DDS
 
-This is a series of proof-of-concept AMM modules utilizing DDS.
+This is a series of proof-of-concept AMM modules utilizing DDS.  These can be used as a reference to build your own AMM-compliant modules.
 
-Requirements:
-* PrismTech OpenSplice DDS built and installed.  Suggested location: /usr/local/opensplice
-* BioGears SDK built and installed.  Suggested location: /usr/local/physiology
+#### Requirements:
+* [FastRTPS](https://github.com/eProsima/Fast-RTPS) built and installed.
+* [BioGears](https://github.com/BioGearsEngine/Engine) or [Pulse](https://gitlab.kitware.com/physiology/engine) Physiology Engine SDK built and installed. 
 
+#### Optional:
+* [RapidJSON](https://github.com/miloyip/rapidjson) - JSON parser/generator for C++ (required for REST adapter) 
+* [Pistache](https://github.com/oktal/pistache) - Simple C++ REST framework (required for REST adapter)
+
+### Build Instructions
 
 ```
 mkdir build
@@ -18,10 +22,24 @@ make
 
 This will build into the `bin` directory.  You will have a few binaries:
 
-* amm_sim_manager - outputs ticks at 50hz
-* amm_physiology_manager - BioGears module, publishes some node_paths
+* amm_sim_manager - outputs ticks at 50hz, start/pause/stop simulation
+* amm_physiology_manager - interface for physiology engine, publishes some node_paths
 * amm_virtual_equipment - command line tool, accepts a node_path to listen for
-* amm_command_executor - execute commands and interventions
-* amm_rest_adapater - Accept HTTP requests and return data from the DDS bus
+* amm_command_executor - command line tool, execute commands and interventions
+* amm_heartrate_led - [BLT](https://github.com/AdvancedModularManikin/development-kit/wiki/AMMDK-Overview) test to flash LED at heart rate
+* amm_rest_adapter - Accept HTTP requests and return data from the DDS bus
 
+### REST Adapter routes
 
+The REST adapter exposes the following routes:
+```
+/nodes            - retrieve the current state of all node paths
+/node/<name>      - retrieve a single node_path
+/command/<action> - issue a command
+```
+
+#### Examples: 
+```
+http://localhost:9080/node/Cardiovascular_HeartRate
+http://localhost:9080/command/LEG_HEMORRHAGE
+```

@@ -13,11 +13,14 @@ class VirtualEquipmentListener : public ListenerInterface {
 public:
 
     VirtualEquipmentListener();
+
     virtual ~VirtualEquipmentListener() {};
 
 
     void onNewNodeData(AMM::Physiology::Node n);
+
     void onNewCommandData(AMM::PatientAction::BioGears::Command c);
+
     void onNewTickData(AMM::Simulation::Tick t);
 
 };

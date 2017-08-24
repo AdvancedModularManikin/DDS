@@ -12,50 +12,57 @@
 using namespace std;
 using namespace std::chrono;
 
-class SimulationManager  : public ListenerInterface {
+class SimulationManager : public ListenerInterface {
 
 public:
 
-	SimulationManager();
-	virtual ~SimulationManager() {
+    SimulationManager();
+
+    virtual ~SimulationManager() {
 
     };
 
-	void StartSimulation();
-	void StopSimulation();
-	void Shutdown();
+    void StartSimulation();
 
-	void SetSampleRate(int rate);
-	int GetSampleRate();
+    void StopSimulation();
 
-	bool isRunning();
+    void Shutdown();
 
-	int GetTickCount();
+    void SetSampleRate(int rate);
 
-	void SendCommand(const std::string &command);
+    int GetSampleRate();
 
-	void Cleanup();
-	void TickLoop();
+    bool isRunning();
 
-	virtual void onNewNodeData(AMM::Physiology::Node n);
+    int GetTickCount();
+
+    void SendCommand(const std::string &command);
+
+    void Cleanup();
+
+    void TickLoop();
+
+    virtual void onNewNodeData(AMM::Physiology::Node n);
+
     virtual void onNewTickData(AMM::Simulation::Tick t);
+
     virtual void onNewCommandData(AMM::PatientAction::BioGears::Command c);
 
 protected:
 
-	std::thread m_thread;
-	std::mutex m_mutex;
-	bool m_runThread;
+    std::thread m_thread;
+    std::mutex m_mutex;
+    bool m_runThread;
 
-	DDS_Manager *mgr = new DDS_Manager();
+    DDS_Manager *mgr = new DDS_Manager();
 
     Publisher *tick_publisher;
     Publisher *command_publisher;
 
     Subscriber *command_subscriber;
 
-	int tickCount = 0;
-	int sampleRate = 50;
+    int tickCount = 0;
+    int sampleRate = 50;
 
 };
 

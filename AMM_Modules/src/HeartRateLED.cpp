@@ -2,15 +2,11 @@
 
 #include "AMM/DDS_Manager.h"
 
-#include <iostream>
-#include <iomanip>
-
 #include <sys/ioctl.h>
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
 
 #include <fcntl.h>    /* For O_RDWR */
-#include <unistd.h>   /* For open(), creat() */
 
 using namespace std;
 
@@ -38,7 +34,6 @@ int spi_transfer(int fd, unsigned char *tx_buf, unsigned char *rx_buf, int bufle
         perror("can't send spi message");
     return ret;
 }
-
 
 
 class HeartRateListener : public ListenerInterface {

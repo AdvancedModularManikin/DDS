@@ -43,23 +43,15 @@ int main(int argc, char *argv[]) {
     cout << "=== [VirtualEquipment] Subscription filter : " << fString << endl;
 
     auto *mgr = new DDS_Manager();
-
-    auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
-
-    // Attach an upstream listener to do stuff
     VirtualEquipmentListener vel;
-    tick_sub_listener->SetUpstream(&vel);
     node_sub_listener->SetUpstream(&vel);
-
-    Subscriber * node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
-    Subscriber * tick_subscriber = mgr->InitializeTickSubscriber(tick_sub_listener);
+    Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
 
     if (node_subscriber == nullptr) {
         cout << "Unable to initialize node data subscriber." << endl;
         return false;
     }
-
 
     std::cout << "Initialized node subscriber and listener." << std::endl;
 
@@ -72,7 +64,6 @@ int main(int argc, char *argv[]) {
     std::cin.ignore();
 
     cout << "\tShutting down the Subscriber." << endl;
-
 
     cout << "=== [VirtualEquipment] Simulation stopped." << endl;
 

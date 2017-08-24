@@ -5,50 +5,50 @@ using namespace std::chrono;
 
 SimulationManager::SimulationManager() : m_thread() {
 
-    auto * command_sub_listener = new DDS_Listeners::CommandSubListener();
+    auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     command_sub_listener->SetUpstream(this);
 
-    auto * pub_listener = new DDS_Listeners::PubListener();
+    auto *pub_listener = new DDS_Listeners::PubListener();
 
     command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
     tick_publisher = mgr->InitializeTickPublisher(pub_listener);
     command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
-	m_runThread = false;
+    m_runThread = false;
 
 }
 
 void SimulationManager::StartSimulation() {
-	if (!m_runThread) {
-		m_runThread = true;
-		m_thread = std::thread(&SimulationManager::TickLoop, this);
-	}
+    if (!m_runThread) {
+        m_runThread = true;
+        m_thread = std::thread(&SimulationManager::TickLoop, this);
+    }
 }
 
 void SimulationManager::StopSimulation() {
-	if (m_runThread) {
-		m_mutex.lock();
-		m_runThread = false;
-		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-		m_mutex.unlock();
-		m_thread.detach();
-	}
+    if (m_runThread) {
+        m_mutex.lock();
+        m_runThread = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        m_mutex.unlock();
+        m_thread.detach();
+    }
 }
 
 int SimulationManager::GetTickCount() {
-	return tickCount;
+    return tickCount;
 }
 
 bool SimulationManager::isRunning() {
-	return m_runThread;
+    return m_runThread;
 }
 
 void SimulationManager::SetSampleRate(int rate) {
-	sampleRate = rate;
+    sampleRate = rate;
 }
 
 int SimulationManager::GetSampleRate() {
-	return sampleRate;
+    return sampleRate;
 }
 
 void SimulationManager::SendCommand(const std::string &command) {
@@ -60,23 +60,23 @@ void SimulationManager::SendCommand(const std::string &command) {
 }
 
 void SimulationManager::TickLoop() {
-	using frames = duration<int64_t, ratio<1, 50>>;
-	auto nextFrame = system_clock::now();
-	auto lastFrame = nextFrame - frames { 1 };
+    using frames = duration<int64_t, ratio<1, 50>>;
+    auto nextFrame = system_clock::now();
+    auto lastFrame = nextFrame - frames {1};
 
-	while (m_runThread) {
+    while (m_runThread) {
 
-		this_thread::sleep_until(nextFrame);
-		m_mutex.lock();
+        this_thread::sleep_until(nextFrame);
+        m_mutex.lock();
 
         AMM::Simulation::Tick tick;
         tick.frame(tickCount++);
         tick_publisher->write(&tick);
 
-		lastFrame = nextFrame;
-		nextFrame += frames { 1 };
-		m_mutex.unlock();
-	}
+        lastFrame = nextFrame;
+        nextFrame += frames {1};
+        m_mutex.unlock();
+    }
 }
 
 void SimulationManager::Cleanup() {
@@ -84,17 +84,17 @@ void SimulationManager::Cleanup() {
 }
 
 void SimulationManager::Shutdown() {
-	if (m_runThread) {
-		m_runThread = false;
-		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-		m_thread.join();
-	}
+    if (m_runThread) {
+        m_runThread = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        m_thread.join();
+    }
 
     AMM::Simulation::Tick tick;
     tick.frame(-1);
     tick_publisher->write(&tick);
 
-	Cleanup();
+    Cleanup();
 
 }
 

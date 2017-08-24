@@ -7,38 +7,38 @@ using namespace std::chrono;
 
 PhysiologyEngineManager::PhysiologyEngineManager() : m_thread() {
 
-	cout << "=== [PhysiologyManager] Starting up." << endl;
+    cout << "=== [PhysiologyManager] Starting up." << endl;
 
-	/**
-	 * Physiology Data DDS Entity manager
-	 */
-	cout << "=== [PhysiologyManager][DDS] Initializing DDS entity manager (DATA)." << endl;
+    /**
+     * Physiology Data DDS Entity manager
+     */
+    cout << "=== [PhysiologyManager][DDS] Initializing DDS entity manager (DATA)." << endl;
 
-    auto* tick_sub_listener = new DDS_Listeners::TickSubListener();
+    auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
     tick_sub_listener->SetUpstream(this);
 
-    auto* command_sub_listener = new DDS_Listeners::CommandSubListener();
-	command_sub_listener->SetUpstream(this);
+    auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
+    command_sub_listener->SetUpstream(this);
 
-    auto* pub_listener = new DDS_Listeners::PubListener();
+    auto *pub_listener = new DDS_Listeners::PubListener();
 
-	tick_subscriber = mgr->InitializeTickSubscriber(tick_sub_listener);
-	command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
-	node_publisher = mgr->InitializeNodePublisher(pub_listener);
+    tick_subscriber = mgr->InitializeTickSubscriber(tick_sub_listener);
+    command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
+    node_publisher = mgr->InitializeNodePublisher(pub_listener);
 
-	nodePathMap = bg->nodePathTable;
-	m_runThread = false;
+    nodePathMap = bg->nodePathTable;
+    m_runThread = false;
 
 }
 
 bool PhysiologyEngineManager::isRunning() {
-	return m_runThread;
+    return m_runThread;
 }
 
 void PhysiologyEngineManager::TickLoop() {
-	while (m_runThread) {
-		// Do this while the tickloop is running...  data process is handled by the listener events now
-	}
+    while (m_runThread) {
+        // Do this while the tickloop is running...  data process is handled by the listener events now
+    }
 }
 
 void PhysiologyEngineManager::SendShutdown() {
@@ -46,97 +46,98 @@ void PhysiologyEngineManager::SendShutdown() {
 }
 
 void PhysiologyEngineManager::PrintAvailableNodePaths() {
-	nodePathMap = bg->nodePathTable;
-	std::map<std::string, double (BioGearsThread::*)()>::iterator it = nodePathMap.begin();
-	while (it != nodePathMap.end()) {
-		std::string word = it->first;
-		cout << word << endl;
-		it++;
-	}
+    nodePathMap = bg->nodePathTable;
+    std::map<std::string, double (PhysiologyThread::*)()>::iterator it = nodePathMap.begin();
+    while (it != nodePathMap.end()) {
+        std::string word = it->first;
+        cout << word << endl;
+        it++;
+    }
 }
 
 void PhysiologyEngineManager::PrintAllCurrentData() {
-	nodePathMap = bg->nodePathTable;
-	std::map<std::string, double (BioGearsThread::*)()>::iterator it = nodePathMap.begin();
-	while (it != nodePathMap.end()) {
-		std::string node = it->first;
-		double dbl = bg->GetNodePath(node);
-		cout << node << "\t\t\t" << dbl << endl;
-		it++;
-	}
+    nodePathMap = bg->nodePathTable;
+    std::map<std::string, double (PhysiologyThread::*)()>::iterator it = nodePathMap.begin();
+    while (it != nodePathMap.end()) {
+        std::string node = it->first;
+        double dbl = bg->GetNodePath(node);
+        cout << node << "\t\t\t" << dbl << endl;
+        it++;
+    }
 }
 
 int PhysiologyEngineManager::GetNodePathCount() {
-	return nodePathMap.size();
+    return nodePathMap.size();
 }
 
 void PhysiologyEngineManager::WriteNodeData(string node) {
-	AMM::Physiology::Node dataInstance;
-	dataInstance.nodepath(node);
-	dataInstance.dbl(bg->GetNodePath(node));
-	dataInstance.frame(lastFrame);
-	node_publisher->write(&dataInstance);
+    AMM::Physiology::Node dataInstance;
+    dataInstance.nodepath(node);
+    dataInstance.dbl(bg->GetNodePath(node));
+    dataInstance.frame(lastFrame);
+    node_publisher->write(&dataInstance);
 }
 
 void PhysiologyEngineManager::PublishData(bool force = false) {
-	std::map<std::string, double (BioGearsThread::*)()>::iterator it = nodePathMap.begin();
-	while (it != nodePathMap.end()) {
-		// High-frequency nodes are published every tick
-		// All other nodes are published every % 10 tick
-		if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) != bg->highFrequencyNodes.end())
-				|| (lastFrame % 10) == 0 || force) {
-			WriteNodeData(it->first);
-		}
-		it++;
-	}
+    std::map<std::string, double (PhysiologyThread::*)()>::iterator it = nodePathMap.begin();
+    while (it != nodePathMap.end()) {
+        // High-frequency nodes are published every tick
+        // All other nodes are published every % 10 tick
+        if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) !=
+             bg->highFrequencyNodes.end())
+            || (lastFrame % 10) == 0 || force) {
+            WriteNodeData(it->first);
+        }
+        it++;
+    }
 }
 
 void PhysiologyEngineManager::StartTickSimulation() {
-	if (!m_runThread) {
-		m_runThread = true;
-		m_thread = std::thread(&PhysiologyEngineManager::TickLoop, this);
-	}
+    if (!m_runThread) {
+        m_runThread = true;
+        m_thread = std::thread(&PhysiologyEngineManager::TickLoop, this);
+    }
 }
 
 void PhysiologyEngineManager::StopTickSimulation() {
-	if (m_runThread) {
-		m_mutex.lock();
-		m_runThread = false;
-		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-		m_mutex.unlock();
-		m_thread.detach();
-	}
+    if (m_runThread) {
+        m_mutex.lock();
+        m_runThread = false;
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        m_mutex.unlock();
+        m_thread.detach();
+    }
 }
 
 void PhysiologyEngineManager::StartSimulation() {
-	bg->StartSimulation();
+    bg->StartSimulation();
 }
 
 void PhysiologyEngineManager::StopSimulation() {
-	bg->StopSimulation();
+    bg->StopSimulation();
 }
 
 void PhysiologyEngineManager::AdvanceTimeTick() {
-	bg->AdvanceTimeTick();
+    bg->AdvanceTimeTick();
 }
 
 int PhysiologyEngineManager::GetTickCount() {
-	return lastFrame;
+    return lastFrame;
 }
 
 void PhysiologyEngineManager::Status() {
-	bg->Status();
+    bg->Status();
 }
 
 
 void PhysiologyEngineManager::Shutdown() {
-	cout << "=== [PhysiologyManager] Sending -1 values to all topics." << endl;
-	SendShutdown();
+    cout << "=== [PhysiologyManager] Sending -1 values to all topics." << endl;
+    SendShutdown();
 
-	cout << "=== [PhysiologyManager][BG] Shutting down BioGears." << endl;
-	bg->Shutdown();
+    cout << "=== [PhysiologyManager][BG] Shutting down BioGears." << endl;
+    bg->Shutdown();
 
-	cout << "=== [PhysiologyManager][DDS] Shutting down DDS Connections." << endl;
+    cout << "=== [PhysiologyManager][DDS] Shutting down DDS Connections." << endl;
 }
 
 
@@ -146,7 +147,7 @@ void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n) {
 }
 
 void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
-	cout << "[PhysiologyManager] Command received: " << c.message() << endl;
+    cout << "[PhysiologyManager] Command received: " << c.message() << endl;
     bg->ExecuteCommand(c.message());
 }
 

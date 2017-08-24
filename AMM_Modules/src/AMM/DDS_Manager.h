@@ -32,23 +32,41 @@ using namespace AMM::Physiology;
 using namespace AMM::Simulation;
 using namespace AMM::PatientAction::BioGears;
 
-class DDS_Manager
-{
+class DDS_Manager {
 public:
     DDS_Manager();
+
     virtual ~DDS_Manager() {};
 
-    Subscriber* InitializeTickSubscriber(DDS_Listeners::TickSubListener* sub_listener);
-    Publisher* InitializeTickPublisher(DDS_Listeners::PubListener* pub_listener);
+    Publisher *InitializeTickPublisher() { InitializeTickPublisher(default_pub_listener); };
 
-    Subscriber* InitializeCommandSubscriber(DDS_Listeners::CommandSubListener* sub_listener);
-    Publisher* InitializeCommandPublisher(DDS_Listeners::PubListener* pub_listener);
+    Publisher *InitializeTickPublisher(PublisherListener *pub_listener);
 
-    Subscriber* InitializeNodeSubscriber(DDS_Listeners::NodeSubListener* sub_listener);
-    Publisher* InitializeNodePublisher(DDS_Listeners::PubListener* pub_listener);
+    Subscriber *InitializeTickSubscriber() { InitializeTickSubscriber(default_sub_listener); };
 
+    Subscriber *InitializeTickSubscriber(SubscriberListener *sub_listener);
+
+    Publisher *InitializeCommandPublisher() { InitializeCommandPublisher(default_pub_listener); };
+
+    Publisher *InitializeCommandPublisher(PublisherListener *pub_listener);
+
+    Subscriber *InitializeCommandSubscriber() { InitializeCommandSubscriber(default_sub_listener); };
+
+    Subscriber *InitializeCommandSubscriber(SubscriberListener *sub_listener);
+
+    Publisher *InitializeNodePublisher() { InitializeNodePublisher(default_pub_listener); };
+
+    Publisher *InitializeNodePublisher(PublisherListener *pub_listener);
+
+    Subscriber *InitializeNodeSubscriber() { InitializeNodeSubscriber(default_sub_listener); };
+
+    Subscriber *InitializeNodeSubscriber(SubscriberListener *sub_listener);
+
+    bool SendCommand(const std::string &command);
+
+    // @TODO: Move these into an XML file, load by profile
     const int domainId = 15;
-    const char* partitionName = "AMM";
+    const char *partitionName = "AMM";
     const std::string tickTopic = "Tick";
     const std::string commandTopic = "Command";
     const std::string nodeTopic = "Data";
@@ -64,6 +82,9 @@ private:
     Subscriber *tick_subscriber;
     Subscriber *command_subscriber;
     Subscriber *node_subscriber;
+
+    PublisherListener *default_pub_listener;
+    SubscriberListener *default_sub_listener;
 
     TickPubSubType tickType;
     NodePubSubType nodeType;

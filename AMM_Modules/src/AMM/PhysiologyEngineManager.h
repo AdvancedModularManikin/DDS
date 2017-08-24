@@ -6,7 +6,7 @@
 
 #include "ListenerInterface.h"
 
-#include "BioGearsThread.h"
+#include "PhysiologyThread.h"
 
 #include <mutex>
 #include <thread>
@@ -70,7 +70,7 @@ public:
 
 private:
     bool autodispose_unregistered_instances = true;
-    std::map<std::string, double (BioGearsThread::*)()> nodePathMap;
+    std::map<std::string, double (PhysiologyThread::*)()> nodePathMap;
 
 protected:
     DDS_Manager *mgr = new DDS_Manager();
@@ -79,7 +79,7 @@ protected:
     Subscriber *tick_subscriber;
     Subscriber *command_subscriber;
 
-    BioGearsThread *bg = new BioGearsThread("biogears.log", "./states/StandardMale@0s.xml");
+    PhysiologyThread *bg = new PhysiologyThread("biogears.log", "./states/StandardMale@0s.xml");
 
     std::thread m_thread;
     std::mutex m_mutex;

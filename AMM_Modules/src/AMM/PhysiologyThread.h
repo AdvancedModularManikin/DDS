@@ -73,91 +73,156 @@
 
 // Forward declare what we will use in our thread
 class SESubstance;
+
 class SEEnergySystem;
+
 class SEComprehensiveMetabolicPanel;
+
 class SEGasCompartment;
+
 class SECompleteBloodCount;
+
 class PhysiologyEngine;
 
-class BioGearsThread {
+class PhysiologyThread {
 
 public:
-	BioGearsThread(const std::string &logFile, const std::string &stateFile);
-	virtual ~BioGearsThread();
-	bool InitializeEngine();
-	bool LoadState(const std::string &stateFile, double sec);
-	bool SaveState(const std::string &stateFile);
-	bool ExecuteCommand(const std::string &cmd);
-	void Shutdown();
-	void StartSimulation();
-	void StopSimulation();
-	void AdvanceTimeTick();
-	void AdvanceModelTime(double sec);
-	double GetSimulationTime();
-	AMM::Physiology::Node *GetNodeByPath(const std::string &nodePath);
-	double GetNodePath(const std::string &nodePath);
-	void DisplayNodePaths(const std::string &filter);
-	void Status();
-	static std::map<std::string, double (BioGearsThread::*)() > nodePathTable;
-	static std::vector<std::string> highFrequencyNodes;
-	AMM::Physiology::Node *dataInstance;
+    PhysiologyThread(const std::string &logFile, const std::string &stateFile);
+
+    virtual ~PhysiologyThread();
+
+    bool InitializeEngine();
+
+    bool LoadState(const std::string &stateFile, double sec);
+
+    bool SaveState(const std::string &stateFile);
+
+    bool ExecuteCommand(const std::string &cmd);
+
+    void Shutdown();
+
+    void StartSimulation();
+
+    void StopSimulation();
+
+    void AdvanceTimeTick();
+
+    void AdvanceModelTime(double sec);
+
+    double GetSimulationTime();
+
+    AMM::Physiology::Node *GetNodeByPath(const std::string &nodePath);
+
+    double GetNodePath(const std::string &nodePath);
+
+    void DisplayNodePaths(const std::string &filter);
+
+    void Status();
+
+    static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
+    static std::vector<std::string> highFrequencyNodes;
+    AMM::Physiology::Node *dataInstance;
 
 
 private:
-	bool LoadScenarioFile(const std::string &scenarioFile);
-	void PopulateNodePathTable();
-	double GetShutdownMessage();
-	double GetHeartRate(void);
-	double GetBloodVolume();
-	double GetArterialSystolicPressure();
-	double GetArterialDiastolicPressure();
-	double GetMeanArterialPressure();
-	double GetArterialPressure();
-	double GetMeanCentralVenousPressure();
-	double GetEndTidalCarbonDioxideFraction();
-	double GetOxygenSaturation();
-	double GetRespirationRate();
-	double GetCoreTemperature();
-	double GetECGWaveform();
-	double GetSodiumConcentration();
-	double GetSodium();
-	double GetGlucoseConcentration();
-	double GetBUN();
-	double GetCreatinineConcentration();
-	double GetWhiteBloodCellCount();
-	double GetRedBloodCellCount();
-	double GetHemoglobinConcentration();
-	double GetHematocrit();
-	double GetBloodPH();
-	double GetArterialCarbonDioxidePressure();
-	double GetArterialOxygenPressure();
-	double GetBicarbonateConcentration();
-	double GetBicarbonate();
-	double GetBaseExcess();
-	double GetCO2();
-	double GetPotassium();
-	double GetChloride();
-	double GetPlateletCount();
-	double GetExhaledCO2();
-	double GetTidalVolume();
-	double GetTotalLungVolume();
-	double GetLeftLungVolume();
-	double GetRightLungVolume();
-	double GetLeftPleuralCavityVolume();
-	double GetRightPleuralCavityVolume();
-	double GetLeftAlveoliBaselineCompliance();
-	double GetRightAlveoliBaselineCompliance();
-	double GetCardiacOutput();
-	Logger* GetLogger() {
-			return m_bg->GetLogger();
-		}
+    bool LoadScenarioFile(const std::string &scenarioFile);
+
+    void PopulateNodePathTable();
+
+    double GetShutdownMessage();
+
+    double GetHeartRate(void);
+
+    double GetBloodVolume();
+
+    double GetArterialSystolicPressure();
+
+    double GetArterialDiastolicPressure();
+
+    double GetMeanArterialPressure();
+
+    double GetArterialPressure();
+
+    double GetMeanCentralVenousPressure();
+
+    double GetEndTidalCarbonDioxideFraction();
+
+    double GetOxygenSaturation();
+
+    double GetRespirationRate();
+
+    double GetCoreTemperature();
+
+    double GetECGWaveform();
+
+    double GetSodiumConcentration();
+
+    double GetSodium();
+
+    double GetGlucoseConcentration();
+
+    double GetBUN();
+
+    double GetCreatinineConcentration();
+
+    double GetWhiteBloodCellCount();
+
+    double GetRedBloodCellCount();
+
+    double GetHemoglobinConcentration();
+
+    double GetHematocrit();
+
+    double GetBloodPH();
+
+    double GetArterialCarbonDioxidePressure();
+
+    double GetArterialOxygenPressure();
+
+    double GetBicarbonateConcentration();
+
+    double GetBicarbonate();
+
+    double GetBaseExcess();
+
+    double GetCO2();
+
+    double GetPotassium();
+
+    double GetChloride();
+
+    double GetPlateletCount();
+
+    double GetExhaledCO2();
+
+    double GetTidalVolume();
+
+    double GetTotalLungVolume();
+
+    double GetLeftLungVolume();
+
+    double GetRightLungVolume();
+
+    double GetLeftPleuralCavityVolume();
+
+    double GetRightPleuralCavityVolume();
+
+    double GetLeftAlveoliBaselineCompliance();
+
+    double GetRightAlveoliBaselineCompliance();
+
+    double GetCardiacOutput();
+
+    Logger *GetLogger() {
+        return m_bg->GetLogger();
+    }
 
 
 protected:
-	void AdvanceTime();
+    void AdvanceTime();
 
-	std::thread m_thread;
-	std::mutex m_mutex;
-	bool m_runThread;
-	std::unique_ptr<PhysiologyEngine> m_bg;
+    std::thread m_thread;
+    std::mutex m_mutex;
+    bool m_runThread;
+    std::unique_ptr<PhysiologyEngine> m_bg;
 };
