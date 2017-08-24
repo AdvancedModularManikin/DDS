@@ -75,16 +75,16 @@ add_executable (${VIRTUAL_EQUIPMENT_EXE} ${VIRTUAL_EQUIPMENT_SOURCES} ${DATAMODE
 
 set (COMMAND_EXECUTOR_SOURCES src/CommandExecutor.cpp)
 set (COMMAND_EXECUTOR_EXE amm_command_executor)
-#add_executable (${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
+add_executable (${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
 set (HEART_RATE_LED_SOURCES src/HeartRateLED.cpp)
 set (HEART_RATE_LED_EXE amm_heartrate_led)
-#add_executable (${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
+add_executable (${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
 if (RAPIDJSON_FOUND AND Pistache_FOUND)
     set (REST_ADAPTER_SOURCES src/REST_Adapter.cpp)
     set (REST_ADAPTER_EXE amm_rest_adapter)
-#    add_executable (${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
+    add_executable (${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 endif()
 
 
@@ -112,25 +112,22 @@ target_link_libraries (${VIRTUAL_EQUIPMENT_EXE}
         ${DATAMODEL}
         )
 
-#target_link_libraries (${COMMAND_EXECUTOR_EXE}
-#        fastrtps fastcdr
-#        ${DATAMODEL}
-#        ${DDS_MANAGER}
-#        )
+target_link_libraries (${COMMAND_EXECUTOR_EXE}
+        fastrtps fastcdr
+        ${DATAMODEL}
+        )
 
-#target_link_libraries (${HEART_RATE_LED_EXE}
-#        fastrtps fastcdr
-#        ${DATAMODEL}
-#        ${DDS_MANAGER}
-#        )
+target_link_libraries (${HEART_RATE_LED_EXE}
+        fastrtps fastcdr
+        ${DATAMODEL}
+        )
 
 if (RAPIDJSON_FOUND AND Pistache_FOUND)
-#target_link_libraries (${REST_ADAPTER_EXE}
-#        fastrtps fastcdr ${RAPIDJSON_LIBRARIES} ${Pistache_LIBRARY}
-#        Threads::Threads
-#        ${DATAMODEL}
-#        ${DDS_MANAGER}
-#        )
+target_link_libraries (${REST_ADAPTER_EXE}
+        fastrtps fastcdr ${RAPIDJSON_LIBRARIES} ${Pistache_LIBRARY}
+        Threads::Threads
+        ${DATAMODEL}
+        )
 endif()
 
 file(COPY ${PROJECT_SOURCE_DIR}/support/Actions DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)

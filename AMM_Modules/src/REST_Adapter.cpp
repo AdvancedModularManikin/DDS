@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+#include "AMM/DDS_Manager.h"
+
 #include <algorithm>
 
 #include <pistache/http.h>
@@ -13,22 +15,10 @@
 #include <mutex>
 #include <thread>
 
-#include "ccpp_AMM.h"
-#include "AMM/DDSEntityManager.h"
-
 using namespace std;
 using namespace rapidjson;
-using namespace DDS;
-using namespace AMM::Physiology;
-using namespace AMM::PatientAction::BioGears;
 using namespace Pistache;
 
-DDSEntityManager dataMgr;
-DDSEntityManager cmdMgr;
-DataWriter_var cmddwriter;
-CommandDataWriter_var CommandWriter;
-DataReader_var dreader;
-NodeDataReader_var PhysiologyDataReader;
 
 std::map<std::string, double> nodeDataStorage;
 
@@ -36,66 +26,33 @@ std::thread m_thread;
 std::mutex m_mutex;
 bool m_runThread = false;
 
+Publisher * command_publisher;
+Subscriber * node_subscriber;
+
+
 void SendCommand(const std::string &command) {
-	Command cmdInstance;
-	cmdInstance.message = DDS::string_dup(command.c_str());
-	cout << "=== [CommandExecutor] Sending a command containing:" << endl;
-	cout << "    Command : \"" << cmdInstance.message << "\"" << endl;
-	CommandWriter->write(cmdInstance, DDS::HANDLE_NIL);
+    AMM::PatientAction::BioGears::Command cmdInstance;
+    cmdInstance.message(action);
+    cout << "=== [CommandExecutor] Sending a command containing:" << endl;
+    cout << "    Command : \"" << cmdInstance.message() << "\"" << endl;
+    command_publisher->write(&cmdInstance);
 }
 
 void InitializeDDS() {
-	char partition_name[] = "AMM";
-	char node_topic_name[] = "Data";
-	char cmd_topic_name[] = "Command";
+    auto *mgr = new DDS_Manager();
+    auto * pub_listener = new DDS_Listeners::PubListener();
+    auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
+    RESTListener rl;
+    node_sub_listener->SetUpstream(&rl);
 
-	// Set up command manager
-	DDSEntityManager cmdMgr;
-	cmdMgr.createParticipant(partition_name);
-	CommandTypeSupport_var dt = new CommandTypeSupport();
-	cmdMgr.registerType(dt.in());
-	cmdMgr.createTopic(cmd_topic_name);
-	cmdMgr.createPublisher();
-	cmdMgr.createWriters();
-	DataWriter_var cmddwriter = cmdMgr.getWriter();
-	CommandWriter = CommandDataWriter::_narrow(cmddwriter.in());
+    command_publisher = mgr->InitializeCommandPublisher(pub_listener);
+    node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
 
-	// Set up data manager
-	DDSEntityManager dataMgr;
-	dataMgr.createParticipant(partition_name);
-	NodeTypeSupport_var ndt = new NodeTypeSupport();
-	dataMgr.registerType(ndt.in());
-	dataMgr.createTopic(node_topic_name);
-	dataMgr.createSubscriber();
-	dataMgr.createReader(false);
-	DataReader_var dreader = dataMgr.getReader();
-	PhysiologyDataReader = NodeDataReader::_narrow(dreader.in());
-}
-
-void CleanupDDS() {
-	cmdMgr.deleteWriters();
-	cmdMgr.deletePublisher();
-	cmdMgr.deleteTopic();
-	cmdMgr.deleteParticipant();
-
-	dataMgr.deleteReader(PhysiologyDataReader.in());
-	dataMgr.deleteSubscriber();
-	dataMgr.deleteTopic();
-	dataMgr.deleteParticipant();
 }
 
 void DataLoop() {
-	NodeSeq msgList;
-	SampleInfoSeq infoSeq;
-
 	while (m_runThread) {
-		PhysiologyDataReader->take(msgList, infoSeq, LENGTH_UNLIMITED, ANY_SAMPLE_STATE, ANY_VIEW_STATE, ANY_INSTANCE_STATE);
-		for (DDS::ULong i = 0; i < msgList.length(); i++) {
-			if (infoSeq[i].valid_data) {
-				nodeDataStorage[msgList[i].nodepath.val()] = msgList[i].dbl;
-			}
-		}
-		PhysiologyDataReader->return_loan(msgList, infoSeq);
+        // Data processing is handled in the listener
 	}
 }
 
@@ -108,6 +65,13 @@ void printCookies(const Http::Request& req) {
 	}
 	std::cout << "]" << std::endl;
 }
+
+
+class RESTListener : public ListenerInterface {
+    void onNewNodeData(AMM::Physiology::Node n) {
+        nodeDataStorage[n.nodepath()] = n.dbl();
+    }
+};
 
 namespace Generic {
 
@@ -247,7 +211,6 @@ int main(int argc, char *argv[]) {
 
 	server.shutdown();
 	m_thread.join();
-	CleanupDDS();
 
 	return 0;
 }

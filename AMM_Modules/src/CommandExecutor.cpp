@@ -1,12 +1,8 @@
 #include "stdafx.h"
-#include "ccpp_AMM.h"
-#include "AMM/DDSEntityManager.h"
 
-#include <algorithm>
+#include "AMM/DDS_Manager.h"
 
 using namespace std;
-using namespace DDS;
-using namespace AMM::PatientAction::BioGears;
 
 static void show_usage(std::string name) {
 	cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n"
@@ -25,29 +21,9 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	/* DDS entity manager */
-	DDSEntityManager mgr;
-	CommandSeq cmdList;
-	SampleInfoSeq infoSeq;
-
-	/** Initialization data **/
-	const char *partitionName = "AMM";
-	char topicName[] = "Command";
-	ReturnCode_t status;
-
-	// create domain participant
-	mgr.createParticipant(partitionName);
-
-	CommandTypeSupport_var dt = new CommandTypeSupport();
-	mgr.registerType(dt.in());
-	mgr.createTopic(topicName);
-	mgr.createPublisher();
-	mgr.createWriter();
-
-	// Publish Events
-	DataWriter_var dwriter = mgr.getWriter();
-	CommandDataWriter_var CommandWriter = CommandDataWriter::_narrow(
-			dwriter.in());
+    auto *mgr = new DDS_Manager();
+    auto * pub_listener = new DDS_Listeners::PubListener();
+    Publisher * command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
 	std::string action = "";
 	bool closed = false;
@@ -62,19 +38,13 @@ int main(int argc, char *argv[]) {
 			if (action == "") {
 				continue;
 			}
-			Command cmdInstance;
-			cmdInstance.message = DDS::string_dup(action.c_str());
-			cout << "=== [CommandExecutor] Sending a command containing:" << endl;
-			cout << "    Command : \"" << cmdInstance.message << "\"" << endl;
-			status = CommandWriter->write(cmdInstance, DDS::HANDLE_NIL);
-			checkStatus(status, "CommandWriter::write");
+            AMM::PatientAction::BioGears::Command cmdInstance;
+            cmdInstance.message(action);
+            cout << "=== [CommandExecutor] Sending a command containing:" << endl;
+            cout << "    Command : \"" << cmdInstance.message() << "\"" << endl;
+            command_publisher->write(&cmdInstance);
 		}
 	} while (!closed);
-
-	mgr.deleteWriters();
-	mgr.deletePublisher();
-	mgr.deleteTopic();
-	mgr.deleteParticipant();
 
 	return 0;
 

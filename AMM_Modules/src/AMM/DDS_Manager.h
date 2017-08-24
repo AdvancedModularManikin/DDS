@@ -47,6 +47,8 @@ public:
     Subscriber* InitializeNodeSubscriber(DDS_Listeners::NodeSubListener* sub_listener);
     Publisher* InitializeNodePublisher(DDS_Listeners::PubListener* pub_listener);
 
+    const int domainId = 15;
+    const char* partitionName = "AMM";
     const std::string tickTopic = "Tick";
     const std::string commandTopic = "Command";
     const std::string nodeTopic = "Data";

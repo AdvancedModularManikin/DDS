@@ -1,5 +1,7 @@
 #include "DDS_Manager.h"
 
+// @TODO: Add overrides to make the listeners optional, attach the default listener
+
 using namespace std;
 using namespace std::chrono;
 
@@ -8,16 +10,15 @@ using namespace eprosima::fastrtps;
 
 DDS_Manager::DDS_Manager() {
 	ParticipantAttributes PParam;
-	PParam.rtps.builtin.domainId = 15;
+	PParam.rtps.builtin.domainId = domainId;
 	PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
-	PParam.rtps.setName("AMM");  //You can put here the name you want
+	PParam.rtps.setName(partitionName);  //You can put here the name you want
 	mp_participant = Domain::createParticipant(PParam);
 
 	if (mp_participant == nullptr) {
         std::cout << "Unable to create FastRTPS domain participant." << endl;
         return;
     }
-
 
 	Domain::registerType(mp_participant, (TopicDataType*) &tickType);
 	Domain::registerType(mp_participant, (TopicDataType*) &nodeType);
