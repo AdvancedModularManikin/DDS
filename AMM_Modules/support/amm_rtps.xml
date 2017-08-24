@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<profiles>
+  <participant profile_name="participant_profile">
+  </participant>
+
+  <publisher profile_name="publisher_profile">
+  </publisher>
+
+  <subscriber profile_name="subscriber_profile">
+  </subscriber>
+</profiles>

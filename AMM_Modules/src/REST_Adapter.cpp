@@ -29,18 +29,15 @@ bool m_runThread = false;
 Publisher * command_publisher;
 Subscriber * node_subscriber;
 
-
-void SendCommand(const std::string &command) {
-    AMM::PatientAction::BioGears::Command cmdInstance;
-    cmdInstance.message(action);
-    cout << "=== [CommandExecutor] Sending a command containing:" << endl;
-    cout << "    Command : \"" << cmdInstance.message() << "\"" << endl;
-    command_publisher->write(&cmdInstance);
-}
+class RESTListener : public ListenerInterface {
+    void onNewNodeData(AMM::Physiology::Node n) {
+        nodeDataStorage[n.nodepath()] = n.dbl();
+    }
+};
 
 void InitializeDDS() {
     auto *mgr = new DDS_Manager();
-    auto * pub_listener = new DDS_Listeners::PubListener();
+    auto *pub_listener = new DDS_Listeners::PubListener();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     RESTListener rl;
     node_sub_listener->SetUpstream(&rl);
@@ -49,6 +46,15 @@ void InitializeDDS() {
     node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
 
 }
+
+void SendCommand(const std::string &command) {
+    AMM::PatientAction::BioGears::Command cmdInstance;
+    cmdInstance.message(command);
+    cout << "=== [CommandExecutor] Sending a command containing:" << endl;
+    cout << "    Command : \"" << cmdInstance.message() << "\"" << endl;
+    command_publisher->write(&cmdInstance);
+}
+
 
 void DataLoop() {
 	while (m_runThread) {
@@ -66,12 +72,6 @@ void printCookies(const Http::Request& req) {
 	std::cout << "]" << std::endl;
 }
 
-
-class RESTListener : public ListenerInterface {
-    void onNewNodeData(AMM::Physiology::Node n) {
-        nodeDataStorage[n.nodepath()] = n.dbl();
-    }
-};
 
 namespace Generic {
 
@@ -184,9 +184,6 @@ private:
 };
 
 int main(int argc, char *argv[]) {
-	char configFile[] = "OSPL_URI=file://ospl.xml";
-	putenv(configFile);
-
 	int portNumber = 9080;
 	int thr = 2;
 

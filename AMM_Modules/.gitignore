@@ -274,16 +274,17 @@ __pycache__/
 # tools/**
 # !tools/packages.config
 *.kdev4
+.kdev4
 .kdev4/AMM_Modules.kdev4.lock
+*.cbp
 AMM_Modules.kdev4.lock
 nohup.out
 *.so
-
+.project
+.cproject
 
 # Cmake artifacts
 cmake-build-debug
-*.cbp
-*.kdev4
 build/
 auto_build/
 CMakeCache.txt
