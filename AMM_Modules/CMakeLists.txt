@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.1)
 
 project(AMM_Modules)
 
+
+
+
 IF (WIN32)
     SET(ENV{BIOGEARS_HOME} "c:/tools/physiology/install")
     SET(ENV{FASTRTPS_HOME} "C:/tools/fast-rtps")
@@ -31,7 +34,7 @@ find_package (BioGears REQUIRED)
 find_package (fastrtps REQUIRED)
 find_package (fastcdr REQUIRED)
 find_package (Threads REQUIRED)
-find_package (Boost REQUIRED)
+find_package (Boost REQUIRED filesystem iostreams system)
 
 find_package (RapidJSON)
 find_package (Pistache)
@@ -81,6 +84,10 @@ set (HEART_RATE_LED_SOURCES src/HeartRateLED.cpp)
 set (HEART_RATE_LED_EXE amm_heartrate_led)
 add_executable (${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
+set (ARDUINO_BRIDGE_SOURCES src/ArduinoSensor.cpp)
+set (ARDUINO_BRIDGE_EXE amm_arduino_bridge)
+add_executable (${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
+
 if (RAPIDJSON_FOUND AND Pistache_FOUND)
     set (REST_ADAPTER_SOURCES src/REST_Adapter.cpp)
     set (REST_ADAPTER_EXE amm_rest_adapter)
@@ -119,6 +126,12 @@ target_link_libraries (${COMMAND_EXECUTOR_EXE}
 
 target_link_libraries (${HEART_RATE_LED_EXE}
         fastrtps fastcdr
+        ${DATAMODEL}
+        )
+
+target_link_libraries (${ARDUINO_BRIDGE_EXE}
+        fastrtps fastcdr
+        Boost::filesystem Boost::iostreams
         ${DATAMODEL}
         )
 

@@ -8,11 +8,7 @@ SimulationManager::SimulationManager() : m_thread() {
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     command_sub_listener->SetUpstream(this);
 
-    auto *pub_listener = new DDS_Listeners::PubListener();
-
     command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
-    tick_publisher = mgr->InitializeTickPublisher(pub_listener);
-    command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
     m_runThread = false;
 
@@ -52,11 +48,8 @@ int SimulationManager::GetSampleRate() {
 }
 
 void SimulationManager::SendCommand(const std::string &command) {
-    AMM::PatientAction::BioGears::Command cmdInstance;
-    cmdInstance.message(command);
-    cout << "=== [SimManager][CommandExecutor] Sending a command containing:" << endl;
-    cout << "    Command : \"" << cmdInstance.message() << "\"" << endl;
-    command_publisher->write(&cmdInstance);
+    cout << "=== [SimManager][CommandExecutor] Sending a command:" << command << endl;
+    mgr->SendCommand(command);
 }
 
 void SimulationManager::TickLoop() {
@@ -69,9 +62,7 @@ void SimulationManager::TickLoop() {
         this_thread::sleep_until(nextFrame);
         m_mutex.lock();
 
-        AMM::Simulation::Tick tick;
-        tick.frame(tickCount++);
-        tick_publisher->write(&tick);
+        mgr->SendTick(tickCount++);
 
         lastFrame = nextFrame;
         nextFrame += frames {1};
@@ -90,9 +81,7 @@ void SimulationManager::Shutdown() {
         m_thread.join();
     }
 
-    AMM::Simulation::Tick tick;
-    tick.frame(-1);
-    tick_publisher->write(&tick);
+    mgr->SendTick(-1);
 
     Cleanup();
 

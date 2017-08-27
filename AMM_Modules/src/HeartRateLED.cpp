@@ -77,15 +77,12 @@ int main(int argc, char *argv[]) {
     int spi_fd = open(device, O_RDWR);
 
     auto *mgr = new DDS_Manager();
-    auto *pub_listener = new DDS_Listeners::PubListener();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
 
     HeartRateListener vel;
     node_sub_listener->SetUpstream(&vel);
     command_sub_listener->SetUpstream(&vel);
-
-    Publisher *command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
     Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
     Subscriber *command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
@@ -127,12 +124,8 @@ int main(int argc, char *argv[]) {
         if (spi_rcvd[1]) {
             //button 2 was pressed
             //send hemorrhage action
-            AMM::PatientAction::BioGears::Command cmdInstance;
-            cmdInstance.message(hemorrhage_action);
-            cout << "=== [CommandExecutor] Sending a command containing:" << endl;
-            cout << "    Command : \"" << cmdInstance.message() << "\"" << endl;
-            command_publisher->write(&cmdInstance);
-            cout << "sent that command" << endl;
+            cout << "=== [HeartRateLED] Sending a command:" << hemorrhage_action << endl;
+            mgr->SendCommand(hemorrhage_action);
         }
 
 

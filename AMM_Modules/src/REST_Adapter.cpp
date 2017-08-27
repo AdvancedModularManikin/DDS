@@ -19,8 +19,9 @@ std::thread m_thread;
 std::mutex m_mutex;
 bool m_runThread = false;
 
-Publisher *command_publisher;
 Subscriber *node_subscriber;
+
+DDS_Manager *mgr;
 
 class RESTListener : public ListenerInterface {
     void onNewNodeData(AMM::Physiology::Node n) {
@@ -29,20 +30,16 @@ class RESTListener : public ListenerInterface {
 };
 
 void InitializeDDS() {
-    auto *mgr = new DDS_Manager();
+    mgr = new DDS_Manager();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     RESTListener rl;
     node_sub_listener->SetUpstream(&rl);
-    command_publisher = mgr->InitializeCommandPublisher();
     node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
 }
 
 void SendCommand(const std::string &command) {
-    AMM::PatientAction::BioGears::Command cmdInstance;
-    cmdInstance.message(command);
-    cout << "=== [CommandExecutor] Sending a command containing:" << endl;
-    cout << "    Command : \"" << cmdInstance.message() << "\"" << endl;
-    command_publisher->write(&cmdInstance);
+    cout << "=== [REST_Adapter] Sending a command:" << command << endl;
+    mgr->SendCommand(command);
 }
 
 
@@ -134,7 +131,6 @@ private:
             it++;
         }
         writer.EndArray();
-        // response.headers().add(<Pistache::Http::Header::AccessControlAllowOrigin>("*"));
         response.headers().addRaw(Http::Header::Raw("Access-Control-Allow-Origin", "*"));
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }

@@ -56,9 +56,6 @@ protected:
 
     DDS_Manager *mgr = new DDS_Manager();
 
-    Publisher *tick_publisher;
-    Publisher *command_publisher;
-
     Subscriber *command_subscriber;
 
     int tickCount = 0;

@@ -63,6 +63,7 @@ public:
     Subscriber *InitializeNodeSubscriber(SubscriberListener *sub_listener);
 
     bool SendCommand(const std::string &command);
+    bool SendTick(int frameNumber);
 
     // @TODO: Move these into an XML file, load by profile
     const int domainId = 15;

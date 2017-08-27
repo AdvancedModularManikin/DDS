@@ -48,8 +48,6 @@ public:
 
     bool isRunning();
 
-    void SendCommand(const std::string &command);
-
     void SendShutdown();
 
     void WriteNodeData(string node);
@@ -69,7 +67,6 @@ public:
     void onNewCommandData(AMM::PatientAction::BioGears::Command c);
 
 private:
-    bool autodispose_unregistered_instances = true;
     std::map<std::string, double (PhysiologyThread::*)()> nodePathMap;
 
 protected:
