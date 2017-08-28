@@ -86,7 +86,9 @@ void PhysiologyEngineManager::PublishData(bool force = false) {
         if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) !=
              bg->highFrequencyNodes.end())
             || (lastFrame % 10) == 0 || force) {
-            WriteNodeData(it->first);
+            if (it->first != "EXIT") {
+                WriteNodeData(it->first);
+            }
         }
         it++;
     }
