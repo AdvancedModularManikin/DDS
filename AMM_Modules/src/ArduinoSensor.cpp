@@ -57,6 +57,7 @@ int main(int argc, char *argv[]) {
 
     Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
     Subscriber *command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
+    Publisher *command_publisher = mgr->InitializeCommandPublisher();
 
     cout << "=== [ArduinoSensor] Ready ..." << endl;
 
@@ -65,31 +66,32 @@ int main(int argc, char *argv[]) {
 
     while (!closed) {
         char c;
-	std::string rsp;
+        std::string rsp;
 
-	while (boost::asio::read(port, boost::asio::buffer(&c,1)) && c != '\n') {
+        while (boost::asio::read(port, boost::asio::buffer(&c, 1)) && c != '\n') {
             rsp += c;
         }
 
 
-	if (!rsp.compare(0,reportPrefix.size(),reportPrefix)) {
-	  std::string value = rsp.substr(reportPrefix.size());
-	  cout << "[ARDUINO] Making REPORT: " << value << endl;	  
-	} else if (!rsp.compare(0,actionPrefix.size(),actionPrefix)) {
-  	  std::string value = rsp.substr(actionPrefix.size());
-	  cout << "[ARDUINO] Sending ACTION: " << value << endl;
-	  mgr->SendCommand(value);
-	} else {
-	  cout << "[DEBUG-ARDUINO]: " << rsp << endl;
-	}
-	
+        if (!rsp.compare(0, reportPrefix.size(), reportPrefix)) {
+            std::string value = rsp.substr(reportPrefix.size());
+            cout << "=== [ARDUINO] Making REPORT: " << value << endl;
+        } else if (!rsp.compare(0, actionPrefix.size(), actionPrefix)) {
+            std::string value = rsp.substr(actionPrefix.size());
+            cout << "=== [ARDUINO] Sending a command: " << value << endl;
+            AMM::PatientAction::BioGears::Command cmdInstance;
+            cmdInstance.message(value);
+            command_publisher->write(&cmdInstance);
+        } else {
+            cout << "=== [ARDUINO][DEBUG] " << rsp << endl;
+        }
 
 
-	if (c != '\n') {
+        if (c != '\n') {
             // it timed out
             cout << "We had an Arduino timeout of some kind";
         }
-	
+
     }
 
     cout << "=== [ArduinoSensor] Simulation stopped." << endl;

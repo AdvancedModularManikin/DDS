@@ -20,6 +20,7 @@ std::mutex m_mutex;
 bool m_runThread = false;
 
 Subscriber *node_subscriber;
+Publisher *command_publisher;
 
 DDS_Manager *mgr;
 
@@ -35,11 +36,14 @@ void InitializeDDS() {
     RESTListener rl;
     node_sub_listener->SetUpstream(&rl);
     node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
+    command_publisher = mgr->InitializeCommandPublisher();
 }
 
 void SendCommand(const std::string &command) {
     cout << "=== [REST_Adapter] Sending a command:" << command << endl;
-    mgr->SendCommand(command);
+    AMM::PatientAction::BioGears::Command cmdInstance;
+    cmdInstance.message(command);
+    command_publisher->write(&cmdInstance);
 }
 
 

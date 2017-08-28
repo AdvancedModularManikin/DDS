@@ -86,6 +86,7 @@ int main(int argc, char *argv[]) {
 
     Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
     Subscriber *command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
+    Publisher * command_publisher = mgr->InitializeCommandPublisher();
 
     cout << "=== [HeartRateLED] Ready ..." << endl;
 
@@ -125,7 +126,9 @@ int main(int argc, char *argv[]) {
             //button 2 was pressed
             //send hemorrhage action
             cout << "=== [HeartRateLED] Sending a command:" << hemorrhage_action << endl;
-            mgr->SendCommand(hemorrhage_action);
+            AMM::PatientAction::BioGears::Command cmdInstance;
+            cmdInstance.message(hemorrhage_action);
+            command_publisher->write(&cmdInstance);
         }
 
 

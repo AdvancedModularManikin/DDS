@@ -58,6 +58,9 @@ protected:
 
     Subscriber *command_subscriber;
 
+    Publisher *command_publisher;
+    Publisher *tick_publisher;
+
     int tickCount = 0;
     int sampleRate = 50;
 

@@ -37,10 +37,9 @@ int main(int argc, char *argv[]) {
             if (action == "") {
                 continue;
             }
+            cout << "=== [CommandExecutor] Sending a command:" << action << endl;
             AMM::PatientAction::BioGears::Command cmdInstance;
             cmdInstance.message(action);
-            cout << "=== [CommandExecutor] Sending a command containing:" << endl;
-            cout << "    Command : \"" << cmdInstance.message() << "\"" << endl;
             command_publisher->write(&cmdInstance);
         }
     } while (!closed);
