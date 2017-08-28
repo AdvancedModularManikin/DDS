@@ -50,14 +50,14 @@ int main(int argc, char *argv[]) {
 
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
-
+    auto *pub_listener = new DDS_Listeners::PubListener();
     GenericArduinoListener al;
     node_sub_listener->SetUpstream(&al);
     command_sub_listener->SetUpstream(&al);
 
     Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
     Subscriber *command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
-    Publisher *command_publisher = mgr->InitializeCommandPublisher();
+    Publisher *command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
     cout << "=== [ArduinoSensor] Ready ..." << endl;
 

@@ -36,7 +36,8 @@ void InitializeDDS() {
     RESTListener rl;
     node_sub_listener->SetUpstream(&rl);
     node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
-    command_publisher = mgr->InitializeCommandPublisher();
+    auto *pub_listener = new DDS_Listeners::PubListener();
+    command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 }
 
 void SendCommand(const std::string &command) {

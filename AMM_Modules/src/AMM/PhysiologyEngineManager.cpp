@@ -23,6 +23,7 @@ PhysiologyEngineManager::PhysiologyEngineManager() : m_thread() {
     auto *pub_listener = new DDS_Listeners::PubListener();
 
     tick_subscriber = mgr->InitializeTickSubscriber(tick_sub_listener);
+    command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
     node_publisher = mgr->InitializeNodePublisher(pub_listener);
 
     nodePathMap = bg->nodePathTable;

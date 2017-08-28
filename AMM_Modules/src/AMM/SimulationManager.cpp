@@ -10,7 +10,9 @@ SimulationManager::SimulationManager() : m_thread() {
 
     command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
     tick_publisher = mgr->InitializeTickPublisher();
-    command_publisher = mgr->InitializeCommandPublisher();
+    auto *pub_listener = new DDS_Listeners::PubListener();
+
+    command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
     m_runThread = false;
 
@@ -50,8 +52,7 @@ int SimulationManager::GetSampleRate() {
 }
 
 void SimulationManager::SendCommand(const std::string &command) {
-    cout << "=== [SimManager][CommandExecutor] Sending a command:" << command << endl;
-//    mgr->SendCommand(command);
+    cout << endl << "=== [SimManager][CommandExecutor] Sending a command:" << command << endl;
     AMM::PatientAction::BioGears::Command cmdInstance;
     cmdInstance.message(command);
     command_publisher->write(&cmdInstance);

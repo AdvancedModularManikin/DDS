@@ -22,7 +22,8 @@ int main(int argc, char *argv[]) {
     }
 
     auto *mgr = new DDS_Manager();
-    Publisher *command_publisher = mgr->InitializeCommandPublisher();
+    auto *pub_listener = new DDS_Listeners::PubListener();
+    Publisher *command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
     std::string action = "";
     bool closed = false;

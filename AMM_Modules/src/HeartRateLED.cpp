@@ -83,10 +83,10 @@ int main(int argc, char *argv[]) {
     HeartRateListener vel;
     node_sub_listener->SetUpstream(&vel);
     command_sub_listener->SetUpstream(&vel);
-
+    auto *pub_listener = new DDS_Listeners::PubListener();
     Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
     Subscriber *command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
-    Publisher * command_publisher = mgr->InitializeCommandPublisher();
+    Publisher * command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
     cout << "=== [HeartRateLED] Ready ..." << endl;
 
