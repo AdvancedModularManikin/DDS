@@ -23,15 +23,15 @@ bool closed = false;
 
 class GenericArduinoListener : public ListenerInterface {
     void onNewNodeData(AMM::Physiology::Node n) {
-        bool print = false;
-        if (n.dbl() == -1.0f) {
-            closed = true;
-            return;
+      if (n.nodepath() == "EXIT") {
+	  cout << "Shutting down simulation based on shutdown node-data from physiology engine."  << endl;
+	  closed = true;
+	  return;
         }
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
-
+      cout << "We got a command from elsewhere: " << c.message() << endl;
     }
 };
 
@@ -46,18 +46,19 @@ int main(int argc, char *argv[]) {
     port.set_option(PARITY);
     port.set_option(STOP);
 
-    auto *mgr = new DDS_Manager();
+    auto * mgr = new DDS_Manager();
 
-    auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
-    auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
-    auto *pub_listener = new DDS_Listeners::PubListener();
+    auto * node_sub_listener = new DDS_Listeners::NodeSubListener();
+    auto * command_sub_listener = new DDS_Listeners::CommandSubListener();
+    auto * pub_listener = new DDS_Listeners::PubListener();
+    
     GenericArduinoListener al;
     node_sub_listener->SetUpstream(&al);
     command_sub_listener->SetUpstream(&al);
 
-    Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
-    Subscriber *command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
-    Publisher *command_publisher = mgr->InitializeCommandPublisher(pub_listener);
+    Subscriber * node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
+    Subscriber * command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
+    Publisher * command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
     cout << "=== [ArduinoSensor] Ready ..." << endl;
 
