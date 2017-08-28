@@ -88,16 +88,3 @@ Subscriber *DDS_Manager::InitializeCommandSubscriber(
                                                   sub_listener);
     return command_subscriber;
 }
-
-bool DDS_Manager::SendCommand(const std::string &command) {
-    AMM::PatientAction::BioGears::Command cmdInstance;
-    cmdInstance.message(command);
-    // cout << "=== Sending a command:" << cmdInstance.message() << endl;
-    return command_publisher->write(&cmdInstance);
-}
-
-bool DDS_Manager::SendTick(int frameNumber) {
-    AMM::Simulation::Tick tickInstance;
-    tickInstance.frame(frameNumber);
-    return tick_publisher->write(&tickInstance);
-}

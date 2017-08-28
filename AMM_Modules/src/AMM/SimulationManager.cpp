@@ -9,9 +9,9 @@ SimulationManager::SimulationManager() : m_thread() {
     command_sub_listener->SetUpstream(this);
 
     command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
-    tick_publisher = mgr->InitializeTickPublisher();
     auto *pub_listener = new DDS_Listeners::PubListener();
 
+    tick_publisher = mgr->InitializeTickPublisher(pub_listener);
     command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
     m_runThread = false;

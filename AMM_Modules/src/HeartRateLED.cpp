@@ -40,7 +40,7 @@ class HeartRateListener : public ListenerInterface {
 
     void onNewNodeData(AMM::Physiology::Node n) {
         bool print = false;
-        if (n.dbl() == -1.0f) {
+        if (n.nodepath() == "EXIT") {
             closed = true;
             return;
         }

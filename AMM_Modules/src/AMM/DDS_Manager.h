@@ -38,32 +38,18 @@ public:
 
     virtual ~DDS_Manager() {};
 
-    Publisher *InitializeTickPublisher() { InitializeTickPublisher(default_pub_listener); };
 
     Publisher *InitializeTickPublisher(PublisherListener *pub_listener);
 
-    Subscriber *InitializeTickSubscriber() { InitializeTickSubscriber(default_sub_listener); };
-
     Subscriber *InitializeTickSubscriber(SubscriberListener *sub_listener);
-
-    Publisher *InitializeCommandPublisher() { InitializeCommandPublisher(default_pub_listener); };
 
     Publisher *InitializeCommandPublisher(PublisherListener *pub_listener);
 
-    Subscriber *InitializeCommandSubscriber() { InitializeCommandSubscriber(default_sub_listener); };
-
     Subscriber *InitializeCommandSubscriber(SubscriberListener *sub_listener);
-
-    Publisher *InitializeNodePublisher() { InitializeNodePublisher(default_pub_listener); };
 
     Publisher *InitializeNodePublisher(PublisherListener *pub_listener);
 
-    Subscriber *InitializeNodeSubscriber() { InitializeNodeSubscriber(default_sub_listener); };
-
     Subscriber *InitializeNodeSubscriber(SubscriberListener *sub_listener);
-
-    bool SendCommand(const std::string &command);
-    bool SendTick(int frameNumber);
 
     // @TODO: Move these into an XML file, load by profile
     const int domainId = 15;

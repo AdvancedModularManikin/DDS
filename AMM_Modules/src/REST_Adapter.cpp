@@ -12,33 +12,28 @@ using namespace std;
 using namespace rapidjson;
 using namespace Pistache;
 
-
 std::map<std::string, double> nodeDataStorage;
 
 std::thread m_thread;
 std::mutex m_mutex;
 bool m_runThread = false;
 
-Subscriber *node_subscriber;
 Publisher *command_publisher;
 
-DDS_Manager *mgr;
-
 class RESTListener : public ListenerInterface {
+
+    void onNewTickData(AMM::Simulation::Tick t) {
+
+    }
+
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+
+    }
+
     void onNewNodeData(AMM::Physiology::Node n) {
         nodeDataStorage[n.nodepath()] = n.dbl();
     }
 };
-
-void InitializeDDS() {
-    mgr = new DDS_Manager();
-    auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
-    RESTListener rl;
-    node_sub_listener->SetUpstream(&rl);
-    node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
-    auto *pub_listener = new DDS_Listeners::PubListener();
-    command_publisher = mgr->InitializeCommandPublisher(pub_listener);
-}
 
 void SendCommand(const std::string &command) {
     cout << "=== [REST_Adapter] Sending a command:" << command << endl;
@@ -50,7 +45,7 @@ void SendCommand(const std::string &command) {
 
 void DataLoop() {
     while (m_runThread) {
-        // Data processing is handled in the listener
+        // Data processing is handled in the listener, but we could do something here...
     }
 }
 
@@ -186,7 +181,15 @@ int main(int argc, char *argv[]) {
     int thr = 2;
     string action = "";
 
-    InitializeDDS();
+    auto *mgr = new DDS_Manager();
+    auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
+
+    RESTListener rl;
+    node_sub_listener->SetUpstream(&rl);
+    Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
+
+    auto *pub_listener = new DDS_Listeners::PubListener();
+    command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
     // start data thread
     m_runThread = true;
@@ -204,7 +207,7 @@ int main(int argc, char *argv[]) {
 
     server.start();
 
-    while(m_runThread) {
+    while (m_runThread) {
         getline(cin, action);
         transform(action.begin(), action.end(), action.begin(), ::toupper);
         if (action == "EXIT") {

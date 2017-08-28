@@ -88,6 +88,10 @@ set (ARDUINO_BRIDGE_SOURCES src/ArduinoSensor.cpp)
 set (ARDUINO_BRIDGE_EXE amm_arduino_bridge)
 add_executable (${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
+set (UNITY_BRIDGE_SOURCES src/UnityBridge.cpp)
+set (UNITY_BRIDGE_EXE amm_unity_bridge)
+add_executable (${UNITY_BRIDGE_EXE} ${UNITY_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
+
 if (RAPIDJSON_FOUND AND Pistache_FOUND)
     set (REST_ADAPTER_SOURCES src/REST_Adapter.cpp)
     set (REST_ADAPTER_EXE amm_rest_adapter)
@@ -130,6 +134,12 @@ target_link_libraries (${HEART_RATE_LED_EXE}
         )
 
 target_link_libraries (${ARDUINO_BRIDGE_EXE}
+        fastrtps fastcdr
+        Boost::filesystem Boost::iostreams
+        ${DATAMODEL}
+        )
+
+target_link_libraries (${UNITY_BRIDGE_EXE}
         fastrtps fastcdr
         Boost::filesystem Boost::iostreams
         ${DATAMODEL}
