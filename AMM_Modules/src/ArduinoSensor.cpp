@@ -36,7 +36,6 @@ class GenericArduinoListener : public ListenerInterface {
 };
 
 int main(int argc, char *argv[]) {
-    char opcode, priority;
     int count = 0;
 
     io_service io;
@@ -61,12 +60,18 @@ int main(int argc, char *argv[]) {
 
     cout << "=== [ArduinoSensor] Ready ..." << endl;
 
-
+    std::string rsp;
     while (!closed) {
-        read(port, buffer(&opcode, 1));
-        read(port, buffer(&priority, 1));
-        cout << opcode << " " << priority << endl;
-        ++count;
+        char c;
+        while (boost::asio::read(port, boost::asio::buffer(&c,1)) && c != '\n') {
+            rsp += c;
+        }
+
+        cout << "[ARDUINO]: " << rsp << endl;
+        if (c != '\n') {
+            // it timed out
+            cout << "We had an Arduino timeout of some kind";
+        }
     }
 
     cout << "=== [ArduinoSensor] Simulation stopped." << endl;
