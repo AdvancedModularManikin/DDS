@@ -13,6 +13,8 @@ static void show_usage(std::string name) {
 int main(int argc, char *argv[]) {
     std::vector<std::string> node_paths;
 
+    cout << "=== [AMM - Virtual Equipment] ===" << endl;
+
     if (argc <= 1) {
         show_usage(argv[0]);
         return 1;
@@ -45,21 +47,20 @@ int main(int argc, char *argv[]) {
     auto *mgr = new DDS_Manager();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     VirtualEquipmentListener vel;
+    vel.SetFilter(&node_paths);
     node_sub_listener->SetUpstream(&vel);
     Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
 
     if (node_subscriber == nullptr) {
-        cout << "Unable to initialize node data subscriber." << endl;
+        cout << "=== [VirtualEquipment] Unable to initialize node data subscriber." << endl;
         return false;
     }
-
-    std::cout << "Initialized node subscriber and listener." << std::endl;
 
 
     cout << "=== [VirtualEquipment] Ready ..." << endl;
 
 
-    cout << "\tWaiting for Data, press Enter to stop the Subscriber. " << endl;
+    cout << "\t(frame)\t\tNode Path\t\tValue" << endl;
 
     std::cin.ignore();
 

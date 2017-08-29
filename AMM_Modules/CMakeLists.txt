@@ -88,7 +88,7 @@ set (ARDUINO_BRIDGE_SOURCES src/ArduinoSensor.cpp)
 set (ARDUINO_BRIDGE_EXE amm_arduino_bridge)
 add_executable (${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (UNITY_BRIDGE_SOURCES src/UnityBridge.cpp)
+set (UNITY_BRIDGE_SOURCES src/UnityBridge.cpp src/AMM/TCPServer.cpp)
 set (UNITY_BRIDGE_EXE amm_unity_bridge)
 add_executable (${UNITY_BRIDGE_EXE} ${UNITY_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 

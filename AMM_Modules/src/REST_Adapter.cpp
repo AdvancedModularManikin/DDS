@@ -177,6 +177,8 @@ private:
 };
 
 int main(int argc, char *argv[]) {
+    cout << "=== [AMM - REST Adapter] ===" << endl;
+
     int portNumber = 9080;
     int thr = 2;
     string action = "";

@@ -31,6 +31,7 @@ void PhysiologyThread::PopulateNodePathTable() {
     nodePathTable["HR"] = &PhysiologyThread::GetHeartRate;
     nodePathTable["SIM_TIME"] = &PhysiologyThread::GetSimulationTime;
     nodePathTable["EXIT"] = &PhysiologyThread::GetShutdownMessage;
+
     // Cardiovascular System
     nodePathTable["Cardiovascular_HeartRate"] = &PhysiologyThread::GetHeartRate;
     nodePathTable["Cardiovascular_BloodVolume"] = &PhysiologyThread::GetBloodVolume;
@@ -85,10 +86,10 @@ void PhysiologyThread::PopulateNodePathTable() {
 
     // Label which nodes are high-frequency
     highFrequencyNodes = {
-            "Cardiovascular_HeartRate",
             "ECG",
+            "Cardiovascular_HeartRate",
             "Cardiovascular_Arterial_Pressure",
-            "EXHALED_CO2",
+            "Respiratory_CarbonDioxide_Exhaled",
             "Respiratory_Respiration_Rate"
     };
 }

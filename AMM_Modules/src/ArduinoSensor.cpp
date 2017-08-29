@@ -36,6 +36,8 @@ class GenericArduinoListener : public ListenerInterface {
 };
 
 int main(int argc, char *argv[]) {
+    cout << "=== [AMM - Arduino Sensor Bridge] ===" << endl;
+
     int count = 0;
 
     io_service io;

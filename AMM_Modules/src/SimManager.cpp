@@ -11,8 +11,7 @@ static void show_usage(std::string name) {
 }
 
 int main(int argc, char *argv[]) {
-    char configFile[] = "OSPL_URI=file://ospl.xml";
-    putenv(configFile);
+    cout << "=== [AMM - Simulation Manager] ===" << endl;
 
     string action = "";
     SimulationManager simManager;
@@ -36,7 +35,6 @@ int main(int argc, char *argv[]) {
 
     do {
         cout << endl;
-        cout << " === [AMM - Simulation Manager] ===" << endl;
         cout << " [1]Status " << endl;
         cout << " [2]Run/Resume" << endl;
         cout << " [3]Pause/Stop" << endl;

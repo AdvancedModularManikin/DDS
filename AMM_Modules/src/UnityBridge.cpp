@@ -1,54 +1,72 @@
 #include "stdafx.h"
+
 #include "AMM/DDS_Manager.h"
-
-#include "boost/asio.hpp"
-
+#include "AMM/TCPServer.h"
 
 using namespace std;
 
 bool closed = false;
 
-boost::asio::io_service io_service;
+std::vector<std::string> publishNodes = {
+        "EXIT",
+        "SIM_TIME",
+        "Cardiovascular_HeartRate",
+        "Cardiovascular_Arterial_Systolic_Pressure",
+        "Cardiovascular_Arterial_Diastolic_Pressure",
+        "Cardiovascular_Arterial_Mean_Pressure",
+        "Cardiovascular_CentralVenous_Mean_Pressure",
+        "MetabolicPanel_CarbonDioxide",
+        "BloodChemistry_Oxygen_Saturation",
+        "Respiratory_Respiration_Rate",
+        "Energy_Core_Temperature",
+        "Cardiovascular_Arterial_Pressure",
+        "Respiratory_CarbonDioxide_Exhaled",
+        "ECG"
+};
 
-boost::asio::ip::udp::endpoint broadcast_endpoint(boost::asio::ip::address_v4::broadcast(), 9015);
-boost::asio::ip::udp::socket udpSocket(io_service,
-                                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 0));
+TCPServer tcp;
+
+void *loop(void *m) {
+    pthread_detach(pthread_self());
+    while (!closed) {
+        string str = tcp.getMessage();
+        if (str != "") {
+            cout << "Message:" << str << endl;
+            tcp.Send("Successful connection");
+            tcp.clean();
+        }
+        usleep(1000);
+    }
+    tcp.detach();
+}
 
 class GenericListener : public ListenerInterface {
-
-
-
 public:
-    GenericListener() {
-        udpSocket.set_option(boost::asio::socket_base::broadcast(true));
-    }
-
     void onNewNodeData(AMM::Physiology::Node n) {
         if (n.nodepath() == "EXIT") {
             cout << "Shutting down simulation based on shutdown node-data from physiology engine." << endl;
             closed = true;
-            return;
         }
-        std::ostringstream messageOut;
-        messageOut << n.nodepath() << "=" << n.dbl();
-        boost::shared_ptr<std::string> message(
-                new std::string(messageOut.str()));
-        udpSocket.send_to(boost::asio::buffer(*message), broadcast_endpoint);
+
+        if (std::find(publishNodes.begin(), publishNodes.end(), n.nodepath()) != publishNodes.end()) {
+            std::ostringstream messageOut;
+            messageOut << n.nodepath() << "=" << n.dbl() << "|";
+            tcp.Send(messageOut.str());
+        }
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
         std::ostringstream messageOut;
-        messageOut << "[ACT]" <<  c.message();
-        boost::shared_ptr<std::string> message(
-                new std::string(messageOut.str()));
-        udpSocket.send_to(boost::asio::buffer(*message), broadcast_endpoint);
+        messageOut << "ACT" << "=" << c.message() << "|";
+        tcp.Send(messageOut.str());
     }
 };
 
 
-
 int main(int argc, char *argv[]) {
     int count = 0;
+
+    cout << "=== [AMM - Unity Bridge] ===" << endl;
 
     auto *mgr = new DDS_Manager();
 
@@ -66,10 +84,10 @@ int main(int argc, char *argv[]) {
 
     cout << "=== [UnityBridge] Ready ..." << endl;
 
-
-
-    while (!closed) {
-
+    pthread_t msg;
+    tcp.setup(9015);
+    if (pthread_create(&msg, NULL, loop, (void *) 0) == 0) {
+        tcp.receive();
     }
 
     cout << "=== [UnityBridge] Simulation stopped." << endl;

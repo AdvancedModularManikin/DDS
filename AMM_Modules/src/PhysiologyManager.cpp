@@ -7,8 +7,7 @@ static void show_usage(std::string name) {
 }
 
 int main(int argc, char *argv[]) {
-    char configFile[] = "OSPL_URI=file://ospl.xml";
-    putenv(configFile);
+    cout << "=== [AMM - Physiology Manager] ===" << endl;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -24,7 +23,6 @@ int main(int argc, char *argv[]) {
 
     do {
         cout << endl;
-        cout << " === [AMM - Physiology Manager] ===" << endl;
         cout << " [1]Status" << endl;
         cout << " [2]Advance Time Tick" << endl;
         cout << " [3]Start\t\t\tRun physiology engine with simulation-manager ticks" << endl;

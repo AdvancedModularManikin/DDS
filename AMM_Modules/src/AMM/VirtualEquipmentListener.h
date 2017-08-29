@@ -16,6 +16,7 @@ public:
 
     virtual ~VirtualEquipmentListener() {};
 
+    void SetFilter(std::vector<std::string> * node_paths);
 
     void onNewNodeData(AMM::Physiology::Node n);
 
@@ -23,5 +24,7 @@ public:
 
     void onNewTickData(AMM::Simulation::Tick t);
 
+private:
+    std::vector<std::string> * node_paths;
 };
 
