@@ -129,7 +129,8 @@ bool PhysiologyThread::SaveState(const std::string &stateFile) {
 }
 
 bool PhysiologyThread::ExecuteCommand(const std::string &cmd) {
-    return LoadScenarioFile("Actions/" + cmd + ".xml");
+    string scenarioFile = "Actions/" + cmd + ".xml";
+    return LoadScenarioFile(scenarioFile);
 }
 
 // Load a scenario from an XML file, apply conditions and iterate through the actions
