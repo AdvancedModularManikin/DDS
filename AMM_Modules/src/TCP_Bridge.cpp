@@ -17,6 +17,12 @@ Subscriber *command_subscriber;
 Subscriber *node_subscriber;
 TCPServer tcp;
 
+const string modulePrefix = "MODULE_NAME=";
+const string registerPrefix = "REGISTER=";
+const string requestPrefix = "REQUEST=";
+const string keepHistoryPrefix = "KEEP_HISTORY=";
+const string actionPrefix = "ACT=";
+
 std::vector<std::string> publishNodes = {
         "EXIT",
         "SIM_TIME",
@@ -31,10 +37,15 @@ std::vector<std::string> publishNodes = {
         "Energy_Core_Temperature",
         "Cardiovascular_Arterial_Pressure",
         "Respiratory_CarbonDioxide_Exhaled",
-        "ECG"
+        "ECG",
+        "Respiratory_LeftPleuralCavity_Volume",
+        "Respiratory_LeftLung_Volume",
+        "Respiratory_RightPleuralCavity_Volume",
+        "Respiratory_RightLung_Volume"
 };
 
 std::map<std::string, double> labNodes;
+
 void InitializeLabNodes() {
     labNodes["Substance_Sodium"] = 0.0f;
     labNodes["MetabolicPanel_CarbonDioxide"] = 0.0f;
@@ -54,53 +65,63 @@ void InitializeLabNodes() {
 }
 
 
-
-
 void PublishLabs() {
-  cout << "Publishing the lab nodes!" << endl;
-  std::map<std::string, double>::iterator it = labNodes.begin();
-  while(it != labNodes.end())
-    {
-      std::ostringstream messageOut;
-      messageOut << it->first << "=" << it->second << "|";
-      tcp.Send(messageOut.str());
-      it++;
+    std::map<std::string, double>::iterator it = labNodes.begin();
+    while (it != labNodes.end()) {
+        std::ostringstream messageOut;
+        messageOut << it->first << "=" << it->second << "|";
+        tcp.Send(messageOut.str());
+        it++;
     }
-  tcp.clean();
+    tcp.clean();
 }
 
 void *tcpClientLoop(void *m) {
-  pthread_detach(pthread_self());
-  std::string actionPrefix = "ACT=";
-  std::string requestPrefix = "REQUEST=";
-  
-  while (!closed) {
-    string str = tcp.getMessage();
-    if (str != "") {
-      boost::trim_right(str);
-      cout << "[CLIENT] Message:" << str << endl;
+    pthread_detach(pthread_self());
 
-      // It's a request
-      if(str.substr(0, requestPrefix.size()) == requestPrefix) {
-	std::string request = str.substr(requestPrefix.size());
-	if (request.compare("LABS") == 0) {
-	  PublishLabs();
-	}
-      }
-      
-      // It's an action
-      if(str.substr(0, actionPrefix.size()) == actionPrefix) {
-	std::string action = str.substr(actionPrefix.size());
-	cout << "[CLIENT] Posting action to AMM: " << action << endl;
-	AMM::PatientAction::BioGears::Command cmdInstance;
-	cmdInstance.message(action);
-	command_publisher->write(&cmdInstance);
-      }
-      //      tcp.clean();
+    while (!closed) {
+        string str = tcp.getMessage();
+        boost::trim_right(str);
+
+        if (str != "") {
+            if (str.substr(0, modulePrefix.size()) == modulePrefix) {
+                // Module connection
+                std::string moduleName = str.substr(modulePrefix.size());
+                cout << "[CLIENT][" << moduleName << "] module connected" << endl;
+            } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
+                // Registering for data
+                std::string registerVal = str.substr(registerPrefix.size());
+                cout << "[CLIENT][REGISTER] Client registered for " << registerVal << endl;
+            } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
+                // Setting the KEEP_HISTORY flag
+                std::string keepHistory = str.substr(keepHistoryPrefix.size());
+                if (keepHistory.compare("TRUE") == 0) {
+                    cout << "[CLIENT] Client wants to keep history." << endl;
+                } else {
+                    cout << "[CLIENT] Client does not want to keep history." << endl;
+                }
+            } else if (str.substr(0, requestPrefix.size()) == requestPrefix) {
+                // Requesting data
+                std::string request = str.substr(requestPrefix.size());
+                if (request.compare("LABS") == 0) {
+                    PublishLabs();
+                }
+            } else if (str.substr(0, actionPrefix.size()) == actionPrefix) {
+                // Sending action
+                std::string action = str.substr(actionPrefix.size());
+                cout << "[CLIENT] Posting action to AMM: " << action << endl;
+                AMM::PatientAction::BioGears::Command cmdInstance;
+                cmdInstance.message(action);
+                command_publisher->write(&cmdInstance);
+            } else {
+                cout << "[CLIENT] Unknown message:" << str << endl;
+            }
+
+            tcp.clean();
+        }
+        usleep(1000);
     }
-    usleep(1000);
-  }
-  tcp.detach();
+    tcp.detach();
 }
 
 class GenericListener : public ListenerInterface {
@@ -111,8 +132,8 @@ public:
             closed = true;
         }
 
-        if(labNodes.find(n.nodepath()) != labNodes.end()) {
-	  labNodes[n.nodepath()] = n.dbl();
+        if (labNodes.find(n.nodepath()) != labNodes.end()) {
+            labNodes[n.nodepath()] = n.dbl();
         }
 
         if (std::find(publishNodes.begin(), publishNodes.end(), n.nodepath()) != publishNodes.end()) {
@@ -131,8 +152,7 @@ public:
 
 
 int main(int argc, char *argv[]) {
-    int count = 0;
-    cout << "=== [AMM - Unity Bridge] ===" << endl;
+    cout << "=== [AMM - TCP Bridge] ===" << endl;
 
     InitializeLabNodes();
 
@@ -150,7 +170,7 @@ int main(int argc, char *argv[]) {
     command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
     command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
-    cout << "=== [UnityBridge] Ready ..." << endl;
+    cout << "=== [TCP_Bridge] Ready ..." << endl;
 
     pthread_t msg;
     tcp.setup(9015);
@@ -158,7 +178,7 @@ int main(int argc, char *argv[]) {
         tcp.receive();
     }
 
-    cout << "=== [UnityBridge] Simulation stopped." << endl;
+    cout << "=== [TCP_Bridge] Simulation stopped." << endl;
 
     return 0;
 

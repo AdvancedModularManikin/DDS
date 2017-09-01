@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.1)
 
 project(AMM_Modules)
 
-
-
-
 IF (WIN32)
     SET(ENV{BIOGEARS_HOME} "c:/tools/physiology/install")
     SET(ENV{FASTRTPS_HOME} "C:/tools/fast-rtps")
@@ -12,8 +9,6 @@ ELSE()
     SET(ENV{BIOGEARS_HOME} "/usr/local/physiology")
     SET(ENV{FASTRTPS_HOME} "/usr/local")
 ENDIF()
-
-
 
 set(fastcdr_DIR "$ENV{FASTRTPS_HOME}/lib/fastcdr/cmake")
 set(fastrtps_DIR "$ENV{FASTRTPS_HOME}/lib/fastrtps/cmake")
@@ -84,13 +79,13 @@ set (HEART_RATE_LED_SOURCES src/HeartRateLED.cpp)
 set (HEART_RATE_LED_EXE amm_heartrate_led)
 add_executable (${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (ARDUINO_BRIDGE_SOURCES src/ArduinoSensor.cpp)
+set (ARDUINO_BRIDGE_SOURCES src/Arduino_Bridge.cpp)
 set (ARDUINO_BRIDGE_EXE amm_arduino_bridge)
 add_executable (${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (UNITY_BRIDGE_SOURCES src/UnityBridge.cpp src/AMM/TCPServer.cpp)
-set (UNITY_BRIDGE_EXE amm_unity_bridge)
-add_executable (${UNITY_BRIDGE_EXE} ${UNITY_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
+set (TCP_BRIDGE_SOURCES src/TCP_Bridge.cpp src/AMM/TCPServer.cpp)
+set (TCP_BRIDGE_EXE amm_tcp_bridge)
+add_executable (${TCP_BRIDGE_EXE} ${TCP_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
 if (RAPIDJSON_FOUND AND Pistache_FOUND)
     set (REST_ADAPTER_SOURCES src/REST_Adapter.cpp)
@@ -139,7 +134,7 @@ target_link_libraries (${ARDUINO_BRIDGE_EXE}
         ${DATAMODEL}
         )
 
-target_link_libraries (${UNITY_BRIDGE_EXE}
+target_link_libraries (${TCP_BRIDGE_EXE}
         fastrtps fastcdr
         Boost::filesystem Boost::iostreams
         ${DATAMODEL}

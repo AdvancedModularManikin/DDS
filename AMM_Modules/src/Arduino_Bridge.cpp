@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     Subscriber * command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
     Publisher * command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
-    cout << "=== [ArduinoSensor] Ready ..." << endl;
+    cout << "=== [Arduino_Bridge] Ready ..." << endl;
 
     std::string reportPrefix = "[REPORT]";
     std::string actionPrefix = "[ACT]";
@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
 
     }
 
-    cout << "=== [ArduinoSensor] Simulation stopped." << endl;
+    cout << "=== [Arduino_Bridge] Simulation stopped." << endl;
 
     return 0;
 
