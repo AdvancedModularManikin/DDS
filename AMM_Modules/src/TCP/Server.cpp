@@ -43,9 +43,9 @@ void Server::AcceptAndDispatch() {
 
   socklen_t cliSize = sizeof(sockaddr_in);
 
-  while(1) {
+  while(true) {
 
-          c = new Client();
+      c = new Client();
 	  t = new MyThread();
 
 	  //Blocks here;
@@ -60,70 +60,13 @@ void Server::AcceptAndDispatch() {
   }
 }
 
-//Static
-void *Server::SmandleClient(void *args) {
-
-  //Pointer to accept()'ed Client
-  Client *c = (Client *) args;
-  char buffer[256-25], message[256];
-  int index;
-  int n;
-
-  //Add client in Static clients <vector> (Critical section!)
-  MyThread::LockMutex((const char *) c->name);
-  
-    //Before adding the new client, calculate its id. (Now we have the lock)
-    c->SetId(Server::clients.size());
-    sprintf(buffer, "Client n.%d", c->id);
-    c->SetName(buffer);
-    cout << "Adding client with id: " << c->id << endl;
-    Server::clients.push_back(*c);
-
-  MyThread::UnlockMutex((const char *) c->name);
-
-  while(1) {
-    memset(buffer, 0, sizeof buffer);
-    n = recv(c->sock, buffer, sizeof buffer, 0);
-
-    //Client disconnected?
-    if(n == 0) {
-      cout << "Client " << c->name << " diconnected" << endl;
-      close(c->sock);
-      
-      //Remove client in Static clients <vector> (Critical section!)
-      MyThread::LockMutex((const char *) c->name);
-
-        index = Server::FindClientIndex(c);
-        cout << "Erasing user in position " << index << " whose name id is: " 
-	  << Server::clients[index].id << endl;
-        Server::clients.erase(Server::clients.begin() + index);
-
-      MyThread::UnlockMutex((const char *) c->name);
-
-      break;
-    }
-    else if(n < 0) {
-      cerr << "Error while receiving message from client: " << c->name << endl;
-    }
-    else {
-      //Message received. Send to all clients.
-      snprintf(message, sizeof message, "<%s>: %s", c->name, buffer); 
-      cout << "Will send to all: " << message << endl;
-      Server::SendToAll(message);
-    }
-  }
-
-  //End thread
-  return NULL;
-}
-
 void Server::SendToAll(const std::string &message) {
-  int n;
+  ssize_t n;
 
   MyThread::LockMutex("'SendToAll()'");
 
-  for(size_t i=0; i<clients.size(); i++) {
-    n = send(Server::clients[i].sock, message.c_str(), strlen(message.c_str()), 0);
+  for (auto &client : clients) {
+    n = send(client.sock, message.c_str(), strlen(message.c_str()), 0);
     // cout << n << " bytes sent." << endl;
   }
 
@@ -133,13 +76,13 @@ void Server::SendToAll(const std::string &message) {
 
 
 void Server::SendToAll(char *message) {
-  int n;
+  ssize_t n;
 
   //Acquire the lock
   MyThread::LockMutex("'SendToAll()'");
  
-    for(size_t i=0; i<clients.size(); i++) {
-      n = send(Server::clients[i].sock, message, strlen(message), 0);
+    for (auto &client : clients) {
+      n = send(client.sock, message, strlen(message), 0);
       // cout << n << " bytes sent." << endl;
     }
    
@@ -148,7 +91,7 @@ void Server::SendToAll(char *message) {
 }
 
 void Server::SendToClient(Client *c, const std::string &message) {
-  int n;
+  ssize_t n;
   MyThread::LockMutex("'SendToClient()'");
   int id = Server::FindClientIndex(c);
   // cout << " Sending message to [" << c->name << "](" << c->id << "): " << message << endl;
@@ -161,8 +104,8 @@ void Server::SendToClient(Client *c, const std::string &message) {
 
 
 void Server::ListClients() {
-  for(size_t i=0; i<clients.size(); i++) {
-    cout << clients.at(i).name << endl;
+  for (auto &client : clients) {
+    cout << client.name << endl;
   }
 }
 

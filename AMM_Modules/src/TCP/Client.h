@@ -13,7 +13,7 @@ using namespace std;
 class Client {
   public:
     char *name;
-    int id;
+    unsigned long id;
 
     //Socket stuff
     int sock;
@@ -21,7 +21,7 @@ class Client {
   public:
     Client();
     void SetName(const char *name);
-    void SetId(int id);
+    void SetId(unsigned long id);
 };
 
 #endif

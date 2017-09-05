@@ -24,15 +24,14 @@ class Server {
     static vector<Client> clients;
 
     //Socket stuff
-    int serverSock, clientSock;
+    int serverSock;
     struct sockaddr_in serverAddr, clientAddr;
-    char buff[256];
 
   public:
     Server();
     void AcceptAndDispatch();
     static void * HandleClient(void *args);
-    static void * SmandleClient(void *args);
+
     static void SendToAll(const std::string &message);
     static void SendToClient(Client *c, const std::string &message);
 

@@ -11,6 +11,6 @@ void Client::SetName(const char *name) {
   snprintf(this->name, MAX_NAME_LENGHT+1, name);
 }
 
-void Client::SetId(int id) {
+void Client::SetId(unsigned long id) {
   this->id = id;
 }
