@@ -62,7 +62,7 @@ void printCookies(const Http::Request &req) {
 
 namespace Generic {
 
-    void handleReady(const Rest::Request &, Http::ResponseWriter response) {
+    void handleReady(const Rest::Request & request, Http::ResponseWriter response) {
         response.send(Http::Code::Ok, "1");
     }
 
@@ -75,8 +75,8 @@ public:
             httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {
     }
 
-    void init(size_t thr = 2) {
-        auto opts = Http::Endpoint::options().threads(thr).flags(Tcp::Options::InstallSignalHandler);
+    void init(int thr = 2) {
+        auto opts = Http::Endpoint::options().threads(static_cast<int>(thr)).flags(Tcp::Options::InstallSignalHandler);
         httpEndpoint->init(opts);
         setupRoutes();
     }
@@ -128,7 +128,7 @@ private:
             s << it->second;
             writer.String(s.str().c_str());
             writer.EndObject();
-            it++;
+            ++it;
         }
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
@@ -138,7 +138,6 @@ private:
     void doGetNode(const Rest::Request &request, Http::ResponseWriter response) {
 
         auto name = request.param(":name").as<std::string>();
-        string responseString = "";
         std::map<std::string, double>::iterator it = nodeDataStorage.find(name);
         if (it != nodeDataStorage.end()) {
             StringBuffer s;
@@ -181,7 +180,7 @@ int main(int argc, char *argv[]) {
 
     int portNumber = 9080;
     int thr = 2;
-    string action = "";
+    string action;
 
     auto *mgr = new DDS_Manager();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
@@ -197,7 +196,7 @@ int main(int argc, char *argv[]) {
     m_runThread = true;
     m_thread = std::thread(DataLoop);
 
-    Port port(portNumber);
+    Port port(static_cast<uint16_t>(portNumber));
     Address addr(Ipv4::any(), port);
     DDSEndpoint server(addr);
     cout << "=== [REST_Adapter] Ready ..." << endl;

@@ -24,7 +24,7 @@ static uint8_t bits = 8;
 static uint32_t speed = 1 << 23;
 static uint16_t delay;
 
-int spi_transfer(int fd, unsigned char *tx_buf, unsigned char *rx_buf, int buflen) {
+int spi_transfer(int fd, const unsigned char *tx_buf, const unsigned char *rx_buf, __u32 buflen) {
     int ret;
     struct spi_ioc_transfer tr = {tx_buf : (unsigned long) tx_buf, rx_buf : (unsigned long) rx_buf, len : buflen, speed_hz : speed,
             delay_usecs : delay, bits_per_word : bits,};
@@ -109,8 +109,8 @@ int main(int argc, char *argv[]) {
         unsigned char spi_send[4];
         spi_send[0] = heartrate;
         spi_send[1] = breathrate;
-        spi_send[2] = tourniquet;
-        spi_send[3] = hemorrhage;
+        spi_send[2] = static_cast<unsigned char>(tourniquet);
+        spi_send[3] = static_cast<unsigned char>(hemorrhage);
         unsigned char spi_rcvd[4];
 
         //do SPI communication
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
         //	<< std::setfill('0') << (unsigned int) spi_rcvd << std::endl;
         //send press messages based on received SPI
         //the buttons send 1 when they are up and 0 when they are pressed
-        if (spi_rcvd[1]) {
+        if (spi_rcvd[1] != 0u) {
             //button 2 was pressed
             //send hemorrhage action
             cout << "=== [HeartRateLED] Sending a command:" << hemorrhage_action << endl;

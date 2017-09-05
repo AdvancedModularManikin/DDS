@@ -18,9 +18,7 @@ public:
 
     SimulationManager();
 
-    virtual ~SimulationManager() {
-
-    };
+    ~SimulationManager() override = default;;
 
     void StartSimulation();
 

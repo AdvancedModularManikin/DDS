@@ -4,7 +4,7 @@
 
 using namespace std;
 
-static void show_usage(std::string name) {
+static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)> node_path node_path ..." << "\nOptions:\n"
          << "\t-h,--help\t\tShow this help message\n" << endl;
     cerr << "Example: " << name << " ECG HR " << endl;
@@ -25,9 +25,10 @@ int main(int argc, char *argv[]) {
         if ((arg == "-h") || (arg == "--help")) {
             show_usage(argv[0]);
             return 0;
-        } else {
-            node_paths.push_back(arg);
         }
+
+        node_paths.push_back(arg);
+
     }
 
     // create subscription filter

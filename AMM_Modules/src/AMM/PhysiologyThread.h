@@ -91,8 +91,6 @@ public:
 
     virtual ~PhysiologyThread();
 
-    bool InitializeEngine();
-
     bool LoadState(const std::string &stateFile, double sec);
 
     bool SaveState(const std::string &stateFile);
@@ -107,21 +105,14 @@ public:
 
     void AdvanceTimeTick();
 
-    void AdvanceModelTime(double sec);
-
     double GetSimulationTime();
 
-    AMM::Physiology::Node *GetNodeByPath(const std::string &nodePath);
-
     double GetNodePath(const std::string &nodePath);
-
-    void DisplayNodePaths(const std::string &filter);
 
     void Status();
 
     static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
     static std::vector<std::string> highFrequencyNodes;
-    AMM::Physiology::Node *dataInstance;
 
 
 private:
@@ -131,7 +122,7 @@ private:
 
     double GetShutdownMessage();
 
-    double GetHeartRate(void);
+    double GetHeartRate();
 
     double GetBloodVolume();
 

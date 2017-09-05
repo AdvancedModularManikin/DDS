@@ -1,8 +1,6 @@
 #include "VirtualEquipmentListener.h"
 
 
-VirtualEquipmentListener::VirtualEquipmentListener() {};
-
 void VirtualEquipmentListener::onNewNodeData(AMM::Physiology::Node n) {
 
     if ( std::find(node_paths->begin(), node_paths->end(), n.nodepath()) != node_paths->end() ) {

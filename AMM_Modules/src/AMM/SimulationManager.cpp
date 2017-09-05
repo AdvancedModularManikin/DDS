@@ -3,7 +3,7 @@
 using namespace std;
 using namespace std::chrono;
 
-SimulationManager::SimulationManager() : m_thread() {
+SimulationManager::SimulationManager() {
 
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     command_sub_listener->SetUpstream(this);

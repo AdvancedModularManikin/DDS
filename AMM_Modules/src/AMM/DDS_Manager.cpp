@@ -10,7 +10,7 @@ using namespace eprosima::fastrtps;
 
 DDS_Manager::DDS_Manager() {
     ParticipantAttributes PParam;
-    PParam.rtps.builtin.domainId = domainId;
+    PParam.rtps.builtin.domainId = (uint32_t) domainId;
     PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
     PParam.rtps.setName(partitionName);
     mp_participant = Domain::createParticipant(PParam);

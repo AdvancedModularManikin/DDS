@@ -7,9 +7,9 @@ std::vector<std::string> PhysiologyThread::highFrequencyNodes;
 std::map<std::string, double (PhysiologyThread::*)()> PhysiologyThread::nodePathTable;
 
 PhysiologyThread::PhysiologyThread(const std::string &logFile, const std::string &stateFile) :
-        m_thread() {
+        m_bg(CreateBioGearsEngine(logFile)) {
     // Create our engine with the standard patient
-    m_bg = CreateBioGearsEngine(logFile);
+    // m_bg = ;
     if (!m_bg->LoadState(stateFile)) {
         m_bg->GetLogger()->Error("Could not load state, check the error");
         return;
@@ -198,21 +198,6 @@ double PhysiologyThread::GetSimulationTime() {
     return m_bg->GetSimulationTime(TimeUnit::s);
 }
 
-AMM::Physiology::Node *PhysiologyThread::GetNodeByPath(const std::string &nodePath) {
-    std::map<std::string, double (PhysiologyThread::*)()>::iterator entry;
-    entry = nodePathTable.find(nodePath);
-    if (entry != nodePathTable.end()) {
-        AMM::Physiology::Node *returnData;
-        returnData->nodepath(nodePath);
-        returnData->dbl((this->*(entry->second))());
-        return returnData;
-    }
-
-    m_bg->GetLogger()->Error("Unable to access nodePath: " + nodePath);
-    return nullptr;
-
-}
-
 double PhysiologyThread::GetNodePath(const std::string &nodePath) {
     std::map<std::string, double (PhysiologyThread::*)()>::iterator entry;
     entry = nodePathTable.find(nodePath);
@@ -225,7 +210,7 @@ double PhysiologyThread::GetNodePath(const std::string &nodePath) {
 
 }
 
-double PhysiologyThread::GetHeartRate(void) {
+double PhysiologyThread::GetHeartRate() {
     return m_bg->GetCardiovascularSystem()->GetHeartRate(FrequencyUnit::Per_min);
 }
 
@@ -459,10 +444,6 @@ double PhysiologyThread::GetRightAlveoliBaselineCompliance() {
 
 double PhysiologyThread::GetCardiacOutput() {
     return m_bg->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min);
-}
-
-void PhysiologyThread::DisplayNodePaths(const std::string &filter) {
-
 }
 
 void PhysiologyThread::Status() {

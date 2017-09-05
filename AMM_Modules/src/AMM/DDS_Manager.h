@@ -35,9 +35,7 @@ using namespace AMM::PatientAction::BioGears;
 class DDS_Manager {
 public:
     DDS_Manager();
-
     virtual ~DDS_Manager() {};
-
 
     Publisher *InitializeTickPublisher(PublisherListener *pub_listener);
 

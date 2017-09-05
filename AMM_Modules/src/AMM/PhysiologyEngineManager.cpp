@@ -5,7 +5,7 @@
 using namespace std;
 using namespace std::chrono;
 
-PhysiologyEngineManager::PhysiologyEngineManager() : m_thread() {
+PhysiologyEngineManager::PhysiologyEngineManager() {
 
     cout << "=== [PhysiologyManager] Starting up." << endl;
 
@@ -51,7 +51,7 @@ void PhysiologyEngineManager::PrintAvailableNodePaths() {
     while (it != nodePathMap.end()) {
         std::string word = it->first;
         cout << word << endl;
-        it++;
+        ++it;
     }
 }
 
@@ -62,12 +62,12 @@ void PhysiologyEngineManager::PrintAllCurrentData() {
         std::string node = it->first;
         double dbl = bg->GetNodePath(node);
         cout << node << "\t\t\t" << dbl << endl;
-        it++;
+        ++it;
     }
 }
 
 int PhysiologyEngineManager::GetNodePathCount() {
-    return nodePathMap.size();
+    return static_cast<int>(nodePathMap.size());
 }
 
 void PhysiologyEngineManager::WriteNodeData(string node) {
@@ -90,7 +90,7 @@ void PhysiologyEngineManager::PublishData(bool force = false) {
                 WriteNodeData(it->first);
             }
         }
-        it++;
+        ++it;
     }
 }
 

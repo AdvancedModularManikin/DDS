@@ -4,7 +4,7 @@
 
 using namespace std;
 
-static void show_usage(std::string name) {
+static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n"
          << "\t-h,--help\t\tShow this help message\n" << endl;
 }
@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     auto *pub_listener = new DDS_Listeners::PubListener();
     Publisher *command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
-    std::string action = "";
+    std::string action;
     bool closed = false;
     cout << "=== [CommandExecutor] Enter commands to send and hit enter.  EXIT to quit." << endl;
     do {

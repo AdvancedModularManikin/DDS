@@ -2,7 +2,6 @@
 
 #include "AMM/DDS_Manager.h"
 
-#include <iostream>
 #include <boost/asio.hpp>
 
 #define PORT_LINUX "/dev/tty96B0"
@@ -37,8 +36,6 @@ class GenericArduinoListener : public ListenerInterface {
 
 int main(int argc, char *argv[]) {
     cout << "=== [AMM - Arduino Sensor Bridge] ===" << endl;
-
-    int count = 0;
 
     io_service io;
     serial_port port(io, PORT_LINUX);

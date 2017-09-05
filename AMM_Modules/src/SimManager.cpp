@@ -4,7 +4,7 @@
 
 using namespace std;
 
-static void show_usage(std::string name) {
+static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
          << "\t-r,--rate <sample_rate>\tSpecify the sample rate to run at (samples per second) - doesn't do anything yet!"
          << endl;
@@ -13,7 +13,8 @@ static void show_usage(std::string name) {
 int main(int argc, char *argv[]) {
     cout << "=== [AMM - Simulation Manager] ===" << endl;
 
-    string action = "";
+    string action;
+
     SimulationManager simManager;
     bool closed = false;
 
@@ -22,7 +23,8 @@ int main(int argc, char *argv[]) {
         if ((arg == "-h") || (arg == "--help")) {
             show_usage(argv[0]);
             return 0;
-        } else if ((arg == "-r") || (arg == "--rate")) {
+        }
+        if ((arg == "-r") || (arg == "--rate")) {
             istringstream ss(argv[i + 1]);
             int sampleRate;
             if (!(ss >> sampleRate)) {
@@ -67,7 +69,7 @@ int main(int argc, char *argv[]) {
             closed = true;
             simManager.Shutdown();
         } else if (action == "5") {
-            std::string command = "";
+            std::string command;
             bool consoleclosed = false;
             do {
                 cout << " Enter a command (exit to return to menu) >>> ";

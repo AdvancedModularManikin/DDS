@@ -2,7 +2,7 @@
 
 #include "AMM/PhysiologyEngineManager.h"
 
-static void show_usage(std::string name) {
+static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n" << endl;
 }
 
@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     }
 
     bool closed = false;
-    string action = "";
+    string action;
     PhysiologyEngineManager pe;
 
     do {

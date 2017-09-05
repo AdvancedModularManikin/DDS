@@ -71,7 +71,7 @@ void PublishLabs() {
         std::ostringstream messageOut;
         messageOut << it->first << "=" << it->second << "|";
         tcp.Send(messageOut.str());
-        it++;
+        ++it;
     }
     tcp.clean();
 }
