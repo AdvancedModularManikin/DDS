@@ -5,8 +5,11 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string.hpp>
 
+#include <TCP/Server.h>
+
 #include "AMM/DDS_Manager.h"
-#include "AMM/TCPServer.h"
+
+Server *s;
 
 using namespace std;
 
@@ -15,7 +18,6 @@ bool closed = false;
 Publisher *command_publisher;
 Subscriber *command_subscriber;
 Subscriber *node_subscriber;
-TCPServer tcp;
 
 const string modulePrefix = "MODULE_NAME=";
 const string registerPrefix = "REGISTER=";
@@ -64,67 +66,25 @@ void InitializeLabNodes() {
     labNodes["Substance_BaseExcess"] = 0.0f;
 }
 
+std::vector<std::string> split_string(const std::string &str,
+                                      const std::string &delimiter) {
+    std::vector<std::string> strings;
 
-void PublishLabs() {
-    std::map<std::string, double>::iterator it = labNodes.begin();
-    while (it != labNodes.end()) {
-        std::ostringstream messageOut;
-        messageOut << it->first << "=" << it->second << "|";
-        tcp.Send(messageOut.str());
-        ++it;
+    std::string::size_type pos = 0;
+    std::string::size_type prev = 0;
+    while ((pos = str.find(delimiter, prev)) != std::string::npos) {
+        strings.push_back(str.substr(prev, pos - prev));
+        prev = pos + 1;
     }
-    tcp.clean();
+
+    // To get the last substring (or only, if delimiter is not found)
+    strings.push_back(str.substr(prev));
+
+    return strings;
 }
 
-void *tcpClientLoop(void *m) {
-    pthread_detach(pthread_self());
 
-    while (!closed) {
-        string str = tcp.getMessage();
-        boost::trim_right(str);
-
-        if (str != "") {
-            if (str.substr(0, modulePrefix.size()) == modulePrefix) {
-                // Module connection
-                std::string moduleName = str.substr(modulePrefix.size());
-                cout << "[CLIENT][" << moduleName << "] module connected" << endl;
-            } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
-                // Registering for data
-                std::string registerVal = str.substr(registerPrefix.size());
-                cout << "[CLIENT][REGISTER] Client registered for " << registerVal << endl;
-            } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
-                // Setting the KEEP_HISTORY flag
-                std::string keepHistory = str.substr(keepHistoryPrefix.size());
-                if (keepHistory.compare("TRUE") == 0) {
-                    cout << "[CLIENT] Client wants to keep history." << endl;
-                } else {
-                    cout << "[CLIENT] Client does not want to keep history." << endl;
-                }
-            } else if (str.substr(0, requestPrefix.size()) == requestPrefix) {
-                // Requesting data
-                std::string request = str.substr(requestPrefix.size());
-                if (request.compare("LABS") == 0) {
-                    PublishLabs();
-                }
-            } else if (str.substr(0, actionPrefix.size()) == actionPrefix) {
-                // Sending action
-                std::string action = str.substr(actionPrefix.size());
-                cout << "[CLIENT] Posting action to AMM: " << action << endl;
-                AMM::PatientAction::BioGears::Command cmdInstance;
-                cmdInstance.message(action);
-                command_publisher->write(&cmdInstance);
-            } else {
-                cout << "[CLIENT] Unknown message:" << str << endl;
-            }
-
-            tcp.clean();
-        }
-        usleep(1000);
-    }
-    tcp.detach();
-}
-
-class GenericListener : public ListenerInterface {
+class TCPBridgeListener : public ListenerInterface {
 public:
     void onNewNodeData(AMM::Physiology::Node n) {
         if (n.nodepath() == "EXIT") {
@@ -139,19 +99,118 @@ public:
         if (std::find(publishNodes.begin(), publishNodes.end(), n.nodepath()) != publishNodes.end()) {
             std::ostringstream messageOut;
             messageOut << n.nodepath() << "=" << n.dbl() << "|";
-            tcp.Send(messageOut.str());
+            string stringOut = messageOut.str();
+            s->SendToAll(messageOut.str());
         }
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
         std::ostringstream messageOut;
         messageOut << "ACT" << "=" << c.message() << "|";
-        tcp.Send(messageOut.str());
+        s->SendToAll(messageOut.str());
     }
 };
 
 
-int main(int argc, char *argv[]) {
+//Static
+void *Server::HandleClient(void *args) {
+    Client *c = (Client *) args;
+    char buffer[256 - 25], message[256];
+    int index;
+    int n;
+
+    //Add client in Static clients <vector> (Critical section!)
+    MyThread::LockMutex((const char *) c->name);
+
+    //Before adding the new client, calculate its id. (Now we have the lock)
+    c->SetId(Server::clients.size());
+    sprintf(buffer, "Client n.%d", c->id);
+    c->SetName(buffer);
+    cout << "Adding client with id: " << c->id << endl;
+    Server::clients.push_back(*c);
+
+    MyThread::UnlockMutex((const char *) c->name);
+
+    while (1) {
+        memset(buffer, 0, sizeof buffer);
+        n = recv(c->sock, buffer, sizeof buffer, 0);
+
+        //Client disconnected?
+        if (n == 0) {
+            cout << "Client " << c->name << " diconnected" << endl;
+            close(c->sock);
+
+            //Remove client in Static clients <vector> (Critical section!)
+            MyThread::LockMutex((const char *) c->name);
+
+            index = Server::FindClientIndex(c);
+            cout << "Erasing user in position " << index << " whose name id is: "
+                 << Server::clients[index].id << endl;
+            Server::clients.erase(Server::clients.begin() + index);
+
+            MyThread::UnlockMutex((const char *) c->name);
+
+            break;
+        } else if (n < 0) {
+            cerr << "Error while receiving message from client: " << c->name << endl;
+        } else {
+            auto strings = split_string(buffer, "\n");
+            int i = 1;
+            for (auto itr = strings.begin(); itr != strings.end(); itr++) {
+                string str = *itr;
+                boost::trim_right(str);
+                if (str != "") {
+                    // cout << "We got a message from " << c->name << ": " << str << endl;
+                    if (str.substr(0, modulePrefix.size()) == modulePrefix) {
+                        // Module connection
+                        const char * moduleName = str.substr(modulePrefix.size()).c_str();
+                        c->SetName(moduleName);
+                        cout << "[CLIENT][" << moduleName << "] module connected" << endl;
+                    } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
+                        // Registering for data
+                        std::string registerVal = str.substr(registerPrefix.size());
+                        // cout << "[CLIENT][REGISTER] Client registered for " << registerVal << endl;
+                    } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
+                        // Setting the KEEP_HISTORY flag
+                        std::string keepHistory = str.substr(keepHistoryPrefix.size());
+                        if (keepHistory.compare("TRUE") == 0) {
+                            cout << "[CLIENT] Client wants to keep history." << endl;
+                        } else {
+                            cout << "[CLIENT] Client does not want to keep history." << endl;
+                        }
+                    } else if (str.substr(0, requestPrefix.size()) == requestPrefix) {
+                        std::string request = str.substr(requestPrefix.size());
+                        if (request.compare("LABS") == 0) {
+                            std::map<std::string, double>::iterator it = labNodes.begin();
+                            while (it != labNodes.end()) {
+                                std::ostringstream messageOut;
+                                messageOut << it->first << "=" << it->second << "|";
+                                string message = messageOut.str();
+                                Server::SendToClient(c, message);
+                                ++it;
+                            }
+                        }
+                    } else if (str.substr(0, actionPrefix.size()) == actionPrefix) {
+                        // Sending action
+                        std::string action = str.substr(actionPrefix.size());
+                        cout << "[CLIENT] Posting action to AMM: " << action << endl;
+                        AMM::PatientAction::BioGears::Command cmdInstance;
+                        cmdInstance.message(action);
+                        command_publisher->write(&cmdInstance);
+                    } else {
+                        // cout << "[CLIENT] Unknown message:" << str << endl;
+                    }
+                }
+            }
+
+        }
+    }
+
+    //End thread
+    return NULL;
+}
+
+int main(int argc, const char *argv[]) {
     cout << "=== [AMM - TCP Bridge] ===" << endl;
 
     InitializeLabNodes();
@@ -162,9 +221,9 @@ int main(int argc, char *argv[]) {
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *pub_listener = new DDS_Listeners::PubListener();
 
-    GenericListener al;
-    node_sub_listener->SetUpstream(&al);
-    command_sub_listener->SetUpstream(&al);
+    TCPBridgeListener tl;
+    node_sub_listener->SetUpstream(&tl);
+    command_sub_listener->SetUpstream(&tl);
 
     node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
     command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
@@ -172,15 +231,9 @@ int main(int argc, char *argv[]) {
 
     cout << "=== [TCP_Bridge] Ready ..." << endl;
 
-    pthread_t msg;
-    tcp.setup(9015);
-    if (pthread_create(&msg, NULL, tcpClientLoop, (void *) 0) == 0) {
-        tcp.receive();
-    }
+    s = new Server();
+    s->AcceptAndDispatch();
 
     cout << "=== [TCP_Bridge] Simulation stopped." << endl;
 
-    return 0;
-
 }
-

@@ -83,7 +83,7 @@ set (ARDUINO_BRIDGE_SOURCES src/Arduino_Bridge.cpp)
 set (ARDUINO_BRIDGE_EXE amm_arduino_bridge)
 add_executable (${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (TCP_BRIDGE_SOURCES src/TCP_Bridge.cpp src/AMM/TCPServer.cpp)
+set (TCP_BRIDGE_SOURCES src/TCP_Bridge.cpp src/TCP/Server.cpp src/TCP/MyThread.cpp src/TCP/Client.cpp)
 set (TCP_BRIDGE_EXE amm_tcp_bridge)
 add_executable (${TCP_BRIDGE_EXE} ${TCP_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
@@ -136,9 +136,9 @@ target_link_libraries (${ARDUINO_BRIDGE_EXE}
 
 target_link_libraries (${TCP_BRIDGE_EXE}
         fastrtps fastcdr
-        Boost::filesystem Boost::iostreams
         ${DATAMODEL}
         )
+
 
 if (RAPIDJSON_FOUND AND Pistache_FOUND)
 target_link_libraries (${REST_ADAPTER_EXE}
