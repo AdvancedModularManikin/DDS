@@ -31,7 +31,7 @@ void TCPServer::setup(int port)
 	serverAddress.sin_addr.s_addr=htonl(INADDR_ANY);
 	serverAddress.sin_port=htons(static_cast<uint16_t>(port));
 	bind(sockfd,(struct sockaddr *)&serverAddress, sizeof(serverAddress));
- 	listen(sockfd,5);
+ 	listen(sockfd,30);
 }
 
 string TCPServer::receive()
