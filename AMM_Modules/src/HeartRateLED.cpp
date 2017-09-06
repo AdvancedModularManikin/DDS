@@ -38,20 +38,20 @@ int spi_transfer(int fd, const unsigned char *tx_buf, const unsigned char *rx_bu
 
 class HeartRateListener : public ListenerInterface {
 
-    void onNewNodeData(AMM::Physiology::Node n) {
+    void onNewNodeData(AMM::Physiology::Node n) override {
         bool print = false;
         if (n.nodepath() == "EXIT") {
             closed = true;
             return;
         }
 
-        if (n.nodepath().compare("Cardiovascular_HeartRate") == 0) {
-            heartrate = n.dbl();
+        if (n.nodepath() == "Cardiovascular_HeartRate") {
+            heartrate = static_cast<float>(n.dbl());
             print = true;
         }
 
-        if (n.nodepath().compare("Respiratory_Respiration_Rate") == 0) {
-            breathrate = n.dbl();
+        if (n.nodepath() == "Respiratory_Respiration_Rate") {
+            breathrate = static_cast<float>(n.dbl());
             print = true;
         }
 
@@ -62,11 +62,11 @@ class HeartRateListener : public ListenerInterface {
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
-        if (c.message().compare(tourniquet_action) == 0) {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
+        if (c.message() == tourniquet_action) {
             tourniquet = true;
         }
-        if (c.message().compare(hemorrhage_action) == 0) {
+        if (c.message() == hemorrhage_action) {
             hemorrhage = true;
         }
     }

@@ -10,7 +10,7 @@ using namespace std;
 class Client {
   public:
     string name;
-    int id{};
+    unsigned long id{};
 
     //Socket stuff
     int sock{};

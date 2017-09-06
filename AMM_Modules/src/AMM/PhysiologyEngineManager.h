@@ -59,11 +59,11 @@ public:
     bool paused = false;
     int lastFrame = 0;
 
-    void onNewNodeData(AMM::Physiology::Node n);
+    void onNewNodeData(AMM::Physiology::Node n) override;
 
-    void onNewTickData(AMM::Simulation::Tick t);
+    void onNewTickData(AMM::Simulation::Tick t) override;
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c);
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
 
 private:
     std::map<std::string, double (PhysiologyThread::*)()> nodePathMap;

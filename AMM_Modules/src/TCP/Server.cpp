@@ -4,7 +4,7 @@ using namespace std;
 
 vector<Client> Server::clients;
 
-Server::Server(uint16_t port) {
+Server::Server(int port) {
 
     //Initialize static mutex from ServerThread
     ServerThread::InitMutex();

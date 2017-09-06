@@ -5,7 +5,7 @@
 
 class ListenerInterface {
 public:
-    ListenerInterface() {};
+    ListenerInterface() = default;;
 
     virtual ~ListenerInterface() {};
 

@@ -47,7 +47,7 @@ void PhysiologyEngineManager::SendShutdown() {
 
 void PhysiologyEngineManager::PrintAvailableNodePaths() {
     nodePathMap = bg->nodePathTable;
-    std::map<std::string, double (PhysiologyThread::*)()>::iterator it = nodePathMap.begin();
+    auto it = nodePathMap.begin();
     while (it != nodePathMap.end()) {
         std::string word = it->first;
         cout << word << endl;
@@ -57,7 +57,7 @@ void PhysiologyEngineManager::PrintAvailableNodePaths() {
 
 void PhysiologyEngineManager::PrintAllCurrentData() {
     nodePathMap = bg->nodePathTable;
-    std::map<std::string, double (PhysiologyThread::*)()>::iterator it = nodePathMap.begin();
+    auto it = nodePathMap.begin();
     while (it != nodePathMap.end()) {
         std::string node = it->first;
         double dbl = bg->GetNodePath(node);
@@ -79,7 +79,7 @@ void PhysiologyEngineManager::WriteNodeData(string node) {
 }
 
 void PhysiologyEngineManager::PublishData(bool force = false) {
-    std::map<std::string, double (PhysiologyThread::*)()>::iterator it = nodePathMap.begin();
+    auto it = nodePathMap.begin();
     while (it != nodePathMap.end()) {
         // High-frequency nodes are published every tick
         // All other nodes are published every % 10 tick
@@ -174,7 +174,7 @@ void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick t) {
             } else {
                 cout << ".";
             }
-            lastFrame = t.frame();
+            lastFrame = static_cast<int>(t.frame());
 
             // Per-frame stuff happens here
             bg->AdvanceTimeTick();

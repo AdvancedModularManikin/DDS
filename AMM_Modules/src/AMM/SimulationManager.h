@@ -40,11 +40,11 @@ public:
 
     void TickLoop();
 
-    virtual void onNewNodeData(AMM::Physiology::Node n);
+    void onNewNodeData(AMM::Physiology::Node n) override;
 
-    virtual void onNewTickData(AMM::Simulation::Tick t);
+    void onNewTickData(AMM::Simulation::Tick t) override;
 
-    virtual void onNewCommandData(AMM::PatientAction::BioGears::Command c);
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
 
 protected:
 

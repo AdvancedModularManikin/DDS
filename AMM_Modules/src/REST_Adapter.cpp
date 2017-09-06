@@ -22,15 +22,15 @@ Publisher *command_publisher;
 
 class RESTListener : public ListenerInterface {
 
-    void onNewTickData(AMM::Simulation::Tick t) {
+    void onNewTickData(AMM::Simulation::Tick t) override {
 
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
 
     }
 
-    void onNewNodeData(AMM::Physiology::Node n) {
+    void onNewNodeData(AMM::Physiology::Node n) override {
         nodeDataStorage[n.nodepath()] = n.dbl();
     }
 };
@@ -71,7 +71,7 @@ namespace Generic {
 class DDSEndpoint {
 public:
 
-    DDSEndpoint(Address addr) :
+    explicit DDSEndpoint(Address addr) :
             httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {
     }
 
@@ -120,7 +120,7 @@ private:
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();
-        std::map<std::string, double>::iterator it = nodeDataStorage.begin();
+        auto it = nodeDataStorage.begin();
         while (it != nodeDataStorage.end()) {
             writer.StartObject();
             writer.Key(it->first.c_str());
@@ -138,7 +138,7 @@ private:
     void doGetNode(const Rest::Request &request, Http::ResponseWriter response) {
 
         auto name = request.param(":name").as<std::string>();
-        std::map<std::string, double>::iterator it = nodeDataStorage.find(name);
+        auto it = nodeDataStorage.find(name);
         if (it != nodeDataStorage.end()) {
             StringBuffer s;
             Writer<StringBuffer> writer(s);

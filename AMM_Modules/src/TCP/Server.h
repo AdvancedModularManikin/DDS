@@ -23,7 +23,7 @@ class Server {
     struct sockaddr_in serverAddr, clientAddr;
 
   public:
-    explicit Server(uint16_t port);
+    explicit Server(int port);
     void AcceptAndDispatch();
     static void * HandleClient(void *args);
 
