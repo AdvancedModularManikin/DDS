@@ -11,12 +11,10 @@
 
 #include "AMM/DDS_Manager.h"
 
-
-Server *s;
-
 using namespace std;
 
-bool closed = false;
+Server *s;
+int port = 9015;
 
 Publisher *command_publisher;
 Subscriber *command_subscriber;
@@ -27,6 +25,8 @@ const string registerPrefix = "REGISTER=";
 const string requestPrefix = "REQUEST=";
 const string keepHistoryPrefix = "KEEP_HISTORY=";
 const string actionPrefix = "ACT=";
+
+bool closed = false;
 
 std::vector<std::string> publishNodes = {
         "EXIT",
@@ -69,6 +69,9 @@ void InitializeLabNodes() {
     labNodes["Substance_BaseExcess"] = 0.0f;
 }
 
+/**
+ * FastRTPS/DDS Listener for subscriptions
+ */
 class TCPBridgeListener : public ListenerInterface {
 public:
     void onNewNodeData(AMM::Physiology::Node n) override {
@@ -104,16 +107,14 @@ void *Server::HandleClient(void *args) {
     ssize_t n;
 
     //Add client in Static clients <vector> (Critical section!)
-    MyThread::LockMutex((const char *) c->name);
-
+    ServerThread::LockMutex(c->name);
     //Before adding the new client, calculate its id. (Now we have the lock)
     c->SetId(Server::clients.size());
-    sprintf(buffer, "Client n.%d", c->id);
-    c->SetName(buffer);
+    string defaultName = "Client n.%d"+ c->id;
+    c->SetName(defaultName);
     cout << "Adding client with id: " << c->id << endl;
     Server::clients.push_back(*c);
-
-    MyThread::UnlockMutex((const char *) c->name);
+    ServerThread::UnlockMutex(c->name);
 
     while (true) {
         memset(buffer, 0, sizeof buffer);
@@ -125,14 +126,14 @@ void *Server::HandleClient(void *args) {
             close(c->sock);
 
             //Remove client in Static clients <vector> (Critical section!)
-            MyThread::LockMutex((const char *) c->name);
+            ServerThread::LockMutex(c->name);
 
             index = Server::FindClientIndex(c);
             cout << "Erasing user in position " << index << " whose name id is: "
                  << Server::clients[index].id << endl;
             Server::clients.erase(Server::clients.begin() + index);
 
-            MyThread::UnlockMutex((const char *) c->name);
+            ServerThread::UnlockMutex(c->name);
 
             break;
         } else if (n < 0) {
@@ -146,7 +147,7 @@ void *Server::HandleClient(void *args) {
                 if (!str.empty()) {
                     // cout << "We got a message from " << c->name << ": " << str << endl;
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
-                        const char * moduleName = str.substr(modulePrefix.size()).c_str();
+                        string moduleName = str.substr(modulePrefix.size());
                         c->SetName(moduleName);
                         cout << "[CLIENT][" << moduleName << "] module connected" << endl;
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
@@ -211,7 +212,7 @@ int main(int argc, const char *argv[]) {
 
     cout << "=== [TCP_Bridge] Ready ..." << endl;
 
-    s = new Server();
+    s = new Server(port);
     s->AcceptAndDispatch();
 
     cout << "=== [TCP_Bridge] Simulation stopped." << endl;

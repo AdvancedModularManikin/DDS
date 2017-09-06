@@ -1,8 +1,7 @@
 #ifndef _server_h_
 #define _server_h_
 
-#include <iostream>
-#include <vector>
+#include "stdafx.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -11,10 +10,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "MyThread.h"
+#include "ServerThread.h"
 #include "Client.h"
-
-#define PORT 9015
 
 using namespace std;
 
@@ -22,13 +19,11 @@ class Server {
 
   private:
     static vector<Client> clients;
-
-    //Socket stuff
     int serverSock;
     struct sockaddr_in serverAddr, clientAddr;
 
   public:
-    Server();
+    explicit Server(int port);
     void AcceptAndDispatch();
     static void * HandleClient(void *args);
 

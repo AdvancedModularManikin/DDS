@@ -1,12 +1,12 @@
-#include "MyThread.h"
+#include "ServerThread.h"
 
 using namespace std;
 
-pthread_mutex_t MyThread::mutex;
+pthread_mutex_t ServerThread::mutex;
 
-MyThread::MyThread() = default;
+ServerThread::ServerThread() = default;
 
-int MyThread::Create(void *Callback, void *args) {
+int ServerThread::Create(void *Callback, void *args) {
   int tret=0;
 
   tret = pthread_create(&this->tid, nullptr, (void *(*)(void *))Callback, args);
@@ -21,14 +21,14 @@ int MyThread::Create(void *Callback, void *args) {
 
 }
 
-int MyThread::Join() {
+int ServerThread::Join() {
   pthread_join(this->tid, nullptr);
   return 0;
 }
 
-int MyThread::InitMutex() {
+int ServerThread::InitMutex() {
   
-  if(pthread_mutex_init(&MyThread::mutex, nullptr) < 0) {
+  if(pthread_mutex_init(&ServerThread::mutex, nullptr) < 0) {
     cerr << "Error while initializing mutex" << endl;
     return -1;
   }
@@ -42,8 +42,8 @@ int MyThread::InitMutex() {
     LockMutex():
 		Blocks until mutex becomes available
 */
-int MyThread::LockMutex(const char *identifier) {
-  if(pthread_mutex_lock(&MyThread::mutex) == 0) {
+int ServerThread::LockMutex(const string &identifier) {
+  if(pthread_mutex_lock(&ServerThread::mutex) == 0) {
     return 0;
   }
 
@@ -52,8 +52,8 @@ int MyThread::LockMutex(const char *identifier) {
 
 }
 
-int MyThread::UnlockMutex(const char *identifier) {
-  if(pthread_mutex_unlock(&MyThread::mutex) == 0) {
+int ServerThread::UnlockMutex(const string &identifier) {
+  if(pthread_mutex_unlock(&ServerThread::mutex) == 0) {
     return 0;
   }
 
