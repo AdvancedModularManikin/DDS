@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
                 if (command == "EXIT") {
                     consoleclosed = true;
                 } else {
-                    if (command == "") {
+                    if (command.empty()) {
                         continue;
                     }
                     simManager.SendCommand(command);

@@ -76,7 +76,7 @@ public:
     }
 
     void init(int thr = 2) {
-        auto opts = Http::Endpoint::options().threads(static_cast<int>(thr)).flags(Tcp::Options::InstallSignalHandler);
+        auto opts = Http::Endpoint::options().threads(thr).flags(Tcp::Options::InstallSignalHandler);
         httpEndpoint->init(opts);
         setupRoutes();
     }
@@ -124,9 +124,9 @@ private:
         while (it != nodeDataStorage.end()) {
             writer.StartObject();
             writer.Key(it->first.c_str());
-            std::ostringstream s;
-            s << it->second;
-            writer.String(s.str().c_str());
+            std::ostringstream str;
+            str << it->second;
+            writer.String(str.str().c_str());
             writer.EndObject();
             ++it;
         }

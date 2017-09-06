@@ -23,7 +23,7 @@ class Server {
     struct sockaddr_in serverAddr, clientAddr;
 
   public:
-    explicit Server(int port);
+    explicit Server(uint16_t port);
     void AcceptAndDispatch();
     static void * HandleClient(void *args);
 
@@ -33,7 +33,10 @@ class Server {
   private:
     static void ListClients();
     static void SendToAll(char *message);
-    static int FindClientIndex(Client *c); 
+    static int FindClientIndex(Client *c);
+
+protected:
+    bool m_runThread;
 };
 
 #endif

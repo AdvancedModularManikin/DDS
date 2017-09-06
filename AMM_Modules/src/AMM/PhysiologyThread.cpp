@@ -152,7 +152,7 @@ bool PhysiologyThread::LoadScenarioFile(const std::string &scenarioFile) {
         adv = dynamic_cast<SEAdvanceTime *>(a);
         if (adv != nullptr) {
             double time_s = adv->GetTime(TimeUnit::s);
-            int count = (int) (time_s / dT_s);
+            auto count = (int) (time_s / dT_s);
             for (int i = 0; i <= count; i++) {
 
                 m_bg->AdvanceModelTime();

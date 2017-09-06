@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     // create subscription filter
     ostringstream filterString;
     bool first = true;
-    for (std::string np : node_paths) {
+    for (const std::string &np : node_paths) {
         if (first) {
             filterString << "nodepath = '" << np << "'";
             first = false;

@@ -10,8 +10,8 @@
 
 using namespace std;
 
-const char *tourniquet_action = "PROPER_TOURNIQUET";
-const char *hemorrhage_action = "LEG_HEMORRHAGE";
+const string tourniquet_action = "PROPER_TOURNIQUET";
+const string hemorrhage_action = "LEG_HEMORRHAGE";
 float heartrate = 40.0;
 float breathrate = 12.0;
 bool tourniquet = false;

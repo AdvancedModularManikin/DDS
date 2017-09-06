@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
         if (action == "EXIT") {
             closed = true;
         } else {
-            if (action == "") {
+            if (action.empty()) {
                 continue;
             }
             cout << "=== [CommandExecutor] Sending a command:" << action << endl;

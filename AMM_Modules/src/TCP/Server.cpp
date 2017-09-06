@@ -4,13 +4,14 @@ using namespace std;
 
 vector<Client> Server::clients;
 
-Server::Server(int port) {
+Server::Server(uint16_t port) {
 
     //Initialize static mutex from ServerThread
     ServerThread::InitMutex();
 
     //For setsock opt (REUSEADDR)
     int yes = 1;
+    m_runThread = true;
 
     //Init serverSock and start listen()'ing
     serverSock = socket(AF_INET, SOCK_STREAM, 0);
@@ -34,7 +35,7 @@ void Server::AcceptAndDispatch() {
 
     socklen_t cliSize = sizeof(sockaddr_in);
 
-    while (true) {
+    while (m_runThread) {
 
         c = new Client();
         t = new ServerThread();

@@ -10,15 +10,15 @@ using namespace std;
 class Client {
   public:
     string name;
-    int id;
+    int id{};
 
     //Socket stuff
-    int sock;
+    int sock{};
 
 
     Client() {};
     void SetName(std::string &name);
-    void SetId(int id);
+    void SetId(unsigned long id);
 };
 
 #endif

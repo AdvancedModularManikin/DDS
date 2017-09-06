@@ -9,6 +9,6 @@ void Client::SetName(std::string &name) {
   this->name = name;
 }
 
-void Client::SetId(int id) {
+void Client::SetId(unsigned long id) {
   this->id = id;
 }
