@@ -122,7 +122,7 @@ void *Server::HandleClient(void *args) {
 
         //Client disconnected?
         if (n == 0) {
-            cout << "Client " << c->name << " diconnected" << endl;
+            cout << "Client " << c->name << " disconnected" << endl;
             close(c->sock);
 
             //Remove client in Static clients <vector> (Critical section!)
@@ -159,8 +159,10 @@ void *Server::HandleClient(void *args) {
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
                         if (keepHistory == "TRUE") {
                             cout << "[CLIENT] Client wants to keep history." << endl;
+                            c->SetKeepHistory(true);
                         } else {
                             cout << "[CLIENT] Client does not want to keep history." << endl;
+                            c->SetKeepHistory(false);
                         }
                     } else if (str.substr(0, requestPrefix.size()) == requestPrefix) {
                         std::string request = str.substr(requestPrefix.size());
@@ -181,7 +183,7 @@ void *Server::HandleClient(void *args) {
                         cmdInstance.message(action);
                         command_publisher->write(&cmdInstance);
                     } else {
-                        // cout << "[CLIENT] Unknown message:" << str << endl;
+                        cout << "[CLIENT] Unknown message:" << str << endl;
                     }
                 }
             }

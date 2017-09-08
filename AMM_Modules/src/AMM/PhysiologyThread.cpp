@@ -251,7 +251,7 @@ double PhysiologyThread::GetEndTidalCarbonDioxideFraction() {
 
 // SPO2 - Oxygen Saturation - unitless %
 double PhysiologyThread::GetOxygenSaturation() {
-    return m_bg->GetBloodChemistrySystem()->GetOxygenSaturation();
+    return m_bg->GetBloodChemistrySystem()->GetOxygenSaturation() * 100;
 }
 
 // BR - Respiration Rate - per minute
@@ -300,12 +300,12 @@ double PhysiologyThread::GetCreatinineConcentration() {
 
 // RBC - White Blood Cell Count - ct/uL
 double PhysiologyThread::GetWhiteBloodCellCount() {
-    return m_bg->GetBloodChemistrySystem()->GetWhiteBloodCellCount(AmountPerVolumeUnit::ct_Per_uL);
+    return m_bg->GetBloodChemistrySystem()->GetWhiteBloodCellCount(AmountPerVolumeUnit::ct_Per_uL) / 1000;
 }
 
 // RBC - Red Blood Cell Count - ct/uL
 double PhysiologyThread::GetRedBloodCellCount() {
-    return m_bg->GetBloodChemistrySystem()->GetRedBloodCellCount(AmountPerVolumeUnit::ct_Per_uL);
+    return m_bg->GetBloodChemistrySystem()->GetRedBloodCellCount(AmountPerVolumeUnit::ct_Per_uL) / 1000000;
 }
 
 // Hgb - Hemoglobin Concentration - g/dL
@@ -316,7 +316,7 @@ double PhysiologyThread::GetHemoglobinConcentration() {
 
 // Hct - Hematocrit - unitless
 double PhysiologyThread::GetHematocrit() {
-    return m_bg->GetBloodChemistrySystem()->GetHematocrit();
+    return m_bg->GetBloodChemistrySystem()->GetHematocrit() * 100;
 }
 
 // pH - Blood pH - unitless
@@ -377,7 +377,7 @@ double PhysiologyThread::GetPlateletCount() {
     SECompleteBloodCount CBC(m_bg->GetLogger());
     m_bg->GetPatientAssessment(CBC);
     SEScalarAmountPerVolume plateletCount = CBC.GetPlateletCount();
-    return plateletCount.GetValue(AmountPerVolumeUnit::ct_Per_uL);
+    return plateletCount.GetValue(AmountPerVolumeUnit::ct_Per_uL) / 1000;
 }
 
 // GetExhaledCO2 - tracheal CO2 partial pressure - mmHg

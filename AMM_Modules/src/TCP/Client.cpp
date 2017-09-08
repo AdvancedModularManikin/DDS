@@ -12,3 +12,7 @@ void Client::SetName(std::string &name) {
 void Client::SetId(unsigned long id) {
   this->id = id;
 }
+
+void Client::SetKeepHistory(bool historyflag) {
+  this->keepHistory = historyflag;
+}

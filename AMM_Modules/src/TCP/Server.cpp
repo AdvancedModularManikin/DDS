@@ -25,7 +25,7 @@ Server::Server(int port) {
     if (bind(serverSock, (struct sockaddr *) &serverAddr, sizeof(sockaddr_in)) < 0)
         cerr << "Failed to bind";
 
-    listen(serverSock, 5);
+    listen(serverSock, 30);
 }
 
 void Server::AcceptAndDispatch() {

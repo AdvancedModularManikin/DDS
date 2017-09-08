@@ -11,6 +11,7 @@ class Client {
   public:
     string name;
     unsigned long id{};
+    bool keepHistory = false;
 
     //Socket stuff
     int sock{};
@@ -19,6 +20,7 @@ class Client {
     Client() {};
     void SetName(std::string &name);
     void SetId(unsigned long id);
+    void SetKeepHistory(bool historyflag);
 };
 
 #endif
