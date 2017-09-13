@@ -117,6 +117,10 @@ void *Server::HandleClient(void *args) {
     ServerThread::UnlockMutex(c->name);
 
     while (true) {
+        // @TODO: Loop reading until no bytes are left
+        // This currently is reading a static n(sizeof buffer) bytes
+        // If the client sends > n bytes, we lose the overflow, which is bad.
+        // Loop until 0 bytes are left... but make sure we can tell the difference between that and disconnecting.
         memset(buffer, 0, sizeof buffer);
         n = recv(c->sock, buffer, sizeof buffer, 0);
 
