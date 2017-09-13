@@ -4,6 +4,9 @@
 
 using namespace std;
 
+// Do not daemonize by default
+int daemonize = 0;
+
 static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
          << "\t-r,--rate <sample_rate>\tSpecify the sample rate to run at (samples per second) - doesn't do anything yet!"
@@ -24,6 +27,11 @@ int main(int argc, char *argv[]) {
             show_usage(argv[0]);
             return 0;
         }
+
+        if (arg == "-d") {
+            daemonize = 1;
+        }
+
         if ((arg == "-r") || (arg == "--rate")) {
             istringstream ss(argv[i + 1]);
             int sampleRate;
@@ -35,59 +43,65 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    do {
-        cout << endl;
-        cout << " [1]Status " << endl;
-        cout << " [2]Run/Resume" << endl;
-        cout << " [3]Pause/Stop" << endl;
-        cout << " [4]Shutdown" << endl;
-        cout << " [5]Command console" << endl;
-        cout << " >> ";
+    if (daemonize == 1) {
+        simManager.StartSimulation();
+    } else {
 
-        getline(cin, action);
-        transform(action.begin(), action.end(), action.begin(), ::toupper);
 
-        if (action == "1") {
-            if (simManager.isRunning()) {
-                cout << " == Running!  At tick count: ";
-            } else {
-                cout << " == Not currently running, paused at tick count: ";
-            }
-            cout << simManager.GetTickCount() << endl;
-            cout << "  = Operating at " << simManager.GetSampleRate() << " frames per second." << endl;
-        } else if (action == "2") {
-            cout << " == Starting simulation..." << endl;
-            simManager.StartSimulation();
-        } else if (action == "3") {
-            cout << " == Stopping simulation..." << endl;
-            simManager.StopSimulation();
-        } else if (action == "4") {
-            cout << " == Stopping simulation and sending shutdown notice..." << endl;
-            simManager.StopSimulation();
-            cout << " == Exited after " << simManager.GetTickCount() << " ticks." << endl;
-            cout << "=== [SimManager] Shutting down Simulation Manager." << endl;
-            closed = true;
-            simManager.Shutdown();
-        } else if (action == "5") {
-            std::string command;
-            bool consoleclosed = false;
-            do {
-                cout << " Enter a command (exit to return to menu) >>> ";
-                getline(cin, command);
-                transform(command.begin(), command.end(), command.begin(), ::toupper);
-                if (command == "EXIT") {
-                    consoleclosed = true;
+        do {
+            cout << endl;
+            cout << " [1]Status " << endl;
+            cout << " [2]Run/Resume" << endl;
+            cout << " [3]Pause/Stop" << endl;
+            cout << " [4]Shutdown" << endl;
+            cout << " [5]Command console" << endl;
+            cout << " >> ";
+
+            getline(cin, action);
+            transform(action.begin(), action.end(), action.begin(), ::toupper);
+
+            if (action == "1") {
+                if (simManager.isRunning()) {
+                    cout << " == Running!  At tick count: ";
                 } else {
-                    if (command.empty()) {
-                        continue;
-                    }
-                    simManager.SendCommand(command);
+                    cout << " == Not currently running, paused at tick count: ";
                 }
-            } while (!consoleclosed);
-        } else {
+                cout << simManager.GetTickCount() << endl;
+                cout << "  = Operating at " << simManager.GetSampleRate() << " frames per second." << endl;
+            } else if (action == "2") {
+                cout << " == Starting simulation..." << endl;
+                simManager.StartSimulation();
+            } else if (action == "3") {
+                cout << " == Stopping simulation..." << endl;
+                simManager.StopSimulation();
+            } else if (action == "4") {
+                cout << " == Stopping simulation and sending shutdown notice..." << endl;
+                simManager.StopSimulation();
+                cout << " == Exited after " << simManager.GetTickCount() << " ticks." << endl;
+                cout << "=== [SimManager] Shutting down Simulation Manager." << endl;
+                closed = true;
+                simManager.Shutdown();
+            } else if (action == "5") {
+                std::string command;
+                bool consoleclosed = false;
+                do {
+                    cout << " Enter a command (exit to return to menu) >>> ";
+                    getline(cin, command);
+                    transform(command.begin(), command.end(), command.begin(), ::toupper);
+                    if (command == "EXIT") {
+                        consoleclosed = true;
+                    } else {
+                        if (command.empty()) {
+                            continue;
+                        }
+                        simManager.SendCommand(command);
+                    }
+                } while (!consoleclosed);
+            } else {
 
-        }
-    } while (!closed);
+            }
+        } while (!closed);
+    }
 
     return 0;
 }

@@ -10,6 +10,9 @@
 
 using namespace std;
 
+// Daemonize by default
+int daemonize = 1;
+
 const string tourniquet_action = "PROPER_TOURNIQUET";
 const string hemorrhage_action = "LEG_HEMORRHAGE";
 float heartrate = 40.0;
@@ -72,7 +75,24 @@ class HeartRateListener : public ListenerInterface {
     }
 };
 
+static void show_usage(const std::string &name) {
+    cerr << "Usage: " << name << "\nOptions:\n"
+         << "\t-h,--help\t\tShow this help message\n" << endl;
+}
+
 int main(int argc, char *argv[]) {
+    cout << "=== [HeartRateLED] Ready ..." << endl;
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if ((arg == "-h") || (arg == "--help")) {
+            show_usage(argv[0]);
+            return 0;
+        }
+
+        if (arg == "-d") {
+            daemonize = 1;
+        }
+    }
 
     int spi_fd = open(device, O_RDWR);
 
@@ -88,7 +108,7 @@ int main(int argc, char *argv[]) {
     Subscriber *command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
     Publisher * command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
-    cout << "=== [HeartRateLED] Ready ..." << endl;
+
 
 
     int count = 0;

@@ -4,6 +4,8 @@
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/bind.hpp>
+#include <boost/asio.hpp>
 
 #include <TCP/Server.h>
 
@@ -12,9 +14,15 @@
 #include "AMM/DDS_Manager.h"
 
 using namespace std;
+using boost::asio::ip::udp;
 
 Server *s;
-int port = 9015;
+
+short discoveryPort = 8888;
+int bridgePort = 9015;
+
+// Daemonize by default
+int daemonize = 1;
 
 Publisher *command_publisher;
 Subscriber *command_subscriber;
@@ -27,6 +35,59 @@ const string keepHistoryPrefix = "KEEP_HISTORY=";
 const string actionPrefix = "ACT=";
 
 bool closed = false;
+
+class udp_discovery_server {
+public:
+    udp_discovery_server(boost::asio::io_service &io_service, short port)
+            : io_service_(io_service),
+              socket_(io_service, udp::endpoint(udp::v4(), port)) {
+        // Register async recieve-from handler
+        socket_.async_receive_from(
+                boost::asio::buffer(data_, max_length), sender_endpoint_,
+                boost::bind(&udp_discovery_server::handle_receive_from, this,
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::bytes_transferred));
+    }
+
+    void handle_receive_from(const boost::system::error_code &error,
+                             size_t bytes_recvd) {
+        if (!error && bytes_recvd > 0) {
+            cout << "\tWe got data from " << sender_endpoint_ << ": " << data_ << endl;
+            // @TODO: Verify this is a valid request before sending data back
+            socket_.async_send_to(
+                    boost::asio::buffer(data_, bytes_recvd), sender_endpoint_,
+                    boost::bind(&udp_discovery_server::handle_send_to, this,
+                                boost::asio::placeholders::error,
+                                boost::asio::placeholders::bytes_transferred));
+        } else {
+            socket_.async_receive_from(
+                    boost::asio::buffer(data_, max_length), sender_endpoint_,
+                    boost::bind(&udp_discovery_server::handle_receive_from, this,
+                                boost::asio::placeholders::error,
+                                boost::asio::placeholders::bytes_transferred));
+        }
+    }
+
+    void handle_send_to(const boost::system::error_code &error, size_t bytes_sent) {
+        cout << "\tSending data to " << sender_endpoint_ << endl;
+        // @TODO: Send back some sort of validation
+        socket_.async_receive_from(
+                boost::asio::buffer(data_, max_length), sender_endpoint_,
+                boost::bind(&udp_discovery_server::handle_receive_from, this,
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::bytes_transferred));
+    }
+
+private:
+    boost::asio::io_service &io_service_;
+    udp::socket socket_;
+    udp::endpoint sender_endpoint_;
+    enum {
+        max_length = 1024
+    };
+    char data_[max_length];
+};
+
 
 std::vector<std::string> publishNodes = {
         "EXIT",
@@ -110,7 +171,7 @@ void *Server::HandleClient(void *args) {
     ServerThread::LockMutex(c->name);
     //Before adding the new client, calculate its id. (Now we have the lock)
     c->SetId(Server::clients.size());
-    string defaultName = "Client n.%d"+ c->id;
+    string defaultName = "Client n.%d" + c->id;
     c->SetName(defaultName);
     cout << "Adding client with id: " << c->id << endl;
     Server::clients.push_back(*c);
@@ -144,7 +205,7 @@ void *Server::HandleClient(void *args) {
             cerr << "Error while receiving message from client: " << c->name << endl;
         } else {
             vector<string> strings;
-            boost::split(strings,buffer,boost::is_any_of("\n"));
+            boost::split(strings, buffer, boost::is_any_of("\n"));
 
             for (auto str : strings) {
                 boost::trim_right(str);
@@ -198,8 +259,33 @@ void *Server::HandleClient(void *args) {
     return nullptr;
 }
 
+void UdpDiscoveryThread()
+{
+    boost::asio::io_service io_service;
+    udp_discovery_server udps(io_service, discoveryPort);
+    cout << "\tUDP Discovery listening on port " << discoveryPort << endl;
+    io_service.run();
+}
+
+static void show_usage(const std::string &name) {
+    cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n" << endl;
+}
+
+
 int main(int argc, const char *argv[]) {
     cout << "=== [AMM - TCP Bridge] ===" << endl;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if ((arg == "-h") || (arg == "--help")) {
+            show_usage(argv[0]);
+            return 0;
+        }
+
+        if (arg == "-d") {
+            daemonize = 1;
+        }
+    }
 
     InitializeLabNodes();
 
@@ -218,8 +304,12 @@ int main(int argc, const char *argv[]) {
 
     cout << "=== [TCP_Bridge] Ready ..." << endl;
 
-    s = new Server(port);
+    std::thread t1(UdpDiscoveryThread);
+    s = new Server(bridgePort);
     s->AcceptAndDispatch();
+
+    t1.join();
+
 
     cout << "=== [TCP_Bridge] Simulation stopped." << endl;
 

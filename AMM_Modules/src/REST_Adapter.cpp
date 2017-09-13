@@ -12,6 +12,9 @@ using namespace std;
 using namespace rapidjson;
 using namespace Pistache;
 
+// Daemonize by default
+int daemonize = 1;
+
 std::map<std::string, double> nodeDataStorage;
 
 std::thread m_thread;
@@ -175,8 +178,25 @@ private:
     Rest::Router router;
 };
 
+static void show_usage(const std::string &name) {
+    cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n" << endl;
+}
+
+
 int main(int argc, char *argv[]) {
     cout << "=== [AMM - REST Adapter] ===" << endl;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if ((arg == "-h") || (arg == "--help")) {
+            show_usage(argv[0]);
+            return 0;
+        }
+
+        if (arg == "-d") {
+            daemonize = 1;
+        }
+    }
 
     int portNumber = 9080;
     int thr = 2;

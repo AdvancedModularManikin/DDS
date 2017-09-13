@@ -26,7 +26,6 @@ int main(int argc, char *argv[]) {
             show_usage(argv[0]);
             return 0;
         }
-
         node_paths.push_back(arg);
 
     }

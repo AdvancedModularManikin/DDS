@@ -17,6 +17,8 @@ serial_port_base::flow_control FLOW(serial_port_base::flow_control::none);
 serial_port_base::parity PARITY(serial_port_base::parity::none);
 serial_port_base::stop_bits STOP(serial_port_base::stop_bits::one);
 
+// Daemonize by default
+int daemonize = 1;
 
 bool closed = false;
 
@@ -34,8 +36,25 @@ class GenericArduinoListener : public ListenerInterface {
     }
 };
 
+static void show_usage(const std::string &name) {
+    cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n" << endl;
+}
+
+
 int main(int argc, char *argv[]) {
     cout << "=== [AMM - Arduino Sensor Bridge] ===" << endl;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if ((arg == "-h") || (arg == "--help")) {
+            show_usage(argv[0]);
+            return 0;
+        }
+
+        if (arg == "-d") {
+            daemonize = 1;
+        }
+    }
 
     io_service io;
     serial_port port(io, PORT_LINUX);

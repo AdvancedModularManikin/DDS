@@ -136,6 +136,7 @@ target_link_libraries (${ARDUINO_BRIDGE_EXE}
 
 target_link_libraries (${TCP_BRIDGE_EXE}
         fastrtps fastcdr
+        Boost::system
         Threads::Threads
         ${DATAMODEL}
         )
