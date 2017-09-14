@@ -83,14 +83,14 @@ set (ARDUINO_BRIDGE_SOURCES src/Arduino_Bridge.cpp)
 set (ARDUINO_BRIDGE_EXE amm_arduino_bridge)
 add_executable (${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (TCP_BRIDGE_SOURCES src/TCP_Bridge.cpp src/TCP/Server.cpp src/TCP/ServerThread.cpp src/TCP/Client.cpp)
+set (TCP_BRIDGE_SOURCES src/TCP_Bridge.cpp src/Net/Server.cpp src/Net/ServerThread.cpp src/Net/Client.cpp src/Net/UdpDiscoveryServer.cpp)
 set (TCP_BRIDGE_EXE amm_tcp_bridge)
 add_executable (${TCP_BRIDGE_EXE} ${TCP_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
 if (RAPIDJSON_FOUND AND Pistache_FOUND)
     set (REST_ADAPTER_SOURCES src/REST_Adapter.cpp)
     set (REST_ADAPTER_EXE amm_rest_adapter)
-    add_executable (${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
+    add_executable (${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} src/Net/UdpDiscoveryServer.cpp)
 endif()
 
 
@@ -144,7 +144,10 @@ target_link_libraries (${TCP_BRIDGE_EXE}
 
 if (RAPIDJSON_FOUND AND Pistache_FOUND)
 target_link_libraries (${REST_ADAPTER_EXE}
-        fastrtps fastcdr ${RAPIDJSON_LIBRARIES} ${Pistache_LIBRARY}
+        fastrtps fastcdr
+        ${RAPIDJSON_LIBRARIES}
+        ${Pistache_LIBRARY}
+        Boost::system
         Threads::Threads
         ${DATAMODEL}
         )

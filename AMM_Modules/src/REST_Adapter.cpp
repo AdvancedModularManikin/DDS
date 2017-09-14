@@ -8,9 +8,14 @@
 
 #include "rapidjson/writer.h"
 
+#include <Net/UdpDiscoveryServer.h>
+
 using namespace std;
 using namespace rapidjson;
 using namespace Pistache;
+
+// UDP discovery
+short discoveryPort = 8889;
 
 // Daemonize by default
 int daemonize = 1;
@@ -178,6 +183,14 @@ private:
     Rest::Router router;
 };
 
+void UdpDiscoveryThread()
+{
+    boost::asio::io_service io_service;
+    UdpDiscoveryServer udps(io_service, discoveryPort);
+    cout << "\tUDP Discovery listening on port " << discoveryPort << endl;
+    io_service.run();
+}
+
 static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n" << endl;
 }
@@ -212,6 +225,8 @@ int main(int argc, char *argv[]) {
     auto *pub_listener = new DDS_Listeners::PubListener();
     command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
+    std::thread t1(UdpDiscoveryThread);
+
     // start data thread
     m_runThread = true;
     m_thread = std::thread(DataLoop);
@@ -239,6 +254,8 @@ int main(int argc, char *argv[]) {
 
 
     cout << "=== [REST_Adapter] Simulation stopped." << endl;
+
+    t1.join();
 
     server.shutdown();
     m_thread.join();
