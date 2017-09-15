@@ -31,7 +31,9 @@ int main(int argc, char *argv[]) {
     if (daemonize == 1) {
         cout << " == DAEMON: Starting simulation based on ticks..." << endl;
         pe.StartTickSimulation();
+        while (!closed) {
 
+        }
     } else {
 
         do {
