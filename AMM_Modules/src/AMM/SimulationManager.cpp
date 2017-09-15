@@ -101,7 +101,27 @@ void SimulationManager::Shutdown() {
 
 // Listener events
 void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
-    cout << "[SimManager] Command received: " << c.message() << endl;
+    if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+        std::string value = c.message().substr(sysPrefix.size());
+        cout << "[SimManager] We received a SYSTEM action: " << value << endl;
+        if (value.compare("START_SIM") == 0) {
+            cout << "=== [SimManager] Started simulation" << endl;
+            StartSimulation();
+        } else if (value.compare("STOP_SIM") == 0) {
+            cout << "=== [SimManager] Stopped simulation" << endl;
+            StopSimulation();
+            cout << " == Exited after " << GetTickCount() << " ticks." << endl;
+            cout << "=== [SimManager] Shutting down Simulation Manager." << endl;
+            Shutdown();
+            tickCount = 0;
+        } else if (value.compare("PAUSE_SIM") == 0) {
+            cout << "=== [SimManager] Paused simulation (can be restarted)" << endl;
+            StopSimulation();
+        }
+    } else {
+        cout << "[SimManager] Command received: " << c.message() << endl;
+    }
+
 }
 
 void SimulationManager::onNewNodeData(AMM::Physiology::Node n) {

@@ -149,8 +149,26 @@ void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n) {
 }
 
 void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
-    cout << "[PhysiologyManager] Command received: " << c.message() << endl;
-    bg->ExecuteCommand(c.message());
+    if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+        std::string value = c.message().substr(sysPrefix.size());
+        cout << "[PhysiologyManager] We received a SYSTEM action: " << value << endl;
+        if (value.compare("START_ENGINE") == 0) {
+            cout << "=== [PhysiologyManager] Started engine based on Tick Simulation" << endl;
+            StartTickSimulation();
+        }
+        else if (value.compare("STOP_ENGINE") == 0) {
+            cout << "=== [PhysiologyManager] Stopped engine" << endl;
+            StopTickSimulation();
+            StopSimulation();
+            Shutdown();
+        } else if (value.compare("PAUSE_ENGINE") == 0) {
+            cout << "=== [PhysiologyManager] Paused engine" << endl;
+            StopTickSimulation();
+        }
+    } else {
+        cout << "[PhysiologyManager] Command received: " << c.message() << endl;
+        bg->ExecuteCommand(c.message());
+    }
 }
 
 void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick t) {
