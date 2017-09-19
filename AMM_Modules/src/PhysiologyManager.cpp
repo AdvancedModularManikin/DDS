@@ -2,12 +2,7 @@
 
 #include "AMM/PhysiologyEngineManager.h"
 
-// Do not daemonize by default
-int daemonize = 0;
-int autostart = 0;
 bool closed = false;
-
-PhysiologyEngineManager pe;
 
 static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>" <<
@@ -18,7 +13,7 @@ static void show_usage(const std::string &name) {
          endl;
 }
 
-void show_menu() {
+void show_menu(PhysiologyEngineManager * pe) {
     string action;
 
     cout << endl;
@@ -33,53 +28,55 @@ void show_menu() {
     transform(action.begin(), action.end(), action.begin(), ::toupper);
 
     if (action == "1") {
-        pe.Status();
-        if (pe.isRunning()) {
+        pe->Status();
+        if (pe->isRunning()) {
             cout << " == Running!  At tick count: ";
         } else {
             cout << " == Not currently running, paused at tick count: ";
         }
-        cout << pe.GetTickCount() << endl;
+        cout << pe->GetTickCount() << endl;
     } else if (action == "2") {
         cout << " == Advancing time one tick" << endl;
-        pe.AdvanceTimeTick();
+        pe->AdvanceTimeTick();
     } else if (action == "3") {
-        if (!pe.isRunning()) {
+        if (!pe->isRunning()) {
             cout << " == Starting simulation based on ticks..." << endl;
-            pe.StartTickSimulation();
+            pe->StartTickSimulation();
         } else {
             cout << " == Already running" << endl;
         }
     } else if (action == "4") {
-        if (pe.isRunning()) {
+        if (pe->isRunning()) {
             cout << " == Stopping simulation based on ticks..." << endl;
-            pe.StopTickSimulation();
+            pe->StopTickSimulation();
         } else {
             cout << " == Not running" << endl;
         }
     } else if (action == "5") {
         cout << " == Publishing all data" << endl;
-        pe.PublishData(true);
-        cout << " == Done publishing " << pe.GetNodePathCount() << " items." << endl;
+        pe->PublishData(true);
+        cout << " == Done publishing " << pe->GetNodePathCount() << " items." << endl;
     } else if (action == "6") {
-        if (!pe.isRunning()) {
+        if (!pe->isRunning()) {
             cout << " == Simulation not running, but shutting down anyway" << endl;
         }
-        pe.StopSimulation();
-        pe.Shutdown();
+        pe->StopSimulation();
+        pe->Shutdown();
         closed = true;
 
     } else if (action == "LIST") {
-        pe.PrintAvailableNodePaths();
+        pe->PrintAvailableNodePaths();
     } else if (action == "PRINT") {
-        pe.PrintAllCurrentData();
+        pe->PrintAllCurrentData();
     }
 
 }
 
 int main(int argc, char *argv[]) {
-    cout << "=== [AMM - Physiology Manager] ===" << endl;
-
+    int daemonize = 0;
+	int autostart = 0;
+    cout << "=== [AMM - Physiology Manager] ===" << endl;		
+	
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -96,6 +93,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+	PhysiologyEngineManager pe;
 
     if (autostart == 1) {
         cout << " == Auto-starting simulation based on ticks" << endl;
@@ -103,7 +101,7 @@ int main(int argc, char *argv[]) {
     }
 
     while (!closed) {
-        show_menu();
+        show_menu(&pe);
     }
 
     cout << "=== [PhysiologyManager] Exiting." << endl;

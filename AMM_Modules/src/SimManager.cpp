@@ -4,11 +4,7 @@
 
 using namespace std;
 
-int daemonize = 0;
-int autostart = 0;
 bool closed = false;
-
-SimulationManager simManager;
 
 static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>" <<
@@ -20,7 +16,7 @@ static void show_usage(const std::string &name) {
          endl;
 }
 
-void show_menu() {
+void show_menu(SimulationManager* simManager) {
     string action;
 
     cout << endl;
@@ -34,38 +30,38 @@ void show_menu() {
     transform(action.begin(), action.end(), action.begin(), ::toupper);
 
     if (action == "1") {
-        if (simManager.isRunning()) {
+        if (simManager->isRunning()) {
             cout << " == Running!  At tick count: ";
         } else {
             cout << " == Not currently running, paused at tick count: ";
         }
-        cout << simManager.GetTickCount() << endl;
-        cout << "  = Operating at " << simManager.GetSampleRate() << " frames per second." << endl;
+        cout << simManager->GetTickCount() << endl;
+        cout << "  = Operating at " << simManager->GetSampleRate() << " frames per second." << endl;
     } else if (action == "2") {
-        if (!simManager.isRunning()) {
+        if (!simManager->isRunning()) {
             cout << " == Starting simulation..." << endl;
-            simManager.StartSimulation();
+            simManager->StartSimulation();
         } else {
             cout << " == Simulation already running" << endl;
         }
     } else if (action == "3") {
-        if (!simManager.isRunning()) {
+        if (!simManager->isRunning()) {
             cout << " == Stopping simulation..." << endl;
-            simManager.StopSimulation();
+            simManager->StopSimulation();
         } else {
             cout << " == Simulation not running" << endl;
         }
     } else if (action == "4") {
-        if (!simManager.isRunning()) {
+        if (!simManager->isRunning()) {
             cout << " == Simulation not running, but shutting down anyway" << endl;
         } else {
             cout << " == Stopping simulation and sending shutdown notice..." << endl;
         }
-        simManager.StopSimulation();
-        cout << " == Exited after " << simManager.GetTickCount() << " ticks." << endl;
+        simManager->StopSimulation();
+        cout << " == Exited after " << simManager->GetTickCount() << " ticks." << endl;
         cout << "=== [SimManager] Shutting down Simulation Manager." << endl;
         closed = true;
-        simManager.Shutdown();
+        simManager->Shutdown();
     } else if (action == "5") {
         std::string command;
         bool consoleclosed = false;
@@ -79,7 +75,7 @@ void show_menu() {
                 if (command.empty()) {
                     continue;
                 }
-                simManager.SendCommand(command);
+                simManager->SendCommand(command);
             }
         } while (!consoleclosed);
     } else {
@@ -88,8 +84,11 @@ void show_menu() {
 }
 
 int main(int argc, char *argv[]) {
-    cout << "=== [AMM - Simulation Manager] ===" << endl;
-
+	int sampleRate = 50;
+	int daemonize = 0;
+	int autostart = 0;
+    cout << "=== [AMM - Simulation Manager] ===" << endl;		
+	
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -106,15 +105,17 @@ int main(int argc, char *argv[]) {
         }
 
         if ((arg == "-r") || (arg == "--rate")) {
-            istringstream ss(argv[i + 1]);
-            int sampleRate;
+            istringstream ss(argv[i + 1]);            
             if (!(ss >> sampleRate)) {
                 cerr << "Invalid sample rate: " << argv[i + 1] << '\n';
                 return 0;
             }
-            simManager.SetSampleRate(sampleRate);
+            
         }
     }
+
+	SimulationManager simManager;
+	simManager.SetSampleRate(sampleRate);
 
     if (autostart == 1) {
         cout << " == Auto-starting simulation" << endl;
@@ -122,7 +123,7 @@ int main(int argc, char *argv[]) {
     }
 
     while (!closed) {
-        show_menu();
+        show_menu(&simManager);
     }
 
     cout << "=== [PhysiologyManager] Exiting." << endl;
