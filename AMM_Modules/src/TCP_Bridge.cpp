@@ -31,6 +31,7 @@ const string registerPrefix = "REGISTER=";
 const string requestPrefix = "REQUEST=";
 const string keepHistoryPrefix = "KEEP_HISTORY=";
 const string actionPrefix = "ACT=";
+const string keepAlivePrefix = "[KEEPALIVE]";
 
 bool closed = false;
 
@@ -192,6 +193,8 @@ void *Server::HandleClient(void *args) {
                         AMM::PatientAction::BioGears::Command cmdInstance;
                         cmdInstance.message(action);
                         command_publisher->write(&cmdInstance);
+                    } else if (str.substr(0, keepAlivePrefix.size()) == keepAlivePrefix) {
+                        // keepalive, ignore it
                     } else {
                         cout << "[CLIENT] Unknown message:" << str << endl;
                     }
