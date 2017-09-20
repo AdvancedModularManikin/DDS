@@ -14,28 +14,55 @@ using namespace std;
 using namespace rapidjson;
 using namespace Pistache;
 
-// UDP discovery
+// UDP discovery port
 short discoveryPort = 8889;
+
+// REST adapter port
+int portNumber = 9080;
+
+// REST threads
+int thr = 2;
 
 // Daemonize by default
 int daemonize = 1;
 
 std::map<std::string, double> nodeDataStorage;
+std::map<std::string, std::string> statusStorage = {
+        {"STATUS",       "NOT RUNNING"},
+        {"LAST_COMMAND", ""},
+        {"TICK",         "0"},
+        {"TIME",         "0"}
+};
 
-std::thread m_thread;
-std::mutex m_mutex;
 bool m_runThread = false;
+int64_t lastTick = 0;
 
 Publisher *command_publisher;
 
 class RESTListener : public ListenerInterface {
-
+public:
     void onNewTickData(AMM::Simulation::Tick t) override {
-
+        if (t.frame() > lastTick && statusStorage["STATUS"].compare("RUNNING") != 0) {
+            statusStorage["STATUS"] = "RUNNING";
+        }
+        lastTick = t.frame();
+        statusStorage["TICK"] = to_string(t.frame());
+        statusStorage["TIME"] = to_string(t.time());
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
+        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+            std::string value = c.message().substr(sysPrefix.size());
+            if (value.compare("START_SIM") == 0) {
+                statusStorage["STATUS"] = "RUNNING";
+            } else if (value.compare("STOP_SIM") == 0) {
+                statusStorage["STATUS"] = "STOPPED";
+            } else if (value.compare("PAUSE_SIM") == 0) {
+                statusStorage["STATUS"] = "PAUSED";
+            }
+        }
 
+        statusStorage["LAST_COMMAND"] = c.message();
     }
 
     void onNewNodeData(AMM::Physiology::Node n) override {
@@ -48,13 +75,6 @@ void SendCommand(const std::string &command) {
     AMM::PatientAction::BioGears::Command cmdInstance;
     cmdInstance.message(command);
     command_publisher->write(&cmdInstance);
-}
-
-
-void DataLoop() {
-    while (m_runThread) {
-        // Data processing is handled in the listener, but we could do something here...
-    }
 }
 
 void printCookies(const Http::Request &req) {
@@ -70,7 +90,7 @@ void printCookies(const Http::Request &req) {
 
 namespace Generic {
 
-    void handleReady(const Rest::Request & request, Http::ResponseWriter response) {
+    void handleReady(const Rest::Request &request, Http::ResponseWriter response) {
         response.send(Http::Code::Ok, "1");
     }
 
@@ -128,16 +148,26 @@ private:
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();
-        auto it = nodeDataStorage.begin();
-        while (it != nodeDataStorage.end()) {
+
+        auto nit = nodeDataStorage.begin();
+        while (nit != nodeDataStorage.end()) {
             writer.StartObject();
-            writer.Key(it->first.c_str());
-            std::ostringstream str;
-            str << it->second;
-            writer.String(str.str().c_str());
+            writer.Key(nit->first.c_str());
+            writer.Double(nit->second);
             writer.EndObject();
-            ++it;
+            ++nit;
         }
+
+
+        auto sit = statusStorage.begin();
+        while (sit != statusStorage.end()) {
+            writer.StartObject();
+            writer.Key(sit->first.c_str());
+            writer.String(sit->second.c_str());
+            writer.EndObject();
+            ++sit;
+        }
+
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
@@ -152,9 +182,7 @@ private:
             Writer<StringBuffer> writer(s);
             writer.StartObject();
             writer.Key(it->first.c_str());
-            std::ostringstream ns;
-            ns << it->second;
-            writer.String(ns.str().c_str());
+            writer.Double(it->second);
             writer.EndObject();
             response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
             response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
@@ -183,11 +211,11 @@ private:
     Rest::Router router;
 };
 
-void UdpDiscoveryThread()
-{
+void UdpDiscoveryThread() {
     boost::asio::io_service io_service;
     UdpDiscoveryServer udps(io_service, discoveryPort);
-    cout << "\tUDP Discovery listening on port " << discoveryPort << endl;
+//     boost::thread bt(boost::bind(&boost::asio::io_service::run, &io_service));
+    cout << "\tUDP Discovery listening on port " << discoveryPort << "\n" << endl;
     io_service.run();
 }
 
@@ -211,25 +239,26 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    int portNumber = 9080;
-    int thr = 2;
     string action;
 
     auto *mgr = new DDS_Manager();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
+    auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
+    auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
 
     RESTListener rl;
     node_sub_listener->SetUpstream(&rl);
-    Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
+    command_sub_listener->SetUpstream(&rl);
+    tick_sub_listener->SetUpstream(&rl);
+
+    mgr->InitializeNodeSubscriber(node_sub_listener);
+    mgr->InitializeCommandSubscriber(command_sub_listener);
+    mgr->InitializeTickSubscriber(tick_sub_listener);
 
     auto *pub_listener = new DDS_Listeners::PubListener();
     command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
-    std::thread t1(UdpDiscoveryThread);
-
-    // start data thread
-    m_runThread = true;
-    m_thread = std::thread(DataLoop);
+    std::thread udpD(UdpDiscoveryThread);
 
     Port port(static_cast<uint16_t>(portNumber));
     Address addr(Ipv4::any(), port);
@@ -241,6 +270,8 @@ int main(int argc, char *argv[]) {
     cout << "  = Type EXIT and hit enter to shutdown" << endl;
     server.init(thr);
 
+    m_runThread = true;
+
     server.start();
 
     while (m_runThread) {
@@ -248,17 +279,16 @@ int main(int argc, char *argv[]) {
         transform(action.begin(), action.end(), action.begin(), ::toupper);
         if (action == "EXIT") {
             m_runThread = false;
+            cout << "=== [REST_Adapter] Shutting down." << endl;
         }
         sleep(1);
     }
 
-
-    cout << "=== [REST_Adapter] Simulation stopped." << endl;
-
-    t1.join();
-
     server.shutdown();
-    m_thread.join();
+    cout << "=== [REST_Adapter] Stopped REST listener." << endl;
+
+    udpD.join();
+    cout << "=== [REST_Adapter] Stopped UDP." << endl;
 
     return 0;
 }
