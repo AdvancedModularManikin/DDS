@@ -174,23 +174,23 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
 void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick t) {
     if (m_runThread) {
         if (t.frame() == -1) {
-            cout << "[SHUTDOWN]";
+            cout << "[SHUTDOWN]" << endl;
             StopTickSimulation();
             SendShutdown();
         } else if (t.frame() == -2) {
-            cout << "[PAUSE]";
+            cout << "[PAUSE]" << endl;
             paused = true;
         } else if (t.frame() > 0 || !paused) {
             if (paused) {
-                cout << "[RESUME]";
+                cout << "[RESUME]" << endl;
                 paused = false;
             }
 
             // Did we get a frame out of order?  Just mark it with an X for now.
             if (t.frame() <= lastFrame) {
-                cout << "x";
+            //   cout << "x";
             } else {
-                cout << ".";
+            //     cout << ".";
             }
             lastFrame = static_cast<int>(t.frame());
 
