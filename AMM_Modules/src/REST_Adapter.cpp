@@ -42,7 +42,7 @@ Publisher *command_publisher;
 class RESTListener : public ListenerInterface {
 public:
     void onNewTickData(AMM::Simulation::Tick t) override {
-        if (t.frame() > lastTick && statusStorage["STATUS"].compare("RUNNING") != 0) {
+        if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 && t.frame() > lastTick) {
             statusStorage["STATUS"] = "RUNNING";
         }
         lastTick = t.frame();
