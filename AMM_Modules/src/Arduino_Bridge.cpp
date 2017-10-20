@@ -3,6 +3,7 @@
 #include "AMM/DDS_Manager.h"
 
 #include <boost/asio.hpp>
+#include <boost/algorithm/string.hpp>
 
 #define PORT_LINUX "/dev/tty96B0"
 #define PORT_WINDOW "COM7"
@@ -99,6 +100,7 @@ int main(int argc, char *argv[]) {
             std::string value = rsp.substr(actionPrefix.size());
             cout << "=== [ARDUINO] Sending a command: " << value << endl;
             AMM::PatientAction::BioGears::Command cmdInstance;
+            boost::trim_right(value);
             cmdInstance.message(value);
             command_publisher->write(&cmdInstance);
         } else {
