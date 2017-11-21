@@ -20,7 +20,7 @@ This is a series of proof-of-concept AMM modules utilizing DDS.  These can be us
     
 * [BioGears](https://github.com/BioGearsEngine/Engine) or [Pulse](https://gitlab.kitware.com/physiology/engine) Physiology Engine SDK built and installed. 
 
-* [libboost](http://www.boost.org) installed. On debian : sudo apt install libboost-all-dev 
+* [libboost](http://www.boost.org) installed. On Debian : sudo apt install libboost-all-dev 
 
 #### Optional:
 * [RapidJSON](https://github.com/miloyip/rapidjson) - JSON parser/generator for C++ (required for REST adapter) 
