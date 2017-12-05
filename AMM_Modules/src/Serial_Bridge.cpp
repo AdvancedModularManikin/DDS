@@ -23,7 +23,7 @@ int daemonize = 1;
 
 bool closed = false;
 
-class GenericArduinoListener : public ListenerInterface {
+class GenericSerialListener : public ListenerInterface {
     void onNewNodeData(AMM::Physiology::Node n) {
       if (n.nodepath() == "EXIT") {
 	  cout << "Shutting down simulation based on shutdown node-data from physiology engine."  << endl;
@@ -43,7 +43,7 @@ static void show_usage(const std::string &name) {
 
 
 int main(int argc, char *argv[]) {
-    cout << "=== [AMM - Arduino Sensor Bridge] ===" << endl;
+    cout << "=== [AMM - Serial Module Bridge] ===" << endl;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -71,7 +71,7 @@ int main(int argc, char *argv[]) {
     auto * command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto * pub_listener = new DDS_Listeners::PubListener();
     
-    GenericArduinoListener al;
+    GenericSerialListener al;
     node_sub_listener->SetUpstream(&al);
     command_sub_listener->SetUpstream(&al);
 
@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     Subscriber * command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
     Publisher * command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
-    cout << "=== [Arduino_Bridge] Ready ..." << endl;
+    cout << "=== [Serial_Bridge] Ready ..." << endl;
 
     std::string reportPrefix = "[REPORT]";
     std::string actionPrefix = "[ACT]";
@@ -92,30 +92,28 @@ int main(int argc, char *argv[]) {
             rsp += c;
         }
 
-
         if (!rsp.compare(0, reportPrefix.size(), reportPrefix)) {
             std::string value = rsp.substr(reportPrefix.size());
-            cout << "=== [ARDUINO] Making REPORT: " << value << endl;
+            cout << "=== [SERIAL] Making REPORT: " << value << endl;
         } else if (!rsp.compare(0, actionPrefix.size(), actionPrefix)) {
             std::string value = rsp.substr(actionPrefix.size());
-            cout << "=== [ARDUINO] Sending a command: " << value << endl;
+            cout << "=== [SERIAL] Sending a command: " << value << endl;
             AMM::PatientAction::BioGears::Command cmdInstance;
             boost::trim_right(value);
             cmdInstance.message(value);
             command_publisher->write(&cmdInstance);
         } else {
-            cout << "=== [ARDUINO][DEBUG] " << rsp << endl;
+            cout << "=== [SERIAL][DEBUG] " << rsp << endl;
         }
 
 
         if (c != '\n') {
-            // it timed out
-            cout << "We had an Arduino timeout of some kind";
+            cout << "We had a serial timeout of some kind";
         }
 
     }
 
-    cout << "=== [Arduino_Bridge] Simulation stopped." << endl;
+    cout << "=== [Serial_Bridge] Simulation stopped." << endl;
 
     return 0;
 

@@ -120,6 +120,10 @@ private:
 
     void PopulateNodePathTable();
 
+    void PreloadSubstances();
+
+    void PreloadCompartments();
+
     double GetShutdownMessage();
 
     double GetHeartRate();
@@ -204,8 +208,22 @@ private:
 
     double GetCardiacOutput();
 
+    SESubstance *sodium;
+    SESubstance *glucose;
+    SESubstance *creatinine;
+    SESubstance *hemoglobin;
+    SESubstance *bicarbonate;
+    SESubstance *CO2;
+    SESubstance *N2;
+    SESubstance *O2;
+    SESubstance *CO;
+
+    const SEGasCompartment *carina;
+    const SEGasCompartment *leftLung;
+    const SEGasCompartment *rightLung;
+
     Logger *GetLogger() {
-        return m_bg->GetLogger();
+        return m_pe->GetLogger();
     }
 
 
@@ -215,5 +233,5 @@ protected:
     std::thread m_thread;
     std::mutex m_mutex;
     bool m_runThread;
-    std::unique_ptr<PhysiologyEngine> m_bg;
+    std::unique_ptr<PhysiologyEngine> m_pe;
 };

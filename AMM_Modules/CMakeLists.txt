@@ -6,7 +6,7 @@ IF (WIN32)
     SET(ENV{BIOGEARS_HOME} "c:/tools/physiology/install")
     SET(ENV{FASTRTPS_HOME} "C:/tools/fast-rtps")
 ELSE()
-    SET(ENV{BIOGEARS_HOME} "/usr/local/physiology")
+    SET(ENV{BIOGEARS_HOME} "~/workspace/physiology")
     SET(ENV{FASTRTPS_HOME} "/usr/local")
 ENDIF()
 
@@ -80,9 +80,9 @@ set (HEART_RATE_LED_SOURCES src/HeartRateLED.cpp)
 set (HEART_RATE_LED_EXE amm_heartrate_led)
 add_executable (${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
-set (ARDUINO_BRIDGE_SOURCES src/Arduino_Bridge.cpp)
-set (ARDUINO_BRIDGE_EXE amm_arduino_bridge)
-add_executable (${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
+set (SERIAL_BRIDGE_SOURCES src/Serial_Bridge.cpp)
+set (SERIAL_BRIDGE_EXE amm_serial_bridge)
+add_executable (${SERIAL_BRIDGE_EXE} ${SERIAL_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES})
 
 set (TCP_BRIDGE_SOURCES src/TCP_Bridge.cpp src/Net/Server.cpp src/Net/ServerThread.cpp src/Net/Client.cpp src/Net/UdpDiscoveryServer.cpp)
 set (TCP_BRIDGE_EXE amm_tcp_bridge)
@@ -129,7 +129,7 @@ target_link_libraries (${HEART_RATE_LED_EXE}
         ${DATAMODEL}
         )
 
-target_link_libraries (${ARDUINO_BRIDGE_EXE}
+target_link_libraries (${SERIAL_BRIDGE_EXE}
         fastrtps fastcdr
         Boost::filesystem Boost::iostreams
         ${DATAMODEL}

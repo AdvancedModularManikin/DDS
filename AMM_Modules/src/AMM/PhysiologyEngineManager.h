@@ -32,7 +32,6 @@ public:
 
     void StopTickSimulation();
 
-
     void PublishData(bool force);
 
     void PrintAvailableNodePaths();
