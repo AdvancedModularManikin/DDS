@@ -142,6 +142,11 @@ bool PhysiologyThread::LoadState(const std::string &stateFile, double sec) {
     return true;
 }
 
+bool PhysiologyThread::SaveState() {
+    m_pe->SaveState();
+    return true;
+}
+
 bool PhysiologyThread::SaveState(const std::string &stateFile) {
     m_pe->SaveState(stateFile);
     return true;

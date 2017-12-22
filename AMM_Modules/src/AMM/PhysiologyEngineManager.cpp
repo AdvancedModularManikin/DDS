@@ -35,6 +35,21 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
 
 }
 
+std::string PhysiologyEngineManager::get_random_string( size_t length )
+{
+    auto randchar = []() -> char
+    {
+        const char charset[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+        const size_t max_index = (sizeof(charset) - 1);
+        return charset[ rand() % max_index ];
+    };
+    std::string str(length,0);
+    std::generate_n( str.begin(), length, randchar );
+    return str;
+}
 
 std::string PhysiologyEngineManager::get_filename_date(void)
 {
@@ -47,7 +62,7 @@ std::string PhysiologyEngineManager::get_filename_date(void)
 
    if (now != -1)
    {
-      strftime(the_date, MAX_DATE, "SavedState_%Y%m%d_%H%M%S.xml", gmtime(&now));
+      strftime(the_date, MAX_DATE, "%Y%m%d", gmtime(&now));
    }
 
    return std::string(the_date);
@@ -187,10 +202,12 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
             cout << "=== [PhysiologyManager] Paused engine" << endl;
             StopTickSimulation();
         } else if (value.compare("SAVE_STATE") == 0) {                			    										 				
-  				std::ostringstream ss;  				  				  				
-				ss << get_filename_date();				
-            bg->SaveState(ss.str());
-            cout << "=== [PhysiologyManager] Saved state file: " << ss << endl;
+  				// std::ostringstream ss;  				  				  				
+				// ss << "./states/SavedState_" << get_filename_date() << get_random_string(4) << ".xml";								
+				// cout << "=== [PhysiologyManager] Saved state file: " << ss.str() << endl;
+				cout << "=== Autogenerate state file?" << endl;            
+				// bg->SaveState(ss.str());
+            bg->SaveState();            
         } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
                 std::string loadFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
                 cout << "   We received this value for loadFile: " << loadFile << endl;

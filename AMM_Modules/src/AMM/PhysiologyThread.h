@@ -94,6 +94,7 @@ public:
     bool LoadState(const std::string &stateFile, double sec);
 
     bool SaveState(const std::string &stateFile);
+    bool SaveState();
 
     bool ExecuteCommand(const std::string &cmd);
 

@@ -63,6 +63,7 @@ public:
     int lastFrame = 0;
 
 	std::string get_filename_date(void);
+	std::string get_random_string( size_t length );
 	
     void onNewNodeData(AMM::Physiology::Node n) override;
 
