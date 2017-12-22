@@ -191,8 +191,11 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
 				ss << get_filename_date();				
             bg->SaveState(ss.str());
             cout << "=== [PhysiologyManager] Saved state file: " << ss << endl;
-        } else if (value.compare("LOAD_STATE") == 0) {
-        		cout << "   We received this value: " << value << endl; 
+        } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
+                std::string loadFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
+                cout << "   We received this value for loadFile: " << loadFile << endl;
+                bg->LoadState(loadFile,0);
+
         }
     } else {
         cout << "[PhysiologyManager] Command received: " << c.message() << endl;
