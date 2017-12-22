@@ -148,7 +148,7 @@ target_link_libraries (${REST_ADAPTER_EXE}
         fastrtps fastcdr
         ${RAPIDJSON_LIBRARIES}
         ${Pistache_LIBRARY}
-        Boost::system
+        Boost::system Boost::filesystem Boost::iostreams
         Threads::Threads
         ${DATAMODEL}
         )

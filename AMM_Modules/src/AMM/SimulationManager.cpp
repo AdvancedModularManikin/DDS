@@ -117,6 +117,10 @@ void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c
         } else if (value.compare("PAUSE_SIM") == 0) {
             cout << "=== [SimManager] Paused simulation (can be restarted)" << endl;
             StopSimulation();
+        } else if (value.compare("RESET_SIM") == 0) {
+        		StopSimulation();
+        		tickCount = 0;
+        		cout << "=== [SimManager] Reset simulation (restart will be a new simulation)" << endl;
         }
     } else {
         cout << "[SimManager] Command received: " << c.message() << endl;

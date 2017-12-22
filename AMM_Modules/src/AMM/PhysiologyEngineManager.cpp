@@ -2,8 +2,12 @@
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 
+#define MAX_DATE 12
+
 using namespace std;
 using namespace std::chrono;
+
+
 
 PhysiologyEngineManager::PhysiologyEngineManager() {
 
@@ -29,6 +33,24 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
     nodePathMap = bg->nodePathTable;
     m_runThread = false;
 
+}
+
+
+std::string PhysiologyEngineManager::get_filename_date(void)
+{
+   time_t now;
+   char the_date[MAX_DATE];
+
+   the_date[0] = '\0';
+
+   now = time(NULL);
+
+   if (now != -1)
+   {
+      strftime(the_date, MAX_DATE, "SavedState_%Y%m%d_%H%M%S.xml", gmtime(&now));
+   }
+
+   return std::string(the_date);
 }
 
 bool PhysiologyEngineManager::isRunning() {
@@ -164,6 +186,13 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
         } else if (value.compare("PAUSE_ENGINE") == 0) {
             cout << "=== [PhysiologyManager] Paused engine" << endl;
             StopTickSimulation();
+        } else if (value.compare("SAVE_STATE") == 0) {                			    										 				
+  				std::ostringstream ss;  				  				  				
+				ss << get_filename_date();				
+            bg->SaveState(ss.str());
+            cout << "=== [PhysiologyManager] Saved state file: " << ss << endl;
+        } else if (value.compare("LOAD_STATE") == 0) {
+        		cout << "   We received this value: " << value << endl; 
         }
     } else {
         cout << "[PhysiologyManager] Command received: " << c.message() << endl;

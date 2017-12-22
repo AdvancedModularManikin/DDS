@@ -58,6 +58,7 @@ std::vector<std::string> publishNodes = {
 
 std::map<std::string, double> labNodes;
 
+
 void InitializeLabNodes() {
     labNodes["Substance_Sodium"] = 0.0f;
     labNodes["MetabolicPanel_CarbonDioxide"] = 0.0f;
@@ -100,6 +101,21 @@ public:
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
+    	
+		if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+            std::string value = c.message().substr(sysPrefix.size());
+            if (value.compare("START_SIM") == 0) {
+                
+            } else if (value.compare("STOP_SIM") == 0) {
+                
+            } else if (value.compare("PAUSE_SIM") == 0) {
+                
+            } else if (value.compare("RESET_SIM") == 0) {
+					InitializeLabNodes();
+            }
+        }    	
+    	
+    	
         std::ostringstream messageOut;
         messageOut << "ACT" << "=" << c.message() << "|";
         s->SendToAll(messageOut.str());
@@ -124,10 +140,6 @@ void *Server::HandleClient(void *args) {
     ServerThread::UnlockMutex(c->name);
 
     while (true) {
-        // @TODO: Loop reading until no bytes are left
-        // This currently is reading a static n(sizeof buffer) bytes
-        // If the client sends > n bytes, we lose the overflow, which is bad.
-        // Loop until 0 bytes are left... but make sure we can tell the difference between that and disconnecting.
         memset(buffer, 0, sizeof buffer);
         n = recv(c->sock, buffer, sizeof buffer, 0);
 

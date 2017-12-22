@@ -8,8 +8,12 @@
 
 #include "PhysiologyThread.h"
 
+#include <chrono>
+#include <time.h>
+
 #include <mutex>
 #include <thread>
+
 
 using namespace std;
 using namespace std::chrono;
@@ -52,12 +56,14 @@ public:
 
     void TickLoop();
 
-    void AdvanceTimeTick();
+    void AdvanceTimeTick();	
 
     bool closed = false;
     bool paused = false;
     int lastFrame = 0;
 
+	std::string get_filename_date(void);
+	
     void onNewNodeData(AMM::Physiology::Node n) override;
 
     void onNewTickData(AMM::Simulation::Tick t) override;
