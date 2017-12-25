@@ -32,8 +32,9 @@ int daemonize = 1;
 std::string action_path = "Actions/";
 std::string state_path = "states/";
 std::string patient_path = "patients/";
+std::string dataKey = "name";
 
-std::vector <std::string> actions;
+std::vector<std::string> actions;
 std::map<std::string, double> nodeDataStorage;
 std::map<std::string, std::string> statusStorage = {
         {"STATUS",       "NOT RUNNING"},
@@ -135,97 +136,114 @@ private:
     void setupRoutes() {
         using namespace Rest;
 
-        	Routes::Get(router, "/node/:name", Routes::bind(&DDSEndpoint::getNode, this));
-	      Routes::Get(router, "/nodes", Routes::bind(&DDSEndpoint::getAllNodes, this));
-        	Routes::Get(router, "/command/:name", Routes::bind(&DDSEndpoint::issueCommand, this));
-        	Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
-        	Routes::Get(router, "/debug", Routes::bind(&DDSEndpoint::doDebug, this));
+        Routes::Get(router, "/node/:name", Routes::bind(&DDSEndpoint::getNode, this));
+        Routes::Get(router, "/nodes", Routes::bind(&DDSEndpoint::getAllNodes, this));
+        Routes::Get(router, "/command/:name", Routes::bind(&DDSEndpoint::issueCommand, this));
+        Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
+        Routes::Get(router, "/debug", Routes::bind(&DDSEndpoint::doDebug, this));
 
-        	Routes::Get(router, "/shutdown", Routes::bind(&DDSEndpoint::doShutdown, this));
+        Routes::Get(router, "/shutdown", Routes::bind(&DDSEndpoint::doShutdown, this));
 
-        	Routes::Get(router, "/actions", Routes::bind(&DDSEndpoint::getActions, this));
-        	Routes::Get(router, "/action/:name", Routes::bind(&DDSEndpoint::getAction, this));
-        	Routes::Post(router, "/action", Routes::bind(&DDSEndpoint::createAction, this));
-        	Routes::Put(router, "/action/:name", Routes::bind(&DDSEndpoint::updateAction, this));
-        	Routes::Delete(router, "/action/:name", Routes::bind(&DDSEndpoint::deleteAction, this));
-        
-			Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
+        Routes::Get(router, "/actions", Routes::bind(&DDSEndpoint::getActions, this));
+        Routes::Get(router, "/action/:name", Routes::bind(&DDSEndpoint::getAction, this));
+        Routes::Post(router, "/action", Routes::bind(&DDSEndpoint::createAction, this));
+        Routes::Put(router, "/action/:name", Routes::bind(&DDSEndpoint::updateAction, this));
+        Routes::Delete(router, "/action/:name", Routes::bind(&DDSEndpoint::deleteAction, this));
 
-			Routes::Get(router, "/states", Routes::bind(&DDSEndpoint::getStates, this));        
-        
+        Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
+
+        Routes::Get(router, "/states", Routes::bind(&DDSEndpoint::getStates, this));
+
 
     }
 
-	void getStates(const Rest::Request &request, Http::ResponseWriter response) {
-			StringBuffer s;
-        	Writer<StringBuffer> writer(s);
-        	
-        	writer.StartArray();
-			if (exists(state_path) && is_directory(state_path)) {				
-				path p(state_path);        
-				if (is_directory(p)) {   
-					directory_iterator end_iter;
-    				for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
-						if (is_regular_file(dir_itr->status())) {
-							stringstream ss;
-							ss << dir_itr->path().filename();
-							writer.String(ss.str().c_str());
-      				}      
-    				}    
-  				}				               	            	            	            
-        	}
-			writer.EndArray();
-			
-        	response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        	response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    void getStates(const Rest::Request &request, Http::ResponseWriter response) {
+
+
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+
+        writer.StartArray();
+        if (exists(state_path) && is_directory(state_path)) {
+            path p(state_path);
+            if (is_directory(p)) {
+                directory_iterator end_iter;
+                for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
+                    if (is_regular_file(dir_itr->status())) {
+                        writer.StartObject();
+                        writer.Key("name");
+                        writer.String(dir_itr->path().filename().c_str());
+                        writer.Key("description");
+                        stringstream writeTime;
+                        writeTime << last_write_time(dir_itr->path());
+                        writer.String(writeTime.str().c_str());
+                        writer.EndObject();
+                    }
+                }
+            }
+        }
+        writer.EndArray();
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
-    
+
     void getPatients(const Rest::Request &request, Http::ResponseWriter response) {
-			StringBuffer s;
-        	Writer<StringBuffer> writer(s);
-        	
-        	writer.StartArray();
-			if (exists(patient_path) && is_directory(patient_path)) {				
-				path p(patient_path);        
-				if (is_directory(p)) {   
-					directory_iterator end_iter;
-    				for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
-						if (is_regular_file(dir_itr->status())) {
-							stringstream ss;
-							ss << dir_itr->path().filename();
-							writer.String(ss.str().c_str());
-      				}      
-    				}    
-  				}				               	            	            	            
-        	}
-			writer.EndArray();
-			
-        	response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        	response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+
+        writer.StartArray();
+        if (exists(patient_path) && is_directory(patient_path)) {
+            path p(patient_path);
+            if (is_directory(p)) {
+                directory_iterator end_iter;
+                for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
+                    if (is_regular_file(dir_itr->status())) {
+                        writer.StartObject();
+                        writer.Key("name");
+                        writer.String(dir_itr->path().filename().c_str());
+                        writer.Key("description");
+                        stringstream writeTime;
+                        writeTime << last_write_time(dir_itr->path());
+                        writer.String(writeTime.str().c_str());
+                        writer.EndObject();
+                    }
+                }
+            }
+        }
+        writer.EndArray();
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
     void getActions(const Rest::Request &request, Http::ResponseWriter response) {
-			StringBuffer s;
-        	Writer<StringBuffer> writer(s);
-        	
-        	writer.StartArray();
-			if (exists(action_path) && is_directory(action_path)) {				
-				path p(action_path);        
-				if (is_directory(p)) {   
-					directory_iterator end_iter;
-    				for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
-						if (is_regular_file(dir_itr->status())) {
-							stringstream ss;
-							ss << dir_itr->path().filename();
-							writer.String(ss.str().c_str());							
-      				}      
-    				}    
-  				}				               	            	            	            
-        	}
-			writer.EndArray();
-			
-        	response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        	response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+
+        writer.StartArray();
+        if (exists(action_path) && is_directory(action_path)) {
+            path p(action_path);
+            if (is_directory(p)) {
+                directory_iterator end_iter;
+                for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
+                    if (is_regular_file(dir_itr->status())) {
+                        writer.StartObject();
+                        writer.Key("name");
+                        writer.String(dir_itr->path().filename().c_str());
+                        writer.Key("description");
+                        stringstream writeTime;
+                        writeTime << last_write_time(dir_itr->path());
+                        writer.String(writeTime.str().c_str());
+                        writer.EndObject();
+                    }
+                }
+            }
+        }
+        writer.EndArray();
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
     void createAction(const Rest::Request &request, Http::ResponseWriter response) {
@@ -356,7 +374,6 @@ int main(int argc, char *argv[]) {
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
-
 
 
     RESTListener rl;
