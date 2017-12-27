@@ -4,8 +4,23 @@
 This is a series of proof-of-concept AMM modules utilizing DDS.  These can be used as a reference to build your own AMM-compliant modules.
 
 #### Requirements:
-* [FastRTPS](https://github.com/eProsima/Fast-RTPS) built and installed.
+* [FastRTPS](https://github.com/eProsima/Fast-RTPS) built and installed. 
+   * We depend on fastrtpsgen so be sure to enable Java with -DBUILD_JAVA=ON. Gradle and the JDK must already be installed on your system.
+   
+   ```
+   git clone https://github.com/eProsima/Fast-RTPS
+   cd Fast-RTPS
+   mkdir build
+   cd build
+   cmake -DTHIRDPARTY=ON -DBUILD_JAVA=ON .. 
+   make
+   make install
+   ```
+
+    
 * [BioGears](https://github.com/BioGearsEngine/Engine) or [Pulse](https://gitlab.kitware.com/physiology/engine) Physiology Engine SDK built and installed. 
+
+* [libboost](http://www.boost.org) installed. On Debian : sudo apt install libboost-all-dev 
 
 #### Optional:
 * [RapidJSON](https://github.com/miloyip/rapidjson) - JSON parser/generator for C++ (required for REST adapter) 

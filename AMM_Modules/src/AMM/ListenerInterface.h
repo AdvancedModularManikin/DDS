@@ -17,4 +17,5 @@ public:
 
     std::string sysPrefix = "[SYS]";
     std::string actPrefix = "[ACT]";
+    std::string loadPrefix = "LOAD_STATE:";
 };

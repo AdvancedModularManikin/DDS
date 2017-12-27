@@ -2,8 +2,11 @@
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 
+#define MAX_DATE 12
+
 using namespace std;
 using namespace std::chrono;
+
 
 PhysiologyEngineManager::PhysiologyEngineManager() {
 
@@ -29,6 +32,35 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
     nodePathMap = bg->nodePathTable;
     m_runThread = false;
 
+}
+
+std::string PhysiologyEngineManager::get_random_string(size_t length) {
+    auto randchar = []() -> char {
+        const char charset[] =
+                "0123456789"
+                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                        "abcdefghijklmnopqrstuvwxyz";
+        const size_t max_index = (sizeof(charset) - 1);
+        return charset[rand() % max_index];
+    };
+    std::string str(length, 0);
+    std::generate_n(str.begin(), length, randchar);
+    return str;
+}
+
+std::string PhysiologyEngineManager::get_filename_date(void) {
+    time_t now;
+    char the_date[MAX_DATE];
+
+    the_date[0] = '\0';
+
+    now = time(NULL);
+
+    if (now != -1) {
+        strftime(the_date, MAX_DATE, "%Y%m%d", gmtime(&now));
+    }
+
+    return std::string(the_date);
 }
 
 bool PhysiologyEngineManager::isRunning() {
@@ -155,8 +187,7 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
         if (value.compare("START_ENGINE") == 0) {
             cout << "=== [PhysiologyManager] Started engine based on Tick Simulation" << endl;
             StartTickSimulation();
-        }
-        else if (value.compare("STOP_ENGINE") == 0) {
+        } else if (value.compare("STOP_ENGINE") == 0) {
             cout << "=== [PhysiologyManager] Stopped engine" << endl;
             StopTickSimulation();
             StopSimulation();
@@ -164,6 +195,18 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
         } else if (value.compare("PAUSE_ENGINE") == 0) {
             cout << "=== [PhysiologyManager] Paused engine" << endl;
             StopTickSimulation();
+        } else if (value.compare("SAVE_STATE") == 0) {
+            std::ostringstream ss;
+            ss << "/tmp/states/SavedState_" << get_filename_date() << get_random_string(4) << ".xml";
+            cout << "=== [PhysiologyManager] Saved state file: " << ss.str() << endl;
+            bg->SaveState(ss.str());
+            cout << "=== Autogenerate state file?" << endl;
+            bg->SaveState();
+        } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
+            std::string loadFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
+            cout << "   We received this value for loadFile: " << loadFile << endl;
+            bg->LoadState(loadFile, 0);
+
         }
     } else {
         cout << "[PhysiologyManager] Command received: " << c.message() << endl;
@@ -188,9 +231,9 @@ void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick t) {
 
             // Did we get a frame out of order?  Just mark it with an X for now.
             if (t.frame() <= lastFrame) {
-            //   cout << "x";
+                //   cout << "x";
             } else {
-            //     cout << ".";
+                //     cout << ".";
             }
             lastFrame = static_cast<int>(t.frame());
 
