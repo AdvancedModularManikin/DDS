@@ -197,11 +197,10 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
             StopTickSimulation();
         } else if (value.compare("SAVE_STATE") == 0) {
             std::ostringstream ss;
-            ss << "/tmp/states/SavedState_" << get_filename_date() << get_random_string(4) << ".xml";
+	    //            ss << "/tmp/states/SavedState_" << get_filename_date() << get_random_string(4) << ".xml";
+	    ss << "./states/SavedState_" << get_filename_date() << get_random_string(4) << ".xml";
             cout << "=== [PhysiologyManager] Saved state file: " << ss.str() << endl;
             bg->SaveState(ss.str());
-            cout << "=== Autogenerate state file?" << endl;
-            bg->SaveState();
         } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
             std::string loadFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
             cout << "   We received this value for loadFile: " << loadFile << endl;

@@ -30,8 +30,8 @@ int thr = 2;
 int daemonize = 1;
 
 std::string action_path = "Actions/";
-std::string state_path = "states/";
-std::string patient_path = "patients/";
+std::string state_path = "./states/";
+std::string patient_path = "./patients/";
 std::string dataKey = "name";
 
 std::vector<std::string> actions;
