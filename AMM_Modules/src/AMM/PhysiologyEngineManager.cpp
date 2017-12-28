@@ -2,7 +2,7 @@
 
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 
-#define MAX_DATE 12
+#define MAX_DATE 18
 
 using namespace std;
 using namespace std::chrono;
@@ -57,7 +57,7 @@ std::string PhysiologyEngineManager::get_filename_date(void) {
     now = time(NULL);
 
     if (now != -1) {
-        strftime(the_date, MAX_DATE, "%Y%m%d", gmtime(&now));
+        strftime(the_date, MAX_DATE, "%Y%m%d_%H%M%S", gmtime(&now));
     }
 
     return std::string(the_date);
@@ -195,10 +195,13 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
         } else if (value.compare("PAUSE_ENGINE") == 0) {
             cout << "=== [PhysiologyManager] Paused engine" << endl;
             StopTickSimulation();
+	} else if (value.compare("RESET_SIM") == 0) {
+            cout << "=== [PhysiologyManager] Reset simulation, clearing engine data " << endl;
+	    StopTickSimulation();	  
         } else if (value.compare("SAVE_STATE") == 0) {
             std::ostringstream ss;
 	    //            ss << "/tmp/states/SavedState_" << get_filename_date() << get_random_string(4) << ".xml";
-	    ss << "./states/SavedState_" << get_filename_date() << get_random_string(4) << ".xml";
+	    ss << "./states/SavedState_" << get_filename_date() << ".xml";
             cout << "=== [PhysiologyManager] Saved state file: " << ss.str() << endl;
             bg->SaveState(ss.str());
         } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
