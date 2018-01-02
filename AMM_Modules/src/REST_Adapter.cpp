@@ -153,7 +153,7 @@ private:
         Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
 
         Routes::Get(router, "/states", Routes::bind(&DDSEndpoint::getStates, this));
-
+	Routes::Delete(router, "/states/:name", Routes::bind(&DDSEndpoint::deleteState, this)); 
 
     }
 
@@ -188,6 +188,13 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
+    void deleteState(const Rest::Request &request, Http::ResponseWriter response) {
+        auto name = request.param(":name").as<std::string>();
+	cout << "We are being asked to delete " << name << endl;
+	response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, "Deleted", MIME(Application, Json));
+    }
+  
     void getPatients(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
@@ -245,7 +252,7 @@ private:
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
-
+  
     void createAction(const Rest::Request &request, Http::ResponseWriter response) {
 
     }
