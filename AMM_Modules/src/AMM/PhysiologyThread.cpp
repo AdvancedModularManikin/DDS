@@ -7,7 +7,10 @@ std::vector<std::string> PhysiologyThread::highFrequencyNodes;
 std::map<std::string, double (PhysiologyThread::*)()> PhysiologyThread::nodePathTable;
 
 PhysiologyThread::PhysiologyThread(const std::string &logFile) :
-        m_pe(CreateBioGearsEngine(logFile)) { 
+        m_pe(CreateBioGearsEngine(logFile)) {
+    
+    PopulateNodePathTable();
+
     m_runThread = false;
 }
 
@@ -105,6 +108,7 @@ void PhysiologyThread::PopulateNodePathTable() {
             "Respiratory_CarbonDioxide_Exhaled",
             "Respiratory_Respiration_Rate"
     };
+
 }
 
 
@@ -117,12 +121,10 @@ void PhysiologyThread::Shutdown() {
 }
 
 void PhysiologyThread::StartSimulation() {
-    m_runThread = true;
-    
-    PreloadSubstances();
-    PreloadCompartments();
-    PopulateNodePathTable();
-    m_thread = std::thread(&PhysiologyThread::AdvanceTime, this);
+    if (!m_runThread) {
+        m_runThread = true;
+        m_thread = std::thread(&PhysiologyThread::AdvanceTime, this);
+    }
 }
 
 void PhysiologyThread::StopSimulation() {
@@ -141,6 +143,9 @@ bool PhysiologyThread::LoadState(const std::string &stateFile, double sec) {
         std::cerr << "[BioGears]: ERROR initializing!" << std::endl;
         return false;
     }
+
+  	 PreloadSubstances();
+    PreloadCompartments();
 
     return true;
 }
@@ -167,7 +172,7 @@ bool PhysiologyThread::LoadScenarioFile(const std::string &scenarioFile) {
     sce.LoadFile(scenarioFile);
 
     double dT_s = m_pe->GetTimeStep(TimeUnit::s);
-    double scenarioTime_s;
+    // double scenarioTime_s;
 
     double sampleTime_s = sce.GetDataRequestManager().GetSamplesPerSecond();
     if (sampleTime_s != 0)
@@ -183,7 +188,7 @@ bool PhysiologyThread::LoadScenarioFile(const std::string &scenarioFile) {
             for (int i = 0; i <= count; i++) {
 
                 m_pe->AdvanceModelTime();
-                scenarioTime_s = m_pe->GetSimulationTime(TimeUnit::s);
+                // scenarioTime_s = m_pe->GetSimulationTime(TimeUnit::s);
                 currentSampleTime_s += dT_s;
                 if (currentSampleTime_s >= sampleTime_s) {
                     currentSampleTime_s = 0;

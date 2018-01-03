@@ -3,10 +3,9 @@
 #include <mutex>
 #include <thread>
 
+// Boost dependancies
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
-
-#include "AMMPubSubTypes.h"
 
 // BioGears core
 #include "BioGearsPhysiologyEngine.h"
@@ -71,19 +70,15 @@
 #include "substance/SESubstanceManager.h"
 #include "substance/SESubstance.h"
 
+#include "AMMPubSubTypes.h"
+
 // Forward declare what we will use in our thread
 class SESubstance;
-
 class SEEnergySystem;
-
 class SEComprehensiveMetabolicPanel;
-
 class SEGasCompartment;
-
 class SECompleteBloodCount;
-
 class PhysiologyEngine;
-
 class PhysiologyThread {
 
 public:
@@ -109,7 +104,6 @@ public:
     double GetSimulationTime();
 
     std::map<std::string, double (PhysiologyThread::*)()> * GetNodePathTable();
-      
     
     double GetNodePath(const std::string &nodePath);
 
