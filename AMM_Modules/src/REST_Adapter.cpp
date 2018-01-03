@@ -153,7 +153,7 @@ private:
         Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
 
         Routes::Get(router, "/states", Routes::bind(&DDSEndpoint::getStates, this));
-	Routes::Delete(router, "/states/:name", Routes::bind(&DDSEndpoint::deleteState, this)); 
+        Routes::Get(router, "/states/:name/delete", Routes::bind(&DDSEndpoint::deleteState, this));
 
     }
 
@@ -190,11 +190,23 @@ private:
 
     void deleteState(const Rest::Request &request, Http::ResponseWriter response) {
         auto name = request.param(":name").as<std::string>();
-	cout << "We are being asked to delete " << name << endl;
-	response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Http::Code::Ok, "Deleted", MIME(Application, Json));
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        if (name != "StandardMale@0s.xml") {
+            std::ostringstream deleteFile;
+            deleteFile << state_path << "/" << name;
+            path deletePath(deleteFile.str().c_str());
+            if (exists(deletePath) && is_regular_file(deletePath)) {
+                cout << "= [REST_Adapter] Deleting " << deletePath << endl;
+                boost::filesystem::remove(deletePath);
+                response.send(Http::Code::Ok, "Deleted", MIME(Application, Json));
+            } else {
+                response.send(Http::Code::Forbidden, "Unable to delete state file", MIME(Application, Json));
+            }
+        } else {
+            response.send(Http::Code::Forbidden, "Can not delete default state file", MIME(Application, Json));
+        }
     }
-  
+
     void getPatients(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
@@ -252,7 +264,7 @@ private:
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
-  
+
     void createAction(const Rest::Request &request, Http::ResponseWriter response) {
 
     }
