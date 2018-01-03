@@ -11,10 +11,6 @@ using namespace std::chrono;
 PhysiologyEngineManager::PhysiologyEngineManager() {
 
     cout << "=== [PhysiologyManager] Starting up." << endl;
-
-    /**
-     * Physiology Data DDS Entity manager
-     */
     cout << "=== [PhysiologyManager][DDS] Initializing DDS entity manager (DATA)." << endl;
 
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
@@ -29,7 +25,6 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
     command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
     node_publisher = mgr->InitializeNodePublisher(pub_listener);
 
-    nodePathMap = bg->nodePathTable;
     m_runThread = false;
 
 }
@@ -78,9 +73,9 @@ void PhysiologyEngineManager::SendShutdown() {
 }
 
 void PhysiologyEngineManager::PrintAvailableNodePaths() {
-    nodePathMap = bg->nodePathTable;
-    auto it = nodePathMap.begin();
-    while (it != nodePathMap.end()) {
+  nodePathMap = bg->GetNodePathTable();
+    auto it = nodePathMap->begin();
+    while (it != nodePathMap->end()) {
         std::string word = it->first;
         cout << word << endl;
         ++it;
@@ -88,9 +83,9 @@ void PhysiologyEngineManager::PrintAvailableNodePaths() {
 }
 
 void PhysiologyEngineManager::PrintAllCurrentData() {
-    nodePathMap = bg->nodePathTable;
-    auto it = nodePathMap.begin();
-    while (it != nodePathMap.end()) {
+  nodePathMap = bg->GetNodePathTable();
+    auto it = nodePathMap->begin();
+    while (it != nodePathMap->end()) {
         std::string node = it->first;
         double dbl = bg->GetNodePath(node);
         cout << node << "\t\t\t" << dbl << endl;
@@ -99,7 +94,7 @@ void PhysiologyEngineManager::PrintAllCurrentData() {
 }
 
 int PhysiologyEngineManager::GetNodePathCount() {
-    return static_cast<int>(nodePathMap.size());
+    return static_cast<int>(nodePathMap->size());
 }
 
 void PhysiologyEngineManager::WriteNodeData(string node) {
@@ -111,25 +106,37 @@ void PhysiologyEngineManager::WriteNodeData(string node) {
 }
 
 void PhysiologyEngineManager::PublishData(bool force = false) {
-    auto it = nodePathMap.begin();
-    while (it != nodePathMap.end()) {
-        // High-frequency nodes are published every tick
-        // All other nodes are published every % 10 tick
-        if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) !=
-             bg->highFrequencyNodes.end())
-            || (lastFrame % 10) == 0 || force) {
-            if (it->first != "EXIT") {
-                WriteNodeData(it->first);
-            }
-        }
-        ++it;
+  nodePathMap = bg->GetNodePathTable();
+  auto it = nodePathMap->begin();
+  while (it != nodePathMap->end()) {
+    // High-frequency nodes are published every tick
+    // All other nodes are published every % 10 tick
+    if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) !=
+	 bg->highFrequencyNodes.end())
+	|| (lastFrame % 10) == 0 || force) {
+      if (it->first != "EXIT") {
+	WriteNodeData(it->first);
+      }
     }
+    ++it;
+  }
 }
 
 void PhysiologyEngineManager::StartTickSimulation() {
     if (!m_runThread) {
-        m_runThread = true;
-        m_thread = std::thread(&PhysiologyEngineManager::TickLoop, this);
+	bg = new PhysiologyThread("./logs/biogears.log");
+	std::size_t pos = stateFile.find("@");
+	std::string state2 = stateFile.substr(pos);
+	std::size_t pos2 = state2.find("s");
+	std::string state3 = state2.substr(1,pos2-1);
+	double startPosition = atof(state3.c_str());
+	cout << " === [PhysiologyManager] Loading state file " << stateFile << " at position " << startPosition << " seconds" << endl;
+	bg->LoadState(stateFile.c_str(), startPosition);
+	nodePathMap = bg->GetNodePathTable();
+	m_runThread = true;
+	paused = false;
+	m_thread = std::thread(&PhysiologyEngineManager::TickLoop, this);
+
     }
 }
 
@@ -137,6 +144,7 @@ void PhysiologyEngineManager::StopTickSimulation() {
     if (m_runThread) {
         m_mutex.lock();
         m_runThread = false;
+	paused = false;
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         m_mutex.unlock();
         m_thread.detach();
@@ -184,7 +192,7 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
     if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
         std::string value = c.message().substr(sysPrefix.size());
         cout << "[PhysiologyManager] We received a SYSTEM action: " << value << endl;
-        if (value.compare("START_ENGINE") == 0) {
+        if (value.compare("START_ENGINE") == 0 || value.compare("START_SIM") == 0) {
             cout << "=== [PhysiologyManager] Started engine based on Tick Simulation" << endl;
             StartTickSimulation();
         } else if (value.compare("STOP_ENGINE") == 0) {
@@ -197,18 +205,17 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
             StopTickSimulation();
 	} else if (value.compare("RESET_SIM") == 0) {
             cout << "=== [PhysiologyManager] Reset simulation, clearing engine data " << endl;
-	    StopTickSimulation();	  
+	    StopTickSimulation();
+	    StopSimulation();
         } else if (value.compare("SAVE_STATE") == 0) {
             std::ostringstream ss;
-	    //            ss << "/tmp/states/SavedState_" << get_filename_date() << get_random_string(4) << ".xml";
-	    ss << "./states/SavedState_" << get_filename_date() << ".xml";
+	    ss << "./states/SavedState_" << get_filename_date() << "@" << (int)std::round(bg->GetSimulationTime()) << "s.xml";
             cout << "=== [PhysiologyManager] Saved state file: " << ss.str() << endl;
             bg->SaveState(ss.str());
         } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
-            std::string loadFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
-            cout << "   We received this value for loadFile: " << loadFile << endl;
-            bg->LoadState(loadFile, 0);
-
+	  StopTickSimulation();
+	  stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
+	  StartTickSimulation();
         }
     } else {
         cout << "[PhysiologyManager] Command received: " << c.message() << endl;
@@ -217,32 +224,33 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
 }
 
 void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick t) {
-    if (m_runThread) {
-        if (t.frame() == -1) {
-            cout << "[SHUTDOWN]" << endl;
-            StopTickSimulation();
-            SendShutdown();
-        } else if (t.frame() == -2) {
-            cout << "[PAUSE]" << endl;
-            paused = true;
-        } else if (t.frame() > 0 || !paused) {
-            if (paused) {
-                cout << "[RESUME]" << endl;
-                paused = false;
-            }
-
-            // Did we get a frame out of order?  Just mark it with an X for now.
-            if (t.frame() <= lastFrame) {
-                //   cout << "x";
-            } else {
-                //     cout << ".";
-            }
-            lastFrame = static_cast<int>(t.frame());
-
-            // Per-frame stuff happens here
-            bg->AdvanceTimeTick();
-            PublishData(false);
-        }
-        cout.flush();
+  if (m_runThread) {
+    if (t.frame() == -1) {
+      cout << "[SHUTDOWN]" << endl;
+      StopTickSimulation();
+      SendShutdown();
+    } else if (t.frame() == -2) {
+      cout << "[PAUSE]" << endl;
+      paused = true;
+    } else if (t.frame() > 0 || !paused) {
+      if (paused) {
+	cout << "[RESUME]" << endl;
+	paused = false;
+      }
+      
+      // Did we get a frame out of order?  Just mark it with an X for now.
+      if (t.frame() <= lastFrame) {
+	//	cout << "x";
+      } else {
+	//	cout << ".";
+      }
+      lastFrame = static_cast<int>(t.frame());
+      
+      // Per-frame stuff happens here
+      AdvanceTimeTick();
+      PublishData(false);
+    } else {
+      cout.flush();
     }
+  }
 }

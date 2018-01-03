@@ -6,17 +6,8 @@ using namespace AMM::Physiology;
 std::vector<std::string> PhysiologyThread::highFrequencyNodes;
 std::map<std::string, double (PhysiologyThread::*)()> PhysiologyThread::nodePathTable;
 
-PhysiologyThread::PhysiologyThread(const std::string &logFile, const std::string &stateFile) :
-        m_pe(CreateBioGearsEngine(logFile)) {
-    if (!m_pe->LoadState(stateFile)) {
-        m_pe->GetLogger()->Error("Could not load state, check the error");
-        return;
-    }
-
-    PreloadSubstances();
-    PreloadCompartments();
-    PopulateNodePathTable();
-
+PhysiologyThread::PhysiologyThread(const std::string &logFile) :
+        m_pe(CreateBioGearsEngine(logFile)) { 
     m_runThread = false;
 }
 
@@ -45,7 +36,10 @@ void PhysiologyThread::PreloadCompartments() {
 }
 
 void PhysiologyThread::PopulateNodePathTable() {
-    // Legacy values
+    highFrequencyNodes.clear();
+    nodePathTable.clear();
+
+  // Legacy values
     nodePathTable["ECG"] = &PhysiologyThread::GetECGWaveform;
     nodePathTable["HR"] = &PhysiologyThread::GetHeartRate;
     nodePathTable["SIM_TIME"] = &PhysiologyThread::GetSimulationTime;
@@ -113,12 +107,21 @@ void PhysiologyThread::PopulateNodePathTable() {
     };
 }
 
+
+std::map<std::string, double (PhysiologyThread::*)()> * PhysiologyThread::GetNodePathTable() {
+  return &nodePathTable;
+}
+
 void PhysiologyThread::Shutdown() {
 
 }
 
 void PhysiologyThread::StartSimulation() {
     m_runThread = true;
+    
+    PreloadSubstances();
+    PreloadCompartments();
+    PopulateNodePathTable();
     m_thread = std::thread(&PhysiologyThread::AdvanceTime, this);
 }
 
@@ -445,6 +448,10 @@ double PhysiologyThread::GetRightAlveoliBaselineCompliance() {
 
 double PhysiologyThread::GetCardiacOutput() {
     return m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min);
+}
+
+double PhysiologyThread::GetSimluationTime() {
+  return m_pe->GetSimulationTime(TimeUnit::s);
 }
 
 void PhysiologyThread::Status() {

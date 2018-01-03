@@ -87,7 +87,7 @@ class PhysiologyEngine;
 class PhysiologyThread {
 
 public:
-    PhysiologyThread(const std::string &logFile, const std::string &stateFile);
+    PhysiologyThread(const std::string &logFile);
 
     virtual ~PhysiologyThread();
 
@@ -108,14 +108,19 @@ public:
 
     double GetSimulationTime();
 
+    std::map<std::string, double (PhysiologyThread::*)()> * GetNodePathTable();
+      
+    
     double GetNodePath(const std::string &nodePath);
 
     void Status();
 
+    double GetSimluationTime();      
+
     static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
     static std::vector<std::string> highFrequencyNodes;
-
-
+    
+    
 private:
     bool LoadScenarioFile(const std::string &scenarioFile);
 
