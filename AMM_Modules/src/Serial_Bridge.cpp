@@ -6,8 +6,8 @@
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
 
-// #define PORT_LINUX "/dev/tty96B0"
-#define PORT_LINUX "/dev/serial/by-id/usb-Adafruit_Feather_32u4-if00"
+#define PORT_LINUX "/dev/tty96B0"
+//#define PORT_LINUX "/dev/serial/by-id/usb-Adafruit_Feather_32u4-if00"
 #define PORT_WINDOW "COM7"
 
 
