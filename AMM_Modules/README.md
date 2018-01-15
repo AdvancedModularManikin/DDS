@@ -44,7 +44,7 @@ This will build into the `bin` directory.  You will have a few binaries:
 * amm_heartrate_led - [BLT](https://github.com/AdvancedModularManikin/development-kit/wiki/AMMDK-Overview) test to flash LED at heart rate
 * amm_rest_adapter - Accept HTTP requests and return data from the DDS bus
 * amm_tcp_bridge - Connector from the DDS bus to TCP, including a UDP auto-discovery server.  Used for Unity3D connectivity.
-
+* amm_serial_bridge - Connector to devices (Arduino, etc) that communicate via serial / USB.
 
 ### REST Adapter routes
 The REST adapter exposes the following routes:
@@ -52,6 +52,9 @@ The REST adapter exposes the following routes:
 /nodes            - retrieve the current state of all node paths
 /node/<name>      - retrieve a single node_path
 /command/<action> - issue a command
+/actions	  - retrieve a list of all available actions
+/states		  - retrieve a list of all available starting states / scenarios
+/patients	  - retrieve a list of all available patients
 ```
 
 #### Examples: 
