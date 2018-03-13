@@ -1,91 +1,155 @@
 
-module AMM {
-  module Simulation {	
-    struct Tick {
-      long long frame; //@key
-      float time;
-    };
-#pragma keylist Tick frame  
-  };
-  
-  module Physiology {	
-    
-    struct Node {
-      long long frame; 
-      string nodepath;
-      string unit;
-      double dbl;
-      string str;
-    };
-#pragma keylist Node frame nodepath
-    
-    struct HighFrequencyNode {
-      long long frame; 
-      string nodepath; 
-      string unit;
-      double dbl;
-      string str;
-    };
-#pragma keylist HighFrequencyNode frame nodepath
-    
-  };
-    
-    module PatientAction {  
-    module BioGears {	
-    struct Command {
-    string message;
-  };
-#pragma keylist Command
-  };
-  };    
-    
-    
-  module Performance {	
-	struct xAPIModifier {
-		string key;
-		string value;
-	};
+module AMM{
+        module Simulation {
+            struct Tick {
+                @Key long long frame;
+                float time;
+            };
+        };
 
-	
-	typedef sequence<xAPIModifier> xAPI_Modifiers;
-	
-    struct Statement {
-      string noun;
-      xAPI_Modifiers noun_modifiers;
-      string verb;
-      xAPI_Modifiers verb_modifiers;
-      string obj;
-      xAPI_Modifiers obj_modifiers;
-    };
-    #pragma keylist Statement
-  };
-  
-    module Sys {
-    // events?  start?  stop?  pause?  restart?  reload?
-    // heartbeat?  errors?  general health?
-    
-    // This will NOT be in the spec
-    module Log {
-    struct info {
-    string message;
-  };      
-#pragma keylist info
-    
-    struct warning {
-    string message;
-  };
-#pragma keylist warning
-    
-    struct error {
-    string message;
-  };
-#pragma keylist error
-    
-    struct debug {
-      string message;
-    };
-#pragma keylist debug
-  };
-};
+        module Physiology {
+
+            struct Node {
+                @Key long long frame;
+                string nodepath;
+                string unit;
+                double dbl;
+                string str;
+            };
+
+            struct HighFrequencyNode {
+                @Key long long frame;
+                string nodepath;
+                string unit;
+                double dbl;
+                string str;
+            };
+        };
+
+        module PatientAction {
+            module BioGears{
+                    struct Command {
+                        string message;
+                    };
+            };
+        };
+
+        module Performance {
+            struct xAPIModifier {
+                string key;
+                string value;
+            };
+
+            typedef sequence <xAPIModifier> xAPI_Modifiers;
+
+            struct Statement {
+                string noun;
+                xAPI_Modifiers noun_modifiers;
+                string verb;
+                xAPI_Modifiers verb_modifiers;
+                string obj;
+                xAPI_Modifiers obj_modifiers;
+            };
+        };
+
+        module Resource {
+            module Requirement {
+                    struct Power {
+                        double volts;
+                        double amps;
+                    };
+
+                    struct Blood {
+                        double volume;
+                    };
+
+                    struct Clear_Liquid {
+                        double volume;
+                    };
+
+                    struct Air {
+                        double volume;
+                    };
+
+                    struct Cleaning_Solution {
+                        double volume;
+                    };
+            };
+
+            module Supply {
+                    struct Power {
+                        double volts;
+                        double amps;
+                    };
+
+                    struct Blood {
+                        double volume;
+                    };
+
+                    struct Clear_Liquid {
+                        double volume;
+                    };
+
+                    struct Air {
+                        double volume;
+                    };
+
+                    struct Cleaning_Solution {
+                        double volume;
+                    };
+            };
+        };
+
+        module Capability {
+            enum status_values {
+                OPERATIONAL,
+                HALTING_ERROR,
+                IMPENDING_ERROR
+            };
+
+            struct AMM_version {
+                string software_version;
+                string hardware_version;
+                string specification_version;
+            };
+
+            struct Configuration {
+                @Key string manufacturer;
+                @Key string model;
+                @Key string serial_number;
+                string version;
+                AMM_version amm_version;
+                string capabilities;
+            };
+
+
+
+            struct Status {
+                @Key string capability;
+                status_values status_value;
+                sequence <string> message;
+            };
+        };
+
+        // These are not part of the specification
+        module Sys {
+            module Log{
+                    struct info {
+                        string message;
+                    };
+
+                    struct warning {
+                        string message;
+                    };
+
+                    struct error {
+                        string message;
+                    };
+
+                    struct debug {
+                        string message;
+                    };
+            };
+        };
 };
 
