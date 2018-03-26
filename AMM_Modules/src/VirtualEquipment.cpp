@@ -49,13 +49,7 @@ int main(int argc, char *argv[]) {
     VirtualEquipmentListener vel;
     vel.SetFilter(&node_paths);
     node_sub_listener->SetUpstream(&vel);
-    Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
-
-    if (node_subscriber == nullptr) {
-        cout << "=== [VirtualEquipment] Unable to initialize node data subscriber." << endl;
-        return false;
-    }
-
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
 
     cout << "=== [VirtualEquipment] Ready ..." << endl;
 

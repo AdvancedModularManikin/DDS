@@ -104,12 +104,10 @@ int main(int argc, char *argv[]) {
     node_sub_listener->SetUpstream(&vel);
     command_sub_listener->SetUpstream(&vel);
     auto *pub_listener = new DDS_Listeners::PubListener();
-    Subscriber *node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
-    Subscriber *command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
-    Publisher * command_publisher = mgr->InitializeCommandPublisher(pub_listener);
 
-
-
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+    Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
 
     int count = 0;
     while (!closed) {

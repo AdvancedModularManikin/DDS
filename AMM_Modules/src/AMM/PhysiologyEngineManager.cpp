@@ -21,9 +21,11 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
 
     auto *pub_listener = new DDS_Listeners::PubListener();
 
-    tick_subscriber = mgr->InitializeTickSubscriber(tick_sub_listener);
-    command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
-    node_publisher = mgr->InitializeNodePublisher(pub_listener);
+    tick_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(),
+                                                tick_sub_listener);
+    command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                   command_sub_listener);
+    node_publisher = mgr->InitializePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), pub_listener);
 
     m_runThread = false;
 
@@ -105,9 +107,9 @@ void PhysiologyEngineManager::WriteNodeData(string node) {
     node_publisher->write(&dataInstance);
 }
 
-void PhysiologyEngineManager::PublishData(bool force = false) {    
+void PhysiologyEngineManager::PublishData(bool force = false) {
     auto it = nodePathMap->begin();
-    while (it != nodePathMap->end()) {        
+    while (it != nodePathMap->end()) {
         // High-frequency nodes are published every tick
         // All other nodes are published every % 10 tick
         if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) !=

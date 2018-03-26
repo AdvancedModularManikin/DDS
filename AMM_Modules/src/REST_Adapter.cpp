@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include "AMM/DataTypes.h"
 #include "AMM/DDS_Manager.h"
 
 #include <pistache/http.h>
@@ -394,18 +395,18 @@ int main(int argc, char *argv[]) {
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
 
-
     RESTListener rl;
     node_sub_listener->SetUpstream(&rl);
     command_sub_listener->SetUpstream(&rl);
     tick_sub_listener->SetUpstream(&rl);
 
-    mgr->InitializeNodeSubscriber(node_sub_listener);
-    mgr->InitializeCommandSubscriber(command_sub_listener);
-    mgr->InitializeTickSubscriber(tick_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), tick_sub_listener);
+
 
     auto *pub_listener = new DDS_Listeners::PubListener();
-    command_publisher = mgr->InitializeCommandPublisher(pub_listener);
+    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
 
     std::thread udpD(UdpDiscoveryThread);
 

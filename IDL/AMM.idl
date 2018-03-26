@@ -11,7 +11,7 @@ module AMM{
 
             struct Node {
                 @Key long long frame;
-                string nodepath;
+                @Key string nodepath;
                 string unit;
                 double dbl;
                 string str;
@@ -19,7 +19,7 @@ module AMM{
 
             struct HighFrequencyNode {
                 @Key long long frame;
-                string nodepath;
+                @Key string nodepath;
                 string unit;
                 double dbl;
                 string str;

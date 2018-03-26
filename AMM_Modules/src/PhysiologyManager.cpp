@@ -13,7 +13,7 @@ static void show_usage(const std::string &name) {
          endl;
 }
 
-void show_menu(PhysiologyEngineManager * pe) {
+void show_menu(PhysiologyEngineManager *pe) {
     string action;
 
     cout << endl;
@@ -74,9 +74,9 @@ void show_menu(PhysiologyEngineManager * pe) {
 
 int main(int argc, char *argv[]) {
     int daemonize = 0;
-	int autostart = 0;
-    cout << "=== [AMM - Physiology Manager] ===" << endl;		
-	
+    int autostart = 0;
+    cout << "=== [AMM - Physiology Manager] ===" << endl;
+
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -93,15 +93,19 @@ int main(int argc, char *argv[]) {
         }
     }
 
-	PhysiologyEngineManager pe;
+    PhysiologyEngineManager pe;
 
     if (autostart == 1) {
-        cout << " == Auto-starting simulation based on ticks" << endl;
+        cout << " == Auto-starting physiology simulation based on ticks" << endl;
         pe.StartTickSimulation();
     }
 
     while (!closed) {
-        show_menu(&pe);
+        if (autostart != 1) {
+            show_menu(&pe);
+        }
+        std::this_thread::sleep_for (std::chrono::seconds(1));
+        cout.flush();
     }
 
     cout << "=== [PhysiologyManager] Exiting." << endl;

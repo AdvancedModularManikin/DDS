@@ -5,6 +5,8 @@ SET(BioGears_INCLUDE_DIRS
 	$ENV{BIOGEARS_HOME}/library/include/bind
 	$ENV{BIOGEARS_HOME}/library/include/cdm
 	$ENV{BIOGEARS_HOME}/library/include/Eigen
+	$ENV{BIOGEARS_HOME}/library/include/schema
+	$ENV{BIOGEARS_HOME}/library/include/log4cpp/include
 )
 
 # Find libraries

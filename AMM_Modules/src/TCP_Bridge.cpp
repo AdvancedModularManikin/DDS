@@ -258,9 +258,10 @@ int main(int argc, const char *argv[]) {
     node_sub_listener->SetUpstream(&tl);
     command_sub_listener->SetUpstream(&tl);
 
-    node_subscriber = mgr->InitializeNodeSubscriber(node_sub_listener);
-    command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
-    command_publisher = mgr->InitializeCommandPublisher(pub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+
+    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
 
     cout << "=== [Network_Bridge] Ready ..." << endl;
 

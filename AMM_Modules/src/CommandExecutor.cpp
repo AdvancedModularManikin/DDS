@@ -10,9 +10,6 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, char *argv[]) {
-    char configFile[] = "OSPL_URI=file://ospl.xml";
-    putenv(configFile);
-
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -23,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     auto *mgr = new DDS_Manager();
     auto *pub_listener = new DDS_Listeners::PubListener();
-    Publisher *command_publisher = mgr->InitializeCommandPublisher(pub_listener);
+    Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
 
     std::string action;
     bool closed = false;

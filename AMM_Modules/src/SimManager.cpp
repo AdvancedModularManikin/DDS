@@ -123,10 +123,12 @@ int main(int argc, char *argv[]) {
     }
 
     while (!closed) {
-        show_menu(&simManager);
+        if (autostart != 1) {
+            show_menu(&simManager);
+        }
     }
 
-    cout << "=== [PhysiologyManager] Exiting." << endl;
+    cout << "=== [SimManager] Exiting." << endl;
 
     return 0;
 }

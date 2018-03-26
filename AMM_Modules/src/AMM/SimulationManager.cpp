@@ -3,19 +3,18 @@
 using namespace std;
 using namespace std::chrono;
 
-SimulationManager::SimulationManager() {
 
+SimulationManager::SimulationManager() {
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     command_sub_listener->SetUpstream(this);
+    command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                   command_sub_listener);
 
-    command_subscriber = mgr->InitializeCommandSubscriber(command_sub_listener);
     auto *pub_listener = new DDS_Listeners::PubListener();
-
-    tick_publisher = mgr->InitializeTickPublisher(pub_listener);
-    command_publisher = mgr->InitializeCommandPublisher(pub_listener);
-
+    tick_publisher = mgr->InitializePublisher(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), pub_listener);
+    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                 pub_listener);
     m_runThread = false;
-
 }
 
 void SimulationManager::StartSimulation() {
@@ -118,9 +117,9 @@ void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c
             cout << "=== [SimManager] Paused simulation (can be restarted)" << endl;
             StopSimulation();
         } else if (value.compare("RESET_SIM") == 0) {
-        		StopSimulation();
-        		tickCount = 0;
-        		cout << "=== [SimManager] Reset simulation (restart will be a new simulation)" << endl;
+            StopSimulation();
+            tickCount = 0;
+            cout << "=== [SimManager] Reset simulation (restart will be a new simulation)" << endl;
         }
     } else {
         cout << "[SimManager] Command received: " << c.message() << endl;

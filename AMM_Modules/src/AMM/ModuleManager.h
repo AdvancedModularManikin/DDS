@@ -14,33 +14,23 @@
 using namespace std;
 using namespace std::chrono;
 
-class SimulationManager : public ListenerInterface {
+class ModuleManager : public ListenerInterface {
 
 public:
 
-    SimulationManager();
+    ModuleManager();
 
-    ~SimulationManager() override = default;;
+    ~ModuleManager() override = default;;        
 
-    void StartSimulation();
+	void Start();
 
-    void StopSimulation();
-
-    void Shutdown();
-
-    void SetSampleRate(int rate);
-
-    int GetSampleRate();
+	void RunLoop();
+	
+   void Shutdown();
 
     bool isRunning();
 
-    int GetTickCount();
-
-    void SendCommand(const std::string &command);
-
     void Cleanup();
-
-    void TickLoop();
 
     void onNewNodeData(AMM::Physiology::Node n) override;
 
@@ -57,12 +47,8 @@ protected:
     DDS_Manager *mgr = new DDS_Manager();
 
     Subscriber *command_subscriber;
-
     Publisher *command_publisher;
     Publisher *tick_publisher;
-
-    int tickCount = 0;
-    int sampleRate = 50;
 
 };
 
