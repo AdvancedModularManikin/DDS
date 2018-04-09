@@ -35,6 +35,8 @@ Participant* DDS_Manager::GetParticipant() {
 }
 
 void DDS_Manager::RegisterTypes() {
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getTickType());
+
     Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getNodeType());
     Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getHighFrequencyNodeType());
 
