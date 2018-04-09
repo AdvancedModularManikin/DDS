@@ -77,7 +77,9 @@ private:
     std::map<std::string, double (PhysiologyThread::*)()> * nodePathMap;
 
 protected:
-    DDS_Manager *mgr = new DDS_Manager();
+    const char* nodeName = "AMM_PhysiologyEngine";
+
+    DDS_Manager *mgr = new DDS_Manager(nodeName);
 
     Publisher *node_publisher;
     Subscriber *tick_subscriber;

@@ -17,8 +17,8 @@ int main(int argc, char *argv[]) {
             return 0;
         }
     }
-
-    auto *mgr = new DDS_Manager();
+    const char* nodeName = "AMM_CommandExecutor";
+    auto *mgr = new DDS_Manager(nodeName);
     auto *pub_listener = new DDS_Listeners::PubListener();
     Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
 

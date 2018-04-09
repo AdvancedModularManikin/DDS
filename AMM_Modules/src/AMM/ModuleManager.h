@@ -44,7 +44,9 @@ protected:
     std::mutex m_mutex;
     bool m_runThread;
 
-    DDS_Manager *mgr = new DDS_Manager();
+	const char* nodeName = "AMM_ModuleManager";
+
+    DDS_Manager *mgr = new DDS_Manager(nodeName);
 
     Subscriber *command_subscriber;
     Publisher *command_publisher;

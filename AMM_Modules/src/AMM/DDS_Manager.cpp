@@ -7,10 +7,14 @@ using namespace eprosima;
 using namespace eprosima::fastrtps;
 
 DDS_Manager::DDS_Manager() {
+    DDS_Manager(partitionName);
+}
+
+DDS_Manager::DDS_Manager(const char *nodeName) {
     ParticipantAttributes PParam;
     PParam.rtps.builtin.domainId = (uint32_t) domainId;
     PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
-    PParam.rtps.setName(partitionName);
+    PParam.rtps.setName(nodeName);
     mp_participant = Domain::createParticipant(PParam);
 
     if (mp_participant == nullptr) {
@@ -18,13 +22,53 @@ DDS_Manager::DDS_Manager() {
         return;
     }
 
-    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getTickType());
-    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getNodeType());
-    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getCommandType());
+
+    RegisterTypes();
 
     // Create some default listeners to use so higher level code doesn't need to require them
     default_pub_listener = new DDS_Listeners::PubListener();
     default_sub_listener = new DDS_Listeners::DefaultSubListener();
+}
+
+Participant* DDS_Manager::GetParticipant() {
+    return mp_participant;
+}
+
+void DDS_Manager::RegisterTypes() {
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getNodeType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getHighFrequencyNodeType());
+
+    // AMM Patient Action / Intervention types
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getCommandType());
+
+    // AMM Performance types
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getxAPIStatementType());
+
+    // AMM Resource Requirements types
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getAirRequirementType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getBloodRequirementType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getCleaningSolutionRequirementType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getClearLiquidRequirementType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getPowerRequirementType());
+
+    // AMM Resource Supply types
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getAirSupplyType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getBloodSupplyType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getCleaningSolutionSupplyType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getClearLiquidSupplyType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getPowerSupplyType());
+
+    // AMM Capability types
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getConfigurationType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getStatusType());
+
+    // AMM Logging types
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getDebugLogType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getErrorLogType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getWarningLogType());
+    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getInfoLogType());
+
+
 }
 
 Publisher *DDS_Manager::InitializePublisher(std::string topicName, TopicDataType *topicType,

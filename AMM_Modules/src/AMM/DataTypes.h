@@ -36,14 +36,14 @@ namespace AMM {
 
         // AMM Resource Requirements types
         static AMM::Resource::Requirement::AirPubSubType* getAirRequirementType();
-        static AMM::Resource::Requirement::BloodPubSubType getBloodRequirementType();
+        static AMM::Resource::Requirement::BloodPubSubType* getBloodRequirementType();
         static AMM::Resource::Requirement::Cleaning_SolutionPubSubType* getCleaningSolutionRequirementType();
         static AMM::Resource::Requirement::Clear_LiquidPubSubType* getClearLiquidRequirementType();
         static AMM::Resource::Requirement::PowerPubSubType* getPowerRequirementType();
 
         // AMM Resource Supply types
         static AMM::Resource::Supply::AirPubSubType* getAirSupplyType();
-        static AMM::Resource::Supply::BloodPubSubType getBloodSupplyType();
+        static AMM::Resource::Supply::BloodPubSubType* getBloodSupplyType();
         static AMM::Resource::Supply::Cleaning_SolutionPubSubType* getCleaningSolutionSupplyType();
         static AMM::Resource::Supply::Clear_LiquidPubSubType* getClearLiquidSupplyType();
         static AMM::Resource::Supply::PowerPubSubType* getPowerSupplyType();

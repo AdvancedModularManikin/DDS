@@ -249,7 +249,8 @@ int main(int argc, const char *argv[]) {
 
     InitializeLabNodes();
 
-    auto *mgr = new DDS_Manager();
+    const char* nodeName = "AMM_TCP_Bridge";
+    auto *mgr = new DDS_Manager(nodeName);
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *pub_listener = new DDS_Listeners::PubListener();

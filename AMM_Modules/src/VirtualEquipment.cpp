@@ -44,7 +44,8 @@ int main(int argc, char *argv[]) {
     std::string fString = filterString.str();
     cout << "=== [VirtualEquipment] Subscription filter : " << fString << endl;
 
-    auto *mgr = new DDS_Manager();
+    const char* nodeName = "AMM_VirtualEquipment";
+    auto *mgr = new DDS_Manager(nodeName);
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     VirtualEquipmentListener vel;
     vel.SetFilter(&node_paths);

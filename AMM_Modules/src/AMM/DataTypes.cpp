@@ -22,51 +22,94 @@ std::string AMM::DataTypes::cleaningSolutionSupplytTopic = "CleaningSolution_Sup
 std::string AMM::DataTypes::clearLiquidSupplyTopic = "ClearLiquid_Supply";
 std::string AMM::DataTypes::powerSupplyTopic = "Power_Supply";
 
-AMM::Simulation::TickPubSubType* AMM::DataTypes::getTickType() {
+AMM::Simulation::TickPubSubType *AMM::DataTypes::getTickType() {
     return new TickPubSubType();
 }
 
-AMM::Physiology::NodePubSubType* AMM::DataTypes::getNodeType() {
+AMM::Physiology::NodePubSubType *AMM::DataTypes::getNodeType() {
     return new NodePubSubType();
 }
 
-AMM::Physiology::HighFrequencyNodePubSubType* AMM::DataTypes::getHighFrequencyNodeType() {
-
+AMM::Physiology::HighFrequencyNodePubSubType *AMM::DataTypes::getHighFrequencyNodeType() {
+    return new HighFrequencyNodePubSubType();
 };
 
 
 // AMM Patient Action / Intervention types
-CommandPubSubType* AMM::DataTypes::getCommandType() {
+CommandPubSubType *AMM::DataTypes::getCommandType() {
     return new CommandPubSubType();
 }
 
 
-
-
-
 // AMM Performance types
-AMM::Performance::StatementPubSubType* AMM::DataTypes::getxAPIStatementType() {};
+AMM::Performance::StatementPubSubType *AMM::DataTypes::getxAPIStatementType() {
+    return new StatementPubSubType();
+};
 
 // AMM Resource Requirements types
-AMM::Resource::Requirement::AirPubSubType* AMM::DataTypes::getAirRequirementType() {};
-AMM::Resource::Requirement::BloodPubSubType AMM::DataTypes::getBloodRequirementType() {};
-AMM::Resource::Requirement::Cleaning_SolutionPubSubType* AMM::DataTypes::getCleaningSolutionRequirementType() {};
-AMM::Resource::Requirement::Clear_LiquidPubSubType* AMM::DataTypes::getClearLiquidRequirementType() {};
-AMM::Resource::Requirement::PowerPubSubType* AMM::DataTypes::getPowerRequirementType() {};
+AMM::Resource::Requirement::AirPubSubType *AMM::DataTypes::getAirRequirementType() {
+    return new AMM::Resource::Requirement::AirPubSubType();
+};
+
+AMM::Resource::Requirement::BloodPubSubType *AMM::DataTypes::getBloodRequirementType() {
+    return new AMM::Resource::Requirement::BloodPubSubType();
+};
+
+AMM::Resource::Requirement::Cleaning_SolutionPubSubType *AMM::DataTypes::getCleaningSolutionRequirementType() {
+    return new AMM::Resource::Requirement::Cleaning_SolutionPubSubType();
+};
+
+AMM::Resource::Requirement::Clear_LiquidPubSubType *AMM::DataTypes::getClearLiquidRequirementType() {
+    return new AMM::Resource::Requirement::Clear_LiquidPubSubType();
+};
+
+AMM::Resource::Requirement::PowerPubSubType *AMM::DataTypes::getPowerRequirementType() {
+    return new AMM::Resource::Requirement::PowerPubSubType();
+};
 
 // AMM Resource Supply types
-AMM::Resource::Supply::AirPubSubType* AMM::DataTypes::getAirSupplyType() { };
-AMM::Resource::Supply::BloodPubSubType AMM::DataTypes::getBloodSupplyType() {};
-AMM::Resource::Supply::Cleaning_SolutionPubSubType* AMM::DataTypes::getCleaningSolutionSupplyType() {};
-AMM::Resource::Supply::Clear_LiquidPubSubType* AMM::DataTypes::getClearLiquidSupplyType() {};
-AMM::Resource::Supply::PowerPubSubType* AMM::DataTypes::getPowerSupplyType() {};
+AMM::Resource::Supply::AirPubSubType *AMM::DataTypes::getAirSupplyType() {
+    return new AMM::Resource::Supply::AirPubSubType();
+};
+
+AMM::Resource::Supply::BloodPubSubType *AMM::DataTypes::getBloodSupplyType() {
+    return new AMM::Resource::Supply::BloodPubSubType();
+};
+
+AMM::Resource::Supply::Cleaning_SolutionPubSubType *AMM::DataTypes::getCleaningSolutionSupplyType() {
+    return new AMM::Resource::Supply::Cleaning_SolutionPubSubType();
+};
+
+AMM::Resource::Supply::Clear_LiquidPubSubType *AMM::DataTypes::getClearLiquidSupplyType() {
+    return new AMM::Resource::Supply::Clear_LiquidPubSubType();
+};
+
+AMM::Resource::Supply::PowerPubSubType *AMM::DataTypes::getPowerSupplyType() {
+    return new AMM::Resource::Supply::PowerPubSubType();
+};
 
 // AMM Capability types
-AMM::Capability::ConfigurationPubSubType* AMM::DataTypes::getConfigurationType() {};
-AMM::Capability::StatusPubSubType* AMM::DataTypes::getStatusType() {};
+AMM::Capability::ConfigurationPubSubType *AMM::DataTypes::getConfigurationType() {
+    return new AMM::Capability::ConfigurationPubSubType();
+};
+
+AMM::Capability::StatusPubSubType *AMM::DataTypes::getStatusType() {
+    return new AMM::Capability::StatusPubSubType();
+};
 
 // AMM Logging types
-AMM::Sys::Log::debugPubSubType* AMM::DataTypes::getDebugLogType() {};
-AMM::Sys::Log::errorPubSubType* AMM::DataTypes::getErrorLogType() {};
-AMM::Sys::Log::warningPubSubType* AMM::DataTypes::getWarningLogType() {};
-AMM::Sys::Log::infoPubSubType* AMM::DataTypes::getInfoLogType() {};
+AMM::Sys::Log::debugPubSubType *AMM::DataTypes::getDebugLogType() {
+    return new AMM::Sys::Log::debugPubSubType();
+};
+
+AMM::Sys::Log::errorPubSubType *AMM::DataTypes::getErrorLogType() {
+    return new AMM::Sys::Log::errorPubSubType();
+};
+
+AMM::Sys::Log::warningPubSubType *AMM::DataTypes::getWarningLogType() {
+    return new AMM::Sys::Log::warningPubSubType();
+};
+
+AMM::Sys::Log::infoPubSubType *AMM::DataTypes::getInfoLogType() {
+    return new AMM::Sys::Log::infoPubSubType();
+};

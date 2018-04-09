@@ -67,7 +67,8 @@ int main(int argc, char *argv[]) {
     port.set_option(PARITY);
     port.set_option(STOP);
 
-    auto * mgr = new DDS_Manager();
+    const char* nodeName = "AMM_Serial_Bridge";
+    auto *mgr = new DDS_Manager(nodeName);
 
     auto * node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto * command_sub_listener = new DDS_Listeners::CommandSubListener();

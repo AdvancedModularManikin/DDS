@@ -96,7 +96,8 @@ int main(int argc, char *argv[]) {
 
     int spi_fd = open(device, O_RDWR);
 
-    auto *mgr = new DDS_Manager();
+    const char* nodeName = "AMM_HeartLED";
+    auto *mgr = new DDS_Manager(nodeName);
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
 
