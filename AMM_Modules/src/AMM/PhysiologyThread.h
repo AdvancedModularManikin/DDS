@@ -2,6 +2,9 @@
 
 #include <mutex>
 #include <thread>
+#include <ctime>
+#include <stdexcept>
+#include <sstream>
 
 // Boost dependancies
 #include <boost/assign/std/vector.hpp>
@@ -113,7 +116,8 @@ public:
 
     static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
     static std::vector<std::string> highFrequencyNodes;
-    
+
+    std::string getTimestampedFilename(const std::string &basePathname);
     
 private:
     bool LoadScenarioFile(const std::string &scenarioFile);

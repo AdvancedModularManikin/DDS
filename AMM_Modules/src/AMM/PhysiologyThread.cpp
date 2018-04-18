@@ -11,6 +11,7 @@ PhysiologyThread::PhysiologyThread(const std::string &logFile) :
     
     PopulateNodePathTable();
 
+
     m_runThread = false;
 }
 
@@ -134,6 +135,12 @@ void PhysiologyThread::StopSimulation() {
     }
 }
 
+std::string PhysiologyThread::getTimestampedFilename(const std::string &basePathname) {
+    std::ostringstream filename;
+    filename << basePathname << static_cast<unsigned long>(::time(0)) << ".csv";
+    return filename.str();
+}
+
 bool PhysiologyThread::LoadState(const std::string &stateFile, double sec) {
     SEScalarTime startTime;
     startTime.SetValue(sec, TimeUnit::s);
@@ -144,8 +151,44 @@ bool PhysiologyThread::LoadState(const std::string &stateFile, double sec) {
         return false;
     }
 
-  	 PreloadSubstances();
+    PreloadSubstances();
     PreloadCompartments();
+
+    std::string logFilename = getTimestampedFilename("./logs/Output_");
+
+/**
+
+Heart rate (bpm), 
+Mean arterial pressure (mmHg),
+Central venous pressure (mmHg), 
+Cardiac output (L/min), 
+blood volume (L), 
+Hemoglobin content (g)
+Respiratory rate (bpm), 
+SpO2 - peripheral capillary oxygen saturation (%), 
+End tidal CO2 (mmHg)
+Tidal volume (mL)
+Total lung volume (L)
+Intracranial pressure (mmHg)
+pH
+Arterial blood lactate concentration (mEqu/L)
+PaCO2 (mmHg)
+PaO2 (mmHg)
+
+ */
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate", FrequencyUnit::Per_min);
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure", PressureUnit::mmHg);
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("SystolicArterialPressure", PressureUnit::mmHg);
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("DiastolicArterialPressure", PressureUnit::mmHg);    
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("RespirationRate", FrequencyUnit::Per_min);
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TidalVolume", VolumeUnit::mL);
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TotalLungVolume", VolumeUnit::mL);
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularCompartment::Aorta, *O2, "PartialPressure");
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularCompartment::Aorta, *CO2, "PartialPressure");
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(BGE::PulmonaryCompartment::Lungs, "Volume");
+    m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(BGE::PulmonaryCompartment::Carina, "InFlow");
+    m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
 
     return true;
 }
@@ -218,6 +261,7 @@ void PhysiologyThread::AdvanceTimeTick() {
     m_mutex.lock();
     m_runThread = true;
     m_pe->AdvanceModelTime();
+    m_pe->GetEngineTrack()->TrackData(m_pe->GetSimulationTime(TimeUnit::s));
     m_runThread = false;
     m_mutex.unlock();
 }

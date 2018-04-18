@@ -29,14 +29,18 @@ using namespace eprosima::fastrtps;
 class DDS_Manager {
 public:
     DDS_Manager();
+
     DDS_Manager(const char *nodeName);
+
+    DDS_Manager(const char *nodeName, ParticipantListener *participantListener);
 
     virtual ~DDS_Manager() = default;;
 
     Publisher *InitializePublisher(std::string topicName, TopicDataType *topicType, PublisherListener *pub_listener);
+
     Subscriber *InitializeSubscriber(std::string topicName, TopicDataType *topicType, SubscriberListener *sub_listener);
 
-    Participant* GetParticipant();
+    Participant *GetParticipant();
 
     const int domainId = 15;
     const char *partitionName = "AMM";

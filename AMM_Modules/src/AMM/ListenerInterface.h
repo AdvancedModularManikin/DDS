@@ -1,9 +1,12 @@
 #pragma once
 
+#include <fastrtps/rtps/reader/ReaderListener.h>
+
 #include "AMMPubSubTypes.h"
 
 
-class ListenerInterface {
+
+class ListenerInterface : public ReaderListener {
 public:
     ListenerInterface() = default;;
 

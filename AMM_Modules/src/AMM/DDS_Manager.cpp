@@ -30,7 +30,27 @@ DDS_Manager::DDS_Manager(const char *nodeName) {
     default_sub_listener = new DDS_Listeners::DefaultSubListener();
 }
 
-Participant* DDS_Manager::GetParticipant() {
+DDS_Manager::DDS_Manager(const char *nodeName, ParticipantListener *participantListener) {
+    ParticipantAttributes PParam;
+    PParam.rtps.builtin.domainId = (uint32_t) domainId;
+    PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
+    PParam.rtps.setName(nodeName);
+    mp_participant = Domain::createParticipant(PParam, participantListener);
+
+    if (mp_participant == nullptr) {
+        std::cout << "Unable to create FastRTPS domain participant." << endl;
+        return;
+    }
+
+
+    RegisterTypes();
+
+    // Create some default listeners to use so higher level code doesn't need to require them
+    default_pub_listener = new DDS_Listeners::PubListener();
+    default_sub_listener = new DDS_Listeners::DefaultSubListener();
+}
+
+Participant *DDS_Manager::GetParticipant() {
     return mp_participant;
 }
 
@@ -83,7 +103,7 @@ Publisher *DDS_Manager::InitializePublisher(std::string topicName, TopicDataType
 }
 
 Subscriber *DDS_Manager::InitializeSubscriber(std::string topicName, TopicDataType *topicType,
-                                             SubscriberListener *sub_listener) {
+                                              SubscriberListener *sub_listener) {
     SubscriberAttributes rparam;
     rparam.topic.topicDataType = topicType->getName();
     rparam.topic.topicName = topicName;

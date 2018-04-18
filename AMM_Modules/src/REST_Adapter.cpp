@@ -95,6 +95,8 @@ int64_t lastTick = 0;
 Publisher *command_publisher;
 Participant *mp_participant;
 
+boost::asio::io_service io_service;
+
     class gettopicnamesandtypesReaderListener : public ReaderListener {
     public:
         std::mutex mapmutex;
@@ -102,7 +104,9 @@ Participant *mp_participant;
 
         void onNewCacheChangeAdded(RTPSReader *reader, const CacheChange_t *const change_in) {
             CacheChange_t *change = (CacheChange_t *) change_in;
-            if (change->kind == ALIVE) {
+            if (change->kind != ALIVE) {
+                cout << "  -  Unknown change kind: " << change->kind << endl;
+            }
                 WriterProxyData proxyData;
                 CDRMessage_t tempMsg;
                 tempMsg.msg_endian = change->serializedPayload.encapsulation == PL_CDR_BE ? BIGEND : LITTLEEND;
@@ -113,7 +117,9 @@ Participant *mp_participant;
                     topicNtypes[proxyData.topicName()].insert(proxyData.typeName());
                     mapmutex.unlock();
                 }
-            }
+            /*} else {
+
+            }*/
         }
     };
 
@@ -441,6 +447,7 @@ Participant *mp_participant;
             auto participant_names = mp_participant->getParticipantNames();
             for (auto name : participant_names) {
                 writer.StartObject();
+                writer.Key("Module");
                 writer.String(name.c_str());
                 writer.EndObject();
             }
@@ -528,8 +535,9 @@ Participant *mp_participant;
         Rest::Router router;
     };
 
+
+
     void UdpDiscoveryThread() {
-        boost::asio::io_service io_service;
         UdpDiscoveryServer udps(io_service, discoveryPort);
         cout << "\tUDP Discovery listening on port " << discoveryPort << "\n" << endl;
         io_service.run();
@@ -612,7 +620,10 @@ Participant *mp_participant;
         server.shutdown();
         cout << "=== [REST_Adapter] Stopped REST listener." << endl;
 
+        io_service.stop();
+
         udpD.join();
+
         cout << "=== [REST_Adapter] Stopped UDP." << endl;
 
         return 0;
