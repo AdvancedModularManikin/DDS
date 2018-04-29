@@ -26,6 +26,7 @@ Publisher *command_publisher;
 Subscriber *command_subscriber;
 Subscriber *node_subscriber;
 
+const string xmlPrefix = "XML=";
 const string modulePrefix = "MODULE_NAME=";
 const string registerPrefix = "REGISTER=";
 const string requestPrefix = "REQUEST=";
@@ -263,6 +264,19 @@ int main(int argc, const char *argv[]) {
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
 
     command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
+
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            "Vcom3D",
+            "TCP_Bridge",
+            "00001",
+            "0.0.1",
+            "capabilityString"
+    );
+
+    // Normally this would be set AFTER configuration is received
+    mgr->SetStatus(OPERATIONAL);
 
     cout << "=== [Network_Bridge] Ready ..." << endl;
 

@@ -22,6 +22,19 @@ int main(int argc, char *argv[]) {
     auto *pub_listener = new DDS_Listeners::PubListener();
     Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
 
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            "Vcom3D",
+            "CommandExecutor",
+            "00001",
+            "0.0.1",
+            "capabilityString"
+    );
+
+    // Normally this would be set AFTER configuration is received
+    mgr->SetStatus(OPERATIONAL);
+
     std::string action;
     bool closed = false;
     cout << "=== [CommandExecutor] Enter commands to send and hit enter.  EXIT to quit." << endl;

@@ -31,12 +31,12 @@ FIND_LIBRARY(DMB_LIBRARY
 		$ENV{BIOGEARS_HOME}/library/lib/release $ENV{BIOGEARS_HOME}/library/lib
 )
 
-FIND_LIBRARY(LOG4CPP_LIBRARY
-		NAMES
-		log4cpp
-		PATHS
-		$ENV{BIOGEARS_HOME}/library/lib/release $ENV{BIOGEARS_HOME}/library/lib
-		)
+#FIND_LIBRARY(LOG4CPP_LIBRARY
+#		NAMES
+#		log4cpp
+#		PATHS
+#		$ENV{BIOGEARS_HOME}/library/lib/release $ENV{BIOGEARS_HOME}/library/lib
+#		)
 
 FIND_LIBRARY(XERCES_LIBRARY
 		NAMES

@@ -80,5 +80,8 @@ namespace AMM {
         static std::string clearLiquidSupplyTopic;
         static std::string powerSupplyTopic;
 
+        static std::string statusTopic;
+        static std::string configurationTopic;
+
     };
 };

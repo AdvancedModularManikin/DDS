@@ -27,6 +27,19 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
                                                    command_sub_listener);
     node_publisher = mgr->InitializePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), pub_listener);
 
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            "Vcom3D",
+            "PhysiologyEngine",
+            "00001",
+            "0.0.1",
+            "capabilityString"
+    );
+
+    // Normally this would be set AFTER configuration is received
+    mgr->SetStatus(OPERATIONAL);
+
     m_runThread = false;
 
 }

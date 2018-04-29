@@ -22,6 +22,10 @@ std::string AMM::DataTypes::cleaningSolutionSupplytTopic = "CleaningSolution_Sup
 std::string AMM::DataTypes::clearLiquidSupplyTopic = "ClearLiquid_Supply";
 std::string AMM::DataTypes::powerSupplyTopic = "Power_Supply";
 
+std::string AMM::DataTypes::statusTopic = "Status";
+std::string AMM::DataTypes::configurationTopic = "Configuration";
+
+
 AMM::Simulation::TickPubSubType *AMM::DataTypes::getTickType() {
     return new TickPubSubType();
 }

@@ -36,6 +36,29 @@ public:
 
     virtual ~DDS_Manager() = default;;
 
+    void PublishModuleConfiguration(
+            const std::string manufacturer,
+            const std::string model,
+            const std::string serial_number,
+            const std::string version,
+            const AMM::Capability::AMM_version &amm_version,
+            const std::string capabilities
+    );
+
+    void PublishModuleConfiguration(
+            const std::string manufacturer,
+            const std::string model,
+            const std::string serial_number,
+            const std::string version,
+            const std::string capabilities
+    );
+
+    void PublishModuleConfiguration(AMM::Capability::Configuration configInstance);
+
+    void SetStatus(AMM::Capability::status_values status);
+    void SetStatus(AMM::Capability::status_values status, const std::vector<std::string> &message);
+    void SetStatus(AMM::Capability::Status statusInstance);
+
     Publisher *InitializePublisher(std::string topicName, TopicDataType *topicType, PublisherListener *pub_listener);
 
     Subscriber *InitializeSubscriber(std::string topicName, TopicDataType *topicType, SubscriberListener *sub_listener);
@@ -48,7 +71,12 @@ public:
 private:
     void RegisterTypes();
 
+    void RegisterPublishers();
+
     Participant *mp_participant;
+
+    Publisher *status_publisher;
+    Publisher *config_publisher;
 
     PublisherListener *default_pub_listener;
     SubscriberListener *default_sub_listener;

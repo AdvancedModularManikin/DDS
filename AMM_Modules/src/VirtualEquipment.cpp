@@ -52,6 +52,20 @@ int main(int argc, char *argv[]) {
     node_sub_listener->SetUpstream(&vel);
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
 
+
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            "Vcom3D",
+            "Virtual_Equipment",
+            "00001",
+            "0.0.1",
+            "capabilityString"
+    );
+
+    // Normally this would be set AFTER configuration is received
+    mgr->SetStatus(OPERATIONAL);
+
     cout << "=== [VirtualEquipment] Ready ..." << endl;
 
 

@@ -28,6 +28,67 @@ DDS_Manager::DDS_Manager(const char *nodeName) {
     // Create some default listeners to use so higher level code doesn't need to require them
     default_pub_listener = new DDS_Listeners::PubListener();
     default_sub_listener = new DDS_Listeners::DefaultSubListener();
+
+
+    status_publisher = InitializePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), default_pub_listener);
+    config_publisher = InitializePublisher(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(), default_pub_listener);
+}
+
+void DDS_Manager::PublishModuleConfiguration(
+        const std::string manufacturer,
+        const std::string model,
+        const std::string serial_number,
+        const std::string version,
+        const AMM::Capability::AMM_version &amm_version,
+        const std::string capabilities
+) {
+    AMM::Capability::Configuration configInstance;
+    configInstance.manufacturer(manufacturer);
+    configInstance.model(model);
+    configInstance.serial_number(serial_number);
+    configInstance.version(version);
+    configInstance.amm_version(amm_version);
+    PublishModuleConfiguration(configInstance);
+}
+
+void DDS_Manager::PublishModuleConfiguration(
+        const std::string manufacturer,
+        const std::string model,
+        const std::string serial_number,
+        const std::string version,
+        //const AMM::Capability::AMM_version &amm_version,
+        const std::string capabilities
+) {
+    AMM::Capability::Configuration configInstance;
+    configInstance.manufacturer(manufacturer);
+    configInstance.model(model);
+    configInstance.serial_number(serial_number);
+    configInstance.version(version);
+    //configInstance.amm_version(amm_version);
+    PublishModuleConfiguration(configInstance);
+}
+
+
+void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
+    config_publisher->write(&configInstance);
+}
+
+void DDS_Manager::SetStatus(AMM::Capability::status_values status) {
+    AMM::Capability::Status statusInstance;
+    statusInstance.status_value(status);
+    SetStatus(statusInstance);
+}
+
+// Statuses other than OPERATIONAL can have messaging attached to them
+void DDS_Manager::SetStatus(AMM::Capability::status_values status, const std::vector<std::string> &message) {
+    AMM::Capability::Status statusInstance;
+    statusInstance.status_value(status);
+    statusInstance.message(message);
+    SetStatus(statusInstance);
+}
+
+void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
+    status_publisher->write(&statusInstance);
 }
 
 DDS_Manager::DDS_Manager(const char *nodeName, ParticipantListener *participantListener) {

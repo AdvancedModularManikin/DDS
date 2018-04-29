@@ -1,4 +1,5 @@
 #include "stdafx.h"
+
 #include <fastrtps/Domain.h>
 #include <fastrtps/participant/Participant.h>
 #include <fastrtps/publisher/Publisher.h>
@@ -53,12 +54,15 @@
 
 #include "boost/filesystem.hpp"
 
+#include "tinyxml2.h"
+
 using namespace std;
 using namespace boost::filesystem;
 using namespace rapidjson;
 using namespace Pistache;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
+using namespace tinyxml2;
 
 // UDP discovery port
 short discoveryPort = 8889;
@@ -81,7 +85,6 @@ std::vector<std::string> actions;
 
 std::map<std::string, double> nodeDataStorage;
 
-
 std::map<std::string, std::string> statusStorage = {
         {"STATUS",       "NOT RUNNING"},
         {"LAST_COMMAND", ""},
@@ -94,537 +97,702 @@ int64_t lastTick = 0;
 
 Publisher *command_publisher;
 Participant *mp_participant;
-
 boost::asio::io_service io_service;
 
-    class gettopicnamesandtypesReaderListener : public ReaderListener {
-    public:
-        std::mutex mapmutex;
-        std::map<std::string, std::set<std::string>> topicNtypes;
+class AMMListener : public ListenerInterface, public ParticipantListener {
+public:
+    std::string m_listenerName;
+    std::map<GuidPrefix_t, std::string> discovered_prefixes;
+    std::mutex mapmutex;
+    std::map<std::string, std::vector<std::string>> topicNtypes;
+    std::map<GUID_t, std::string> discovered_names;
 
-        void onNewCacheChangeAdded(RTPSReader *reader, const CacheChange_t *const change_in) {
-            CacheChange_t *change = (CacheChange_t *) change_in;
-            if (change->kind != ALIVE) {
-                cout << "  -  Unknown change kind: " << change->kind << endl;
-            }
-                WriterProxyData proxyData;
-                CDRMessage_t tempMsg;
-                tempMsg.msg_endian = change->serializedPayload.encapsulation == PL_CDR_BE ? BIGEND : LITTLEEND;
-                tempMsg.length = change->serializedPayload.length;
-                memcpy(tempMsg.buffer, change->serializedPayload.data, tempMsg.length);
-                if (proxyData.readFromCDRMessage(&tempMsg)) {
-                    mapmutex.lock();
-                    topicNtypes[proxyData.topicName()].insert(proxyData.typeName());
-                    mapmutex.unlock();
-                }
-            /*} else {
-
-            }*/
-        }
-    };
-
-
-    gettopicnamesandtypesReaderListener slave_listener_pub;
-    gettopicnamesandtypesReaderListener slave_listener_sub;
-
-    class RESTListener : public ListenerInterface {
-    public:
-
-
-        void onNewTickData(AMM::Simulation::Tick t) override {
-            if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 && t.frame() > lastTick) {
-                statusStorage["STATUS"] = "RUNNING";
-            }
-            lastTick = t.frame();
-            statusStorage["TICK"] = to_string(t.frame());
-            statusStorage["TIME"] = to_string(t.time());
-        }
-
-        void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
-            if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
-                std::string value = c.message().substr(sysPrefix.size());
-                if (value.compare("START_SIM") == 0) {
-                    statusStorage["STATUS"] = "RUNNING";
-                } else if (value.compare("STOP_SIM") == 0) {
-                    statusStorage["STATUS"] = "STOPPED";
-                } else if (value.compare("PAUSE_SIM") == 0) {
-                    statusStorage["STATUS"] = "PAUSED";
-                } else if (value.compare("RESET_SIM") == 0) {
-                    statusStorage["STATUS"] = "NOT RUNNING";
-                    statusStorage["TICK"] = "0";
-                    statusStorage["TIME"] = "0";
-                    nodeDataStorage.clear();
-                }
-            }
-
-            statusStorage["LAST_COMMAND"] = c.message();
-        }
-
-        void onNewNodeData(AMM::Physiology::Node n) override {
-            nodeDataStorage[n.nodepath()] = n.dbl();
-        }
-    };
-
-    void SendCommand(const std::string &command) {
-        cout << "=== [REST_Adapter] Sending a command:" << command << endl;
-        AMM::PatientAction::BioGears::Command cmdInstance;
-        cmdInstance.message(command);
-        command_publisher->write(&cmdInstance);
+    AMMListener(const std::string listenerName) {
+        m_listenerName = listenerName;
     }
 
-    void printCookies(const Http::Request &req) {
-        auto cookies = req.cookies();
-        std::cout << "Cookies: [" << std::endl;
-        const std::string indent(4, ' ');
-        for (const auto &c : cookies) {
-            std::cout << indent << c.name << " = " << c.value << std::endl;
-        }
-        std::cout << "]" << std::endl;
-    }
+    static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
+        std::map<std::string, std::vector<uint8_t>> m;
 
+        bool keyfound = false;
 
-    namespace Generic {
+        std::string key;
+        std::vector<uint8_t> value;
+        uint8_t prev = '\0';
 
-        void handleReady(const Rest::Request &request, Http::ResponseWriter response) {
-            response.send(Http::Code::Ok, "1");
+        if (kv.size() == 0) {
+            goto not_valid;
         }
 
-    }
-
-    class DDSEndpoint {
-    public:
-
-        explicit DDSEndpoint(Address addr) :
-                httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {
-        }
-
-        void init(int thr = 2) {
-            auto opts = Http::Endpoint::options().threads(thr).flags(Tcp::Options::InstallSignalHandler);
-            httpEndpoint->init(opts);
-            setupRoutes();
-        }
-
-        void start() {
-            httpEndpoint->setHandler(router.handler());
-            httpEndpoint->serveThreaded();
-        }
-
-        void shutdown() {
-            httpEndpoint->shutdown();
-        }
-
-    private:
-        void setupRoutes() {
-            using namespace Rest;
-
-            Routes::Get(router, "/node/:name", Routes::bind(&DDSEndpoint::getNode, this));
-            Routes::Get(router, "/nodes", Routes::bind(&DDSEndpoint::getNodes, this));
-            Routes::Get(router, "/command/:name", Routes::bind(&DDSEndpoint::issueCommand, this));
-            Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
-            Routes::Get(router, "/debug", Routes::bind(&DDSEndpoint::doDebug, this));
-
-
-            Routes::Get(router, "/module/:name", Routes::bind(&DDSEndpoint::getModule, this));
-            Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
-
-
-            Routes::Get(router, "/subscribers", Routes::bind(&DDSEndpoint::getSubscribers, this));
-            Routes::Get(router, "/publishers", Routes::bind(&DDSEndpoint::getPublishers, this));
-
-            Routes::Get(router, "/shutdown", Routes::bind(&DDSEndpoint::doShutdown, this));
-
-            Routes::Get(router, "/actions", Routes::bind(&DDSEndpoint::getActions, this));
-            Routes::Get(router, "/action/:name", Routes::bind(&DDSEndpoint::getAction, this));
-            Routes::Post(router, "/action", Routes::bind(&DDSEndpoint::createAction, this));
-            Routes::Put(router, "/action/:name", Routes::bind(&DDSEndpoint::updateAction, this));
-            Routes::Delete(router, "/action/:name", Routes::bind(&DDSEndpoint::deleteAction, this));
-
-            Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
-
-            Routes::Get(router, "/states", Routes::bind(&DDSEndpoint::getStates, this));
-            Routes::Get(router, "/states/:name/delete", Routes::bind(&DDSEndpoint::deleteState, this));
-
-        }
-
-        void getStates(const Rest::Request &request, Http::ResponseWriter response) {
-
-
-            StringBuffer s;
-            Writer<StringBuffer> writer(s);
-
-            writer.StartArray();
-            if (exists(state_path) && is_directory(state_path)) {
-                path p(state_path);
-                if (is_directory(p)) {
-                    directory_iterator end_iter;
-                    for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
-                        if (is_regular_file(dir_itr->status())) {
-                            writer.StartObject();
-                            writer.Key("name");
-                            writer.String(dir_itr->path().filename().c_str());
-                            writer.Key("description");
-                            stringstream writeTime;
-                            writeTime << last_write_time(dir_itr->path());
-                            writer.String(writeTime.str().c_str());
-                            writer.EndObject();
-                        }
+        for (uint8_t u8 : kv) {
+            if (keyfound) {
+                if ((u8 == ';') && (prev != ';')) {
+                    prev = u8;
+                    continue;
+                } else if ((u8 != ';') && (prev == ';')) {
+                    if (value.size() == 0) {
+                        goto not_valid;
                     }
-                }
-            }
-            writer.EndArray();
+                    m[key] = value;
 
-            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-            response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-        }
-
-        void deleteState(const Rest::Request &request, Http::ResponseWriter response) {
-            auto name = request.param(":name").as<std::string>();
-            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-            if (name != "StandardMale@0s.xml") {
-                std::ostringstream deleteFile;
-                deleteFile << state_path << "/" << name;
-                path deletePath(deleteFile.str().c_str());
-                if (exists(deletePath) && is_regular_file(deletePath)) {
-                    cout << "= [REST_Adapter] Deleting " << deletePath << endl;
-                    boost::filesystem::remove(deletePath);
-                    response.send(Http::Code::Ok, "Deleted", MIME(Application, Json));
+                    key.clear();
+                    value.clear();
+                    keyfound = false;
                 } else {
-                    response.send(Http::Code::Forbidden, "Unable to delete state file", MIME(Application, Json));
+                    value.push_back(u8);
                 }
+            }
+            if (!keyfound) {
+                if (u8 == '=') {
+                    if (key.size() == 0) {
+                        goto not_valid;
+                    }
+                    keyfound = true;
+                } else if (isalnum(u8)) {
+                    key.push_back(u8);
+                } else if ((u8 == '\0') && (key.size() == 0) && (m.size() > 0)) {
+                    break;  // accept trailing '\0' characters
+                } else if ((prev != ';') || (key.size() > 0)) {
+                    goto not_valid;
+                }
+            }
+            prev = u8;
+        }
+        if (keyfound) {
+            if (value.size() == 0) {
+                goto not_valid;
+            }
+            m[key] = value;
+        } else if (key.size() > 0) {
+            goto not_valid;
+        }
+        return m;
+        not_valid:
+        // This is not a failure this is something that can happen because the participant_qos userData
+        // is used. Other participants in the system not created by rmw could use userData for something
+        // else.
+        return std::map<std::string, std::vector<uint8_t>>();
+    }
+
+    std::vector<std::string> get_discovered_names() const {
+        std::vector<std::string> names(discovered_names.size());
+        size_t i = 0;
+        for (auto it : discovered_names) {
+            names[i++] = it.second;
+        }
+        return names;
+    }
+
+
+    void onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info) {
+        if (
+                info.rtps.m_status != DISCOVERED_RTPSPARTICIPANT &&
+                info.rtps.m_status != REMOVED_RTPSPARTICIPANT &&
+                info.rtps.m_status != DROPPED_RTPSPARTICIPANT) {
+            return;
+        }
+
+        if (DISCOVERED_RTPSPARTICIPANT == info.rtps.m_status) {
+            // ignore already known GUIDs
+            if (discovered_names.find(info.rtps.m_guid) == discovered_names.end()) {
+                auto map = parse_key_value(info.rtps.m_userData);
+                auto found = map.find("name");
+                std::string name;
+                if (found != map.end()) {
+                    name = std::string(found->second.begin(), found->second.end());
+                }
+                if (name.empty()) {
+                    // use participant name if no name was found in the user data
+                    name = info.rtps.m_RTPSParticipantName;
+                }
+                // ignore discovered participants without a name
+                if (!name.empty()) {
+                    discovered_names[info.rtps.m_guid] = name;
+                }
+                cout << "[" << m_listenerName << "] " << info.rtps.m_guid << " joined with name " << name << endl;
+            }
+        } else {
+            auto it = discovered_names.find(info.rtps.m_guid);
+            // only consider known GUIDs
+            if (it != discovered_names.end()) {
+                discovered_names.erase(it);
+            }
+            cout << "[" << m_listenerName << "] " << info.rtps.m_guid << " disconnected " << endl;
+        }
+    }
+
+
+    void onReaderMatched(RTPSReader *reader, MatchingInfo &info) {
+        cout << "[" << m_listenerName << "] New reader matched: " << info.remoteEndpointGuid;
+        cout << " - status " << info.status << endl;
+    }
+
+    void onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *reader,
+                               const eprosima::fastrtps::CacheChange_t *const change) {
+
+        eprosima::fastrtps::rtps::GUID_t changeGuid;
+        iHandle2GUID(changeGuid, change->instanceHandle);
+
+        eprosima::fastrtps::rtps::WriterProxyData proxyData;
+        if (change->kind == ALIVE) {
+            eprosima::fastrtps::CDRMessage_t tempMsg(0);
+            tempMsg.wraps = true;
+            tempMsg.msg_endian = change->serializedPayload.encapsulation ==
+                                 PL_CDR_BE ? BIGEND : LITTLEEND;
+            tempMsg.length = change->serializedPayload.length;
+            tempMsg.max_size = change->serializedPayload.max_size;
+            tempMsg.buffer = change->serializedPayload.data;
+            if (!proxyData.readFromCDRMessage(&tempMsg)) {
+                return;
+            }
+        } else {
+            if (!mp_participant->get_remote_writer_info(changeGuid, proxyData)) {
+                return;
+            }
+        }
+
+        std::string partition_str = std::string("AMM");
+        // don't use std::accumulate - schlemiel O(n2)
+        for (const auto &partition : proxyData.m_qos.m_partition.getNames()) {
+            partition_str += partition;
+        }
+        string fqdn = partition_str + "/" + proxyData.topicName();
+
+        mapmutex.lock();
+        if (change->kind == ALIVE) {
+            topicNtypes[fqdn].push_back(proxyData.typeName());
+
+            cout << "[" << m_listenerName << "][" << changeGuid << "] Topic " << fqdn << " with type "
+                 << proxyData.typeName() << endl;
+        } else {
+            auto it = topicNtypes.find(fqdn);
+            if (it != topicNtypes.end()) {
+                const auto &loc =
+                        std::find(std::begin(it->second), std::end(it->second), proxyData.typeName());
+                if (loc != std::end(it->second)) {
+                    topicNtypes[fqdn].erase(loc, loc + 1);
+                    cout << "[" << m_listenerName << "][" << changeGuid << "] Topic removed " << fqdn << " with type "
+                         << proxyData.typeName() << endl;
+                } else {
+                    cout << "[" << m_listenerName << "][" << changeGuid << "] Unexpected removal on topic " << fqdn
+                         << " with type "
+                         << proxyData.typeName() << endl;
+                }
+            }
+        }
+        mapmutex.unlock();
+    }
+
+    void onNewTickData(AMM::Simulation::Tick t) {
+        if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 && t.frame() > lastTick) {
+            statusStorage["STATUS"] = "RUNNING";
+        }
+        lastTick = t.frame();
+        statusStorage["TICK"] = to_string(t.frame());
+        statusStorage["TIME"] = to_string(t.time());
+    }
+
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+            std::string value = c.message().substr(sysPrefix.size());
+            if (value.compare("START_SIM") == 0) {
+                statusStorage["STATUS"] = "RUNNING";
+            } else if (value.compare("STOP_SIM") == 0) {
+                statusStorage["STATUS"] = "STOPPED";
+            } else if (value.compare("PAUSE_SIM") == 0) {
+                statusStorage["STATUS"] = "PAUSED";
+            } else if (value.compare("RESET_SIM") == 0) {
+                statusStorage["STATUS"] = "NOT RUNNING";
+                statusStorage["TICK"] = "0";
+                statusStorage["TIME"] = "0";
+                nodeDataStorage.clear();
+            }
+        }
+
+        statusStorage["LAST_COMMAND"] = c.message();
+    }
+
+    void onNewNodeData(AMM::Physiology::Node n) {
+        nodeDataStorage[n.nodepath()] = n.dbl();
+    }
+
+};
+
+AMMListener ammL("PARTICIPANT");
+AMMListener commandL("COMMAND");
+AMMListener slave_listener_pub("PUB");
+AMMListener slave_listener_sub("SUB");
+AMMListener rl("DATA");
+
+void SendCommand(const std::string &command) {
+    cout << "=== [REST_Adapter] Sending a command:" << command << endl;
+    AMM::PatientAction::BioGears::Command cmdInstance;
+    cmdInstance.message(command);
+    command_publisher->write(&cmdInstance);
+}
+
+void printCookies(const Http::Request &req) {
+    auto cookies = req.cookies();
+    std::cout << "Cookies: [" << std::endl;
+    const std::string indent(4, ' ');
+    for (const auto &c : cookies) {
+        std::cout << indent << c.name << " = " << c.value << std::endl;
+    }
+    std::cout << "]" << std::endl;
+}
+
+namespace Generic {
+
+    void handleReady(const Rest::Request &request, Http::ResponseWriter response) {
+        response.send(Http::Code::Ok, "1");
+    }
+
+}
+
+class DDSEndpoint {
+public:
+
+    explicit DDSEndpoint(Address addr) :
+            httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {
+    }
+
+    void init(int thr = 2) {
+        auto opts = Http::Endpoint::options().threads(thr).flags(Tcp::Options::InstallSignalHandler);
+        httpEndpoint->init(opts);
+        setupRoutes();
+    }
+
+    void start() {
+        httpEndpoint->setHandler(router.handler());
+        httpEndpoint->serveThreaded();
+    }
+
+    void shutdown() {
+        httpEndpoint->shutdown();
+    }
+
+private:
+    void setupRoutes() {
+        using namespace Rest;
+
+        Routes::Get(router, "/node/:name", Routes::bind(&DDSEndpoint::getNode, this));
+        Routes::Get(router, "/nodes", Routes::bind(&DDSEndpoint::getNodes, this));
+        Routes::Get(router, "/command/:name", Routes::bind(&DDSEndpoint::issueCommand, this));
+        Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
+        Routes::Get(router, "/debug", Routes::bind(&DDSEndpoint::doDebug, this));
+
+
+        Routes::Get(router, "/module/:name", Routes::bind(&DDSEndpoint::getModule, this));
+        Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
+
+
+        Routes::Get(router, "/subscribers", Routes::bind(&DDSEndpoint::getSubscribers, this));
+        Routes::Get(router, "/publishers", Routes::bind(&DDSEndpoint::getPublishers, this));
+
+        Routes::Get(router, "/shutdown", Routes::bind(&DDSEndpoint::doShutdown, this));
+
+        Routes::Get(router, "/actions", Routes::bind(&DDSEndpoint::getActions, this));
+        Routes::Get(router, "/action/:name", Routes::bind(&DDSEndpoint::getAction, this));
+        Routes::Post(router, "/action", Routes::bind(&DDSEndpoint::createAction, this));
+        Routes::Put(router, "/action/:name", Routes::bind(&DDSEndpoint::updateAction, this));
+        Routes::Delete(router, "/action/:name", Routes::bind(&DDSEndpoint::deleteAction, this));
+
+        Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
+
+        Routes::Get(router, "/states", Routes::bind(&DDSEndpoint::getStates, this));
+        Routes::Get(router, "/states/:name/delete", Routes::bind(&DDSEndpoint::deleteState, this));
+
+    }
+
+    void getStates(const Rest::Request &request, Http::ResponseWriter response) {
+
+
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+
+        writer.StartArray();
+        if (exists(state_path) && is_directory(state_path)) {
+            path p(state_path);
+            if (is_directory(p)) {
+                directory_iterator end_iter;
+                for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
+                    if (is_regular_file(dir_itr->status())) {
+                        writer.StartObject();
+                        writer.Key("name");
+                        writer.String(dir_itr->path().filename().c_str());
+                        writer.Key("description");
+                        stringstream writeTime;
+                        writeTime << last_write_time(dir_itr->path());
+                        writer.String(writeTime.str().c_str());
+                        writer.EndObject();
+                    }
+                }
+            }
+        }
+        writer.EndArray();
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void deleteState(const Rest::Request &request, Http::ResponseWriter response) {
+        auto name = request.param(":name").as<std::string>();
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        if (name != "StandardMale@0s.xml") {
+            std::ostringstream deleteFile;
+            deleteFile << state_path << "/" << name;
+            path deletePath(deleteFile.str().c_str());
+            if (exists(deletePath) && is_regular_file(deletePath)) {
+                cout << "= [REST_Adapter] Deleting " << deletePath << endl;
+                boost::filesystem::remove(deletePath);
+                response.send(Http::Code::Ok, "Deleted", MIME(Application, Json));
             } else {
-                response.send(Http::Code::Forbidden, "Can not delete default state file", MIME(Application, Json));
+                response.send(Http::Code::Forbidden, "Unable to delete state file", MIME(Application, Json));
             }
+        } else {
+            response.send(Http::Code::Forbidden, "Can not delete default state file", MIME(Application, Json));
         }
+    }
 
-        void getPatients(const Rest::Request &request, Http::ResponseWriter response) {
-            StringBuffer s;
-            Writer<StringBuffer> writer(s);
+    void getPatients(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
 
-            writer.StartArray();
-            if (exists(patient_path) && is_directory(patient_path)) {
-                path p(patient_path);
-                if (is_directory(p)) {
-                    directory_iterator end_iter;
-                    for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
-                        if (is_regular_file(dir_itr->status())) {
-                            writer.StartObject();
-                            writer.Key("name");
-                            writer.String(dir_itr->path().filename().c_str());
-                            writer.Key("description");
-                            stringstream writeTime;
-                            writeTime << last_write_time(dir_itr->path());
-                            writer.String(writeTime.str().c_str());
-                            writer.EndObject();
-                        }
+        writer.StartArray();
+        if (exists(patient_path) && is_directory(patient_path)) {
+            path p(patient_path);
+            if (is_directory(p)) {
+                directory_iterator end_iter;
+                for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
+                    if (is_regular_file(dir_itr->status())) {
+                        writer.StartObject();
+                        writer.Key("name");
+                        writer.String(dir_itr->path().filename().c_str());
+                        writer.Key("description");
+                        stringstream writeTime;
+                        writeTime << last_write_time(dir_itr->path());
+                        writer.String(writeTime.str().c_str());
+                        writer.EndObject();
                     }
                 }
             }
-            writer.EndArray();
-
-            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-            response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
         }
+        writer.EndArray();
 
-        void getActions(const Rest::Request &request, Http::ResponseWriter response) {
-            StringBuffer s;
-            Writer<StringBuffer> writer(s);
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
 
-            writer.StartArray();
-            if (exists(action_path) && is_directory(action_path)) {
-                path p(action_path);
-                if (is_directory(p)) {
-                    directory_iterator end_iter;
-                    for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
-                        if (is_regular_file(dir_itr->status())) {
-                            writer.StartObject();
-                            writer.Key("name");
-                            writer.String(dir_itr->path().filename().c_str());
-                            writer.Key("description");
-                            stringstream writeTime;
-                            writeTime << last_write_time(dir_itr->path());
-                            writer.String(writeTime.str().c_str());
-                            writer.EndObject();
-                        }
+    void getActions(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+
+        writer.StartArray();
+        if (exists(action_path) && is_directory(action_path)) {
+            path p(action_path);
+            if (is_directory(p)) {
+                directory_iterator end_iter;
+                for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
+                    if (is_regular_file(dir_itr->status())) {
+                        writer.StartObject();
+                        writer.Key("name");
+                        writer.String(dir_itr->path().filename().c_str());
+                        writer.Key("description");
+                        stringstream writeTime;
+                        writeTime << last_write_time(dir_itr->path());
+                        writer.String(writeTime.str().c_str());
+                        writer.EndObject();
                     }
                 }
             }
-            writer.EndArray();
+        }
+        writer.EndArray();
 
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void createAction(const Rest::Request &request, Http::ResponseWriter response) {
+
+    }
+
+    void deleteAction(const Rest::Request &request, Http::ResponseWriter response) {
+        auto name = request.param(":name").as<std::string>();
+    }
+
+    void updateAction(const Rest::Request &request, Http::ResponseWriter response) {
+        auto name = request.param(":name").as<std::string>();
+    }
+
+    void getAction(const Rest::Request &request, Http::ResponseWriter response) {
+        auto name = request.param(":name").as<std::string>();
+    }
+
+    void issueCommand(const Rest::Request &request, Http::ResponseWriter response) {
+        auto name = request.param(":name").as<std::string>();
+        SendCommand(name);
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartObject();
+        writer.Key("Sent command");
+        writer.String(name.c_str());
+        writer.EndObject();
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString());
+    }
+
+    void getPublishers(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+
+        slave_listener_sub.mapmutex.lock();
+        auto publisher_map = slave_listener_sub.topicNtypes;
+        slave_listener_sub.mapmutex.unlock();
+
+        for (auto &sub_entry: publisher_map) {
+            writer.StartObject();
+            writer.Key("Topic");
+            writer.String(sub_entry.first.c_str());
+            writer.StartArray();
+            for (auto &type : sub_entry.second) {
+                writer.StartObject();
+                writer.Key("Type");
+                writer.String(type.c_str());
+                writer.EndObject();
+            }
+            writer.EndArray();
+            writer.EndObject();
+        }
+        writer.EndArray();
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getSubscribers(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+
+        slave_listener_pub.mapmutex.lock();
+        auto subscriber_map = slave_listener_pub.topicNtypes;
+        slave_listener_pub.mapmutex.unlock();
+
+        for (auto &sub_entry: subscriber_map) {
+            writer.StartObject();
+            writer.Key("Topic");
+            writer.String(sub_entry.first.c_str());
+            writer.StartArray();
+            for (auto &type : sub_entry.second) {
+                writer.StartObject();
+                writer.Key("Type");
+                writer.String(type.c_str());
+                writer.EndObject();
+            }
+            writer.EndArray();
+            writer.EndObject();
+        }
+        writer.EndArray();
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getModules(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+
+        auto participant_names = mp_participant->getParticipantNames();
+        for (auto name : participant_names) {
+            writer.StartObject();
+            writer.Key("Module");
+            writer.String(name.c_str());
+            writer.EndObject();
+        }
+
+        writer.EndArray();
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getModule(const Rest::Request &request, Http::ResponseWriter response) {
+
+        auto name = request.param(":name").as<std::string>();
+        /**
             response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
             response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        } else {
+            response.send(Http::Code::Not_Found, "Node data does not exist");
+        **/
+    }
+
+    void getNodes(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+
+        auto nit = nodeDataStorage.begin();
+        while (nit != nodeDataStorage.end()) {
+            writer.StartObject();
+            writer.Key(nit->first.c_str());
+            writer.Double(nit->second);
+            writer.EndObject();
+            ++nit;
         }
 
-        void createAction(const Rest::Request &request, Http::ResponseWriter response) {
 
+        auto sit = statusStorage.begin();
+        while (sit != statusStorage.end()) {
+            writer.StartObject();
+            writer.Key(sit->first.c_str());
+            writer.String(sit->second.c_str());
+            writer.EndObject();
+            ++sit;
         }
 
-        void deleteAction(const Rest::Request &request, Http::ResponseWriter response) {
-            auto name = request.param(":name").as<std::string>();
-        }
+        writer.EndArray();
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
 
-        void updateAction(const Rest::Request &request, Http::ResponseWriter response) {
-            auto name = request.param(":name").as<std::string>();
-        }
+    void getNode(const Rest::Request &request, Http::ResponseWriter response) {
 
-        void getAction(const Rest::Request &request, Http::ResponseWriter response) {
-            auto name = request.param(":name").as<std::string>();
-        }
-
-        void issueCommand(const Rest::Request &request, Http::ResponseWriter response) {
-            auto name = request.param(":name").as<std::string>();
-            SendCommand(name);
+        auto name = request.param(":name").as<std::string>();
+        auto it = nodeDataStorage.find(name);
+        if (it != nodeDataStorage.end()) {
             StringBuffer s;
             Writer<StringBuffer> writer(s);
             writer.StartObject();
-            writer.Key("Sent command");
-            writer.String(name.c_str());
+            writer.Key(it->first.c_str());
+            writer.Double(it->second);
             writer.EndObject();
             response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-            response.send(Http::Code::Ok, s.GetString());
-        }
-
-        void getPublishers(const Rest::Request &request, Http::ResponseWriter response) {
-            StringBuffer s;
-            Writer<StringBuffer> writer(s);
-            writer.StartArray();
-
-            slave_listener_sub.mapmutex.lock();
-            auto publisher_map = slave_listener_sub.topicNtypes;
-            slave_listener_sub.mapmutex.unlock();
-
-            for (auto &sub_entry: publisher_map) {
-                writer.StartObject();
-                writer.Key("Topic");
-                writer.String(sub_entry.first.c_str());
-                writer.StartArray();
-                for (auto &type : sub_entry.second) {
-                    writer.StartObject();
-                    writer.Key("Type");
-                    writer.String(type.c_str());
-                    writer.EndObject();
-                }
-                writer.EndArray();
-                writer.EndObject();
-            }
-            writer.EndArray();
-            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
             response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        } else {
+            response.send(Http::Code::Not_Found, "Node data does not exist");
+        }
+    }
+
+    void doDebug(const Rest::Request &request, Http::ResponseWriter response) {
+        printCookies(request);
+        response.cookies().add(Http::Cookie("lang", "en-US"));
+        response.send(Http::Code::Ok);
+    }
+
+    void doShutdown(const Rest::Request &request, Http::ResponseWriter response) {
+        m_runThread = false;
+        response.cookies().add(Http::Cookie("lang", "en-US"));
+        response.send(Http::Code::Ok);
+    }
+
+    typedef std::mutex Lock;
+    typedef std::lock_guard<Lock> Guard;
+    Lock commandLock;
+
+    std::shared_ptr<Http::Endpoint> httpEndpoint;
+    Rest::Router router;
+};
+
+
+void UdpDiscoveryThread() {
+    UdpDiscoveryServer udps(io_service, discoveryPort);
+    cout << "\tUDP Discovery listening on port " << discoveryPort << "\n" << endl;
+    io_service.run();
+}
+
+static void show_usage(const std::string &name) {
+    cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
+         << endl;
+}
+
+int main(int argc, char *argv[]) {
+    cout << "=== [AMM - REST Adapter] ===" << endl;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if ((arg == "-h") || (arg == "--help")) {
+            show_usage(argv[0]);
+            return 0;
         }
 
-        void getSubscribers(const Rest::Request &request, Http::ResponseWriter response) {
-            StringBuffer s;
-            Writer<StringBuffer> writer(s);
-            writer.StartArray();
-
-            slave_listener_pub.mapmutex.lock();
-            auto subscriber_map = slave_listener_pub.topicNtypes;
-            slave_listener_pub.mapmutex.unlock();
-
-            for (auto &sub_entry: subscriber_map) {
-                writer.StartObject();
-                writer.Key("Topic");
-                writer.String(sub_entry.first.c_str());
-                writer.StartArray();
-                for (auto &type : sub_entry.second) {
-                    writer.StartObject();
-                    writer.Key("Type");
-                    writer.String(type.c_str());
-                    writer.EndObject();
-                }
-                writer.EndArray();
-                writer.EndObject();
-            }
-            writer.EndArray();
-            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-            response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        if (arg == "-d") {
+            daemonize = 1;
         }
+    }
 
-        void getModules(const Rest::Request &request, Http::ResponseWriter response) {
-            StringBuffer s;
-            Writer<StringBuffer> writer(s);
-            writer.StartArray();
+    string action;
 
-            auto participant_names = mp_participant->getParticipantNames();
-            for (auto name : participant_names) {
-                writer.StartObject();
-                writer.Key("Module");
-                writer.String(name.c_str());
-                writer.EndObject();
-            }
+    const char *nodeName = "AMM_REST_Adapter";
+    auto *mgr = new DDS_Manager(nodeName);
+    mp_participant = mgr->GetParticipant();
 
-            writer.EndArray();
-            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-            response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-        }
+    auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
+    auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
+    auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
 
-        void getModule(const Rest::Request &request, Http::ResponseWriter response) {
+    node_sub_listener->SetUpstream(&rl);
+    command_sub_listener->SetUpstream(&rl);
+    tick_sub_listener->SetUpstream(&rl);
 
-            auto name = request.param(":name").as<std::string>();
-            /**
-                response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-                response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-            } else {
-                response.send(Http::Code::Not_Found, "Node data does not exist");
-            **/
-        }
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), tick_sub_listener);
 
-        void getNodes(const Rest::Request &request, Http::ResponseWriter response) {
-            StringBuffer s;
-            Writer<StringBuffer> writer(s);
-            writer.StartArray();
+    auto *pub_listener = new DDS_Listeners::PubListener();
+    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                 pub_listener);
 
-            auto nit = nodeDataStorage.begin();
-            while (nit != nodeDataStorage.end()) {
-                writer.StartObject();
-                writer.Key(nit->first.c_str());
-                writer.Double(nit->second);
-                writer.EndObject();
-                ++nit;
-            }
+    std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
+    auto result = EDP_Readers.first->setListener(&slave_listener_pub);
+    result &= EDP_Readers.second->setListener(&slave_listener_sub);
 
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            "Vcom3D",
+            "REST_Adapter",
+            "00001",
+            "0.0.1",
+            "capabilityString"
+    );
 
-            auto sit = statusStorage.begin();
-            while (sit != statusStorage.end()) {
-                writer.StartObject();
-                writer.Key(sit->first.c_str());
-                writer.String(sit->second.c_str());
-                writer.EndObject();
-                ++sit;
-            }
+    // Normally this would be set AFTER configuration is received
+    mgr->SetStatus(OPERATIONAL);
 
-            writer.EndArray();
-            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-            response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-        }
+    std::thread udpD(UdpDiscoveryThread);
 
-        void getNode(const Rest::Request &request, Http::ResponseWriter response) {
+    Port port(static_cast<uint16_t>(portNumber));
+    Address addr(Ipv4::any(), port);
+    DDSEndpoint server(addr);
+    cout << "=== [REST_Adapter] Ready ..." << endl;
+    cout << "  = [REST_Adapter] Listening on *:" << portNumber << endl;
+    cout << "  = [REST_Adapter] Cores = " << hardware_concurrency() << endl;
+    cout << "  = [REST_Adapter] Using " << thr << " threads" << endl;
+    cout << "  = Type EXIT and hit enter to shutdown" << endl;
+    server.init(thr);
 
-            auto name = request.param(":name").as<std::string>();
-            auto it = nodeDataStorage.find(name);
-            if (it != nodeDataStorage.end()) {
-                StringBuffer s;
-                Writer<StringBuffer> writer(s);
-                writer.StartObject();
-                writer.Key(it->first.c_str());
-                writer.Double(it->second);
-                writer.EndObject();
-                response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-                response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-            } else {
-                response.send(Http::Code::Not_Found, "Node data does not exist");
-            }
-        }
+    m_runThread = true;
 
-        void doDebug(const Rest::Request &request, Http::ResponseWriter response) {
-            printCookies(request);
-            response.cookies().add(Http::Cookie("lang", "en-US"));
-            response.send(Http::Code::Ok);
-        }
+    server.start();
 
-        void doShutdown(const Rest::Request &request, Http::ResponseWriter response) {
+    while (m_runThread) {
+        getline(cin, action);
+        transform(action.begin(), action.end(), action.begin(), ::toupper);
+        if (action == "EXIT") {
             m_runThread = false;
-            response.cookies().add(Http::Cookie("lang", "en-US"));
-            response.send(Http::Code::Ok);
+            cout << "=== [REST_Adapter] Shutting down." << endl;
         }
-
-        typedef std::mutex Lock;
-        typedef std::lock_guard<Lock> Guard;
-        Lock commandLock;
-
-        std::shared_ptr<Http::Endpoint> httpEndpoint;
-        Rest::Router router;
-    };
-
-
-
-    void UdpDiscoveryThread() {
-        UdpDiscoveryServer udps(io_service, discoveryPort);
-        cout << "\tUDP Discovery listening on port " << discoveryPort << "\n" << endl;
-        io_service.run();
+        sleep(1);
     }
 
-    static void show_usage(const std::string &name) {
-        cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
-             << endl;
-    }
+    server.shutdown();
+    cout << "=== [REST_Adapter] Stopped REST listener." << endl;
 
-    int main(int argc, char *argv[]) {
-        cout << "=== [AMM - REST Adapter] ===" << endl;
+    io_service.stop();
 
-        for (int i = 1; i < argc; ++i) {
-            std::string arg = argv[i];
-            if ((arg == "-h") || (arg == "--help")) {
-                show_usage(argv[0]);
-                return 0;
-            }
+    udpD.join();
 
-            if (arg == "-d") {
-                daemonize = 1;
-            }
-        }
+    cout << "=== [REST_Adapter] Stopped UDP." << endl;
 
-        string action;
-
-        const char *nodeName = "AMM_REST_Adapter";
-        auto *mgr = new DDS_Manager(nodeName);
-        mp_participant = mgr->GetParticipant();
-
-        auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
-        auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
-        auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
-
-        RESTListener rl;
-        node_sub_listener->SetUpstream(&rl);
-        command_sub_listener->SetUpstream(&rl);
-        tick_sub_listener->SetUpstream(&rl);
-
-        mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
-        mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-        mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), tick_sub_listener);
-
-
-        auto *pub_listener = new DDS_Listeners::PubListener();
-        command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                     pub_listener);
-
-        std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
-        auto result = EDP_Readers.first->setListener(&slave_listener_pub);
-        result &= EDP_Readers.second->setListener(&slave_listener_sub);
-
-        std::thread udpD(UdpDiscoveryThread);
-
-        Port port(static_cast<uint16_t>(portNumber));
-        Address addr(Ipv4::any(), port);
-        DDSEndpoint server(addr);
-        cout << "=== [REST_Adapter] Ready ..." << endl;
-        cout << "  = [REST_Adapter] Listening on *:" << portNumber << endl;
-        cout << "  = [REST_Adapter] Cores = " << hardware_concurrency() << endl;
-        cout << "  = [REST_Adapter] Using " << thr << " threads" << endl;
-        cout << "  = Type EXIT and hit enter to shutdown" << endl;
-        server.init(thr);
-
-        m_runThread = true;
-
-        server.start();
-
-        while (m_runThread) {
-            getline(cin, action);
-            transform(action.begin(), action.end(), action.begin(), ::toupper);
-            if (action == "EXIT") {
-                m_runThread = false;
-                cout << "=== [REST_Adapter] Shutting down." << endl;
-            }
-            sleep(1);
-        }
-
-        server.shutdown();
-        cout << "=== [REST_Adapter] Stopped REST listener." << endl;
-
-        io_service.stop();
-
-        udpD.join();
-
-        cout << "=== [REST_Adapter] Stopped UDP." << endl;
-
-        return 0;
-    }
+    return 0;
+}

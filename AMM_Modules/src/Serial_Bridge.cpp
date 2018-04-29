@@ -83,6 +83,20 @@ int main(int argc, char *argv[]) {
 
     Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
 
+
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            "Vcom3D",
+            "Serial_Bridge",
+            "00001",
+            "0.0.1",
+            "capabilityString"
+    );
+
+    // Normally this would be set AFTER configuration is received
+    mgr->SetStatus(OPERATIONAL);
+
     cout << "=== [Serial_Bridge] Ready ..." << endl;
 
     std::string reportPrefix = "[REPORT]";
