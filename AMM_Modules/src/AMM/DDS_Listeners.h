@@ -120,5 +120,41 @@ public:
         ListenerInterface *upstream{};
     };
 
+    class StatusSubListener : public SubscriberListener {
+    public:
+        StatusSubListener() : n_matched(0), n_msg(0) {};
+
+        ~StatusSubListener() override = default;;
+
+        void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
+
+        void onNewDataMessage(Subscriber *sub) override;
+
+        SampleInfo_t m_info;
+        int n_matched;
+        int n_msg;
+
+        void SetUpstream(ListenerInterface *l) { upstream = l; };
+        ListenerInterface *upstream{};
+    };
+
+    class ConfigSubListener : public SubscriberListener {
+    public:
+        ConfigSubListener() : n_matched(0), n_msg(0) {};
+
+        ~ConfigSubListener() override = default;;
+
+        void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
+
+        void onNewDataMessage(Subscriber *sub) override;
+
+        SampleInfo_t m_info;
+        int n_matched;
+        int n_msg;
+
+        void SetUpstream(ListenerInterface *l) { upstream = l; };
+        ListenerInterface *upstream{};
+    };
+
 };
 

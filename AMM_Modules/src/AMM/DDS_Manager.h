@@ -71,7 +71,7 @@ public:
 private:
     void RegisterTypes();
 
-    void RegisterPublishers();
+//    void RegisterPublishers();
 
     Participant *mp_participant;
 

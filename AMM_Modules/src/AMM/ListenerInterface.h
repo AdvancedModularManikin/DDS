@@ -5,7 +5,7 @@
 #include "AMMPubSubTypes.h"
 
 
-
+/** Common listeners that can be implemented **/
 class ListenerInterface : public ReaderListener {
 public:
     ListenerInterface() = default;;
@@ -17,6 +17,10 @@ public:
     virtual void onNewTickData(AMM::Simulation::Tick t) {};
 
     virtual void onNewCommandData(AMM::PatientAction::BioGears::Command c) {};
+
+    virtual void onNewStatusData(AMM::Capability::Status s) {};
+
+    virtual void onNewConfigData(AMM::Capability::Configuration cfg) {};
 
     std::string sysPrefix = "[SYS]";
     std::string actPrefix = "[ACT]";
