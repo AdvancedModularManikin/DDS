@@ -4,6 +4,9 @@
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
 
 #include <Net/Server.h>
 #include <Net/UdpDiscoveryServer.h>
@@ -65,6 +68,20 @@ std::vector<std::string> publishNodes = {
 
 std::map<std::string, double> labNodes;
 
+std::string decode64(const std::string &val) {
+  using namespace boost::archive::iterators;
+  using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
+  return boost::algorithm::trim_right_copy_if(std::string(It(std::begin(val)), It(std::end(val))), [](char c) {
+      return c == '\0';
+    });
+}
+
+std::string encode64(const std::string &val) {
+  using namespace boost::archive::iterators;
+  using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+  auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
+  return tmp.append((3 - val.size() % 3) % 3, '=');
+}
 
 void InitializeLabNodes() {
     labNodes["Substance_Sodium"] = 0.0f;
@@ -144,7 +161,7 @@ void *Server::HandleClient(void *args) {
     ServerThread::LockMutex(c->name);
     //Before adding the new client, calculate its id. (Now we have the lock)
     c->SetId(Server::clients.size());
-    string defaultName = "Client n.%d" + c->id;
+    string defaultName = "Client #" + c->id;
     c->SetName(defaultName);
     cout << "Adding client with id: " << c->id << endl;
     Server::clients.push_back(*c);
@@ -179,7 +196,7 @@ void *Server::HandleClient(void *args) {
             for (auto str : strings) {
                 boost::trim_right(str);
                 if (!str.empty()) {
-                    cout << "We got a message from " << c->name << ": " << str << endl;
+		  //                    cout << "We got a message from " << c->name << ": " << str << endl;
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
                         string moduleName = str.substr(modulePrefix.size());
                         c->SetName(moduleName);
@@ -190,11 +207,11 @@ void *Server::HandleClient(void *args) {
                         cout << "[CLIENT][REGISTER] Client registered for " << registerVal << endl;
                     } else if (str.substr(0, statusPrefix.size()) == statusPrefix) {
                         // Client set their status (OPERATIONAL, etc)
-                        std::string statusVal = str.substr(statusPrefix.size());
+		      std::string statusVal = decode64(str.substr(statusPrefix.size()));
                         cout << "[CLIENT][STATUS] Client sent status of: " << statusVal << endl;
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
-                        std::string capabilityVal = str.substr(capabilityPrefix.size());
+		      std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
                         cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
