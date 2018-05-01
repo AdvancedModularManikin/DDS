@@ -37,6 +37,8 @@ void show_menu(ModuleManager* modManager) {
 
 int main(int argc, char *argv[]) {
 	int daemonize = 0;
+    bool setup = false;
+
     cout << "=== [AMM - Module Manager] ===" << endl;		
 	
     for (int i = 1; i < argc; ++i) {
@@ -50,9 +52,18 @@ int main(int argc, char *argv[]) {
             daemonize = 1;
         }
 
+        if (arg == "-s") {
+            setup = true;
+        }
+
     }
 
     ModuleManager modManager;
+
+    if (setup) {
+        modManager.InitializeDB();
+    }
+
     modManager.Start();
 
 
