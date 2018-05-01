@@ -12,7 +12,12 @@
 
 #include "AMM/DDS_Manager.h"
 
+#include "tinyxml2.h"
+
+#include <sqlite_modern_cpp.h>
+
 using namespace std;
+using namespace sqlite;
 
 Server *s;
 
@@ -26,7 +31,8 @@ Publisher *command_publisher;
 Subscriber *command_subscriber;
 Subscriber *node_subscriber;
 
-const string xmlPrefix = "XML=";
+const string capabilityPrefix = "CAPABILITY=";
+const string statusPrefix = "STATUS=";
 const string modulePrefix = "MODULE_NAME=";
 const string registerPrefix = "REGISTER=";
 const string requestPrefix = "REQUEST=";
@@ -83,6 +89,10 @@ void InitializeLabNodes() {
  */
 class TCPBridgeListener : public ListenerInterface {
 public:
+    void onNewConfigData(AMM::Capability::Configuration cfg) override {
+        // rip out the capabilities string and send it on to the TCP client
+    }
+
     void onNewNodeData(AMM::Physiology::Node n) override {
         if (n.nodepath() == "EXIT") {
             cout << "Shutting down simulation based on shutdown node-data from physiology engine." << endl;
@@ -102,21 +112,21 @@ public:
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
-    	
-		if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+
+        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
-                
+
             } else if (value.compare("STOP_SIM") == 0) {
-                
+
             } else if (value.compare("PAUSE_SIM") == 0) {
-                
+
             } else if (value.compare("RESET_SIM") == 0) {
-					InitializeLabNodes();
+                InitializeLabNodes();
             }
-        }    	
-    	
-    	
+        }
+
+
         std::ostringstream messageOut;
         messageOut << "ACT" << "=" << c.message() << "|";
         s->SendToAll(messageOut.str());
@@ -169,7 +179,7 @@ void *Server::HandleClient(void *args) {
             for (auto str : strings) {
                 boost::trim_right(str);
                 if (!str.empty()) {
-                    // cout << "We got a message from " << c->name << ": " << str << endl;
+                    cout << "We got a message from " << c->name << ": " << str << endl;
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
                         string moduleName = str.substr(modulePrefix.size());
                         c->SetName(moduleName);
@@ -177,7 +187,15 @@ void *Server::HandleClient(void *args) {
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
                         // Registering for data
                         std::string registerVal = str.substr(registerPrefix.size());
-                        // cout << "[CLIENT][REGISTER] Client registered for " << registerVal << endl;
+                        cout << "[CLIENT][REGISTER] Client registered for " << registerVal << endl;
+                    } else if (str.substr(0, statusPrefix.size()) == statusPrefix) {
+                        // Client set their status (OPERATIONAL, etc)
+                        std::string statusVal = str.substr(statusPrefix.size());
+                        cout << "[CLIENT][STATUS] Client sent status of: " << statusVal << endl;
+                    } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
+                        // Client sent their capabilities / announced
+                        std::string capabilityVal = str.substr(capabilityPrefix.size());
+                        cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
@@ -220,8 +238,7 @@ void *Server::HandleClient(void *args) {
     return nullptr;
 }
 
-void UdpDiscoveryThread()
-{
+void UdpDiscoveryThread() {
     boost::asio::io_service io_service;
     UdpDiscoveryServer udps(io_service, discoveryPort);
     cout << "\tUDP Discovery listening on port " << discoveryPort << endl;
@@ -250,26 +267,29 @@ int main(int argc, const char *argv[]) {
 
     InitializeLabNodes();
 
-    const char* nodeName = "AMM_TCP_Bridge";
+    const char *nodeName = "AMM_TCP_Bridge";
     auto *mgr = new DDS_Manager(nodeName);
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
+    auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
     auto *pub_listener = new DDS_Listeners::PubListener();
 
     TCPBridgeListener tl;
     node_sub_listener->SetUpstream(&tl);
     command_sub_listener->SetUpstream(&tl);
+    config_sub_listener->SetUpstream(&tl);
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
 
-    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
+    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                 pub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
             "Vcom3D",
-            "TCP_Bridge",
+            nodeName,
             "00001",
             "0.0.1",
             "capabilityString"
