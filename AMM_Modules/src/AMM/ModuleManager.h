@@ -67,13 +67,13 @@ using namespace tinyxml2;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
-class ModuleManager : public ListenerInterface {
+class ModuleManager  {
 
 public:
 
     ModuleManager();
 
-    ~ModuleManager() override = default;;
+    ~ModuleManager() = default;;
 
     void Start();
 
@@ -85,18 +85,11 @@ public:
 
     void Cleanup();
 
-    void onNewStatusData(AMM::Capability::Status s, SampleInfo_t *info) override;
-
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override;
-
-
 protected:
 
     std::thread m_thread;
     std::mutex m_mutex;
     bool m_runThread;
-
-    sqlite::database m_db;
 
     const char *nodeName = "AMM_ModuleManager";
 

@@ -93,6 +93,7 @@ void DDS_Listeners::StatusSubListener::onNewDataMessage(Subscriber *sub) {
 
     if (sub->takeNextData(&st, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
+            cout << "YO YO STATUS MESSAGE " << endl;
             if (upstream != nullptr) {
                 upstream->onNewStatusData(st, &m_info);
             }
@@ -115,6 +116,7 @@ void DDS_Listeners::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
 
     if (sub->takeNextData(&st, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
+            cout << "YO YO CONFIG MESSAGE " << endl;
             if (upstream != nullptr) {
                 upstream->onNewConfigData(st, &m_info);
             }

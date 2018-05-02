@@ -44,7 +44,7 @@
 #include "AMM/DataTypes.h"
 #include "AMM/DDS_Manager.h"
 
-#include "AMM/CoreListener.h"
+
 
 #include <pistache/http.h>
 #include <pistache/router.h>
@@ -139,10 +139,6 @@ class AMMListener : public ListenerInterface {
     }
 
 };
-
-CoreListener slave_listener_pub("PUB");
-CoreListener slave_listener_sub("SUB");
-CoreListener ammL("PARTICIPANT");
 
 AMMListener rl;
 
@@ -368,7 +364,7 @@ private:
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();
-
+/*
         slave_listener_sub.mapmutex.lock();
         auto publisher_map = slave_listener_sub.topicNtypes;
         slave_listener_sub.mapmutex.unlock();
@@ -386,7 +382,7 @@ private:
             }
             writer.EndArray();
             writer.EndObject();
-        }
+        }*/
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
@@ -397,7 +393,7 @@ private:
         Writer<StringBuffer> writer(s);
         writer.StartArray();
 
-        slave_listener_pub.mapmutex.lock();
+        /*slave_listener_pub.mapmutex.lock();
         auto subscriber_map = slave_listener_pub.topicNtypes;
         slave_listener_pub.mapmutex.unlock();
 
@@ -414,7 +410,7 @@ private:
             }
             writer.EndArray();
             writer.EndObject();
-        }
+        }*/
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
@@ -566,9 +562,9 @@ int main(int argc, char *argv[]) {
     command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                  pub_listener);
 
-    std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
+    /*std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
     auto result = EDP_Readers.first->setListener(&slave_listener_pub);
-    result &= EDP_Readers.second->setListener(&slave_listener_sub);
+    result &= EDP_Readers.second->setListener(&slave_listener_sub);*/
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
