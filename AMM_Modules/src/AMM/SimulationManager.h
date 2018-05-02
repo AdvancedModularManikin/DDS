@@ -42,11 +42,7 @@ public:
 
     void TickLoop();
 
-    void onNewNodeData(AMM::Physiology::Node n) override;
-
-    void onNewTickData(AMM::Simulation::Tick t) override;
-
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override;
 
 protected:
 

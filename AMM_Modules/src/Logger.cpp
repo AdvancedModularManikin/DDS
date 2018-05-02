@@ -173,7 +173,7 @@ public:
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
         cout << "[COMMAND]" << c.message() << endl;
     }
 

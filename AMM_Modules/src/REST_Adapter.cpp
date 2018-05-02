@@ -44,7 +44,7 @@
 #include "AMM/DataTypes.h"
 #include "AMM/DDS_Manager.h"
 
-#include "AMM/CoreListener.h"
+
 
 #include <pistache/http.h>
 #include <pistache/router.h>
@@ -103,9 +103,10 @@ int64_t lastTick = 0;
 Publisher *command_publisher;
 Participant *mp_participant;
 boost::asio::io_service io_service;
+database db("amm.db");
 
 class AMMListener : public ListenerInterface {
-    void onNewTickData(AMM::Simulation::Tick t) {
+    void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) {
         if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 && t.frame() > lastTick) {
             statusStorage["STATUS"] = "RUNNING";
         }
@@ -114,7 +115,7 @@ class AMMListener : public ListenerInterface {
         statusStorage["TIME"] = to_string(t.time());
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
@@ -134,17 +135,13 @@ class AMMListener : public ListenerInterface {
         statusStorage["LAST_COMMAND"] = c.message();
     }
 
-    void onNewNodeData(AMM::Physiology::Node n) {
+    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {
         nodeDataStorage[n.nodepath()] = n.dbl();
     }
 
 };
 
-CoreListener slave_listener_pub("PUB");
-CoreListener slave_listener_sub("SUB");
-CoreListener ammL("PARTICIPANT");
 
-AMMListener rl;
 
 
 void SendCommand(const std::string &command) {
@@ -177,12 +174,14 @@ public:
 
     explicit DDSEndpoint(Address addr) :
             httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {
+
     }
 
     void init(int thr = 2) {
         auto opts = Http::Endpoint::options().threads(thr).flags(Tcp::Options::InstallSignalHandler);
         httpEndpoint->init(opts);
         setupRoutes();
+
     }
 
     void start() {
@@ -195,6 +194,7 @@ public:
     }
 
 private:
+
     void setupRoutes() {
         using namespace Rest;
 
@@ -368,7 +368,7 @@ private:
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();
-
+/*
         slave_listener_sub.mapmutex.lock();
         auto publisher_map = slave_listener_sub.topicNtypes;
         slave_listener_sub.mapmutex.unlock();
@@ -386,7 +386,7 @@ private:
             }
             writer.EndArray();
             writer.EndObject();
-        }
+        }*/
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
@@ -397,7 +397,7 @@ private:
         Writer<StringBuffer> writer(s);
         writer.StartArray();
 
-        slave_listener_pub.mapmutex.lock();
+        /*slave_listener_pub.mapmutex.lock();
         auto subscriber_map = slave_listener_pub.topicNtypes;
         slave_listener_pub.mapmutex.unlock();
 
@@ -414,7 +414,7 @@ private:
             }
             writer.EndArray();
             writer.EndObject();
-        }
+        }*/
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
@@ -425,12 +425,24 @@ private:
         Writer<StringBuffer> writer(s);
         writer.StartArray();
 
+        db << "select node_id,node_name from nodes;"
+           >> [&](string node_id, string node_name) {
+               writer.StartObject();
+
+               writer.Key("Node ID");
+               writer.String(node_id.c_str());
+
+               writer.Key("Node name");
+               writer.String(node_name.c_str());
+
+               writer.EndObject();
+           };
+
         auto participant_names = mp_participant->getParticipantNames();
         for (auto name : participant_names) {
-            writer.StartObject();
-            writer.Key("Module");
-            writer.String(name.c_str());
-            writer.EndObject();
+
+
+
         }
 
         writer.EndArray();
@@ -553,6 +565,7 @@ int main(int argc, char *argv[]) {
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
 
+    AMMListener rl;
     node_sub_listener->SetUpstream(&rl);
     command_sub_listener->SetUpstream(&rl);
     tick_sub_listener->SetUpstream(&rl);
@@ -566,9 +579,9 @@ int main(int argc, char *argv[]) {
     command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                  pub_listener);
 
-    std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
+    /*std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
     auto result = EDP_Readers.first->setListener(&slave_listener_pub);
-    result &= EDP_Readers.second->setListener(&slave_listener_sub);
+    result &= EDP_Readers.second->setListener(&slave_listener_sub);*/
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration

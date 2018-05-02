@@ -2,7 +2,9 @@
 
 #include "AMM/ModuleManager.h"
 
+
 using namespace std;
+using namespace sqlite;
 
 bool closed = false;
 
@@ -14,7 +16,7 @@ static void show_usage(const std::string &name) {
          endl;
 }
 
-void show_menu(ModuleManager* modManager) {
+void show_menu(ModuleManager *modManager) {
     string action;
 
     cout << endl;
@@ -25,7 +27,7 @@ void show_menu(ModuleManager* modManager) {
     transform(action.begin(), action.end(), action.begin(), ::toupper);
 
     if (action == "1") {
-      // Status
+        // Status
     } else if (action == "4") {
         cout << "=== [ModManager] Shutting down Module Manager." << endl;
         closed = true;
@@ -36,11 +38,11 @@ void show_menu(ModuleManager* modManager) {
 }
 
 int main(int argc, char *argv[]) {
-	int daemonize = 0;
+    int daemonize = 0;
     bool setup = false;
 
-    cout << "=== [AMM - Module Manager] ===" << endl;		
-	
+    cout << "=== [AMM - Module Manager] ===" << endl;
+
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -58,12 +60,41 @@ int main(int argc, char *argv[]) {
 
     }
 
-    ModuleManager modManager;
 
     if (setup) {
-        modManager.InitializeDB();
+        sqlite_config config;
+        database db("amm.db", config);
+        db << "create table if not exists nodes ("
+//                 "_id integer primary key autoincrement not null,"
+                "node_id text,"
+                "node_name text"
+           ");";
+
+        db << "create table if not exists node_capabilities ("
+                "_id integer primary key autoincrement not null,"
+                "node_id text,"
+                "manufacturer text,"
+                "model text,"
+                "serial_number text,"
+                "version text,"
+                "capabilities text,"
+                "timestamp text,"
+                "encounter_id text"
+                ");";
+
+        db << "create table if not exists node_status ("
+                "_id integer primary key autoincrement not null,"
+                "node_id text,"
+                "capability text,"
+                "status text,"
+                "timestamp text,"
+                "encounter_id text"
+                ");";
+
+        cout << "\tCreated AMM database schema." << endl;
     }
 
+    ModuleManager modManager;
     modManager.Start();
 
 

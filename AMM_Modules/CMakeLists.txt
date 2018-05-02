@@ -115,9 +115,8 @@ target_link_libraries(${LOGGER_EXE}
         )
 
 #if (TINYXML2_FOUND)
-set(MODULE_MANAGER_SOURCES src/ModuleManager.cpp src/AMM/ModuleManager.cpp ${CORE_LISTENER_SOURCES})
+set(MODULE_MANAGER_SOURCES src/ModuleManager.cpp src/AMM/ModuleManager.cpp)
 set(MODULE_MANAGER_EXE amm_module_manager)
-
 add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
 set_target_properties(${MODULE_MANAGER_EXE} PROPERTIES
         CXX_STANDARD 14
@@ -132,7 +131,7 @@ target_link_libraries(${MODULE_MANAGER_EXE}
         )
 
 #    if (RAPIDJSON_FOUND AND Pistache_FOUND)
-set(REST_ADAPTER_SOURCES src/REST_Adapter.cpp ${CORE_LISTENER_SOURCES})
+set(REST_ADAPTER_SOURCES src/REST_Adapter.cpp)
 set(REST_ADAPTER_EXE amm_rest_adapter)
 
 add_executable(${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES} src/Net/UdpDiscoveryServer.cpp ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
