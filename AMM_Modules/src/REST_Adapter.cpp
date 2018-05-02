@@ -103,6 +103,7 @@ int64_t lastTick = 0;
 Publisher *command_publisher;
 Participant *mp_participant;
 boost::asio::io_service io_service;
+database db("amm.db");
 
 class AMMListener : public ListenerInterface {
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) {
@@ -140,7 +141,7 @@ class AMMListener : public ListenerInterface {
 
 };
 
-AMMListener rl;
+
 
 
 void SendCommand(const std::string &command) {
@@ -173,12 +174,14 @@ public:
 
     explicit DDSEndpoint(Address addr) :
             httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {
+
     }
 
     void init(int thr = 2) {
         auto opts = Http::Endpoint::options().threads(thr).flags(Tcp::Options::InstallSignalHandler);
         httpEndpoint->init(opts);
         setupRoutes();
+
     }
 
     void start() {
@@ -191,6 +194,7 @@ public:
     }
 
 private:
+
     void setupRoutes() {
         using namespace Rest;
 
@@ -421,12 +425,24 @@ private:
         Writer<StringBuffer> writer(s);
         writer.StartArray();
 
+        db << "select node_id,node_name from nodes;"
+           >> [&](string node_id, string node_name) {
+               writer.StartObject();
+
+               writer.Key("Node ID");
+               writer.String(node_id.c_str());
+
+               writer.Key("Node name");
+               writer.String(node_name.c_str());
+
+               writer.EndObject();
+           };
+
         auto participant_names = mp_participant->getParticipantNames();
         for (auto name : participant_names) {
-            writer.StartObject();
-            writer.Key("Module");
-            writer.String(name.c_str());
-            writer.EndObject();
+
+
+
         }
 
         writer.EndArray();
@@ -549,6 +565,7 @@ int main(int argc, char *argv[]) {
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
 
+    AMMListener rl;
     node_sub_listener->SetUpstream(&rl);
     command_sub_listener->SetUpstream(&rl);
     tick_sub_listener->SetUpstream(&rl);

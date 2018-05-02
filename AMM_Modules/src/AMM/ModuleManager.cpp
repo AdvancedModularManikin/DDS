@@ -7,52 +7,6 @@ using namespace sqlite;
 
 database db("amm.db");
 
-class StatusListener :  public ListenerInterface {
-    void onNewStatusData(AMM::Capability::Status s, SampleInfo_t *info) override {
-        cout << "[MM] Received a status message " << endl;
-        cout << "[MM] From " << info->sample_identity.writer_guid() << endl;
-        cout << "[MM]\tValue: " << s.status_value() << endl;
-        cout << "[MM]\tCapabilities: " << s.capability() << endl;
-        // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
-        cout << "[MM]\t---" << endl;
-
-        ostringstream node_id;
-        node_id << info->sample_identity.writer_guid();
-        auto timestamp = std::to_string( time( nullptr ) );
-
-        db << "insert into node_status (node_id, capability, status, timestamp) values (?,?,?,?);"
-           << node_id.str()
-           << s.capability()
-           << "OPERATIONAL"
-           << timestamp;
-    }
-
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
-        cout << "[MM] Received a capability config message " << endl;
-        cout << "[MM] From " << info->sample_identity.writer_guid() << endl;
-        cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
-        cout << "[MM]\tModel: " << cfg.model() << endl;
-        cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;
-        cout << "[MM]\tVersion: " << cfg.version() << endl;
-        cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
-        cout << "[MM]\t---" << endl;
-
-        ostringstream node_id;
-        node_id << info->sample_identity.writer_guid();
-        auto timestamp = std::to_string( time( nullptr ) );
-
-        /*db << "insert into node_capabilities (node_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
-             << node_id.str()
-             << cfg.manufacturer()
-             << cfg.model()
-             << cfg.serial_number()
-             << cfg.version()
-             << cfg.capabilities()
-             << timestamp;*/
-
-    }
-};
-
 class AMMListener : public ParticipantListener {
 public:
     std::mutex mapmutex;
@@ -173,19 +127,18 @@ public:
 };
 
 AMMListener ammL;
-StatusListener sL;
-
-auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
-auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
-auto *pub_listener = new DDS_Listeners::PubListener();
-
 
 ModuleManager::ModuleManager()  {
     mgr = new DDS_Manager(nodeName, &ammL);
     m_runThread = false;
 
-    status_sub_listener->SetUpstream(&sL);
-    config_sub_listener->SetUpstream(&sL);
+    auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
+    status_sub_listener->SetUpstream(this);
+
+    auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
+    config_sub_listener->SetUpstream(this);
+
+    auto *pub_listener = new DDS_Listeners::PubListener();
 
     status_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::statusTopic,
                                                   AMM::DataTypes::getStatusType(),
@@ -197,6 +150,19 @@ ModuleManager::ModuleManager()  {
     config_publisher = mgr->InitializePublisher(AMM::DataTypes::configurationTopic,
                                                 AMM::DataTypes::getConfigurationType(),
                                                 pub_listener);
+
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            "Vcom3D",
+            "PhysiologyEngine",
+            "00001",
+            "0.0.1",
+            "capabilityString"
+    );
+
+    // Normally this would be set AFTER configuration is received
+    mgr->SetStatus(OPERATIONAL);
 
 }
 
@@ -236,3 +202,46 @@ void ModuleManager::Shutdown() {
 
 }
 
+void ModuleManager::onNewStatusData(AMM::Capability::Status s, SampleInfo_t *info) {
+    cout << "[MM] Received a status message " << endl;
+    cout << "[MM] From " << info->sample_identity.writer_guid() << endl;
+    cout << "[MM]\tValue: " << s.status_value() << endl;
+    cout << "[MM]\tCapabilities: " << s.capability() << endl;
+    // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
+    cout << "[MM]\t---" << endl;
+
+    ostringstream node_id;
+    node_id << info->sample_identity.writer_guid();
+    auto timestamp = std::to_string( time( nullptr ) );
+
+    db << "insert into node_status (node_id, capability, status, timestamp) values (?,?,?,?);"
+       << node_id.str()
+       << s.capability()
+       << "OPERATIONAL"
+       << timestamp;
+}
+
+void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info)  {
+    cout << "[MM] Received a capability config message " << endl;
+    cout << "[MM] From " << info->sample_identity.writer_guid() << endl;
+    cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
+    cout << "[MM]\tModel: " << cfg.model() << endl;
+    cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;
+    cout << "[MM]\tVersion: " << cfg.version() << endl;
+    cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
+    cout << "[MM]\t---" << endl;
+
+    ostringstream node_id;
+    node_id << info->sample_identity.writer_guid();
+    auto timestamp = std::to_string( time( nullptr ) );
+
+    /*db << "insert into node_capabilities (node_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
+         << node_id.str()
+         << cfg.manufacturer()
+         << cfg.model()
+         << cfg.serial_number()
+         << cfg.version()
+         << cfg.capabilities()
+         << timestamp;*/
+
+}

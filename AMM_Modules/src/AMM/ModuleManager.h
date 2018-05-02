@@ -67,13 +67,13 @@ using namespace tinyxml2;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
-class ModuleManager  {
+class ModuleManager : public ListenerInterface {
 
 public:
 
     ModuleManager();
 
-    ~ModuleManager() = default;;
+    ~ModuleManager() override = default;;
 
     void Start();
 
@@ -84,6 +84,9 @@ public:
     bool isRunning();
 
     void Cleanup();
+
+    void onNewStatusData(AMM::Capability::Status s, SampleInfo_t *info) override;
+    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override;
 
 protected:
 
