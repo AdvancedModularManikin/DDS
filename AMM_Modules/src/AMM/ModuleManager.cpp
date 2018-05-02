@@ -204,12 +204,11 @@ void ModuleManager::onNewStatusData(AMM::Capability::Status s, SampleInfo_t *inf
     node_id << info->sample_identity.writer_guid();
     auto timestamp = std::to_string( time( nullptr ) );
 
-    /*m_db << "insert into node_status (node_id, capability, status, timestamp) values (?,?,?,?);"
-          << node_id
+    m_db << "insert into node_status (node_id, capability, status, timestamp) values (?,?,?,?);"
+          << node_id.str()
          << s.capability()
-         << s.status_value()
-         << timestamp;*/
-
+         << "OPERATIONAL"
+         << timestamp;
 }
 
 void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
@@ -226,13 +225,13 @@ void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleIn
     node_id << info->sample_identity.writer_guid();
     auto timestamp = std::to_string( time( nullptr ) );
 
-    /*m_db << "insert into node_capabilities (node_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
-         << node_id
+    m_db << "insert into node_capabilities (node_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
+         << node_id.str()
          << cfg.manufacturer()
          << cfg.model()
          << cfg.serial_number()
          << cfg.version()
          << cfg.capabilities()
-         << timestamp;*/
+         << timestamp;
 
 }
