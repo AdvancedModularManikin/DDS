@@ -39,17 +39,10 @@ public:
 
     void Cleanup();
 
-    void InitializeDB();
+    void onNewStatusData(AMM::Capability::Status s, SampleInfo_t *info) override;
 
-    void onNewNodeData(AMM::Physiology::Node n) override;
+    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override;
 
-    void onNewTickData(AMM::Simulation::Tick t) override;
-
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
-
-    void onNewStatusData(AMM::Capability::Status s) override;
-
-    void onNewConfigData(AMM::Capability::Configuration cfg) override;
 
 protected:
 
@@ -57,9 +50,16 @@ protected:
     std::mutex m_mutex;
     bool m_runThread;
 
+    sqlite::database m_db;
+
     const char *nodeName = "AMM_ModuleManager";
 
     DDS_Manager *mgr = new DDS_Manager(nodeName);
+
+    Subscriber *status_subscriber;
+    Subscriber *config_subscriber;
+    Publisher *config_publisher;
+
 
 };
 

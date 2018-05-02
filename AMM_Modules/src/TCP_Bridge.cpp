@@ -106,11 +106,11 @@ void InitializeLabNodes() {
  */
 class TCPBridgeListener : public ListenerInterface {
 public:
-    void onNewConfigData(AMM::Capability::Configuration cfg) override {
+    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
         // rip out the capabilities string and send it on to the TCP client
     }
 
-    void onNewNodeData(AMM::Physiology::Node n) override {
+    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         if (n.nodepath() == "EXIT") {
             cout << "Shutting down simulation based on shutdown node-data from physiology engine." << endl;
             closed = true;
@@ -128,7 +128,7 @@ public:
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
 
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());

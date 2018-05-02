@@ -99,7 +99,7 @@ void SimulationManager::Shutdown() {
 
 
 // Listener events
-void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
     if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
         std::string value = c.message().substr(sysPrefix.size());
         cout << "[SimManager] We received a SYSTEM action: " << value << endl;
@@ -127,10 +127,3 @@ void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c
 
 }
 
-void SimulationManager::onNewNodeData(AMM::Physiology::Node n) {
-
-}
-
-void SimulationManager::onNewTickData(AMM::Simulation::Tick t) {
-
-}

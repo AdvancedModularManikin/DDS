@@ -28,7 +28,7 @@ void DDS_Listeners::NodeSubListener::onNewDataMessage(Subscriber *sub) {
     if (sub->takeNextData(&n, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewNodeData(n);
+                upstream->onNewNodeData(n, &m_info);
             }
             ++n_msg;
         }
@@ -50,7 +50,7 @@ void DDS_Listeners::CommandSubListener::onNewDataMessage(Subscriber *sub) {
     if (sub->takeNextData(&st, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewCommandData(st);
+                upstream->onNewCommandData(st, &m_info);
             }
             ++n_msg;
         }
@@ -72,7 +72,7 @@ void DDS_Listeners::TickSubListener::onNewDataMessage(Subscriber *sub) {
     if (sub->takeNextData(&st, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewTickData(st);
+                upstream->onNewTickData(st, &m_info);
             }
             ++n_msg;
         }
@@ -94,7 +94,7 @@ void DDS_Listeners::StatusSubListener::onNewDataMessage(Subscriber *sub) {
     if (sub->takeNextData(&st, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewStatusData(st);
+                upstream->onNewStatusData(st, &m_info);
             }
             ++n_msg;
         }
@@ -116,7 +116,7 @@ void DDS_Listeners::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
     if (sub->takeNextData(&st, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewConfigData(st);
+                upstream->onNewConfigData(st, &m_info);
             }
             ++n_msg;
         }

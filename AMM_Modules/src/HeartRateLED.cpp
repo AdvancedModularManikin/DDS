@@ -41,7 +41,7 @@ int spi_transfer(int fd, const unsigned char *tx_buf, const unsigned char *rx_bu
 
 class HeartRateListener : public ListenerInterface {
 
-    void onNewNodeData(AMM::Physiology::Node n) override {
+    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         bool print = false;
         if (n.nodepath() == "EXIT") {
             closed = true;
@@ -65,7 +65,7 @@ class HeartRateListener : public ListenerInterface {
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
         if (c.message() == tourniquet_action) {
             tourniquet = true;
         }
