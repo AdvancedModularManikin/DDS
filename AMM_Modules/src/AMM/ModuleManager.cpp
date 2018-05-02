@@ -11,10 +11,10 @@ public:
     std::mutex mapmutex;
     std::map<std::string, std::vector<std::string>> topicNtypes;
     std::map<GUID_t, std::string> discovered_names;
-    database m_db;
+    database db;
 
-    AMMListener() : m_db("amm.db") {
-        
+    AMMListener() : db("amm.db") {
+
     }
 
     static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
@@ -88,12 +88,13 @@ public:
             return;
         }
 
+        std::string name;
+        ostringstream node_id;
         if (DISCOVERED_RTPSPARTICIPANT == info.rtps.m_status) {
-            // ignore already known GUIDs
             if (discovered_names.find(info.rtps.m_guid) == discovered_names.end()) {
                 auto map = parse_key_value(info.rtps.m_userData);
                 auto found = map.find("name");
-                std::string name;
+
                 if (found != map.end()) {
                     name = std::string(found->second.begin(), found->second.end());
                 }
@@ -105,7 +106,13 @@ public:
                 if (!name.empty()) {
                     discovered_names[info.rtps.m_guid] = name;
                 }
+
                 cout << "[MM] " << info.rtps.m_guid << " joined with name " << name << endl;
+
+                node_id << info.rtps.m_guid;
+                db << "insert into nodes (node_id, node_name) values (?,?);"
+                   << node_id.str()
+                   << name;
             }
         } else {
             auto it = discovered_names.find(info.rtps.m_guid);
@@ -114,6 +121,9 @@ public:
                 discovered_names.erase(it);
             }
             cout << "[MM] " << info.rtps.m_guid << " disconnected " << endl;
+            node_id << info.rtps.m_guid;
+            db << "delete from nodes where node_id=?;"
+               << node_id.str();
         }
     }
 };
@@ -183,7 +193,6 @@ void ModuleManager::Shutdown() {
 
 // Listener events
 void ModuleManager::onNewStatusData(AMM::Capability::Status s, SampleInfo_t *info) {
-// store in db
     cout << "[MM] Received a status message " << endl;
     cout << "[MM] From " << info->sample_identity.writer_guid() << endl;
     cout << "[MM]\tValue: " << s.status_value() << endl;
@@ -191,12 +200,19 @@ void ModuleManager::onNewStatusData(AMM::Capability::Status s, SampleInfo_t *inf
     // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
     cout << "[MM]\t---" << endl;
 
+    ostringstream node_id;
+    node_id << info->sample_identity.writer_guid();
+    auto timestamp = std::to_string( time( nullptr ) );
 
-    // m_db << "insert into node_status (node_id, capability, status, encounter_id) values (?,?,?,?)" << 1 << "jack";
+    /*m_db << "insert into node_status (node_id, capability, status, timestamp) values (?,?,?,?);"
+          << node_id
+         << s.capability()
+         << s.status_value()
+         << timestamp;*/
+
 }
 
 void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
-// store in db
     cout << "[MM] Received a capability config message " << endl;
     cout << "[MM] From " << info->sample_identity.writer_guid() << endl;
     cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
@@ -205,4 +221,18 @@ void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleIn
     cout << "[MM]\tVersion: " << cfg.version() << endl;
     cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
     cout << "[MM]\t---" << endl;
+
+    ostringstream node_id;
+    node_id << info->sample_identity.writer_guid();
+    auto timestamp = std::to_string( time( nullptr ) );
+
+    /*m_db << "insert into node_capabilities (node_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
+         << node_id
+         << cfg.manufacturer()
+         << cfg.model()
+         << cfg.serial_number()
+         << cfg.version()
+         << cfg.capabilities()
+         << timestamp;*/
+
 }

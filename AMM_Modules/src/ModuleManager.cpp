@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         sqlite_config config;
         database db("amm.db", config);
         db << "create table if not exists nodes ("
-                "_id integer primary key autoincrement not null,"
+//                 "_id integer primary key autoincrement not null,"
                 "node_id text,"
                 "node_name text"
            ");";
@@ -78,16 +78,17 @@ int main(int argc, char *argv[]) {
                 "serial_number text,"
                 "version text,"
                 "capabilities text,"
-                "timestamp integer,"
-                "encounter_id integer"
+                "timestamp text,"
+                "encounter_id text"
                 ");";
 
         db << "create table if not exists node_status ("
                 "_id integer primary key autoincrement not null,"
                 "node_id text,"
                 "capability text,"
-                "status text"
-                "encounter_id integer"
+                "status text,"
+                "timestamp text,"
+                "encounter_id text"
                 ");";
 
         cout << "\tCreated AMM database schema." << endl;
