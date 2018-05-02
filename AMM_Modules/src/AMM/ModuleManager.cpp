@@ -1,11 +1,129 @@
 #include "ModuleManager.h"
 
 using namespace std;
-using namespace std::chrono;
+using namespace eprosima;
+using namespace eprosima::fastrtps;
 using namespace sqlite;
 
+
+class AMMListener : public ParticipantListener {
+public:
+    std::mutex mapmutex;
+    std::map<std::string, std::vector<std::string>> topicNtypes;
+    std::map<GUID_t, std::string> discovered_names;
+    database m_db;
+
+    AMMListener() : m_db("amm.db") {
+        
+    }
+
+    static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
+        std::map<std::string, std::vector<uint8_t>> m;
+
+        bool keyfound = false;
+
+        std::string key;
+        std::vector<uint8_t> value;
+        uint8_t prev = '\0';
+
+        if (kv.size() == 0) {
+            goto not_valid;
+        }
+
+        for (uint8_t u8 : kv) {
+            if (keyfound) {
+                if ((u8 == ';') && (prev != ';')) {
+                    prev = u8;
+                    continue;
+                } else if ((u8 != ';') && (prev == ';')) {
+                    if (value.size() == 0) {
+                        goto not_valid;
+                    }
+                    m[key] = value;
+
+                    key.clear();
+                    value.clear();
+                    keyfound = false;
+                } else {
+                    value.push_back(u8);
+                }
+            }
+            if (!keyfound) {
+                if (u8 == '=') {
+                    if (key.size() == 0) {
+                        goto not_valid;
+                    }
+                    keyfound = true;
+                } else if (isalnum(u8)) {
+                    key.push_back(u8);
+                } else if ((u8 == '\0') && (key.size() == 0) && (m.size() > 0)) {
+                    break;  // accept trailing '\0' characters
+                } else if ((prev != ';') || (key.size() > 0)) {
+                    goto not_valid;
+                }
+            }
+            prev = u8;
+        }
+        if (keyfound) {
+            if (value.size() == 0) {
+                goto not_valid;
+            }
+            m[key] = value;
+        } else if (key.size() > 0) {
+            goto not_valid;
+        }
+        return m;
+        not_valid:
+        // This is not a failure this is something that can happen because the participant_qos userData
+        // is used. Other participants in the system not created by rmw could use userData for something
+        // else.
+        return std::map<std::string, std::vector<uint8_t>>();
+    }
+
+    void onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info) override {
+        if (
+                info.rtps.m_status != DISCOVERED_RTPSPARTICIPANT &&
+                info.rtps.m_status != REMOVED_RTPSPARTICIPANT &&
+                info.rtps.m_status != DROPPED_RTPSPARTICIPANT) {
+            return;
+        }
+
+        if (DISCOVERED_RTPSPARTICIPANT == info.rtps.m_status) {
+            // ignore already known GUIDs
+            if (discovered_names.find(info.rtps.m_guid) == discovered_names.end()) {
+                auto map = parse_key_value(info.rtps.m_userData);
+                auto found = map.find("name");
+                std::string name;
+                if (found != map.end()) {
+                    name = std::string(found->second.begin(), found->second.end());
+                }
+                if (name.empty()) {
+                    // use participant name if no name was found in the user data
+                    name = info.rtps.m_RTPSParticipantName;
+                }
+                // ignore discovered participants without a name
+                if (!name.empty()) {
+                    discovered_names[info.rtps.m_guid] = name;
+                }
+                cout << "[MM] " << info.rtps.m_guid << " joined with name " << name << endl;
+            }
+        } else {
+            auto it = discovered_names.find(info.rtps.m_guid);
+            // only consider known GUIDs
+            if (it != discovered_names.end()) {
+                discovered_names.erase(it);
+            }
+            cout << "[MM] " << info.rtps.m_guid << " disconnected " << endl;
+        }
+    }
+};
+
+AMMListener ammL;
+
 ModuleManager::ModuleManager() : m_db("amm.db") {
+    mgr = new DDS_Manager(nodeName, &ammL);
     m_runThread = false;
+    auto mp_participant = mgr->GetParticipant();
 
     auto *pub_listener = new DDS_Listeners::PubListener();
 
@@ -66,10 +184,8 @@ void ModuleManager::Shutdown() {
 // Listener events
 void ModuleManager::onNewStatusData(AMM::Capability::Status s, SampleInfo_t *info) {
 // store in db
-    eprosima::fastrtps::rtps::GUID_t changeGuid;
-    iHandle2GUID(changeGuid, info->iHandle);
     cout << "[MM] Received a status message " << endl;
-    cout << "[MM] From... " << changeGuid.entityId << endl;
+    cout << "[MM] From " << info->sample_identity.writer_guid() << endl;
     cout << "[MM]\tValue: " << s.status_value() << endl;
     cout << "[MM]\tCapabilities: " << s.capability() << endl;
     // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
@@ -81,10 +197,8 @@ void ModuleManager::onNewStatusData(AMM::Capability::Status s, SampleInfo_t *inf
 
 void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
 // store in db
-    eprosima::fastrtps::rtps::GUID_t changeGuid;
-    iHandle2GUID(changeGuid, info->iHandle);
     cout << "[MM] Received a capability config message " << endl;
-    cout << "[MM] From... " << changeGuid.entityId << endl;
+    cout << "[MM] From " << info->sample_identity.writer_guid() << endl;
     cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
     cout << "[MM]\tModel: " << cfg.model() << endl;
     cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;

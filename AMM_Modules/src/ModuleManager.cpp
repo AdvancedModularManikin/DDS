@@ -64,6 +64,12 @@ int main(int argc, char *argv[]) {
     if (setup) {
         sqlite_config config;
         database db("amm.db", config);
+        db << "create table if not exists nodes ("
+                "_id integer primary key autoincrement not null,"
+                "node_id text,"
+                "node_name text"
+           ");";
+
         db << "create table if not exists node_capabilities ("
                 "_id integer primary key autoincrement not null,"
                 "node_id text,"
