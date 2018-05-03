@@ -30,10 +30,6 @@ int bridgePort = 9015;
 // Daemonize by default
 int daemonize = 1;
 
-Publisher *command_publisher;
-Subscriber *command_subscriber;
-Subscriber *node_subscriber;
-
 const string capabilityPrefix = "CAPABILITY=";
 const string statusPrefix = "STATUS=";
 const string modulePrefix = "MODULE_NAME=";
@@ -44,6 +40,8 @@ const string actionPrefix = "ACT=";
 const string keepAlivePrefix = "[KEEPALIVE]";
 
 bool closed = false;
+
+Publisher *command_publisher;
 
 std::vector<std::string> publishNodes = {
         "EXIT",
@@ -153,7 +151,7 @@ public:
 // Override client handler code from Net Server
 void *Server::HandleClient(void *args) {
     auto *c = (Client *) args;
-    char buffer[256 - 25];
+    char buffer[4096 - 25];
     int index;
     ssize_t n;
 
@@ -209,10 +207,14 @@ void *Server::HandleClient(void *args) {
                         // Client set their status (OPERATIONAL, etc)
 		      std::string statusVal = decode64(str.substr(statusPrefix.size()));
                         cout << "[CLIENT][STATUS] Client sent status of: " << statusVal << endl;
+                        /*XMLDocument doc (false);
+                        doc.Parse (statusVal);*/
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
-		      std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
+		                std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
                         cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
+                        /*XMLDocument doc (false);
+                        doc.Parse (capabilityVal);*/
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
@@ -284,23 +286,22 @@ int main(int argc, const char *argv[]) {
 
     InitializeLabNodes();
 
-    const char *nodeName = "AMM_TCP_Bridge";
-    auto *mgr = new DDS_Manager(nodeName);
+    const std::string nodeName = "AMM_TCP_Bridge";
+    auto *mgr = new DDS_Manager(nodeName.c_str());
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
-    auto *pub_listener = new DDS_Listeners::PubListener();
 
     TCPBridgeListener tl;
     node_sub_listener->SetUpstream(&tl);
     command_sub_listener->SetUpstream(&tl);
     config_sub_listener->SetUpstream(&tl);
 
-    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+    Subscriber *node_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
+    Subscriber *command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
 
-    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                 pub_listener);
+    auto *pub_listener = new DDS_Listeners::PubListener();
+    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration

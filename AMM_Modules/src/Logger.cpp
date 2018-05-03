@@ -178,7 +178,7 @@ public:
     }
 
     void onReaderMatched(RTPSReader *reader, MatchingInfo &info) {
-        cout << "[" << m_listenerName << "] New reader matched: " << info.remoteEndpointGuid;
+        cout << "[" << m_listenerName << "] New reader matched: " << info.remoteEndpointGuid;        
         cout << " - status " << info.status << endl;
     }
 

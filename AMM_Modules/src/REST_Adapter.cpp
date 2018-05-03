@@ -574,14 +574,9 @@ int main(int argc, char *argv[]) {
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), tick_sub_listener);
 
-
     auto *pub_listener = new DDS_Listeners::PubListener();
     command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                  pub_listener);
-
-    /*std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
-    auto result = EDP_Readers.first->setListener(&slave_listener_pub);
-    result &= EDP_Readers.second->setListener(&slave_listener_sub);*/
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration

@@ -106,9 +106,13 @@ public:
                 cout << "[MM] " << info.rtps.m_guid << " joined with name " << name << endl;
 
                 node_id << info.rtps.m_guid;
-                db << "insert into nodes (node_id, node_name) values (?,?);"
-                   << node_id.str()
-                   << name;
+                try {
+                    db << "insert into nodes (node_id, node_name) values (?,?);"
+                       << node_id.str()
+                       << name;
+                } catch (exception &e) {
+                    cout << e.what() << endl;
+                }
             }
         } else {
             auto it = discovered_names.find(info.rtps.m_guid);
@@ -118,8 +122,12 @@ public:
             }
             cout << "[MM] " << info.rtps.m_guid << " disconnected " << endl;
             node_id << info.rtps.m_guid;
-            db << "delete from nodes where node_id=?;"
-               << node_id.str();
+            try {
+                db << "delete from nodes where node_id=?;"
+                   << node_id.str();
+            } catch (exception &e) {
+                cout << e.what() << endl;
+            }
         }
     }
 
@@ -128,8 +136,9 @@ public:
 
 AMMListener ammL;
 
-ModuleManager::ModuleManager()  {
+ModuleManager::ModuleManager() {
     mgr = new DDS_Manager(nodeName, &ammL);
+    auto mp_participant = mgr->GetParticipant();
     m_runThread = false;
 
     auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
@@ -147,6 +156,7 @@ ModuleManager::ModuleManager()  {
                                                   AMM::DataTypes::getConfigurationType(),
                                                   config_sub_listener);
 
+
     config_publisher = mgr->InitializePublisher(AMM::DataTypes::configurationTopic,
                                                 AMM::DataTypes::getConfigurationType(),
                                                 pub_listener);
@@ -155,7 +165,7 @@ ModuleManager::ModuleManager()  {
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
             "Vcom3D",
-            "PhysiologyEngine",
+            "Module_Manager",
             "00001",
             "0.0.1",
             "capabilityString"
@@ -212,16 +222,20 @@ void ModuleManager::onNewStatusData(AMM::Capability::Status s, SampleInfo_t *inf
 
     ostringstream node_id;
     node_id << info->sample_identity.writer_guid();
-    auto timestamp = std::to_string( time( nullptr ) );
+    auto timestamp = std::to_string(time(nullptr));
 
-    db << "insert into node_status (node_id, capability, status, timestamp) values (?,?,?,?);"
-       << node_id.str()
-       << s.capability()
-       << "OPERATIONAL"
-       << timestamp;
+    try {
+        /**db << "insert into node_status (node_id, capability, status, timestamp) values (?,?,?,?);"
+           << node_id.str()
+           << s.capability()
+           << "OPERATIONAL"
+           << timestamp; **/
+    } catch (exception &e) {
+        cout << e.what() << endl;
+    }
 }
 
-void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info)  {
+void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
     cout << "[MM] Received a capability config message " << endl;
     cout << "[MM] From " << info->sample_identity.writer_guid() << endl;
     cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
@@ -233,15 +247,19 @@ void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleIn
 
     ostringstream node_id;
     node_id << info->sample_identity.writer_guid();
-    auto timestamp = std::to_string( time( nullptr ) );
-
-    /*db << "insert into node_capabilities (node_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
-         << node_id.str()
-         << cfg.manufacturer()
-         << cfg.model()
-         << cfg.serial_number()
-         << cfg.version()
-         << cfg.capabilities()
-         << timestamp;*/
+    auto timestamp = std::to_string(time(nullptr));
+    try {
+        /** db
+                << "insert into node_capabilities (node_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
+                << node_id.str()
+                << cfg.manufacturer()
+                << cfg.model()
+                << cfg.serial_number()
+                << cfg.version()
+                << cfg.capabilities()
+                << timestamp; **/
+    } catch (exception &e) {
+        cout << e.what() << endl;
+    }
 
 }

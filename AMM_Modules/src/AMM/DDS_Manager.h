@@ -29,11 +29,8 @@ using namespace eprosima::fastrtps;
 class DDS_Manager {
 public:
     DDS_Manager();
-
     DDS_Manager(const char *nodeName);
-
     DDS_Manager(const char *nodeName, ParticipantListener *participantListener);
-
     virtual ~DDS_Manager() = default;;
 
     void PublishModuleConfiguration(
@@ -44,7 +41,6 @@ public:
             const AMM::Capability::AMM_version &amm_version,
             const std::string capabilities
     );
-
     void PublishModuleConfiguration(
             const std::string manufacturer,
             const std::string model,
@@ -52,7 +48,6 @@ public:
             const std::string version,
             const std::string capabilities
     );
-
     void PublishModuleConfiguration(AMM::Capability::Configuration configInstance);
 
     void SetStatus(AMM::Capability::status_values status);
@@ -60,7 +55,6 @@ public:
     void SetStatus(AMM::Capability::Status statusInstance);
 
     Publisher *InitializePublisher(std::string topicName, TopicDataType *topicType, PublisherListener *pub_listener);
-
     Subscriber *InitializeSubscriber(std::string topicName, TopicDataType *topicType, SubscriberListener *sub_listener);
 
     Participant *GetParticipant();
@@ -69,16 +63,18 @@ public:
     const char *partitionName = "AMM";
 
 private:
+    void InitializeDefaults();
+
     void RegisterTypes();
 
-//    void RegisterPublishers();
+    void RegisterPublishers();
 
     Participant *mp_participant;
 
     Publisher *status_publisher;
     Publisher *config_publisher;
 
-    PublisherListener *default_pub_listener;
-    SubscriberListener *default_sub_listener;
+    SubscriberListener *default_sub_listener = new DDS_Listeners::DefaultSubListener();
+    PublisherListener *default_pub_listener = new DDS_Listeners::PubListener();
 
 };
