@@ -41,6 +41,8 @@ const string keepHistoryPrefix = "KEEP_HISTORY=";
 const string actionPrefix = "ACT=";
 const string keepAlivePrefix = "[KEEPALIVE]";
 
+std::string encodedConfig = "";
+
 bool closed = false;
 
 Publisher *command_publisher;
@@ -219,12 +221,9 @@ void *Server::HandleClient(void *args) {
                         doc.Parse (capabilityVal);*/
 
                         cout << "[CLIENT][CONFIG] Sending configuration file" << endl;
-                        std::ifstream t("/tmp/TCP_Bridge_config_example.xml");
-                        std::stringstream buffer;
-                        buffer << t.rdbuf();
-                        std::string encodedConfig = "CONFIG=" + encode64(buffer.str()) + "\n";
                         cout << "[CLIENT][CONFIG] Sending " << encodedConfig;
                         Server::SendToClient(c, encodedConfig);
+			cout << "[CLIENT][CONFIG] Sent!" << endl;
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
@@ -294,6 +293,12 @@ int main(int argc, const char *argv[]) {
         }
     }
 
+    std::ifstream ifs("TCP_Bridge_config_example.xml");
+    std::string configContent ( (std::istreambuf_iterator<char>(ifs) ),
+		   (std::istreambuf_iterator<char>()    ) );
+    std::string encodedConfigContent = encode64(configContent);
+    encodedConfig = configPrefix + encodedConfigContent + "\n";
+      
     InitializeLabNodes();
 
     const std::string nodeName = "AMM_TCP_Bridge";
