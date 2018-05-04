@@ -222,7 +222,7 @@ void *Server::HandleClient(void *args) {
                         std::ifstream t("/tmp/TCP_Bridge_config_example.xml");
                         std::stringstream buffer;
                         buffer << t.rdbuf();
-                        std::string encodedConfig = "CONFIG=" + encode64(buffer.str());
+                        std::string encodedConfig = "CONFIG=" + encode64(buffer.str()) + "\n";
                         cout << "[CLIENT][CONFIG] Sending " << encodedConfig;
                         Server::SendToClient(c, encodedConfig);
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
