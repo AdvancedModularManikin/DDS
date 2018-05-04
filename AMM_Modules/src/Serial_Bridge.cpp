@@ -6,8 +6,9 @@
 #include <boost/asio.hpp>
 #include <boost/algorithm/string.hpp>
 
-#define PORT_LINUX "/dev/ttyACM0"
-//#define PORT_LINUX "/dev/serial/by-id/usb-Adafruit_Feather_32u4-if00"
+#define PORT_LINUX "/dev/tty96B0"
+// #define PORT_LINUX "/dev/ttyACM0"
+// #define PORT_LINUX "/dev/serial/by-id/usb-Adafruit_Feather_32u4-if00"
 #define PORT_WINDOW "COM7"
 
 
@@ -127,7 +128,7 @@ int main(int argc, char *argv[]) {
             std::string value = rsp;
             cout << "=== [SERIAL] Recieved an XML snippet: " << value << endl;
 
-            
+
             std::string msg1 = "[Scenario]m1s1=mule1_scene1";
             std::string msg2 = "[Config_Data]sound_alarm=false";
 
