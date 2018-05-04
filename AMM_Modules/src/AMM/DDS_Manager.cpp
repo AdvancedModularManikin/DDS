@@ -126,7 +126,6 @@ Publisher *DDS_Manager::InitializeStatusPublisher(PublisherListener *pub_listene
     status_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
     if (status_publisher == nullptr) {
         cout << "unable to create status publisher" << endl;
-        return false;
     }
     return status_publisher;
 };
@@ -138,7 +137,6 @@ Publisher *DDS_Manager::InitializeConfigPublisher(PublisherListener *pub_listene
     config_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
     if (config_publisher == nullptr) {
         cout << "unable to create configuration publisher" << endl;
-        return false;
     }
     return config_publisher;
 };
