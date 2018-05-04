@@ -200,12 +200,12 @@ void PhysiologyEngineManager::Shutdown() {
 
 // Listener events
 void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {
-
+    // Placeholder to listen for higher-weighted node data
 }
 
 void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {
-    if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
-        std::string value = c.message().substr(sysPrefix.size());
+    if (!cm.message().compare(0, sysPrefix.size(), sysPrefix)) {
+        std::string value = cm.message().substr(sysPrefix.size());
         cout << "[PhysiologyManager] We received a SYSTEM action: " << value << endl;
         if (value.compare("START_ENGINE") == 0 || value.compare("START_SIM") == 0) {
             cout << "=== [PhysiologyManager] Started engine based on Tick Simulation" << endl;
@@ -234,33 +234,33 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
             StartTickSimulation();
         }
     } else {
-        cout << "[PhysiologyManager] Command received: " << c.message() << endl;
-        bg->ExecuteCommand(c.message());
+        cout << "[PhysiologyManager] Command received: " << cm.message() << endl;
+        bg->ExecuteCommand(cm.message());
     }
 }
 
 void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {
     if (m_runThread) {
-        if (t.frame() == -1) {
+        if (ti.frame() == -1) {
             cout << "[SHUTDOWN]" << endl;
             StopTickSimulation();
             SendShutdown();
-        } else if (t.frame() == -2) {
+        } else if (ti.frame() == -2) {
             cout << "[PAUSE]" << endl;
             paused = true;
-        } else if (t.frame() > 0 || !paused) {
+        } else if (ti.frame() > 0 || !paused) {
             if (paused) {
                 cout << "[RESUME]" << endl;
                 paused = false;
             }
 
             // Did we get a frame out of order?  Just mark it with an X for now.
-            if (t.frame() <= lastFrame) {
+            if (ti.frame() <= lastFrame) {
 //                cout << "x";
             } else {
 //                cout << ".";
             }
-            lastFrame = static_cast<int>(t.frame());
+            lastFrame = static_cast<int>(ti.frame());
 
 
             // Per-frame stuff happens here

@@ -21,10 +21,7 @@
 
 #include "tinyxml2.h"
 
-#include <sqlite_modern_cpp.h>
-
 using namespace std;
-using namespace sqlite;
 
 Server *s;
 
@@ -36,6 +33,7 @@ int daemonize = 1;
 
 const string capabilityPrefix = "CAPABILITY=";
 const string statusPrefix = "STATUS=";
+const string configPrefix = "CONFIG=";
 const string modulePrefix = "MODULE_NAME=";
 const string registerPrefix = "REGISTER=";
 const string requestPrefix = "REQUEST=";
