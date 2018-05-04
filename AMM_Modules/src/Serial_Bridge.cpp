@@ -44,6 +44,8 @@ static void show_usage(const std::string &name) {
 }
 
 
+
+
 int main(int argc, char *argv[]) {
     cout << "=== [AMM - Serial Module Bridge] ===" << endl;
 
@@ -101,6 +103,7 @@ int main(int argc, char *argv[]) {
 
     std::string reportPrefix = "[REPORT]";
     std::string actionPrefix = "[ACT]";
+    std::string xmlPrefix = "<?xml";
 
     while (!closed) {
         char c;
@@ -120,7 +123,22 @@ int main(int argc, char *argv[]) {
             boost::trim_right(value);
             cmdInstance.message(value);
             command_publisher->write(&cmdInstance);
-        } else {
+        }  else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
+            std::string value = rsp;
+            cout << "=== [SERIAL] Recieved an XML snippet: " << value << endl;
+
+            
+            std::string msg1 = "[Scenario]m1s1=mule1_scene1";
+            std::string msg2 = "[Config_Data]sound_alarm=false";
+
+            cout << "Sending scenario config.." << endl;
+            boost::asio::write(port, boost::asio::buffer(msg1));
+            cout << "Sending sound_alarm config.." << endl;
+            boost::asio::write(port, boost::asio::buffer(msg2));
+
+        }
+
+        else {
             cout << "=== [SERIAL][DEBUG] " << rsp << endl;
         }
 
