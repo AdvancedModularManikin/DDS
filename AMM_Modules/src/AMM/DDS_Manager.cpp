@@ -121,8 +121,8 @@ Subscriber *DDS_Manager::InitializeSubscriber(std::string topicName, TopicDataTy
 
 Publisher *DDS_Manager::InitializeStatusPublisher(PublisherListener *pub_listener) {
     PublisherAttributes wparam;
-    wparam.topic.topicDataType = "Status";
-    wparam.topic.topicName = "AMM::Capability::Status";
+    wparam.topic.topicDataType = AMM::DataTypes::getStatusType()->getName();
+    wparam.topic.topicName = AMM::DataTypes::statusTopic;
     status_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
     if (status_publisher == nullptr) {
         cout << "unable to create status publisher" << endl;
@@ -132,8 +132,8 @@ Publisher *DDS_Manager::InitializeStatusPublisher(PublisherListener *pub_listene
 
 Publisher *DDS_Manager::InitializeConfigPublisher(PublisherListener *pub_listener) {
     PublisherAttributes wparam;
-    wparam.topic.topicDataType = "Configuration";
-    wparam.topic.topicName = "AMM::Capability::Configuration";
+    wparam.topic.topicDataType = AMM::DataTypes::getConfigurationType()->getName();
+    wparam.topic.topicName = AMM::DataTypes::configurationTopic;
     config_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
     if (config_publisher == nullptr) {
         cout << "unable to create configuration publisher" << endl;
