@@ -86,6 +86,7 @@ public:
     void Cleanup();
 
     void onNewStatusData(AMM::Capability::Status s, SampleInfo_t *info) override;
+
     void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override;
 
 protected:
@@ -100,8 +101,6 @@ protected:
 
     Subscriber *status_subscriber;
     Subscriber *config_subscriber;
-    Publisher *config_publisher;
-
 
 };
 

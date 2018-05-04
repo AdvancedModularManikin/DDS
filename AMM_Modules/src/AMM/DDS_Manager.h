@@ -59,6 +59,18 @@ public:
 
     Participant *GetParticipant();
 
+    Publisher *InitializeStatusPublisher(PublisherListener *pub_listener);
+    Publisher *InitializeConfigPublisher(PublisherListener *pub_listener);
+    Publisher *InitializeCommandPublisher(PublisherListener *pub_listener);
+    Publisher *InitializeNodePublisher(PublisherListener *pub_listener);
+    Publisher *InitializeTickPublisher(PublisherListener *pub_listener);
+
+    Publisher *status_publisher;
+    Publisher *config_publisher;
+    Publisher *command_publisher;
+    Publisher *node_publisher;
+    Publisher *tick_publisher;
+
     const int domainId = 15;
     const char *partitionName = "AMM";
 
@@ -70,9 +82,6 @@ private:
     void RegisterPublishers();
 
     Participant *mp_participant;
-
-    Publisher *status_publisher;
-    Publisher *config_publisher;
 
     SubscriberListener *default_sub_listener = new DDS_Listeners::DefaultSubListener();
     PublisherListener *default_pub_listener = new DDS_Listeners::PubListener();

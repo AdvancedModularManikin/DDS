@@ -44,11 +44,12 @@ int main(int argc, char *argv[]) {
     std::string fString = filterString.str();
     cout << "=== [VirtualEquipment] Subscription filter : " << fString << endl;
 
-    const char* nodeName = "AMM_VirtualEquipment";
-    auto *mgr = new DDS_Manager(nodeName);
-    auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
+    string nodeName = "AMM_VirtualEquipment";
+    auto *mgr = new DDS_Manager(nodeName.c_str());
+
     VirtualEquipmentListener vel;
     vel.SetFilter(&node_paths);
+    auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     node_sub_listener->SetUpstream(&vel);
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
 
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]) {
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
             "Vcom3D",
-            "Virtual_Equipment",
+            nodeName,
             "00001",
             "0.0.1",
             "capabilityString"

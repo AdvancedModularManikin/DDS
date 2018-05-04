@@ -52,13 +52,13 @@ void DDS_Manager::InitializeDefaults() {
 
     RegisterTypes();
 
-    RegisterPublishers();
+    InitializeStatusPublisher(default_pub_listener);
+    InitializeConfigPublisher(default_pub_listener);
 }
 
 
 void DDS_Manager::RegisterPublishers() {
-    status_publisher = InitializePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), default_pub_listener);
-    config_publisher = InitializePublisher(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(), default_pub_listener);
+
 }
 
 
@@ -119,6 +119,36 @@ Subscriber *DDS_Manager::InitializeSubscriber(std::string topicName, TopicDataTy
     return gen_subscriber;
 }
 
+Publisher *DDS_Manager::InitializeStatusPublisher(PublisherListener *pub_listener) {
+    PublisherAttributes wparam;
+    wparam.topic.topicDataType = "Status";
+    wparam.topic.topicName = "AMM::Capability::Status";
+    status_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
+    if (status_publisher == nullptr) {
+        cout << "unable to create status publisher" << endl;
+        return false;
+    }
+    return status_publisher;
+};
+
+Publisher *DDS_Manager::InitializeConfigPublisher(PublisherListener *pub_listener) {
+    PublisherAttributes wparam;
+    wparam.topic.topicDataType = "Configuration";
+    wparam.topic.topicName = "AMM::Capability::Configuration";
+    config_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
+    if (config_publisher == nullptr) {
+        cout << "unable to create configuration publisher" << endl;
+        return false;
+    }
+    return config_publisher;
+};
+
+Publisher *DDS_Manager::InitializeCommandPublisher(PublisherListener *pub_listener) {};
+
+Publisher *DDS_Manager::InitializeNodePublisher(PublisherListener *pub_listener) {};
+
+Publisher *DDS_Manager::InitializeTickPublisher(PublisherListener *pub_listener) {};
+
 
 void DDS_Manager::PublishModuleConfiguration(
         const std::string manufacturer,
@@ -134,7 +164,7 @@ void DDS_Manager::PublishModuleConfiguration(
     configInstance.serial_number(serial_number);
     configInstance.version(version);
     configInstance.amm_version(amm_version);
-    PublishModuleConfiguration(configInstance);
+    config_publisher->write(&configInstance);
 }
 
 void DDS_Manager::PublishModuleConfiguration(
@@ -151,10 +181,8 @@ void DDS_Manager::PublishModuleConfiguration(
     configInstance.serial_number(serial_number);
     configInstance.version(version);
     //configInstance.amm_version(amm_version);
-    PublishModuleConfiguration(configInstance);
+    config_publisher->write(&configInstance);
 }
-
-
 
 
 void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {

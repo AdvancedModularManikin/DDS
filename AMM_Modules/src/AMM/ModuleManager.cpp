@@ -10,16 +10,16 @@ database db("amm.db");
 class AMMListener : public ParticipantListener {
 public:
     std::mutex mapmutex;
-    std::map<std::string, std::vector<std::string>> topicNtypes;
-    std::map<GUID_t, std::string> discovered_names;
+    std::map <std::string, std::vector<std::string>> topicNtypes;
+    std::map <GUID_t, std::string> discovered_names;
 
-    static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
-        std::map<std::string, std::vector<uint8_t>> m;
+    static std::map <std::string, std::vector<uint8_t>> parse_key_value(std::vector <uint8_t> kv) {
+        std::map <std::string, std::vector<uint8_t>> m;
 
         bool keyfound = false;
 
         std::string key;
-        std::vector<uint8_t> value;
+        std::vector <uint8_t> value;
         uint8_t prev = '\0';
 
         if (kv.size() == 0) {
@@ -73,7 +73,7 @@ public:
         // This is not a failure this is something that can happen because the participant_qos userData
         // is used. Other participants in the system not created by rmw could use userData for something
         // else.
-        return std::map<std::string, std::vector<uint8_t>>();
+        return std::map < std::string, std::vector < uint8_t >> ();
     }
 
     void onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info) override {
@@ -134,9 +134,9 @@ public:
 
 };
 
-AMMListener ammL;
 
 ModuleManager::ModuleManager() {
+    AMMListener ammL;
     mgr = new DDS_Manager(nodeName, &ammL);
     auto mp_participant = mgr->GetParticipant();
     m_runThread = false;
@@ -147,19 +147,12 @@ ModuleManager::ModuleManager() {
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
     config_sub_listener->SetUpstream(this);
 
-    auto *pub_listener = new DDS_Listeners::PubListener();
-
     status_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::statusTopic,
                                                   AMM::DataTypes::getStatusType(),
                                                   status_sub_listener);
     config_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic,
                                                   AMM::DataTypes::getConfigurationType(),
                                                   config_sub_listener);
-
-
-    config_publisher = mgr->InitializePublisher(AMM::DataTypes::configurationTopic,
-                                                AMM::DataTypes::getConfigurationType(),
-                                                pub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
@@ -225,11 +218,11 @@ void ModuleManager::onNewStatusData(AMM::Capability::Status s, SampleInfo_t *inf
     auto timestamp = std::to_string(time(nullptr));
 
     try {
-        /**db << "insert into node_status (node_id, capability, status, timestamp) values (?,?,?,?);"
+        db << "insert into node_status (node_id, capability, status, timestamp) values (?,?,?,?);"
            << node_id.str()
            << s.capability()
            << "OPERATIONAL"
-           << timestamp; **/
+           << timestamp;
     } catch (exception &e) {
         cout << e.what() << endl;
     }
@@ -249,7 +242,7 @@ void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleIn
     node_id << info->sample_identity.writer_guid();
     auto timestamp = std::to_string(time(nullptr));
     try {
-        /** db
+        db
                 << "insert into node_capabilities (node_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
                 << node_id.str()
                 << cfg.manufacturer()
@@ -257,7 +250,7 @@ void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleIn
                 << cfg.serial_number()
                 << cfg.version()
                 << cfg.capabilities()
-                << timestamp; **/
+                << timestamp;
     } catch (exception &e) {
         cout << e.what() << endl;
     }

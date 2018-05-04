@@ -8,6 +8,10 @@
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 
+#include <fstream>
+#include <streambuf>
+#include <sstream>
+
 #include <Net/Server.h>
 #include <Net/UdpDiscoveryServer.h>
 
@@ -215,6 +219,14 @@ void *Server::HandleClient(void *args) {
                         cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
                         /*XMLDocument doc (false);
                         doc.Parse (capabilityVal);*/
+
+                        cout << "[CLIENT][CONFIG] Sending configuration file" << endl;
+                        std::ifstream t("/tmp/TCP_Bridge_config_example.xml");
+                        std::stringstream buffer;
+                        buffer << t.rdbuf();
+                        std::string encodedConfig = "CONFIG=" + encode64(buffer.str());
+                        cout << "[CLIENT][CONFIG] Sending " << encodedConfig;
+                        Server::SendToClient(c, encodedConfig);
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
