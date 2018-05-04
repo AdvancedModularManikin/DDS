@@ -73,8 +73,6 @@ target_link_libraries(
         fastrtps fastcdr
 )
 
-set(CORE_LISTENER_SOURCES src/AMM/CoreListener.cpp src/AMM/CoreListener.h)
-
 
 set(SIM_MANAGER_SOURCES src/SimManager.cpp src/AMM/SimulationManager.cpp)
 set(SIM_MANAGER_EXE amm_sim_manager)
@@ -155,13 +153,13 @@ target_link_libraries(${REST_ADAPTER_EXE}
 if (BioGears_FOUND)
     set(PHYSIOLOGY_MANAGER_SOURCES src/PhysiologyManager.cpp src/AMM/PhysiologyEngineManager.cpp src/AMM/PhysiologyThread.cpp)
     set(PHYSIOLOGY_MANAGER_EXE amm_physiology_manager)
-    #add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
-    #target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
-    #        fastrtps fastcdr
-    #        ${BioGears_LIBRARIES}
-    #        Threads::Threads
-    #        ${DATAMODEL}
-    #        )
+    add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+    target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
+            fastrtps fastcdr
+            ${BioGears_LIBRARIES}
+            Threads::Threads
+            ${DATAMODEL}
+            )
 
     file(COPY ${PROJECT_SOURCE_DIR}/support/Actions DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
     file(COPY ${PROJECT_SOURCE_DIR}/support/patients DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
@@ -204,6 +202,7 @@ target_link_libraries(${HEART_RATE_LED_EXE}
 target_link_libraries(${SERIAL_BRIDGE_EXE}
         fastrtps fastcdr
         Boost::filesystem Boost::iostreams
+        ${TINYXML2_LIBRARIES}
         ${DATAMODEL}
         )
 
@@ -211,6 +210,6 @@ target_link_libraries(${TCP_BRIDGE_EXE}
         fastrtps fastcdr
         Boost::system
         Threads::Threads
-        dl sqlite3 pthread
+        ${TINYXML2_LIBRARIES}
         ${DATAMODEL}
         )

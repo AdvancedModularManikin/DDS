@@ -52,8 +52,6 @@
 
 #include "DDS_Listeners.h"
 
-#include "ListenerInterface.h"
-
 #include "tinyxml2.h"
 
 #include <sqlite_modern_cpp.h>
@@ -67,13 +65,13 @@ using namespace tinyxml2;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
-class ModuleManager : public ListenerInterface {
+class ModuleManager {
 
 public:
 
     ModuleManager();
 
-    ~ModuleManager() override = default;;
+    virtual ~ModuleManager() = default;;
 
     void Start();
 
@@ -84,10 +82,6 @@ public:
     bool isRunning();
 
     void Cleanup();
-
-    void onNewStatusData(AMM::Capability::Status s, SampleInfo_t *info) override;
-
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override;
 
 protected:
 

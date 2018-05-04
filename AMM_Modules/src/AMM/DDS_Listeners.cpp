@@ -45,12 +45,12 @@ void DDS_Listeners::CommandSubListener::onSubscriptionMatched(Subscriber *sub,
 }
 
 void DDS_Listeners::CommandSubListener::onNewDataMessage(Subscriber *sub) {
-    AMM::PatientAction::BioGears::Command st;
+    AMM::PatientAction::BioGears::Command cm;
 
-    if (sub->takeNextData(&st, &m_info)) {
+    if (sub->takeNextData(&cm, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewCommandData(st, &m_info);
+                upstream->onNewCommandData(cm, &m_info);
             }
             ++n_msg;
         }
@@ -67,12 +67,12 @@ void DDS_Listeners::TickSubListener::onSubscriptionMatched(Subscriber *sub,
 }
 
 void DDS_Listeners::TickSubListener::onNewDataMessage(Subscriber *sub) {
-    AMM::Simulation::Tick st;
+    AMM::Simulation::Tick ti;
 
-    if (sub->takeNextData(&st, &m_info)) {
+    if (sub->takeNextData(&ti, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewTickData(st, &m_info);
+                upstream->onNewTickData(ti, &m_info);
             }
             ++n_msg;
         }
@@ -91,9 +91,13 @@ void DDS_Listeners::StatusSubListener::onSubscriptionMatched(Subscriber *sub,
 void DDS_Listeners::StatusSubListener::onNewDataMessage(Subscriber *sub) {
     AMM::Capability::Status st;
 
+    cout << "\tStatus sub listener fired" << endl;
     if (sub->takeNextData(&st, &m_info)) {
+        cout << "\tTaking the next data..." << endl;
         if (m_info.sampleKind == ALIVE) {
+            cout << "\tIt's alive!" << endl;
             if (upstream != nullptr) {
+                cout << "\tWe've got an upstream event!" << endl;
                 upstream->onNewStatusData(st, &m_info);
             }
             ++n_msg;
@@ -111,12 +115,16 @@ void DDS_Listeners::ConfigSubListener::onSubscriptionMatched(Subscriber *sub,
 }
 
 void DDS_Listeners::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
-    AMM::Capability::Configuration st;
+    AMM::Capability::Configuration cfg;
 
-    if (sub->takeNextData(&st, &m_info)) {
+    cout << "\tConfig sub listener fired" << endl;
+    if (sub->takeNextData(&cfg, &m_info)) {
+        cout << "\tTaking next data..." << endl;
         if (m_info.sampleKind == ALIVE) {
+            cout << "\tIt's alive!" << endl;
             if (upstream != nullptr) {
-                upstream->onNewConfigData(st, &m_info);
+                cout << "\tWe've got an upstream event" << endl;
+                upstream->onNewConfigData(cfg, &m_info);
             }
             ++n_msg;
         }

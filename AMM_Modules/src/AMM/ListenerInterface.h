@@ -15,11 +15,11 @@ public:
     // Include sample info for point-to-point details
     virtual void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {};
 
-    virtual void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) {};
+    virtual void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {};
 
-    virtual void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {};
+    virtual void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {};
 
-    virtual void onNewStatusData(AMM::Capability::Status s, SampleInfo_t *info) {};
+    virtual void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) {};
 
     virtual void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {};
 
