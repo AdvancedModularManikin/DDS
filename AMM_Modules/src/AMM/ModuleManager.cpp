@@ -7,150 +7,78 @@ using namespace sqlite;
 
 database db("amm.db");
 
-class AMMListener : public ParticipantListener {
-public:
-    std::mutex mapmutex;
-    std::map<GUID_t, std::string> discovered_names;
+static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
+    std::map<std::string, std::vector<uint8_t>> m;
 
-    static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
-        std::map<std::string, std::vector<uint8_t>> m;
+    bool keyfound = false;
 
-        bool keyfound = false;
+    std::string key;
+    std::vector<uint8_t> value;
+    uint8_t prev = '\0';
 
-        std::string key;
-        std::vector<uint8_t> value;
-        uint8_t prev = '\0';
+    if (kv.size() == 0) {
+        goto not_valid;
+    }
 
-        if (kv.size() == 0) {
-            goto not_valid;
-        }
-
-        for (uint8_t u8 : kv) {
-            if (keyfound) {
-                if ((u8 == ';') && (prev != ';')) {
-                    prev = u8;
-                    continue;
-                } else if ((u8 != ';') && (prev == ';')) {
-                    if (value.size() == 0) {
-                        goto not_valid;
-                    }
-                    m[key] = value;
-
-                    key.clear();
-                    value.clear();
-                    keyfound = false;
-                } else {
-                    value.push_back(u8);
-                }
-            }
-            if (!keyfound) {
-                if (u8 == '=') {
-                    if (key.size() == 0) {
-                        goto not_valid;
-                    }
-                    keyfound = true;
-                } else if (isalnum(u8)) {
-                    key.push_back(u8);
-                } else if ((u8 == '\0') && (key.size() == 0) && (m.size() > 0)) {
-                    break;  // accept trailing '\0' characters
-                } else if ((prev != ';') || (key.size() > 0)) {
+    for (uint8_t u8 : kv) {
+        if (keyfound) {
+            if ((u8 == ';') && (prev != ';')) {
+                prev = u8;
+                continue;
+            } else if ((u8 != ';') && (prev == ';')) {
+                if (value.size() == 0) {
                     goto not_valid;
                 }
+                m[key] = value;
+
+                key.clear();
+                value.clear();
+                keyfound = false;
+            } else {
+                value.push_back(u8);
             }
-            prev = u8;
         }
-        if (keyfound) {
-            if (value.size() == 0) {
+        if (!keyfound) {
+            if (u8 == '=') {
+                if (key.size() == 0) {
+                    goto not_valid;
+                }
+                keyfound = true;
+            } else if (isalnum(u8)) {
+                key.push_back(u8);
+            } else if ((u8 == '\0') && (key.size() == 0) && (m.size() > 0)) {
+                break;  // accept trailing '\0' characters
+            } else if ((prev != ';') || (key.size() > 0)) {
                 goto not_valid;
             }
-            m[key] = value;
-        } else if (key.size() > 0) {
+        }
+        prev = u8;
+    }
+    if (keyfound) {
+        if (value.size() == 0) {
             goto not_valid;
         }
-        return m;
-        not_valid:
-        // This is not a failure this is something that can happen because the participant_qos userData
-        // is used. Other participants in the system not created by rmw could use userData for something
-        // else.
-        return std::map<std::string, std::vector<uint8_t >>();
+        m[key] = value;
+    } else if (key.size() > 0) {
+        goto not_valid;
     }
-
-    void onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info) override {
-        cout << "Participant discovered!" << endl;
-        if (
-                info.rtps.m_status != DISCOVERED_RTPSPARTICIPANT &&
-                info.rtps.m_status != REMOVED_RTPSPARTICIPANT &&
-                info.rtps.m_status != DROPPED_RTPSPARTICIPANT) {
-            return;
-        }
-
-        std::string name;
-        ostringstream node_id;
-
-        if (DISCOVERED_RTPSPARTICIPANT == info.rtps.m_status) {
-            cout << "Participant discovered!" << endl;
-
-            if (discovered_names.find(info.rtps.m_guid) == discovered_names.end()) {
-                auto map = parse_key_value(info.rtps.m_userData);
-                auto found = map.find("name");
-
-                if (found != map.end()) {
-                    name = std::string(found->second.begin(), found->second.end());
-                }
-                if (name.empty()) {
-                    // use participant name if no name was found in the user data
-                    name = info.rtps.m_RTPSParticipantName;
-                }
-                // ignore discovered participants without a name
-                if (!name.empty()) {
-                    discovered_names[info.rtps.m_guid] = name;
-                }
-
-                node_id << info.rtps.m_guid;
-                std::size_t pos = node_id.str().find("|");
-                std::string truncated_node_id = node_id.str().substr(0, pos);
-
-                cout << "[MM] " << info.rtps.m_guid << " joined with name " << name << endl;
-                cout << "[MM] Stored with truncated ID: " << truncated_node_id << endl;
-
-                try {
-                    db << "insert into nodes (node_id, node_name) values (?,?);"
-                       << truncated_node_id
-                       << name;
-                } catch (exception &e) {
-                    cout << e.what() << endl;
-                }
-            }
-        } else {
-            cout << "Participant disconnected!" << endl;
-
-            auto it = discovered_names.find(info.rtps.m_guid);
-            // only consider known GUIDs
-            if (it != discovered_names.end()) {
-                discovered_names.erase(it);
-            }
-            cout << "[MM] " << info.rtps.m_guid << " disconnected " << endl;
-            node_id << info.rtps.m_guid;
-            std::size_t pos = node_id.str().find("|");
-            std::string truncated_node_id = node_id.str().substr(0, pos);
-            try {
-                db << "delete from nodes where node_id=?;"
-                   << truncated_node_id;
-            } catch (exception &e) {
-                cout << e.what() << endl;
-            }
-        }
-    }
-};
+    return m;
+    not_valid:
+    // This is not a failure this is something that can happen because the participant_qos userData
+    // is used. Other participants in the system not created by rmw could use userData for something
+    // else.
+    return std::map<std::string, std::vector<uint8_t >>();
+}
 
 ModuleManager::ModuleManager() {
-    // AMMListener* ammL;
-    mgr = new DDS_Manager(nodeName); // , ammL);
+    mgr = new DDS_Manager(nodeName, this);
     mp_participant = mgr->GetParticipant();
 
 
     std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
+    // pub
     auto result = EDP_Readers.first->setListener(this);
+    // sub
     result &= EDP_Readers.second->setListener(this);
 
 
@@ -162,7 +90,7 @@ ModuleManager::ModuleManager() {
 
     status_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::statusTopic,
                                                   AMM::DataTypes::getStatusType(),
-                                                  status_sub_listener);
+                                  n                status_sub_listener);
 
     config_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic,
                                                   AMM::DataTypes::getConfigurationType(),
@@ -287,12 +215,9 @@ void ModuleManager::onReaderMatched(RTPSReader *reader, MatchingInfo &info) {
 void ModuleManager::onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *reader,
                            const eprosima::fastrtps::CacheChange_t *const change) {
 
-    cout << "[MM] Processing cache change: " << endl;
     eprosima::fastrtps::rtps::GUID_t changeGuid;
     iHandle2GUID(changeGuid, change->instanceHandle);
-
     eprosima::fastrtps::rtps::WriterProxyData proxyData;
-
     if (change->kind == ALIVE) {
         eprosima::fastrtps::CDRMessage_t tempMsg(0);
         tempMsg.wraps = true;
@@ -311,7 +236,6 @@ void ModuleManager::onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *
     }
 
     std::string partition_str = std::string("AMM");
-    // don't use std::accumulate - schlemiel O(n2)
     for (const auto &partition : proxyData.m_qos.m_partition.getNames()) {
         partition_str += partition;
     }
@@ -341,3 +265,69 @@ void ModuleManager::onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *
     }
     m_mutex.unlock();
 }
+
+void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info)  {
+    if (
+            info.rtps.m_status != DISCOVERED_RTPSPARTICIPANT &&
+            info.rtps.m_status != REMOVED_RTPSPARTICIPANT &&
+            info.rtps.m_status != DROPPED_RTPSPARTICIPANT) {
+        cout << "[MM] Participant discovered with an unknown status: " << info.rtps.m_status << endl;
+        return;
+    }
+
+    std::string name;
+    ostringstream node_id;
+
+    if (DISCOVERED_RTPSPARTICIPANT == info.rtps.m_status) {
+        cout << "[MM] Participant discovered!" << endl;
+
+        if (discovered_names.find(info.rtps.m_guid) == discovered_names.end()) {
+            auto map = parse_key_value(info.rtps.m_userData);
+            auto found = map.find("name");
+
+            if (found != map.end()) {
+                name = std::string(found->second.begin(), found->second.end());
+            }
+            if (name.empty()) {
+                // use participant name if no name was found in the user data
+                name = info.rtps.m_RTPSParticipantName;
+            }
+            // ignore discovered participants without a name
+            if (!name.empty()) {
+                discovered_names[info.rtps.m_guid] = name;
+            }
+
+            node_id << info.rtps.m_guid;
+            std::size_t pos = node_id.str().find("|");
+            std::string truncated_node_id = node_id.str().substr(0, pos);
+
+            cout << "[MM] Participant " << info.rtps.m_guid << " joined with name " << name << endl;
+            cout << "[MM] Stored with truncated ID: " << truncated_node_id << endl;
+
+            try {
+                db << "insert into nodes (node_id, node_name) values (?,?);"
+                   << truncated_node_id
+                   << name;
+            } catch (exception &e) {
+                cout << e.what() << endl;
+            }
+        }
+    } else {
+        auto it = discovered_names.find(info.rtps.m_guid);
+        // only consider known GUIDs
+        if (it != discovered_names.end()) {
+            discovered_names.erase(it);
+        }
+        cout << "[MM] Participant " << info.rtps.m_guid << " disconnected " << endl;
+        node_id << info.rtps.m_guid;
+        std::size_t pos = node_id.str().find("|");
+        std::string truncated_node_id = node_id.str().substr(0, pos);
+        try {
+            db << "delete from nodes where node_id=?;"
+               << truncated_node_id;
+        } catch (exception &e) {
+            cout << e.what() << endl;
+        }
+    }
+}
+

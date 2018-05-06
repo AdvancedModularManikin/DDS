@@ -65,7 +65,7 @@ using namespace tinyxml2;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
-class ModuleManager : public ListenerInterface {
+class ModuleManager : public ParticipantListener, public ListenerInterface {
 
 public:
 
@@ -92,10 +92,14 @@ public:
     void onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *reader,
                                const eprosima::fastrtps::CacheChange_t *const change) override;
 
+    void onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info) override;
+
+
     Subscriber *status_subscriber;
     Subscriber *config_subscriber;
 
     std::map<std::string, std::vector<std::string>> topicNtypes;
+    std::map<GUID_t, std::string> discovered_names;
 
 protected:
 
