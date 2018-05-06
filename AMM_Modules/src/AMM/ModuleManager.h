@@ -87,8 +87,15 @@ public:
 
     void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *m_info);
 
+    void onReaderMatched(RTPSReader *reader, MatchingInfo &info) override;
+
+    void onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *reader,
+                               const eprosima::fastrtps::CacheChange_t *const change) override;
+
     Subscriber *status_subscriber;
     Subscriber *config_subscriber;
+
+    std::map<std::string, std::vector<std::string>> topicNtypes;
 
 protected:
 
@@ -96,10 +103,11 @@ protected:
     std::mutex m_mutex;
     bool m_runThread;
 
+    Participant *mp_participant;
+
     const char *nodeName = "AMM_ModuleManager";
 
     DDS_Manager *mgr;
-
 
 };
 
