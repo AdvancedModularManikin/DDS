@@ -65,7 +65,7 @@ using namespace tinyxml2;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
-class ModuleManager {
+class ModuleManager : public ListenerInterface {
 
 public:
 
@@ -83,6 +83,13 @@ public:
 
     void Cleanup();
 
+    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *m_info);
+
+    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *m_info);
+
+    Subscriber *status_subscriber;
+    Subscriber *config_subscriber;
+
 protected:
 
     std::thread m_thread;
@@ -93,8 +100,6 @@ protected:
 
     DDS_Manager *mgr;
 
-    Subscriber *status_subscriber;
-    Subscriber *config_subscriber;
 
 };
 

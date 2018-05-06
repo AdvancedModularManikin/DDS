@@ -91,13 +91,9 @@ void DDS_Listeners::StatusSubListener::onSubscriptionMatched(Subscriber *sub,
 void DDS_Listeners::StatusSubListener::onNewDataMessage(Subscriber *sub) {
     AMM::Capability::Status st;
 
-    cout << "\tStatus sub listener fired" << endl;
     if (sub->takeNextData(&st, &m_info)) {
-        cout << "\tTaking the next data..." << endl;
         if (m_info.sampleKind == ALIVE) {
-            cout << "\tIt's alive!" << endl;
             if (upstream != nullptr) {
-                cout << "\tWe've got an upstream event!" << endl;
                 upstream->onNewStatusData(st, &m_info);
             }
             ++n_msg;
@@ -117,13 +113,9 @@ void DDS_Listeners::ConfigSubListener::onSubscriptionMatched(Subscriber *sub,
 void DDS_Listeners::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
     AMM::Capability::Configuration cfg;
 
-    cout << "\tConfig sub listener fired" << endl;
     if (sub->takeNextData(&cfg, &m_info)) {
-        cout << "\tTaking next data..." << endl;
         if (m_info.sampleKind == ALIVE) {
-            cout << "\tIt's alive!" << endl;
             if (upstream != nullptr) {
-                cout << "\tWe've got an upstream event" << endl;
                 upstream->onNewConfigData(cfg, &m_info);
             }
             ++n_msg;
