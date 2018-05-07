@@ -90,8 +90,8 @@ ModuleManager::ModuleManager() {
 
     status_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::statusTopic,
                                                   AMM::DataTypes::getStatusType(),
-                                                  n
-    status_sub_listener);
+						  status_sub_listener);
+
 
     config_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic,
                                                   AMM::DataTypes::getConfigurationType(),
