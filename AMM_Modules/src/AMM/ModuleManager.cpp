@@ -7,13 +7,13 @@ using namespace sqlite;
 
 database db("amm.db");
 
-static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
-    std::map<std::string, std::vector<uint8_t>> m;
+static std::map <std::string, std::vector<uint8_t>> parse_key_value(std::vector <uint8_t> kv) {
+    std::map <std::string, std::vector<uint8_t>> m;
 
     bool keyfound = false;
 
     std::string key;
-    std::vector<uint8_t> value;
+    std::vector <uint8_t> value;
     uint8_t prev = '\0';
 
     if (kv.size() == 0) {
@@ -67,7 +67,7 @@ static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<u
     // This is not a failure this is something that can happen because the participant_qos userData
     // is used. Other participants in the system not created by rmw could use userData for something
     // else.
-    return std::map<std::string, std::vector<uint8_t >>();
+    return std::map < std::string, std::vector < uint8_t >> ();
 }
 
 ModuleManager::ModuleManager() {
@@ -75,7 +75,7 @@ ModuleManager::ModuleManager() {
     mp_participant = mgr->GetParticipant();
 
 
-    std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
+    std::pair < StatefulReader * , StatefulReader * > EDP_Readers = mp_participant->getEDPReaders();
     // pub
     auto result = EDP_Readers.first->setListener(this);
     // sub
@@ -90,7 +90,8 @@ ModuleManager::ModuleManager() {
 
     status_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::statusTopic,
                                                   AMM::DataTypes::getStatusType(),
-                                  n                status_sub_listener);
+                                                  n
+    status_sub_listener);
 
     config_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic,
                                                   AMM::DataTypes::getConfigurationType(),
@@ -124,13 +125,16 @@ void ModuleManager::Start() {
 
 void ModuleManager::RunLoop() {
     while (m_runThread) {
-      //  m_mutex.lock();
+        //  m_mutex.lock();
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         // do work
 //        m_mutex.unlock();
     }
 }
 
+void ModuleManager::ShowStatus() {
+
+}
 
 void ModuleManager::Cleanup() {
 
@@ -213,7 +217,7 @@ void ModuleManager::onReaderMatched(RTPSReader *reader, MatchingInfo &info) {
 }
 
 void ModuleManager::onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *reader,
-                           const eprosima::fastrtps::CacheChange_t *const change) {
+                                          const eprosima::fastrtps::CacheChange_t *const change) {
 
     eprosima::fastrtps::rtps::GUID_t changeGuid;
     iHandle2GUID(changeGuid, change->instanceHandle);
@@ -266,7 +270,7 @@ void ModuleManager::onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *
     m_mutex.unlock();
 }
 
-void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info)  {
+void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info) {
     if (
             info.rtps.m_status != DISCOVERED_RTPSPARTICIPANT &&
             info.rtps.m_status != REMOVED_RTPSPARTICIPANT &&
@@ -300,14 +304,15 @@ void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryIn
             node_id << info.rtps.m_guid;
             std::size_t pos = node_id.str().find("|");
             std::string truncated_node_id = node_id.str().substr(0, pos);
-
+            auto timestamp = std::to_string(time(nullptr));
             cout << "[MM] Participant " << info.rtps.m_guid << " joined with name " << name << endl;
             cout << "[MM] Stored with truncated ID: " << truncated_node_id << endl;
 
             try {
-                db << "insert into nodes (node_id, node_name) values (?,?);"
+                db << "insert into nodes (node_id, node_name, timestamp) values (?,?,?);"
                    << truncated_node_id
-                   << name;
+                   << name
+                   << timestamp;
             } catch (exception &e) {
                 cout << e.what() << endl;
             }

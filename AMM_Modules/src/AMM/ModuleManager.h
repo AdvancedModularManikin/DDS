@@ -81,6 +81,8 @@ public:
 
     bool isRunning();
 
+    void ShowStatus();
+
     void Cleanup();
 
     void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *m_info);

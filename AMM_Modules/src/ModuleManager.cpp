@@ -27,7 +27,7 @@ void show_menu(ModuleManager *modManager) {
     transform(action.begin(), action.end(), action.begin(), ::toupper);
 
     if (action == "1") {
-        // Status
+        modManager->ShowStatus();
     } else if (action == "4") {
         cout << "=== [ModManager] Shutting down Module Manager." << endl;
         closed = true;
@@ -67,7 +67,8 @@ int main(int argc, char *argv[]) {
         db << "create table if not exists nodes ("
 //                 "_id integer primary key autoincrement not null,"
                 "node_id text,"
-                "node_name text"
+                "node_name text,",
+                "timestamp text"
            ");";
 
         db << "create table if not exists node_capabilities ("
