@@ -153,13 +153,13 @@ target_link_libraries(${REST_ADAPTER_EXE}
 if (BioGears_FOUND)
     set(PHYSIOLOGY_MANAGER_SOURCES src/PhysiologyManager.cpp src/AMM/PhysiologyEngineManager.cpp src/AMM/PhysiologyThread.cpp)
     set(PHYSIOLOGY_MANAGER_EXE amm_physiology_manager)
-    add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
-    target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
-            fastrtps fastcdr
-            ${BioGears_LIBRARIES}
-            Threads::Threads
-            ${DATAMODEL}
-            )
+#    add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+#    target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
+#            fastrtps fastcdr
+#            ${BioGears_LIBRARIES}
+#            Threads::Threads
+#            ${DATAMODEL}
+#            )
 
     file(COPY ${PROJECT_SOURCE_DIR}/support/Actions DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
     file(COPY ${PROJECT_SOURCE_DIR}/support/patients DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
