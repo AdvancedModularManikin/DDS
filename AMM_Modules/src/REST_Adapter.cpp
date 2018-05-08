@@ -81,6 +81,8 @@ int thr = 2;
 // Daemonize by default
 int daemonize = 1;
 
+char hostname[HOST_NAME_MAX];
+
 std::string action_path = "Actions/";
 std::string state_path = "./states/";
 std::string patient_path = "./patients/";
@@ -198,6 +200,7 @@ private:
     void setupRoutes() {
         using namespace Rest;
 
+        Routes::Get(router, "/instance", Routes::bind(&DDSEndpoint::getInstance, this));
         Routes::Get(router, "/node/:name", Routes::bind(&DDSEndpoint::getNode, this));
         Routes::Get(router, "/nodes", Routes::bind(&DDSEndpoint::getNodes, this));
         Routes::Get(router, "/command/:name", Routes::bind(&DDSEndpoint::issueCommand, this));
@@ -225,6 +228,17 @@ private:
         Routes::Get(router, "/states", Routes::bind(&DDSEndpoint::getStates, this));
         Routes::Get(router, "/states/:name/delete", Routes::bind(&DDSEndpoint::deleteState, this));
 
+    }
+
+    void getInstance(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartObject();
+        writer.Key("name");
+        writer.String(hostname);
+        writer.EndObject();
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
     void getStates(const Rest::Request &request, Http::ResponseWriter response) {
@@ -508,6 +522,7 @@ private:
         }
     }
 
+
     void doDebug(const Rest::Request &request, Http::ResponseWriter response) {
         printCookies(request);
         response.cookies().add(Http::Cookie("lang", "en-US"));
@@ -592,6 +607,8 @@ int main(int argc, char *argv[]) {
     mgr->SetStatus(OPERATIONAL);
 
     std::thread udpD(UdpDiscoveryThread);
+
+    gethostname(hostname, HOST_NAME_MAX);
 
     Port port(static_cast<uint16_t>(portNumber));
     Address addr(Ipv4::any(), port);
