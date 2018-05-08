@@ -24,4 +24,5 @@
 				<Volume value="660" unit="L"/>
 			</OxygenBottleTwo>
 		</Configuration>
+	</Action>
 </Scenario>
