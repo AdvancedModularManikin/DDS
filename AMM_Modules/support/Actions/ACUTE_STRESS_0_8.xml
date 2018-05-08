@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>ACUTE_STRESS</Name>
+	<Description>Acute Stress 0.8</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	           	  
+	<!-- ACUTE_STRESS 0.8-->
+    <Action xsi:type="AcuteStressData">
+        <Severity value="0.8"/>
+    </Action>
+</Scenario>
