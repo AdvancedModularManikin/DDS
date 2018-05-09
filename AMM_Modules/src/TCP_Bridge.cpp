@@ -293,7 +293,7 @@ int main(int argc, const char *argv[]) {
         }
     }
 
-    std::ifstream ifs("TCP_Bridge_config_example.xml");
+    std::ifstream ifs("mule1/TCP_Bridge_config_example.xml");
     std::string configContent ( (std::istreambuf_iterator<char>(ifs) ),
 		   (std::istreambuf_iterator<char>()    ) );
     std::string encodedConfigContent = encode64(configContent);
@@ -325,7 +325,7 @@ int main(int argc, const char *argv[]) {
             nodeName,
             "00001",
             "0.0.1",
-            "capabilityString"
+            mgr->GetCapabilitiesAsString("mule1/tcp_bridge_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

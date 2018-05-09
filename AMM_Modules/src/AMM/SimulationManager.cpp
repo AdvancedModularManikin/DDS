@@ -15,6 +15,16 @@ SimulationManager::SimulationManager() {
     command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                  pub_listener);
     m_runThread = false;
+
+    mgr->PublishModuleConfiguration(
+            "Vcom3D",
+            "CommandExecutor",
+            "00001",
+            "0.0.1",
+            mgr->GetCapabilitiesAsString("mule1/simulation_manager_capabilities.xml")
+    );
+
+    mgr->SetStatus(OPERATIONAL);
 }
 
 void SimulationManager::StartSimulation() {

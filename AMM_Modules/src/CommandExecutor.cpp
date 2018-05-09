@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
             "CommandExecutor",
             "00001",
             "0.0.1",
-            "capabilityString"
+            mgr->GetCapabilitiesAsString("mule1/command_executor_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

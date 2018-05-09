@@ -62,37 +62,47 @@ int main(int argc, char *argv[]) {
 
 
     if (setup) {
-        sqlite_config config;
-        database db("amm.db", config);
-        db << "create table if not exists nodes ("
-//                 "_id integer primary key autoincrement not null,"
-                "node_id text,"
-                "node_name text,",
-                "timestamp text"
-           ");";
+        try {
+            sqlite_config config;
+            database db("amm.db", config);
 
-        db << "create table if not exists node_capabilities ("
-                "_id integer primary key autoincrement not null,"
-                "node_id text,"
-                "manufacturer text,"
-                "model text,"
-                "serial_number text,"
-                "version text,"
-                "capabilities text,"
-                "timestamp text,"
-                "encounter_id text"
-                ");";
+            cout << "Creating modules table..." <<endl;
+            db << "create table if not exists modules("
+                    "module_id text,"
+                    "module_name text,"
+                    "timestamp text"
+                            ");";
+            db << "delete from modules;";
 
-        db << "create table if not exists node_status ("
-                "_id integer primary key autoincrement not null,"
-                "node_id text,"
-                "capability text,"
-                "status text,"
-                "timestamp text,"
-                "encounter_id text"
-                ");";
+            cout << "Creating module capabilities table..." << endl;
+            db << "create table if not exists module_capabilities ("
+                    "module_id text,"
+                    "manufacturer text,"
+                    "model text,"
+                    "serial_number text,"
+                    "version text,"
+                    "capabilities text,"
+                    "timestamp text,"
+                    "encounter_id text"
+                    ");";
+            db << "delete from module_capabilities;";
 
-        cout << "\tCreated AMM database schema." << endl;
+            cout << "Creating module status table..." << endl;
+            db << "create table if not exists module_status ("
+                    "module_id text,"
+                    "capability text,"
+                    "status text,"
+                    "timestamp text,"
+                    "encounter_id text"
+                    ");";
+            db << "delete from module_status;";
+
+            cout << "\tCreated AMM database schema." << endl;
+
+        } catch (exception &e) {
+            cout << e.what() << endl;
+        }
+
     }
 
     ModuleManager modManager;
@@ -105,7 +115,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    cout << "=== [ModuleManager] Exiting." << endl;
+    cout << "=== [ModuleManager] Exiting." <<
+         endl;
 
     return 0;
 }

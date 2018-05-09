@@ -7,13 +7,13 @@ using namespace sqlite;
 
 database db("amm.db");
 
-static std::map <std::string, std::vector<uint8_t>> parse_key_value(std::vector <uint8_t> kv) {
-    std::map <std::string, std::vector<uint8_t>> m;
+static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
+    std::map<std::string, std::vector<uint8_t>> m;
 
     bool keyfound = false;
 
     std::string key;
-    std::vector <uint8_t> value;
+    std::vector<uint8_t> value;
     uint8_t prev = '\0';
 
     if (kv.size() == 0) {
@@ -67,15 +67,20 @@ static std::map <std::string, std::vector<uint8_t>> parse_key_value(std::vector 
     // This is not a failure this is something that can happen because the participant_qos userData
     // is used. Other participants in the system not created by rmw could use userData for something
     // else.
-    return std::map < std::string, std::vector < uint8_t >> ();
+    return std::map<std::string, std::vector<uint8_t >>();
 }
 
 ModuleManager::ModuleManager() {
     mgr = new DDS_Manager(nodeName, this);
+    Initialize();
+    m_runThread = false;
+}
+
+void ModuleManager::Initialize() {
     mp_participant = mgr->GetParticipant();
 
 
-    std::pair < StatefulReader * , StatefulReader * > EDP_Readers = mp_participant->getEDPReaders();
+    std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
     // pub
     auto result = EDP_Readers.first->setListener(this);
     // sub
@@ -88,17 +93,17 @@ ModuleManager::ModuleManager() {
     status_sub_listener->SetUpstream(this);
     config_sub_listener->SetUpstream(this);
 
-    status_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::statusTopic,
+    // status_subscriber =
+            mgr->InitializeSubscriber(AMM::DataTypes::statusTopic,
                                                   AMM::DataTypes::getStatusType(),
-						  status_sub_listener);
+                                                  status_sub_listener);
 
 
-    config_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic,
+    // config_subscriber =
+            mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic,
                                                   AMM::DataTypes::getConfigurationType(),
                                                   config_sub_listener);
-    m_runThread = false;
 }
-
 bool ModuleManager::isRunning() {
     return m_runThread;
 }
@@ -112,7 +117,7 @@ void ModuleManager::Start() {
                 "Module_Manager",
                 "00001",
                 "0.0.1",
-                "capabilityString"
+                mgr->GetCapabilitiesAsString("mule1/module_manager_capabilities.xml")
         );
 
         // Normally this would be set AFTER configuration is received
@@ -125,10 +130,10 @@ void ModuleManager::Start() {
 
 void ModuleManager::RunLoop() {
     while (m_runThread) {
-        //  m_mutex.lock();
+        m_mutex.lock();
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
         // do work
-//        m_mutex.unlock();
+        m_mutex.unlock();
     }
 }
 
@@ -152,42 +157,43 @@ void ModuleManager::Shutdown() {
 }
 
 void ModuleManager::onNewStatusData(AMM::Capability::Status st, SampleInfo_t *m_info) {
-    ostringstream node_id;
-    node_id << m_info->sample_identity.writer_guid();
-    std::size_t pos = node_id.str().find("|");
-    std::string truncated_node_id = node_id.str().substr(0, pos);
+    ostringstream module_id;
+    module_id << m_info->sample_identity.writer_guid();
+    std::size_t pos = module_id.str().find("|");
+    std::string truncated_module_id = module_id.str().substr(0, pos);
     auto timestamp = std::to_string(time(nullptr));
 
     cout << "[MM] Received a status message " << endl;
     cout << "[MM] Writer ID\t" << m_info->sample_identity.writer_guid() << endl;
-    cout << "[MM] Truncated ID\t" << truncated_node_id << endl;
+    cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
     cout << "[MM]\tValue: " << st.status_value() << endl;
     cout << "[MM]\tCapabilities: " << st.capability() << endl;
     // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
     cout << "[MM]\t---" << endl;
 
     try {
-
-        db << "insert into node_status (node_id, capability, status, timestamp) values (?,?,?,?);"
-           << truncated_node_id
+        m_mutex.lock();
+        db << "insert into module_status (module_id, capability, status, timestamp) values (?,?,?,?);"
+           << truncated_module_id
            << st.capability()
            << "OPERATIONAL"
            << timestamp;
+        m_mutex.unlock();
     } catch (exception &e) {
         cout << e.what() << endl;
     }
 }
 
 void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *m_info) {
-    ostringstream node_id;
-    node_id << m_info->sample_identity.writer_guid();
-    std::size_t pos = node_id.str().find("|");
-    std::string truncated_node_id = node_id.str().substr(0, pos);
+    ostringstream module_id;
+    module_id << m_info->sample_identity.writer_guid();
+    std::size_t pos = module_id.str().find("|");
+    std::string truncated_module_id = module_id.str().substr(0, pos);
     auto timestamp = std::to_string(time(nullptr));
 
     cout << "[MM] Received a capability config message " << endl;
     cout << "[MM] Writer ID\t" << m_info->sample_identity.writer_guid() << endl;
-    cout << "[MM] Truncated ID\t" << truncated_node_id << endl;
+    cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
     cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
     cout << "[MM]\tModel: " << cfg.model() << endl;
     cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;
@@ -196,15 +202,17 @@ void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleIn
     cout << "[MM]\t---" << endl;
 
     try {
+        m_mutex.lock();
         db
-                << "insert into node_capabilities (node_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
-                << truncated_node_id
+                << "insert into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
+                << truncated_module_id
                 << cfg.manufacturer()
                 << cfg.model()
                 << cfg.serial_number()
                 << cfg.version()
                 << cfg.capabilities()
                 << timestamp;
+        m_mutex.unlock();
     } catch (exception &e) {
         cout << e.what() << endl;
     }
@@ -280,7 +288,7 @@ void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryIn
     }
 
     std::string name;
-    ostringstream node_id;
+    ostringstream module_id;
 
     if (DISCOVERED_RTPSPARTICIPANT == info.rtps.m_status) {
         cout << "[MM] Participant discovered!" << endl;
@@ -301,16 +309,16 @@ void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryIn
                 discovered_names[info.rtps.m_guid] = name;
             }
 
-            node_id << info.rtps.m_guid;
-            std::size_t pos = node_id.str().find("|");
-            std::string truncated_node_id = node_id.str().substr(0, pos);
+            module_id << info.rtps.m_guid;
+            std::size_t pos = module_id.str().find("|");
+            std::string truncated_module_id = module_id.str().substr(0, pos);
             auto timestamp = std::to_string(time(nullptr));
             cout << "[MM] Participant " << info.rtps.m_guid << " joined with name " << name << endl;
-            cout << "[MM] Stored with truncated ID: " << truncated_node_id << endl;
+            cout << "[MM] Stored with truncated ID: " << truncated_module_id << endl;
 
             try {
-                db << "insert into nodes (node_id, node_name, timestamp) values (?,?,?);"
-                   << truncated_node_id
+                db << "insert into modules (module_id, module_name, timestamp) values (?,?,?);"
+                   << truncated_module_id
                    << name
                    << timestamp;
             } catch (exception &e) {
@@ -324,12 +332,12 @@ void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryIn
             discovered_names.erase(it);
         }
         cout << "[MM] Participant " << info.rtps.m_guid << " disconnected " << endl;
-        node_id << info.rtps.m_guid;
-        std::size_t pos = node_id.str().find("|");
-        std::string truncated_node_id = node_id.str().substr(0, pos);
+        module_id << info.rtps.m_guid;
+        std::size_t pos = module_id.str().find("|");
+        std::string truncated_module_id = module_id.str().substr(0, pos);
         try {
-            db << "delete from nodes where node_id=?;"
-               << truncated_node_id;
+            db << "delete from modules where module_id=?;"
+               << truncated_module_id;
         } catch (exception &e) {
             cout << e.what() << endl;
         }

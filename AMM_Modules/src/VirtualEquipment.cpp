@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
             nodeName,
             "00001",
             "0.0.1",
-            "capabilityString"
+            mgr->GetCapabilitiesAsString("mule1/virtual_equipment_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

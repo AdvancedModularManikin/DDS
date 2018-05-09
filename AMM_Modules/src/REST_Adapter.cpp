@@ -209,6 +209,9 @@ private:
 
 
         Routes::Get(router, "/module/:name", Routes::bind(&DDSEndpoint::getModule, this));
+
+        Routes::Get(router, "/modules/capability", Routes::bind(&DDSEndpoint::getModulesCapability, this));
+        Routes::Get(router, "/modules/status", Routes::bind(&DDSEndpoint::getModulesStatus, this));
         Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
 
 
@@ -434,32 +437,107 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
+    void getModulesStatus(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+
+        db << "select module_id,capability,status,timestamp from module_status;"
+           >> [&](string module_id, string capability, string status, string timestamp) {
+               writer.StartObject();
+
+               writer.Key("Module_ID");
+               writer.String(module_id.c_str());
+
+               writer.Key("Module_Capabilities");
+               writer.String(capability.c_str());
+
+               writer.Key("Module_Status");
+               writer.String(status.c_str());
+
+               writer.Key("timestamp");
+               writer.String(timestamp.c_str());
+
+               writer.EndObject();
+           };
+
+
+        writer.EndArray();
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getModulesCapability(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+
+        db << "select module_id,manufacturer,model,serial_number,version,capabilities,timestamp from module_capabilities;"
+           >> [&](string module_id, string manufacturer, string model, string serial_number, string version, string capabilities, string timestamp) {
+               writer.StartObject();
+
+               writer.Key("Module_ID");
+               writer.String(module_id.c_str());
+
+               writer.Key("Manufacturer");
+               writer.String(manufacturer.c_str());
+
+               writer.Key("Model");
+               writer.String(model.c_str());
+
+               writer.Key("Serial_Number");
+               writer.String(serial_number.c_str());
+
+               writer.Key("Version");
+               writer.String(version.c_str());
+
+               writer.Key("Capabilities");
+               writer.String(capabilities.c_str());
+
+               writer.Key("timestamp");
+               writer.String(timestamp.c_str());
+
+               writer.EndObject();
+           };
+
+
+        writer.EndArray();
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
     void getModules(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();
 
-        db << "select node_id,node_name from nodes;"
-           >> [&](string node_id, string node_name) {
+        db << "select module_id,module_name from modules;"
+           >> [&](string module_id, string module_name) {
                writer.StartObject();
 
-               writer.Key("Node ID");
-               writer.String(node_id.c_str());
+               writer.Key("Module_ID");
+               writer.String(module_id.c_str());
 
-               writer.Key("Node name");
-               writer.String(node_name.c_str());
+               writer.Key("Module_Name");
+               writer.String(module_name.c_str());
 
                writer.EndObject();
            };
 
+
+        writer.EndArray();
+
+/*        writer.StartArray();
         auto participant_names = mp_participant->getParticipantNames();
         for (auto name : participant_names) {
 
 
 
         }
+        writer.EndArray();*/
 
-        writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
@@ -600,7 +678,7 @@ int main(int argc, char *argv[]) {
             "REST_Adapter",
             "00001",
             "0.0.1",
-            "capabilityString"
+            mgr->GetCapabilitiesAsString("mule1/rest_adapter_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

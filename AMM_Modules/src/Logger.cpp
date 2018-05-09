@@ -268,7 +268,7 @@ int main(int argc, char *argv[]) {
             "Logger",
             "00001",
             "0.0.1",
-            "capabilityString"
+            mgr->GetCapabilitiesAsString("mule1/logger_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

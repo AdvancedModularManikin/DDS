@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
             "HeartRateLED",
             "00001",
             "0.0.1",
-            "capabilityString"
+            mgr->GetCapabilitiesAsString("mule1/heart_rate_led_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

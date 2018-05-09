@@ -6,10 +6,6 @@ using namespace std::chrono;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
-DDS_Manager::DDS_Manager() {
-    DDS_Manager(partitionName);
-}
-
 DDS_Manager::DDS_Manager(const char *nodeName) {
     ParticipantAttributes PParam;
     PParam.rtps.builtin.domainId = (uint32_t) domainId;
@@ -22,7 +18,15 @@ DDS_Manager::DDS_Manager(const char *nodeName) {
         return;
     }
 
-    InitializeDefaults();
+    RegisterTypes();
+
+    auto *pub_listener = new DDS_Listeners::PubListener();
+
+    config_publisher = InitializePublisher(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
+                                           pub_listener);
+
+    status_publisher = InitializePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
+                                           pub_listener);
 }
 
 DDS_Manager::DDS_Manager(const char *nodeName, ParticipantListener *participantListener) {
@@ -37,28 +41,20 @@ DDS_Manager::DDS_Manager(const char *nodeName, ParticipantListener *participantL
         return;
     }
 
-    InitializeDefaults();
+    RegisterTypes();
+
+
+    auto *pub_listener = new DDS_Listeners::PubListener();
+
+    config_publisher = InitializePublisher(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
+                                                       pub_listener);
+
+    status_publisher = InitializePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
+                                           pub_listener);
 }
 
 Participant *DDS_Manager::GetParticipant() {
     return mp_participant;
-}
-
-void DDS_Manager::InitializeDefaults() {
-
-    // Create some default listeners to use so higher level code doesn't need to require them
-    default_sub_listener = new DDS_Listeners::DefaultSubListener();
-    default_pub_listener = new DDS_Listeners::PubListener();
-
-    RegisterTypes();
-
-    InitializeStatusPublisher(default_pub_listener);
-    InitializeConfigPublisher(default_pub_listener);
-}
-
-
-void DDS_Manager::RegisterPublishers() {
-
 }
 
 
@@ -119,35 +115,6 @@ Subscriber *DDS_Manager::InitializeSubscriber(std::string topicName, TopicDataTy
     return gen_subscriber;
 }
 
-Publisher *DDS_Manager::InitializeStatusPublisher(PublisherListener *pub_listener) {
-    PublisherAttributes wparam;
-    wparam.topic.topicDataType = AMM::DataTypes::getStatusType()->getName();
-    wparam.topic.topicName = AMM::DataTypes::statusTopic;
-    status_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
-    if (status_publisher == nullptr) {
-        cout << "unable to create status publisher" << endl;
-    }
-    return status_publisher;
-};
-
-Publisher *DDS_Manager::InitializeConfigPublisher(PublisherListener *pub_listener) {
-    PublisherAttributes wparam;
-    wparam.topic.topicDataType = AMM::DataTypes::getConfigurationType()->getName();
-    wparam.topic.topicName = AMM::DataTypes::configurationTopic;
-    config_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
-    if (config_publisher == nullptr) {
-        cout << "unable to create configuration publisher" << endl;
-    }
-    return config_publisher;
-};
-
-Publisher *DDS_Manager::InitializeCommandPublisher(PublisherListener *pub_listener) {};
-
-Publisher *DDS_Manager::InitializeNodePublisher(PublisherListener *pub_listener) {};
-
-Publisher *DDS_Manager::InitializeTickPublisher(PublisherListener *pub_listener) {};
-
-
 void DDS_Manager::PublishModuleConfiguration(
         const std::string manufacturer,
         const std::string model,
@@ -162,7 +129,8 @@ void DDS_Manager::PublishModuleConfiguration(
     configInstance.serial_number(serial_number);
     configInstance.version(version);
     configInstance.amm_version(amm_version);
-    config_publisher->write(&configInstance);
+    configInstance.capabilities(capabilities);
+    config_publisher->write((void *) &configInstance);
 }
 
 void DDS_Manager::PublishModuleConfiguration(
@@ -179,12 +147,13 @@ void DDS_Manager::PublishModuleConfiguration(
     configInstance.serial_number(serial_number);
     configInstance.version(version);
     //configInstance.amm_version(amm_version);
-    config_publisher->write(&configInstance);
+    configInstance.capabilities(capabilities);
+    config_publisher->write((void *) &configInstance);
 }
 
 
 void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
-    config_publisher->write(&configInstance);
+    config_publisher->write((void *) &configInstance);
 }
 
 void DDS_Manager::SetStatus(AMM::Capability::status_values status) {
@@ -202,5 +171,12 @@ void DDS_Manager::SetStatus(AMM::Capability::status_values status, const std::ve
 }
 
 void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
-    status_publisher->write(&statusInstance);
+    status_publisher->write((void *) &statusInstance);
+}
+
+string DDS_Manager::GetCapabilitiesAsString(const std::string &filename) {
+    std::ifstream ifs(filename);
+    std::string capabilitiesContent ( (std::istreambuf_iterator<char>(ifs) ),
+                                      (std::istreambuf_iterator<char>()    ) );
+    return capabilitiesContent;
 }

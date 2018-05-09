@@ -22,16 +22,21 @@
 
 #include "AMM/DDS_Listeners.h"
 #include "AMM/ListenerInterface.h"
+#include <fstream>
+#include <streambuf>
+#include <sstream>
 
+
+using namespace std;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
 class DDS_Manager {
 public:
-    DDS_Manager();
     DDS_Manager(const char *nodeName);
+
     DDS_Manager(const char *nodeName, ParticipantListener *participantListener);
-    virtual ~DDS_Manager() = default;;
+//    ~DDS_Manager();
 
     void PublishModuleConfiguration(
             const std::string manufacturer,
@@ -41,6 +46,7 @@ public:
             const AMM::Capability::AMM_version &amm_version,
             const std::string capabilities
     );
+
     void PublishModuleConfiguration(
             const std::string manufacturer,
             const std::string model,
@@ -48,42 +54,39 @@ public:
             const std::string version,
             const std::string capabilities
     );
+
     void PublishModuleConfiguration(AMM::Capability::Configuration configInstance);
 
     void SetStatus(AMM::Capability::status_values status);
+
     void SetStatus(AMM::Capability::status_values status, const std::vector<std::string> &message);
+
     void SetStatus(AMM::Capability::Status statusInstance);
 
     Publisher *InitializePublisher(std::string topicName, TopicDataType *topicType, PublisherListener *pub_listener);
+
     Subscriber *InitializeSubscriber(std::string topicName, TopicDataType *topicType, SubscriberListener *sub_listener);
 
     Participant *GetParticipant();
 
-    Publisher *InitializeStatusPublisher(PublisherListener *pub_listener);
-    Publisher *InitializeConfigPublisher(PublisherListener *pub_listener);
-    Publisher *InitializeCommandPublisher(PublisherListener *pub_listener);
-    Publisher *InitializeNodePublisher(PublisherListener *pub_listener);
-    Publisher *InitializeTickPublisher(PublisherListener *pub_listener);
-
-    Publisher *status_publisher;
     Publisher *config_publisher;
-    Publisher *command_publisher;
-    Publisher *node_publisher;
-    Publisher *tick_publisher;
+    Publisher *status_publisher;
 
     const int domainId = 15;
     const char *partitionName = "AMM";
 
-private:
-    void InitializeDefaults();
+    class PubListener : public PublisherListener {
+    public:
+        PubListener() {};
+        ~PubListener() {};
+        void onPublicationmatched(Publisher *pub, MatchingInfo &info) {
+
+        }
+    } default_pub_listener;
 
     void RegisterTypes();
 
-    void RegisterPublishers();
-
     Participant *mp_participant;
 
-    SubscriberListener *default_sub_listener = new DDS_Listeners::DefaultSubListener();
-    PublisherListener *default_pub_listener = new DDS_Listeners::PubListener();
-
+    std::string GetCapabilitiesAsString(const std::string &filename);
 };

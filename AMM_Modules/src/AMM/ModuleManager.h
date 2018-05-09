@@ -73,6 +73,8 @@ public:
 
     virtual ~ModuleManager() = default;;
 
+    void Initialize();
+
     void Start();
 
     void RunLoop();
@@ -85,9 +87,9 @@ public:
 
     void Cleanup();
 
-    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *m_info);
+    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *m_info) override;
 
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *m_info);
+    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *m_info) override;
 
     void onReaderMatched(RTPSReader *reader, MatchingInfo &info) override;
 
@@ -95,7 +97,6 @@ public:
                                const eprosima::fastrtps::CacheChange_t *const change) override;
 
     void onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info) override;
-
 
     Subscriber *status_subscriber;
     Subscriber *config_subscriber;

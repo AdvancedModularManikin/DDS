@@ -165,18 +165,25 @@ if (BioGears_FOUND)
     file(COPY ${PROJECT_SOURCE_DIR}/support/patients DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
     file(COPY ${PROJECT_SOURCE_DIR}/support/states DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 
-    file(COPY $ENV{BIOGEARS_HOME}/library/bin/config DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin)
-    file(COPY $ENV{BIOGEARS_HOME}/library/bin/ecg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
-    file(COPY $ENV{BIOGEARS_HOME}/library/bin/environments DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
-    file(COPY $ENV{BIOGEARS_HOME}/library/bin/nutrition DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
-    file(COPY $ENV{BIOGEARS_HOME}/library/bin/substances DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
-    file(COPY $ENV{BIOGEARS_HOME}/library/bin/xsd DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
-    file(COPY $ENV{BIOGEARS_HOME}/library/bin/UCEDefs.txt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
+    file(COPY ${PROJECT_SOURCE_DIR}/support/config DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin)
+    file(COPY ${PROJECT_SOURCE_DIR}/support/ecg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
+    file(COPY ${PROJECT_SOURCE_DIR}/support/environments DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
+    file(COPY ${PROJECT_SOURCE_DIR}/support/nutrition DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
+    file(COPY ${PROJECT_SOURCE_DIR}/support/substances DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
+
+    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/config DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin)
+    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/ecg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
+    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/environments DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
+    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/nutrition DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
+    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/substances DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
+    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/xsd DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
+    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/UCEDefs.txt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 
     configure_file(${PROJECT_SOURCE_DIR}/support/BioGearsConfiguration.xml ${CMAKE_CURRENT_BINARY_DIR}/bin COPYONLY)
     configure_file(${PROJECT_SOURCE_DIR}/support/log4j.properties ${CMAKE_CURRENT_BINARY_DIR}/bin COPYONLY)
 endif ()
 
+file(COPY ${PROJECT_SOURCE_DIR}/support/mule1 DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin)
 
 target_link_libraries(${SIM_MANAGER_EXE}
         fastrtps fastcdr
