@@ -12,7 +12,6 @@ public:
 
     virtual ~ListenerInterface() {};
 
-    // Include sample info for point-to-point details
     virtual void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {};
 
     virtual void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {};

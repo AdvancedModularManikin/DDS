@@ -63,15 +63,12 @@ using namespace tinyxml2;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
-class ModuleManager : public ParticipantListener, public ListenerInterface {
-
+class ModuleManager : public ParticipantListener, public ReaderListener {
 public:
 
     ModuleManager();
 
     virtual ~ModuleManager() = default;;
-
-    void Initialize();
 
     void Start();
 
@@ -95,49 +92,14 @@ public:
     std::map<std::string, std::vector<std::string>> topicNtypes;
     std::map<GUID_t, std::string> discovered_names;
 
-    class StatusSubListener : public SubscriberListener {
-    public:
-        StatusSubListener() : n_matched(0), n_msg(0) {};
-
-        ~StatusSubListener() override = default;;
-
-        void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
-
-        void onNewDataMessage(Subscriber *sub) override;
-
-        SampleInfo_t m_info;
-        int n_matched;
-        int n_msg;
-
-    };
-
-    class ConfigSubListener : public SubscriberListener {
-    public:
-        ConfigSubListener() : n_matched(0), n_msg(0) {};
-
-        ~ConfigSubListener() override = default;;
-
-        void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
-
-        void onNewDataMessage(Subscriber *sub) override;
-
-        SampleInfo_t m_info;
-        int n_matched;
-        int n_msg;
-
-    };
-
 protected:
 
     std::thread m_thread;
     std::mutex m_mutex;
     bool m_runThread;
 
-    Participant *mp_participant;
-
     const char *nodeName = "AMM_ModuleManager";
-
-    DDS_Manager *mgr;
+    DDS_Manager *mgr = new DDS_Manager(nodeName, this);
 
 };
 

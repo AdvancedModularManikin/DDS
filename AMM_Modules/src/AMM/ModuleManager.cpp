@@ -4,8 +4,72 @@ using namespace std;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 using namespace sqlite;
+using namespace AMM::Capability;
 
 database db("amm.db");
+
+class AMMListener : public ListenerInterface {
+    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
+        ostringstream module_id;
+        module_id << info->sample_identity.writer_guid();
+        std::size_t pos = module_id.str().find("|");
+        std::string truncated_module_id = module_id.str().substr(0, pos);
+        auto timestamp = std::to_string(time(nullptr));
+
+        cout << "[MM] Received a capability config message " << endl;
+        cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
+        cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
+        cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
+        cout << "[MM]\tModel: " << cfg.model() << endl;
+        cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;
+        cout << "[MM]\tVersion: " << cfg.version() << endl;
+        cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
+        cout << "[MM]\t---" << endl;
+
+        try {
+            db
+                    << "insert into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
+                    << truncated_module_id
+                    << cfg.manufacturer()
+                    << cfg.model()
+                    << cfg.serial_number()
+                    << cfg.version()
+                    << cfg.capabilities()
+                    << timestamp;
+        } catch (exception &e) {
+            cout << e.what() << endl;
+        }
+    };
+
+    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) override {
+        ostringstream module_id;
+        module_id << info->sample_identity.writer_guid();
+        std::size_t pos = module_id.str().find("|");
+        std::string truncated_module_id = module_id.str().substr(0, pos);
+        auto timestamp = std::to_string(time(nullptr));
+
+        cout << "[MM] Received a status message " << endl;
+        cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
+        cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
+        cout << "[MM]\tValue: " << st.status_value() << endl;
+        cout << "[MM]\tCapabilities: " << st.capability() << endl;
+        // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
+        cout << "[MM]\t---" << endl;
+
+        try {
+
+            db << "insert into module_status (module_id, capability, status, timestamp) values (?,?,?,?);"
+               << truncated_module_id
+               << st.capability()
+               << "OPERATIONAL"
+               << timestamp;
+
+        } catch (exception &e) {
+            cout << e.what() << endl;
+        }
+    }
+
+} rl;
 
 static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
     std::map<std::string, std::vector<uint8_t>> m;
@@ -71,34 +135,23 @@ static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<u
 }
 
 ModuleManager::ModuleManager() {
-    mgr = new DDS_Manager(nodeName, this);
-    Initialize();
-    m_runThread = false;
-}
+    auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
+    auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
 
-void ModuleManager::Initialize() {
-    mp_participant = mgr->GetParticipant();
+    status_sub_listener->SetUpstream(&rl);
+    config_sub_listener->SetUpstream(&rl);
 
+    mgr->InitializeSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
+                                                  status_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
+                                                  config_sub_listener);
 
-    std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
-    // pub
+    // Track subscriptions and publishers
+    std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mgr->GetParticipant()->getEDPReaders();
     auto result = EDP_Readers.first->setListener(this);
-    // sub
     result &= EDP_Readers.second->setListener(this);
 
-    auto status_sub_listener = new StatusSubListener;
-    auto config_sub_listener = new ConfigSubListener;
-
-    SubscriberAttributes statusrparam;
-    statusrparam.topic.topicDataType = AMM::DataTypes::getStatusType()->getName();
-    statusrparam.topic.topicName = AMM::DataTypes::statusTopic;
-    Domain::createSubscriber(mp_participant, statusrparam, status_sub_listener);
-
-    SubscriberAttributes configrparam;
-    configrparam.topic.topicDataType = AMM::DataTypes::getConfigurationType()->getName();
-    configrparam.topic.topicName = AMM::DataTypes::configurationTopic;
-    Domain::createSubscriber(mp_participant, configrparam, config_sub_listener);
-
+    m_runThread = false;
 }
 
 bool ModuleManager::isRunning() {
@@ -106,20 +159,21 @@ bool ModuleManager::isRunning() {
 }
 
 void ModuleManager::Start() {
-    if (!m_runThread) {
-        // Publish module configuration once we've set all our publishers and listeners
-        // This announces that we're available for configuration
-        mgr->PublishModuleConfiguration(
-                "Vcom3D",
-                "Module_Manager",
-                "00001",
-                "0.0.1",
-                mgr->GetCapabilitiesAsString("mule1/module_manager_capabilities.xml")
-        );
-        mgr->SetStatus(OPERATIONAL);
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            "Vcom3D",
+            "Module_Manager",
+            "00001",
+            "0.0.1",
+            mgr->GetCapabilitiesAsString("mule1/module_manager_capabilities.xml")
+    );
+    mgr->SetStatus(OPERATIONAL);
 
+    if (!m_runThread) {
         m_runThread = true;
         m_thread = std::thread(&ModuleManager::RunLoop, this);
+
     }
 }
 
@@ -174,7 +228,7 @@ void ModuleManager::onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *
             return;
         }
     } else {
-        if (!mp_participant->get_remote_writer_info(changeGuid, proxyData)) {
+        if (!mgr->GetParticipant()->get_remote_writer_info(changeGuid, proxyData)) {
             return;
         }
     }
@@ -273,97 +327,5 @@ void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryIn
         } catch (exception &e) {
             cout << e.what() << endl;
         }
-    }
-}
-
-
-void ModuleManager::StatusSubListener::onSubscriptionMatched(Subscriber *sub,
-                                                             MatchingInfo &info) {
-    if (info.status == MATCHED_MATCHING) {
-        n_matched++;
-    } else {
-        n_matched--;
-    }
-}
-
-void ModuleManager::StatusSubListener::onNewDataMessage(Subscriber *sub) {
-    AMM::Capability::Status st;
-    if (sub->takeNextData(&st, &m_info)) {
-        if (m_info.sampleKind == ALIVE) {
-            ostringstream module_id;
-            module_id << m_info.sample_identity.writer_guid();
-            std::size_t pos = module_id.str().find("|");
-            std::string truncated_module_id = module_id.str().substr(0, pos);
-            auto timestamp = std::to_string(time(nullptr));
-
-            cout << "[MM] Received a status message " << endl;
-            cout << "[MM] Writer ID\t" << m_info.sample_identity.writer_guid() << endl;
-            cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
-            cout << "[MM]\tValue: " << st.status_value() << endl;
-            cout << "[MM]\tCapabilities: " << st.capability() << endl;
-            // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
-            cout << "[MM]\t---" << endl;
-
-            try {
-
-                db << "insert into module_status (module_id, capability, status, timestamp) values (?,?,?,?);"
-                   << truncated_module_id
-                   << st.capability()
-                   << "OPERATIONAL"
-                   << timestamp;
-
-            } catch (exception &e) {
-                cout << e.what() << endl;
-            }
-        }
-        ++n_msg;
-    }
-}
-
-void ModuleManager::ConfigSubListener::onSubscriptionMatched(Subscriber *sub,
-                                                             MatchingInfo &info) {
-    if (info.status == MATCHED_MATCHING) {
-        n_matched++;
-    } else {
-        n_matched--;
-    }
-}
-
-void ModuleManager::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
-    AMM::Capability::Configuration cfg;
-
-    if (sub->takeNextData(&cfg, &m_info)) {
-        if (m_info.sampleKind == ALIVE) {
-            ostringstream module_id;
-            module_id << m_info.sample_identity.writer_guid();
-            std::size_t pos = module_id.str().find("|");
-            std::string truncated_module_id = module_id.str().substr(0, pos);
-            auto timestamp = std::to_string(time(nullptr));
-
-            cout << "[MM] Received a capability config message " << endl;
-            cout << "[MM] Writer ID\t" << m_info.sample_identity.writer_guid() << endl;
-            cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
-            cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
-            cout << "[MM]\tModel: " << cfg.model() << endl;
-            cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;
-            cout << "[MM]\tVersion: " << cfg.version() << endl;
-            cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
-            cout << "[MM]\t---" << endl;
-
-            try {
-                db
-                        << "insert into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
-                        << truncated_module_id
-                        << cfg.manufacturer()
-                        << cfg.model()
-                        << cfg.serial_number()
-                        << cfg.version()
-                        << cfg.capabilities()
-                        << timestamp;
-            } catch (exception &e) {
-                cout << e.what() << endl;
-            }
-        }
-        ++n_msg;
     }
 }

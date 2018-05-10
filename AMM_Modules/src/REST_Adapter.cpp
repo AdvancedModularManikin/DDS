@@ -141,9 +141,35 @@ class AMMListener : public ListenerInterface {
         nodeDataStorage[n.nodepath()] = n.dbl();
     }
 
+    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) {
+        cout << "Bam new data!" << endl;
+        ostringstream module_id;
+        module_id << info->sample_identity.writer_guid();
+        std::size_t pos = module_id.str().find("|");
+        std::string truncated_module_id = module_id.str().substr(0, pos);
+        auto timestamp = std::to_string(time(nullptr));
+
+        cout << "[MM] Received a status message " << endl;
+        cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
+        cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
+        cout << "[MM]\tValue: " << st.status_value() << endl;
+        cout << "[MM]\tCapabilities: " << st.capability() << endl;
+        // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
+        cout << "[MM]\t---" << endl;
+
+        try {
+
+            db << "insert into module_status (module_id, capability, status, timestamp) values (?,?,?,?);"
+               << truncated_module_id
+               << st.capability()
+               << "OPERATIONAL"
+               << timestamp;
+
+        } catch (exception &e) {
+            cout << e.what() << endl;
+        }
+    }
 };
-
-
 
 
 void SendCommand(const std::string &command) {
@@ -657,15 +683,18 @@ int main(int argc, char *argv[]) {
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
+    auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
 
     AMMListener rl;
     node_sub_listener->SetUpstream(&rl);
     command_sub_listener->SetUpstream(&rl);
     tick_sub_listener->SetUpstream(&rl);
+    status_sub_listener->SetUpstream(&rl);
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), tick_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), status_sub_listener);
 
     auto *pub_listener = new DDS_Listeners::PubListener();
     command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),

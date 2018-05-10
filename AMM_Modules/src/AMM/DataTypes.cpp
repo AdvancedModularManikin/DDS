@@ -94,11 +94,11 @@ AMM::Resource::Supply::PowerPubSubType *AMM::DataTypes::getPowerSupplyType() {
 
 // AMM Capability types
 AMM::Capability::ConfigurationPubSubType *AMM::DataTypes::getConfigurationType() {
-    return new AMM::Capability::ConfigurationPubSubType();
+    return new ConfigurationPubSubType();
 };
 
 AMM::Capability::StatusPubSubType *AMM::DataTypes::getStatusType() {
-    return new AMM::Capability::StatusPubSubType();
+    return new StatusPubSubType();
 };
 
 // AMM Logging types

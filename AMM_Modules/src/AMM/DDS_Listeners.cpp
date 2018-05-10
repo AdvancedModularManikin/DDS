@@ -1,4 +1,5 @@
 #include "DDS_Listeners.h"
+#include <typeinfo>
 
 using namespace std;
 
@@ -91,9 +92,14 @@ void DDS_Listeners::StatusSubListener::onSubscriptionMatched(Subscriber *sub,
 void DDS_Listeners::StatusSubListener::onNewDataMessage(Subscriber *sub) {
     AMM::Capability::Status st;
     if (sub->takeNextData(&st, &m_info)) {
+        cout << "Status of newly taken data is " << st.capability() << endl;
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewStatusData(st, &m_info);
+                try {
+                    upstream->onNewStatusData(st, &m_info);
+                } catch (exception &e) {
+                    cout << e.what() << endl;
+                }
             }
             ++n_msg;
         }
