@@ -39,20 +39,20 @@ public:
 //    ~DDS_Manager();
 
     void PublishModuleConfiguration(
-            const std::string manufacturer,
-            const std::string model,
-            const std::string serial_number,
-            const std::string version,
+            const std::string &manufacturer,
+            const std::string &model,
+            const std::string &serial_number,
+            const std::string &version,
             const AMM::Capability::AMM_version &amm_version,
-            const std::string capabilities
+            const std::string &capabilities
     );
 
     void PublishModuleConfiguration(
-            const std::string manufacturer,
-            const std::string model,
-            const std::string serial_number,
-            const std::string version,
-            const std::string capabilities
+            const std::string &manufacturer,
+            const std::string &model,
+            const std::string &serial_number,
+            const std::string &ersion,
+            const std::string &capabilities
     );
 
     void PublishModuleConfiguration(AMM::Capability::Configuration configInstance);
@@ -74,15 +74,6 @@ public:
 
     const int domainId = 15;
     const char *partitionName = "AMM";
-
-    class PubListener : public PublisherListener {
-    public:
-        PubListener() {};
-        ~PubListener() {};
-        void onPublicationmatched(Publisher *pub, MatchingInfo &info) {
-
-        }
-    } default_pub_listener;
 
     void RegisterTypes();
 

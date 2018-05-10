@@ -50,8 +50,6 @@
 
 #include "DDS_Manager.h"
 
-#include "DDS_Listeners.h"
-
 #include "tinyxml2.h"
 
 #include <sqlite_modern_cpp.h>
@@ -87,10 +85,6 @@ public:
 
     void Cleanup();
 
-    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *m_info) override;
-
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *m_info) override;
-
     void onReaderMatched(RTPSReader *reader, MatchingInfo &info) override;
 
     void onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *reader,
@@ -98,11 +92,40 @@ public:
 
     void onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info) override;
 
-    Subscriber *status_subscriber;
-    Subscriber *config_subscriber;
-
     std::map<std::string, std::vector<std::string>> topicNtypes;
     std::map<GUID_t, std::string> discovered_names;
+
+    class StatusSubListener : public SubscriberListener {
+    public:
+        StatusSubListener() : n_matched(0), n_msg(0) {};
+
+        ~StatusSubListener() override = default;;
+
+        void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
+
+        void onNewDataMessage(Subscriber *sub) override;
+
+        SampleInfo_t m_info;
+        int n_matched;
+        int n_msg;
+
+    };
+
+    class ConfigSubListener : public SubscriberListener {
+    public:
+        ConfigSubListener() : n_matched(0), n_msg(0) {};
+
+        ~ConfigSubListener() override = default;;
+
+        void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
+
+        void onNewDataMessage(Subscriber *sub) override;
+
+        SampleInfo_t m_info;
+        int n_matched;
+        int n_msg;
+
+    };
 
 protected:
 

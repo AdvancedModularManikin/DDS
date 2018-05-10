@@ -116,12 +116,12 @@ Subscriber *DDS_Manager::InitializeSubscriber(std::string topicName, TopicDataTy
 }
 
 void DDS_Manager::PublishModuleConfiguration(
-        const std::string manufacturer,
-        const std::string model,
-        const std::string serial_number,
-        const std::string version,
+        const std::string &manufacturer,
+        const std::string &model,
+        const std::string &serial_number,
+        const std::string &version,
         const AMM::Capability::AMM_version &amm_version,
-        const std::string capabilities
+        const std::string &capabilities
 ) {
     AMM::Capability::Configuration configInstance;
     configInstance.manufacturer(manufacturer);
@@ -130,16 +130,16 @@ void DDS_Manager::PublishModuleConfiguration(
     configInstance.version(version);
     configInstance.amm_version(amm_version);
     configInstance.capabilities(capabilities);
-    config_publisher->write((void *) &configInstance);
+    PublishModuleConfiguration(configInstance);
 }
 
 void DDS_Manager::PublishModuleConfiguration(
-        const std::string manufacturer,
-        const std::string model,
-        const std::string serial_number,
-        const std::string version,
+        const std::string &manufacturer,
+        const std::string &model,
+        const std::string &serial_number,
+        const std::string &version,
         //const AMM::Capability::AMM_version &amm_version,
-        const std::string capabilities
+        const std::string &capabilities
 ) {
     AMM::Capability::Configuration configInstance;
     configInstance.manufacturer(manufacturer);
@@ -148,7 +148,7 @@ void DDS_Manager::PublishModuleConfiguration(
     configInstance.version(version);
     //configInstance.amm_version(amm_version);
     configInstance.capabilities(capabilities);
-    config_publisher->write((void *) &configInstance);
+    PublishModuleConfiguration(configInstance);
 }
 
 

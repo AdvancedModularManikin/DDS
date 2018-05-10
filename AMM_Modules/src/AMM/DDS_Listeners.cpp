@@ -90,7 +90,6 @@ void DDS_Listeners::StatusSubListener::onSubscriptionMatched(Subscriber *sub,
 
 void DDS_Listeners::StatusSubListener::onNewDataMessage(Subscriber *sub) {
     AMM::Capability::Status st;
-
     if (sub->takeNextData(&st, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {

@@ -86,24 +86,21 @@ void ModuleManager::Initialize() {
     // sub
     result &= EDP_Readers.second->setListener(this);
 
+    auto status_sub_listener = new StatusSubListener;
+    auto config_sub_listener = new ConfigSubListener;
 
-    DDS_Listeners::StatusSubListener *status_sub_listener = new DDS_Listeners::StatusSubListener();
-    DDS_Listeners::ConfigSubListener *config_sub_listener = new DDS_Listeners::ConfigSubListener();
+    SubscriberAttributes statusrparam;
+    statusrparam.topic.topicDataType = AMM::DataTypes::getStatusType()->getName();
+    statusrparam.topic.topicName = AMM::DataTypes::statusTopic;
+    Domain::createSubscriber(mp_participant, statusrparam, status_sub_listener);
 
-    status_sub_listener->SetUpstream(this);
-    config_sub_listener->SetUpstream(this);
+    SubscriberAttributes configrparam;
+    configrparam.topic.topicDataType = AMM::DataTypes::getConfigurationType()->getName();
+    configrparam.topic.topicName = AMM::DataTypes::configurationTopic;
+    Domain::createSubscriber(mp_participant, configrparam, config_sub_listener);
 
-    // status_subscriber =
-            mgr->InitializeSubscriber(AMM::DataTypes::statusTopic,
-                                                  AMM::DataTypes::getStatusType(),
-                                                  status_sub_listener);
-
-
-    // config_subscriber =
-            mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic,
-                                                  AMM::DataTypes::getConfigurationType(),
-                                                  config_sub_listener);
 }
+
 bool ModuleManager::isRunning() {
     return m_runThread;
 }
@@ -119,8 +116,6 @@ void ModuleManager::Start() {
                 "0.0.1",
                 mgr->GetCapabilitiesAsString("mule1/module_manager_capabilities.xml")
         );
-
-        // Normally this would be set AFTER configuration is received
         mgr->SetStatus(OPERATIONAL);
 
         m_runThread = true;
@@ -153,69 +148,6 @@ void ModuleManager::Shutdown() {
     }
 
     Cleanup();
-
-}
-
-void ModuleManager::onNewStatusData(AMM::Capability::Status st, SampleInfo_t *m_info) {
-    ostringstream module_id;
-    module_id << m_info->sample_identity.writer_guid();
-    std::size_t pos = module_id.str().find("|");
-    std::string truncated_module_id = module_id.str().substr(0, pos);
-    auto timestamp = std::to_string(time(nullptr));
-
-    cout << "[MM] Received a status message " << endl;
-    cout << "[MM] Writer ID\t" << m_info->sample_identity.writer_guid() << endl;
-    cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
-    cout << "[MM]\tValue: " << st.status_value() << endl;
-    cout << "[MM]\tCapabilities: " << st.capability() << endl;
-    // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
-    cout << "[MM]\t---" << endl;
-
-    try {
-        m_mutex.lock();
-        db << "insert into module_status (module_id, capability, status, timestamp) values (?,?,?,?);"
-           << truncated_module_id
-           << st.capability()
-           << "OPERATIONAL"
-           << timestamp;
-        m_mutex.unlock();
-    } catch (exception &e) {
-        cout << e.what() << endl;
-    }
-}
-
-void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *m_info) {
-    ostringstream module_id;
-    module_id << m_info->sample_identity.writer_guid();
-    std::size_t pos = module_id.str().find("|");
-    std::string truncated_module_id = module_id.str().substr(0, pos);
-    auto timestamp = std::to_string(time(nullptr));
-
-    cout << "[MM] Received a capability config message " << endl;
-    cout << "[MM] Writer ID\t" << m_info->sample_identity.writer_guid() << endl;
-    cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
-    cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
-    cout << "[MM]\tModel: " << cfg.model() << endl;
-    cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;
-    cout << "[MM]\tVersion: " << cfg.version() << endl;
-    cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
-    cout << "[MM]\t---" << endl;
-
-    try {
-        m_mutex.lock();
-        db
-                << "insert into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
-                << truncated_module_id
-                << cfg.manufacturer()
-                << cfg.model()
-                << cfg.serial_number()
-                << cfg.version()
-                << cfg.capabilities()
-                << timestamp;
-        m_mutex.unlock();
-    } catch (exception &e) {
-        cout << e.what() << endl;
-    }
 
 }
 
@@ -257,8 +189,8 @@ void ModuleManager::onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *
     if (change->kind == ALIVE) {
         topicNtypes[fqdn].push_back(proxyData.typeName());
 
-        cout << "[MM][" << changeGuid << "] Topic " << fqdn << " with type "
-             << proxyData.typeName() << endl;
+        //cout << "[MM][" << changeGuid << "] Topic " << fqdn << " with type "
+        //     << proxyData.typeName() << endl;
     } else {
         auto it = topicNtypes.find(fqdn);
         if (it != topicNtypes.end()) {
@@ -291,7 +223,7 @@ void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryIn
     ostringstream module_id;
 
     if (DISCOVERED_RTPSPARTICIPANT == info.rtps.m_status) {
-        cout << "[MM] Participant discovered!" << endl;
+        // cout << "[MM] Participant discovered!" << endl;
 
         if (discovered_names.find(info.rtps.m_guid) == discovered_names.end()) {
             auto map = parse_key_value(info.rtps.m_userData);
@@ -344,3 +276,94 @@ void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryIn
     }
 }
 
+
+void ModuleManager::StatusSubListener::onSubscriptionMatched(Subscriber *sub,
+                                                             MatchingInfo &info) {
+    if (info.status == MATCHED_MATCHING) {
+        n_matched++;
+    } else {
+        n_matched--;
+    }
+}
+
+void ModuleManager::StatusSubListener::onNewDataMessage(Subscriber *sub) {
+    AMM::Capability::Status st;
+    if (sub->takeNextData(&st, &m_info)) {
+        if (m_info.sampleKind == ALIVE) {
+            ostringstream module_id;
+            module_id << m_info.sample_identity.writer_guid();
+            std::size_t pos = module_id.str().find("|");
+            std::string truncated_module_id = module_id.str().substr(0, pos);
+            auto timestamp = std::to_string(time(nullptr));
+
+            cout << "[MM] Received a status message " << endl;
+            cout << "[MM] Writer ID\t" << m_info.sample_identity.writer_guid() << endl;
+            cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
+            cout << "[MM]\tValue: " << st.status_value() << endl;
+            cout << "[MM]\tCapabilities: " << st.capability() << endl;
+            // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
+            cout << "[MM]\t---" << endl;
+
+            try {
+
+                db << "insert into module_status (module_id, capability, status, timestamp) values (?,?,?,?);"
+                   << truncated_module_id
+                   << st.capability()
+                   << "OPERATIONAL"
+                   << timestamp;
+
+            } catch (exception &e) {
+                cout << e.what() << endl;
+            }
+        }
+        ++n_msg;
+    }
+}
+
+void ModuleManager::ConfigSubListener::onSubscriptionMatched(Subscriber *sub,
+                                                             MatchingInfo &info) {
+    if (info.status == MATCHED_MATCHING) {
+        n_matched++;
+    } else {
+        n_matched--;
+    }
+}
+
+void ModuleManager::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
+    AMM::Capability::Configuration cfg;
+
+    if (sub->takeNextData(&cfg, &m_info)) {
+        if (m_info.sampleKind == ALIVE) {
+            ostringstream module_id;
+            module_id << m_info.sample_identity.writer_guid();
+            std::size_t pos = module_id.str().find("|");
+            std::string truncated_module_id = module_id.str().substr(0, pos);
+            auto timestamp = std::to_string(time(nullptr));
+
+            cout << "[MM] Received a capability config message " << endl;
+            cout << "[MM] Writer ID\t" << m_info.sample_identity.writer_guid() << endl;
+            cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
+            cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
+            cout << "[MM]\tModel: " << cfg.model() << endl;
+            cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;
+            cout << "[MM]\tVersion: " << cfg.version() << endl;
+            cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
+            cout << "[MM]\t---" << endl;
+
+            try {
+                db
+                        << "insert into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
+                        << truncated_module_id
+                        << cfg.manufacturer()
+                        << cfg.model()
+                        << cfg.serial_number()
+                        << cfg.version()
+                        << cfg.capabilities()
+                        << timestamp;
+            } catch (exception &e) {
+                cout << e.what() << endl;
+            }
+        }
+        ++n_msg;
+    }
+}
