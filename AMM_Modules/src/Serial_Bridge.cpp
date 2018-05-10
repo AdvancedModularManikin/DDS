@@ -9,6 +9,10 @@
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 
+#include <queue>
+#include <stack>
+
+
 using namespace ::boost::asio;
 using namespace std;
 
@@ -26,6 +30,7 @@ std::string xmlPrefix = "<?xml";
 std::string msg1 = "[Scenario]m1s1=mule1_scene1";
 std::string msg2 = "[Config_Data]sound_alarm=false";
 Publisher *command_publisher;
+queue<string> transmitQ;
 
 void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, size_t bytesTransferred) {
     std::string rsp;
@@ -44,7 +49,10 @@ void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, 
     }  else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
         std::string value = rsp;
         cout << "=== [SERIAL] Recieved an XML snippet: " << value << endl;
-        transmit = true;
+
+        cout << "Sending config information" << endl;
+        transmitQ.push(msg1);
+        transmitQ.push(msg2);
     } else {
        cout << "=== [SERIAL][DEBUG] " << rsp << endl;
     }
@@ -132,10 +140,9 @@ int main(int argc, char *argv[]) {
     cout << "=== [Serial_Bridge] Ready ..." << endl;
 
     while (!closed) {
-        if (transmit) {
-            serialPort.Write(msg1);
-            serialPort.Write(msg2);
-            transmit = false;
+        while(!transmitQ.empty()) {
+            serialPort.Write(transmitQ.front());
+            transmitQ.pop();
         }
         sleep(1);
     }
