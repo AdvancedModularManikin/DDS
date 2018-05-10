@@ -5,10 +5,11 @@
 	<InitialParameters>
 		<PatientFile>StandardMale.xml</PatientFile>
 	</InitialParameters>	        
+	<Action xsi:type="IntubationData" Type="Tracheal"/>
 	<Action xsi:type="AnesthesiaMachineConfigurationData">
 		<Configuration>			
 			<Connection>Tube</Connection>
-			<InletFlow value="5.0" unit="L/min"/>
+			<InletFlow value="0.0" unit="L/min"/>
 			<InspiratoryExpiratoryRatio value="0.5"/>
 			<OxygenFraction value="0.3"/>
 			<OxygenSource>Wall</OxygenSource>
@@ -17,13 +18,6 @@
 			<ReliefValvePressure value="20.0" unit="cmH2O"/>
 			<RespiratoryRate value="5.0" unit="1/min"/>
 			<VentilatorPressure value="13.0" unit="cmH2O"/>
-			<OxygenBottleOne>
-				<Volume value="660" unit="L"/>
-			</OxygenBottleOne>
-			<OxygenBottleTwo>
-				<Volume value="660" unit="L"/>
-			</OxygenBottleTwo>
 		</Configuration>
 	</Action>  
-	<Action xsi:type="IntubationData" Type="Tracheal"/>
 </Scenario>

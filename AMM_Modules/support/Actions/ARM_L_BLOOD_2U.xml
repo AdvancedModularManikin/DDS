@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>ARM_L_INFUSE_BLOOD_2_Units</Name>
+	<Description>Infuse fluids</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	           	  
+
+	<!-- ARM_INFUSE_BLOOD_2_Units -->
+	<!-- Infuse blood-->          
+	<Action xsi:type="SubstanceCompoundInfusionData">
+        <Comment>2 units</Comment>
+        <SubstanceCompound>Blood</SubstanceCompound>
+        <BagVolume value="600.0" unit="mL"/>
+        <Rate value="300.0" unit="mL/min"/>
+	</Action>
+</Scenario>
