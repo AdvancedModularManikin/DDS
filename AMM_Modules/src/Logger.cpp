@@ -54,7 +54,6 @@ Participant *mp_participant;
 class AMMListener : public ListenerInterface, public ParticipantListener {
 public:
     std::string m_listenerName;
-    std::map<GuidPrefix_t, std::string> discovered_prefixes;
     std::mutex mapmutex;
     std::map<std::string, std::vector<std::string>> topicNtypes;
     std::map<GUID_t, std::string> discovered_names;
@@ -248,6 +247,7 @@ int main(int argc, char *argv[]) {
     AMMListener slave_listener_pub("PUB");
     AMMListener slave_listener_sub("SUB");
 
+
     const char *nodeName = "AMM_Logger";
     auto mgr = new DDS_Manager(nodeName, &ammL);
     mp_participant = mgr->GetParticipant();
@@ -259,7 +259,6 @@ int main(int argc, char *argv[]) {
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     command_sub_listener->SetUpstream(&commandL);
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration

@@ -51,7 +51,7 @@ public:
             const std::string &manufacturer,
             const std::string &model,
             const std::string &serial_number,
-            const std::string &ersion,
+            const std::string &version,
             const std::string &capabilities
     );
 
@@ -65,7 +65,10 @@ public:
 
     Publisher *InitializePublisher(std::string topicName, TopicDataType *topicType, PublisherListener *pub_listener);
 
-    Subscriber *InitializeSubscriber(std::string topicName, TopicDataType *topicType, SubscriberListener *sub_listener);
+    Subscriber *InitializeSubscriber(std::string topicName,
+                                     TopicDataType *topicType,
+                                     SubscriberListener *sub_listener,
+                                     TopicKind_t topicKind = NO_KEY);
 
     Participant *GetParticipant();
 

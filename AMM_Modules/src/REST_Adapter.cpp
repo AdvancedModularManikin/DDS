@@ -80,6 +80,7 @@ int thr = 2;
 
 // Daemonize by default
 int daemonize = 1;
+int discovery = 1;
 
 char hostname[HOST_NAME_MAX];
 
@@ -141,34 +142,6 @@ class AMMListener : public ListenerInterface {
         nodeDataStorage[n.nodepath()] = n.dbl();
     }
 
-    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) {
-        cout << "Bam new data!" << endl;
-        ostringstream module_id;
-        module_id << info->sample_identity.writer_guid();
-        std::size_t pos = module_id.str().find("|");
-        std::string truncated_module_id = module_id.str().substr(0, pos);
-        auto timestamp = std::to_string(time(nullptr));
-
-        cout << "[MM] Received a status message " << endl;
-        cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
-        cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
-        cout << "[MM]\tValue: " << st.status_value() << endl;
-        cout << "[MM]\tCapabilities: " << st.capability() << endl;
-        // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
-        cout << "[MM]\t---" << endl;
-
-        try {
-
-            db << "insert into module_status (module_id, capability, status, timestamp) values (?,?,?,?);"
-               << truncated_module_id
-               << st.capability()
-               << "OPERATIONAL"
-               << timestamp;
-
-        } catch (exception &e) {
-            cout << e.what() << endl;
-        }
-    }
 };
 
 
@@ -470,7 +443,30 @@ private:
 
         db << "select module_id,capability,status,timestamp from module_status;"
            >> [&](string module_id, string capability, string status, string timestamp) {
+
                writer.StartObject();
+
+               writer.Key("Capabilities");
+               writer.StartArray();
+               db << "select manufacturer"
+                       ""
+                       "n,model,serial_number,version,capabilities from module_capabilities where module_id=?;"
+                  << module_id
+                  >> [&](string manufacturer, string model, string serial_number, string version, string capabilities) {
+                      writer.StartObject();
+                      writer.Key("Manufacturer");
+                      writer.String(manufacturer.c_str());
+                      writer.Key("Model");
+                      writer.String(model.c_str());
+                      writer.Key("Serial_Number");
+                      writer.String(serial_number.c_str());
+                      writer.Key("Version");
+                      writer.String(version.c_str());
+                      writer.Key("Capabilities");
+                      writer.String(capabilities.c_str());
+                      writer.EndObject();
+                  };
+               writer.EndArray();
 
                writer.Key("Module_ID");
                writer.String(module_id.c_str());
@@ -649,9 +645,13 @@ private:
 
 
 void UdpDiscoveryThread() {
-    UdpDiscoveryServer udps(io_service, discoveryPort);
-    cout << "\tUDP Discovery listening on port " << discoveryPort << "\n" << endl;
-    io_service.run();
+    if (discovery) {
+        UdpDiscoveryServer udps(io_service, discoveryPort);
+        cout << "\tUDP Discovery listening on port " << discoveryPort << "\n" << endl;
+        io_service.run();
+    } else {
+        cout << "\tUDP discovery service not started due to command line option." << endl;
+    }
 }
 
 static void show_usage(const std::string &name) {
@@ -672,6 +672,10 @@ int main(int argc, char *argv[]) {
         if (arg == "-d") {
             daemonize = 1;
         }
+
+        if (arg == "-nodiscovery") {
+            discovery = 0;
+        }
     }
 
     string action;
@@ -683,18 +687,15 @@ int main(int argc, char *argv[]) {
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
-    auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
 
     AMMListener rl;
     node_sub_listener->SetUpstream(&rl);
     command_sub_listener->SetUpstream(&rl);
     tick_sub_listener->SetUpstream(&rl);
-    status_sub_listener->SetUpstream(&rl);
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), tick_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), status_sub_listener);
 
     auto *pub_listener = new DDS_Listeners::PubListener();
     command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
@@ -713,7 +714,8 @@ int main(int argc, char *argv[]) {
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(OPERATIONAL);
 
-    std::thread udpD(UdpDiscoveryThread);
+        std::thread udpD(UdpDiscoveryThread);
+
 
     gethostname(hostname, HOST_NAME_MAX);
 
@@ -746,7 +748,9 @@ int main(int argc, char *argv[]) {
 
     io_service.stop();
 
-    udpD.join();
+
+        udpD.join();
+
 
     cout << "=== [REST_Adapter] Stopped UDP." << endl;
 

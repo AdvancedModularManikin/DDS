@@ -114,9 +114,9 @@ module AMM{
             };
 
             struct Configuration {
-                @Key string manufacturer;
-                @Key string model;
-                @Key string serial_number;
+                string manufacturer;
+                string model;
+                string serial_number;
                 string version;
                 AMM_version amm_version;
                 string capabilities;
@@ -125,7 +125,7 @@ module AMM{
 
 
             struct Status {
-                @Key string capability;
+                string capability;
                 status_values status_value;
                 sequence <string> message;
             };

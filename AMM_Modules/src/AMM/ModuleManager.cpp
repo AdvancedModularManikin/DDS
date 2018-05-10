@@ -26,8 +26,7 @@ class AMMListener : public ListenerInterface {
         cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
         cout << "[MM]\t---" << endl;
 
-        try {
-            db
+         db
                     << "insert into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
                     << truncated_module_id
                     << cfg.manufacturer()
@@ -36,10 +35,7 @@ class AMMListener : public ListenerInterface {
                     << cfg.version()
                     << cfg.capabilities()
                     << timestamp;
-        } catch (exception &e) {
-            cout << e.what() << endl;
-        }
-    };
+    }
 
     void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) override {
         ostringstream module_id;
@@ -56,20 +52,15 @@ class AMMListener : public ListenerInterface {
         // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
         cout << "[MM]\t---" << endl;
 
-        try {
-
             db << "insert into module_status (module_id, capability, status, timestamp) values (?,?,?,?);"
                << truncated_module_id
                << st.capability()
                << "OPERATIONAL"
                << timestamp;
 
-        } catch (exception &e) {
-            cout << e.what() << endl;
-        }
     }
 
-} rl;
+};
 
 static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
     std::map<std::string, std::vector<uint8_t>> m;
@@ -135,6 +126,8 @@ static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<u
 }
 
 ModuleManager::ModuleManager() {
+    AMMListener rl;
+
     auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
 

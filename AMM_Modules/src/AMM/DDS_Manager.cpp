@@ -107,10 +107,13 @@ Publisher *DDS_Manager::InitializePublisher(std::string topicName, TopicDataType
 }
 
 Subscriber *DDS_Manager::InitializeSubscriber(std::string topicName, TopicDataType *topicType,
-                                              SubscriberListener *sub_listener) {
+                                              SubscriberListener *sub_listener,
+                                              TopicKind_t topicKind
+) {
     SubscriberAttributes rparam;
     rparam.topic.topicDataType = topicType->getName();
     rparam.topic.topicName = topicName;
+    rparam.topic.topicKind = topicKind;
     Subscriber *gen_subscriber = Domain::createSubscriber(mp_participant, rparam, sub_listener);
     return gen_subscriber;
 }
