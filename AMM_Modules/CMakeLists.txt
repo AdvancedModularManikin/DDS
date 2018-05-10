@@ -30,7 +30,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 find_package(fastrtps REQUIRED)
 find_package(fastcdr REQUIRED)
 find_package(Threads REQUIRED)
-find_package(Boost REQUIRED filesystem iostreams system)
+find_package(Boost REQUIRED filesystem iostreams system signals thread)
 find_package(TinyXML2 REQUIRED)
 
 find_package(SQLite3)
@@ -90,7 +90,7 @@ set(HEART_RATE_LED_SOURCES src/HeartRateLED.cpp)
 set(HEART_RATE_LED_EXE amm_heartrate_led)
 add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
 
-set(SERIAL_BRIDGE_SOURCES src/Serial_Bridge.cpp)
+set(SERIAL_BRIDGE_SOURCES src/Serial_Bridge.cpp src/AMM/SerialPort.cpp src/AMM/SerialPort.h)
 set(SERIAL_BRIDGE_EXE amm_serial_bridge)
 add_executable(${SERIAL_BRIDGE_EXE} ${SERIAL_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
 
@@ -208,7 +208,9 @@ target_link_libraries(${HEART_RATE_LED_EXE}
 
 target_link_libraries(${SERIAL_BRIDGE_EXE}
         fastrtps fastcdr
-        Boost::filesystem Boost::iostreams
+        Boost::system Boost::filesystem Boost::iostreams Boost::signals Boost::thread
+        Threads::Threads
+        pthread
         ${TINYXML2_LIBRARIES}
         ${DATAMODEL}
         )
