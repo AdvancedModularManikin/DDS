@@ -132,6 +132,7 @@ public:
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
+      cout << "We got some command data!  " << c.message() << endl;
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
@@ -143,7 +144,9 @@ public:
             } else if (value.compare("RESET_SIM") == 0) {
 
             } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+	      
                 std::string scene = value.substr(loadScenarioPrefix.size());
+		cout << "Time to load scene " << scene << endl;
                 sendConfigInfo(scene);
             }
         } else {
