@@ -445,27 +445,6 @@ private:
 
                writer.StartObject();
 
-               writer.Key("Capabilities");
-               writer.StartArray();
-               db << "select manufacturer"
-                       ""
-                       "n,model,serial_number,version,capabilities from module_capabilities where module_id=?;"
-                  << module_id
-                  >> [&](string manufacturer, string model, string serial_number, string version, string capabilities) {
-                      writer.StartObject();
-                      writer.Key("Manufacturer");
-                      writer.String(manufacturer.c_str());
-                      writer.Key("Model");
-                      writer.String(model.c_str());
-                      writer.Key("Serial_Number");
-                      writer.String(serial_number.c_str());
-                      writer.Key("Version");
-                      writer.String(version.c_str());
-                      writer.Key("Capabilities");
-                      writer.String(capabilities.c_str());
-                      writer.EndObject();
-                  };
-               writer.EndArray();
 
                writer.Key("Module_ID");
                writer.String(module_id.c_str());
@@ -546,20 +525,56 @@ private:
                writer.Key("Module_Name");
                writer.String(module_name.c_str());
 
+
+               writer.Key("Capabilities");
+               writer.StartArray();
+               db
+                       << "select manufacturer,model,serial_number,version,capabilities from module_capabilities where module_id=?;"
+                       << module_id
+                       >> [&](string manufacturer, string model, string serial_number, string version,
+                              string capabilities) {
+                           writer.StartObject();
+                           writer.Key("Manufacturer");
+                           writer.String(manufacturer.c_str());
+                           writer.Key("Model");
+                           writer.String(model.c_str());
+                           writer.Key("Serial_Number");
+                           writer.String(serial_number.c_str());
+                           writer.Key("Version");
+                           writer.String(version.c_str());
+                           writer.Key("Capabilities");
+                           writer.String(capabilities.c_str());
+                           writer.EndObject();
+                       };
+               writer.EndArray();
+
+               writer.Key("Status");
+               writer.StartArray();
+               db << "select module_id,capability,status,timestamp from module_status where module_id=?;"
+                  << module_id
+                  >> [&](string module_id, string capability, string status, string timestamp) {
+                      writer.StartObject();
+                      writer.Key("Module_ID");
+                      writer.String(module_id.c_str());
+
+                      writer.Key("Module_Capabilities");
+                      writer.String(capability.c_str());
+
+                      writer.Key("Module_Status");
+                      writer.String(status.c_str());
+
+                      writer.Key("timestamp");
+                      writer.String(timestamp.c_str());
+
+                      writer.EndObject();
+                  };
+               writer.EndArray();
+
                writer.EndObject();
            };
 
 
         writer.EndArray();
-
-/*        writer.StartArray();
-        auto participant_names = mp_participant->getParticipantNames();
-        for (auto name : participant_names) {
-
-
-
-        }
-        writer.EndArray();*/
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
@@ -568,10 +583,13 @@ private:
     void getModule(const Rest::Request &request, Http::ResponseWriter response) {
 
         auto name = request.param(":name").as<std::string>();
-        /**
-            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-            response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-        } else {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        /**} else {
             response.send(Http::Code::Not_Found, "Node data does not exist");
         **/
     }
