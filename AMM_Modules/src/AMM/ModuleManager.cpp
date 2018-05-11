@@ -9,7 +9,7 @@ using namespace AMM::Capability;
 database db("amm.db");
 
 class AMMListener : public ListenerInterface {
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
+    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
         ostringstream module_id;
         module_id << info->sample_identity.writer_guid();
         std::size_t pos = module_id.str().find("|");
@@ -37,7 +37,7 @@ class AMMListener : public ListenerInterface {
                     << timestamp;
     }
 
-    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) override {
+    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) {
         ostringstream module_id;
         module_id << info->sample_identity.writer_guid();
         std::size_t pos = module_id.str().find("|");
@@ -60,7 +60,7 @@ class AMMListener : public ListenerInterface {
 
     }
 
-};
+} rl;
 
 static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
     std::map<std::string, std::vector<uint8_t>> m;
@@ -126,8 +126,6 @@ static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<u
 }
 
 ModuleManager::ModuleManager() {
-    AMMListener rl;
-
     auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
 
