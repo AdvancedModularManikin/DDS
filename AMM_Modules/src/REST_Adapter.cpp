@@ -45,7 +45,6 @@
 #include "AMM/DDS_Manager.h"
 
 
-
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <pistache/endpoint.h>
@@ -446,27 +445,6 @@ private:
 
                writer.StartObject();
 
-               writer.Key("Capabilities");
-               writer.StartArray();
-               db << "select manufacturer"
-                       ""
-                       "n,model,serial_number,version,capabilities from module_capabilities where module_id=?;"
-                  << module_id
-                  >> [&](string manufacturer, string model, string serial_number, string version, string capabilities) {
-                      writer.StartObject();
-                      writer.Key("Manufacturer");
-                      writer.String(manufacturer.c_str());
-                      writer.Key("Model");
-                      writer.String(model.c_str());
-                      writer.Key("Serial_Number");
-                      writer.String(serial_number.c_str());
-                      writer.Key("Version");
-                      writer.String(version.c_str());
-                      writer.Key("Capabilities");
-                      writer.String(capabilities.c_str());
-                      writer.EndObject();
-                  };
-               writer.EndArray();
 
                writer.Key("Module_ID");
                writer.String(module_id.c_str());
@@ -495,33 +473,35 @@ private:
         Writer<StringBuffer> writer(s);
         writer.StartArray();
 
-        db << "select module_id,manufacturer,model,serial_number,version,capabilities,timestamp from module_capabilities;"
-           >> [&](string module_id, string manufacturer, string model, string serial_number, string version, string capabilities, string timestamp) {
-               writer.StartObject();
+        db
+                << "select module_id,manufacturer,model,serial_number,version,capabilities,timestamp from module_capabilities;"
+                >> [&](string module_id, string manufacturer, string model, string serial_number, string version,
+                       string capabilities, string timestamp) {
+                    writer.StartObject();
 
-               writer.Key("Module_ID");
-               writer.String(module_id.c_str());
+                    writer.Key("Module_ID");
+                    writer.String(module_id.c_str());
 
-               writer.Key("Manufacturer");
-               writer.String(manufacturer.c_str());
+                    writer.Key("Manufacturer");
+                    writer.String(manufacturer.c_str());
 
-               writer.Key("Model");
-               writer.String(model.c_str());
+                    writer.Key("Model");
+                    writer.String(model.c_str());
 
-               writer.Key("Serial_Number");
-               writer.String(serial_number.c_str());
+                    writer.Key("Serial_Number");
+                    writer.String(serial_number.c_str());
 
-               writer.Key("Version");
-               writer.String(version.c_str());
+                    writer.Key("Version");
+                    writer.String(version.c_str());
 
-               writer.Key("Capabilities");
-               writer.String(capabilities.c_str());
+                    writer.Key("Capabilities");
+                    writer.String(capabilities.c_str());
 
-               writer.Key("timestamp");
-               writer.String(timestamp.c_str());
+                    writer.Key("timestamp");
+                    writer.String(timestamp.c_str());
 
-               writer.EndObject();
-           };
+                    writer.EndObject();
+                };
 
 
         writer.EndArray();
@@ -545,20 +525,56 @@ private:
                writer.Key("Module_Name");
                writer.String(module_name.c_str());
 
+
+               writer.Key("Capabilities");
+               writer.StartArray();
+               db
+                       << "select manufacturer,model,serial_number,version,capabilities from module_capabilities where module_id=?;"
+                       << module_id
+                       >> [&](string manufacturer, string model, string serial_number, string version,
+                              string capabilities) {
+                           writer.StartObject();
+                           writer.Key("Manufacturer");
+                           writer.String(manufacturer.c_str());
+                           writer.Key("Model");
+                           writer.String(model.c_str());
+                           writer.Key("Serial_Number");
+                           writer.String(serial_number.c_str());
+                           writer.Key("Version");
+                           writer.String(version.c_str());
+                           writer.Key("Capabilities");
+                           writer.String(capabilities.c_str());
+                           writer.EndObject();
+                       };
+               writer.EndArray();
+
+               writer.Key("Status");
+               writer.StartArray();
+               db << "select module_id,capability,status,timestamp from module_status where module_id=?;"
+                  << module_id
+                  >> [&](string module_id, string capability, string status, string timestamp) {
+                      writer.StartObject();
+                      writer.Key("Module_ID");
+                      writer.String(module_id.c_str());
+
+                      writer.Key("Module_Capabilities");
+                      writer.String(capability.c_str());
+
+                      writer.Key("Module_Status");
+                      writer.String(status.c_str());
+
+                      writer.Key("timestamp");
+                      writer.String(timestamp.c_str());
+
+                      writer.EndObject();
+                  };
+               writer.EndArray();
+
                writer.EndObject();
            };
 
 
         writer.EndArray();
-
-/*        writer.StartArray();
-        auto participant_names = mp_participant->getParticipantNames();
-        for (auto name : participant_names) {
-
-
-
-        }
-        writer.EndArray();*/
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
@@ -567,10 +583,13 @@ private:
     void getModule(const Rest::Request &request, Http::ResponseWriter response) {
 
         auto name = request.param(":name").as<std::string>();
-        /**
-            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-            response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-        } else {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        /**} else {
             response.send(Http::Code::Not_Found, "Node data does not exist");
         **/
     }
@@ -714,7 +733,7 @@ int main(int argc, char *argv[]) {
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(OPERATIONAL);
 
-        std::thread udpD(UdpDiscoveryThread);
+    std::thread udpD(UdpDiscoveryThread);
 
 
     gethostname(hostname, HOST_NAME_MAX);
@@ -740,7 +759,8 @@ int main(int argc, char *argv[]) {
             m_runThread = false;
             cout << "=== [REST_Adapter] Shutting down." << endl;
         }
-        sleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        cout.flush();
     }
 
     server.shutdown();
@@ -749,7 +769,7 @@ int main(int argc, char *argv[]) {
     io_service.stop();
 
 
-        udpD.join();
+    udpD.join();
 
 
     cout << "=== [REST_Adapter] Stopped UDP." << endl;

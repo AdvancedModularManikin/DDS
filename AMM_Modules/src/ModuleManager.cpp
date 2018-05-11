@@ -40,6 +40,7 @@ void show_menu(ModuleManager *modManager) {
 int main(int argc, char *argv[]) {
     int daemonize = 0;
     bool setup = false;
+    int autostart = 0;
 
     cout << "=== [AMM - Module Manager] ===" << endl;
 
@@ -56,6 +57,10 @@ int main(int argc, char *argv[]) {
 
         if (arg == "-s") {
             setup = true;
+        }
+
+        if (arg == "-a") {
+            autostart = 1;
         }
 
     }
@@ -110,7 +115,7 @@ int main(int argc, char *argv[]) {
 
 
     while (!closed) {
-        if (daemonize != 1) {
+        if (autostart != 1) {
             show_menu(&modManager);
         }
     }

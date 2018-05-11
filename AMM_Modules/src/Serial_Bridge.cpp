@@ -214,7 +214,9 @@ int main(int argc, char *argv[]) {
 	  serialPort.Write(transmitQ.front());
 	  transmitQ.pop();
         }
+
 	std::this_thread::sleep_for (std::chrono::milliseconds(250));
+        cout.flush();
     }
 
     cout << "=== [Serial_Bridge] Simulation stopped." << endl;
