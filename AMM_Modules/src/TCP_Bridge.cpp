@@ -134,7 +134,6 @@ void sendConfig(Client *c, std::string clientType) {
 }
 
 void sendConfigToAll(string scene) {
-  cout << "Sending config to all!" << endl;
     ostringstream static_filename;
     static_filename << "mule1/module_configuration_static/" << scene << "_virtual_patient_configuration.xml";
     cout << "Loading static filename " << static_filename.str() << endl;
@@ -182,17 +181,18 @@ public:
     if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
       std::string value = c.message().substr(sysPrefix.size());
       if (value.compare("START_SIM") == 0) {
-	
+          s->SendToAll("ACT=START_SIM");
       } else if (value.compare("STOP_SIM") == 0) {
-	
+          s->SendToAll("ACT=STOP_SIM");
       } else if (value.compare("PAUSE_SIM") == 0) {
-	
+          s->SendToAll("ACT=PAUSE_SIM");
       } else if (value.compare("RESET_SIM") == 0) {
-	InitializeLabNodes();
+          s->SendToAll("ACT=RESET_SIM");
+        InitializeLabNodes();
+
       } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
-	std::string scene = value.substr(loadScenarioPrefix.size());
-	cout << "We're being asked to load scene " << scene << endl;
-	sendConfigToAll(scene);	
+	        std::string scene = value.substr(loadScenarioPrefix.size());
+	    sendConfigToAll(scene);
       } 
     } else {
       std::ostringstream messageOut;

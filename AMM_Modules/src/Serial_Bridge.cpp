@@ -73,23 +73,16 @@ vector<string> explode( const string &delimiter, const string &str)
   return arr;
 }
 
-void sendConfigInfo() {
-    cout << "Reading from current scenario file..." << endl;
-    std::ifstream t("mule1/current_scenario.txt");
-    std::string scenario((std::istreambuf_iterator<char>(t)),
-                           std::istreambuf_iterator<char>());
-
-    cout << "We got: " << scenario<< endl;
-    t.close();
-
-    cout << "Now reading the config data from mule1/..." << endl;
-    std::ifstream z("mule1/" + scenario + "_liquid_sensor.txt");
-    std::string configMsg((std::istreambuf_iterator<char>(z)),
-                          std::istreambuf_iterator<char>());
-    z.close();
-    cout << "The config looks like: " << configMsg << endl;
-
-    transmitQ.push(configMsg);
+void sendConfigInfo(std::string scene) {
+    ostringstream static_filename;
+    static_filename << "mule1/module_configuration_static/" << scene << "_liquid_sensor.txt";
+    cout << "Loading static filename " << static_filename.str() << endl;
+    std::ifstream ifs(static_filename.str());
+    std::string configContent((std::istreambuf_iterator<char>(ifs)),
+                              (std::istreambuf_iterator<char>()));
+    ifs.close();
+    cout << "The config looks like: " << configContent << endl;
+    transmitQ.push(configContent);
 }
 
 void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, size_t bytesTransferred) {
@@ -117,7 +110,6 @@ void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, 
 	if (first_message) {
 	  cout << "\t[CAPABILITY_XML] " << value << endl;
 	  first_message = false;
-	  sendConfigInfo();
 	} else {
 	  cout << "\t[STATUS_XML] " << value << endl;
 	}
@@ -139,12 +131,25 @@ class GenericSerialListener : public ListenerInterface {
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
-      cout << "We got a command from elsewhere: " << c.message() << endl;
+        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+            std::string value = c.message().substr(sysPrefix.size());
+            if (value.compare("START_SIM") == 0) {
 
-      ostringstream cmdMessage;
-      cmdMessage << "[AMM_Command]" << c.message() << endl;
-      transmitQ.push(cmdMessage.str());
-      
+            } else if (value.compare("STOP_SIM") == 0) {
+
+            } else if (value.compare("PAUSE_SIM") == 0) {
+
+            } else if (value.compare("RESET_SIM") == 0) {
+
+            } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+                std::string scene = value.substr(loadScenarioPrefix.size());
+                sendConfigInfo(scene);
+            }
+        } else {
+            ostringstream cmdMessage;
+            cmdMessage << "[AMM_Command]" << c.message() << endl;
+            transmitQ.push(cmdMessage.str());
+        }
     }
 };
 
