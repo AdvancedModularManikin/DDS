@@ -83,4 +83,9 @@ public:
     Participant *mp_participant;
 
     std::string GetCapabilitiesAsString(const std::string &filename);
+
+    std::string currentScenario;
+    const std::string scenarioFile = "mule1/current_scenario.txt";
+    std::string GetScenario();
+    void SetScenario(std::string scenario);
 };

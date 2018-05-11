@@ -103,10 +103,6 @@ public:
     std::map<GUID_t, std::string> discovered_names;
 
     std::string currentScenario;
-    const std::string scenarioFile = "mule1/current_scenario.txt";
-
-    void SetScenario(std::string scenario);
-    std::string GetScenario();
 
 protected:
 

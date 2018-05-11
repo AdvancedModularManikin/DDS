@@ -2,6 +2,9 @@
 
 #include <mutex>
 #include <thread>
+#include <fstream>
+#include <string>
+#include <iostream>
 
 #include "DataTypes.h"
 
@@ -43,6 +46,7 @@ public:
     void TickLoop();
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override;
+    std::string currentScenario;
 
 protected:
 

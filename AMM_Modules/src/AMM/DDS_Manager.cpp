@@ -183,3 +183,22 @@ string DDS_Manager::GetCapabilitiesAsString(const std::string &filename) {
                                       (std::istreambuf_iterator<char>()    ) );
     return capabilitiesContent;
 }
+
+string DDS_Manager::GetScenario() {
+    std::ifstream t(scenarioFile);
+    std::string str((std::istreambuf_iterator<char>(t)),
+                    std::istreambuf_iterator<char>());
+    currentScenario = str;
+    cout << "[DDS_MANAGER] Current scenario is " << currentScenario << endl;
+    return currentScenario;
+}
+
+
+void DDS_Manager::SetScenario(std::string scenario) {
+    currentScenario = scenario;
+    std::ofstream out(scenarioFile);
+    out << currentScenario;
+    out.close();
+
+    cout << "[DDS_MANAGER] Set scenario to " << currentScenario << endl;
+}

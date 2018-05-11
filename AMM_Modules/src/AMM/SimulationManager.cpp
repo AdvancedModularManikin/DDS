@@ -16,6 +16,8 @@ SimulationManager::SimulationManager() {
                                                  pub_listener);
     m_runThread = false;
 
+    currentScenario = mgr->GetScenario();
+
     mgr->PublishModuleConfiguration(
             "Vcom3D",
             "CommandExecutor",
@@ -130,6 +132,9 @@ void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c
             StopSimulation();
             tickCount = 0;
             cout << "=== [SimManager] Reset simulation (restart will be a new simulation)" << endl;
+        } else if (value.compare("LOAD_SCENARIO") == 0) {
+            std::string loadScenario = value.substr(loadScenario.size());
+            mgr->SetScenario(loadScenario);
         }
     } else {
         cout << "[SimManager] Command received: " << c.message() << endl;

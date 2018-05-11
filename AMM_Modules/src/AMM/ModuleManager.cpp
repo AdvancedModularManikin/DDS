@@ -90,7 +90,7 @@ ModuleManager::ModuleManager() {
     auto result = EDP_Readers.first->setListener(this);
     result &= EDP_Readers.second->setListener(this);
 
-    GetScenario();
+    currentScenario = mgr->GetScenario();
 
     m_runThread = false;
 }
@@ -144,21 +144,6 @@ void ModuleManager::Shutdown() {
 
     Cleanup();
 
-}
-
-void ModuleManager::SetScenario(std::string scenario) {
-    currentScenario = scenario;
-    std::ofstream out(scenarioFile);
-    out << currentScenario;
-    out.close();
-}
-
-std::string ModuleManager::GetScenario() {
-    std::ifstream t(scenarioFile);
-    std::string str((std::istreambuf_iterator<char>(t)),
-                    std::istreambuf_iterator<char>());
-    currentScenario = str;
-    return currentScenario;
 }
 
 void ModuleManager::onReaderMatched(RTPSReader *reader, MatchingInfo &info) {
@@ -287,19 +272,10 @@ void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryIn
 }
 
 void ModuleManager::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
+    cout << "Module manager fired command " << c.message() << endl;
     if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
         std::string value = c.message().substr(sysPrefix.size());
         cout << "[MM] We received a SYSTEM action: " << value << endl;
-        if (value.compare("LOAD_SCENARIO") == 0) {
-            std::string loadScenario = value.substr(loadPrefix.size());
-            SetScenario(loadScenario);
-        } else if (value.compare("STOP_SIM") == 0) {
-
-        } else if (value.compare("PAUSE_SIM") == 0) {
-
-        } else if (value.compare("RESET_SIM") == 0) {
-
-        }
     } else {
         cout << "[MM] Command received: " << c.message() << endl;
     }
