@@ -27,8 +27,12 @@ bool transmit = false;
 std::string reportPrefix = "[REPORT]";
 std::string actionPrefix = "[ACT]";
 std::string xmlPrefix = "<?xml";
-std::string msg1 = "[Scenario]m1s1=mule1_scene1";
-std::string msg2 = "[Config_Data]sound_alarm=false";
+std::string msg1 = "[Scenario]m1s1=mule1_scene1\n";
+std::string msg2 = "[Capability]monitor_level=true\n";
+std::string msg3 = "[Config_Data]sound_alarm=false\n";
+std::string msg4 = "[Capability]detect_button_press=true\n";
+std::string msg5 = "[Config_Data]button_message=some_action_name\n";
+
 Publisher *command_publisher;
 queue<string> transmitQ;
 
@@ -50,9 +54,24 @@ void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, 
         std::string value = rsp;
         cout << "=== [SERIAL] Recieved an XML snippet: " << value << endl;
 
-        cout << "Sending config information" << endl;
+        cout << "\t[SERIAL][Sending...] " << msg1 << endl;
         transmitQ.push(msg1);
+
+        cout << "\t[SERIAL][Sending...] " << msg2 << endl;
         transmitQ.push(msg2);
+        std::this_thread::sleep_for (std::chrono::milliseconds(100));
+
+        cout << "\t[SERIAL][Sending...] " << msg3 << endl;
+        transmitQ.push(msg3);
+        std::this_thread::sleep_for (std::chrono::milliseconds(100));
+
+        cout << "\t[SERIAL][Sending...] " << msg4 << endl;
+        transmitQ.push(msg4);
+        std::this_thread::sleep_for (std::chrono::milliseconds(100));
+
+        cout << "\t[SERIAL][Sending...] " << msg5 << endl;
+        transmitQ.push(msg4);
+        std::this_thread::sleep_for (std::chrono::milliseconds(100));
     } else {
        cout << "=== [SERIAL][DEBUG] " << rsp << endl;
     }
@@ -69,6 +88,9 @@ class GenericSerialListener : public ListenerInterface {
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
       cout << "We got a command from elsewhere: " << c.message() << endl;
+      ostringstream cmdMessage;
+        cmdMessage << "[AMM_Command]" << c.message() << endl;
+      transmitQ.push(cmdMessage.str());
     }
 };
 
