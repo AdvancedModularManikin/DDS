@@ -9,8 +9,6 @@
 #include <boost/archive/iterators/transform_width.hpp>
 
 #include <fstream>
-#include <streambuf>
-#include <sstream>
 
 #include <Net/Server.h>
 #include <Net/UdpDiscoveryServer.h>
@@ -30,6 +28,7 @@ int bridgePort = 9015;
 
 // Daemonize by default
 int daemonize = 1;
+int discovery = 1;
 
 const string capabilityPrefix = "CAPABILITY=";
 const string statusPrefix = "STATUS=";
@@ -71,18 +70,18 @@ std::vector<std::string> publishNodes = {
 std::map<std::string, double> labNodes;
 
 std::string decode64(const std::string &val) {
-  using namespace boost::archive::iterators;
-  using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
-  return boost::algorithm::trim_right_copy_if(std::string(It(std::begin(val)), It(std::end(val))), [](char c) {
-      return c == '\0';
+    using namespace boost::archive::iterators;
+    using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
+    return boost::algorithm::trim_right_copy_if(std::string(It(std::begin(val)), It(std::end(val))), [](char c) {
+        return c == '\0';
     });
 }
 
 std::string encode64(const std::string &val) {
-  using namespace boost::archive::iterators;
-  using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
-  auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
-  return tmp.append((3 - val.size() % 3) % 3, '=');
+    using namespace boost::archive::iterators;
+    using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+    auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
+    return tmp.append((3 - val.size() % 3) % 3, '=');
 }
 
 void InitializeLabNodes() {
@@ -198,7 +197,7 @@ void *Server::HandleClient(void *args) {
             for (auto str : strings) {
                 boost::trim_right(str);
                 if (!str.empty()) {
-		  //                    cout << "We got a message from " << c->name << ": " << str << endl;
+                    //                    cout << "We got a message from " << c->name << ": " << str << endl;
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
                         string moduleName = str.substr(modulePrefix.size());
                         c->SetName(moduleName);
@@ -209,13 +208,13 @@ void *Server::HandleClient(void *args) {
                         cout << "[CLIENT][REGISTER] Client registered for " << registerVal << endl;
                     } else if (str.substr(0, statusPrefix.size()) == statusPrefix) {
                         // Client set their status (OPERATIONAL, etc)
-		      std::string statusVal = decode64(str.substr(statusPrefix.size()));
+                        std::string statusVal = decode64(str.substr(statusPrefix.size()));
                         cout << "[CLIENT][STATUS] Client sent status of: " << statusVal << endl;
                         /*XMLDocument doc (false);
                         doc.Parse (statusVal);*/
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
-		                std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
+                        std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
                         cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
                         /*XMLDocument doc (false);
                         doc.Parse (capabilityVal);*/
@@ -223,7 +222,7 @@ void *Server::HandleClient(void *args) {
                         cout << "[CLIENT][CONFIG] Sending configuration file" << endl;
                         cout << "[CLIENT][CONFIG] Sending " << encodedConfig;
                         Server::SendToClient(c, encodedConfig);
-			cout << "[CLIENT][CONFIG] Sent!" << endl;
+                        cout << "[CLIENT][CONFIG] Sent!" << endl;
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
@@ -267,10 +266,14 @@ void *Server::HandleClient(void *args) {
 }
 
 void UdpDiscoveryThread() {
-    boost::asio::io_service io_service;
-    UdpDiscoveryServer udps(io_service, discoveryPort);
-    cout << "\tUDP Discovery listening on port " << discoveryPort << endl;
-    io_service.run();
+    if (discovery) {
+        boost::asio::io_service io_service;
+        UdpDiscoveryServer udps(io_service, discoveryPort);
+        cout << "\tUDP Discovery listening on port " << discoveryPort << endl;
+        io_service.run();
+    } else {
+        cout << "\tUDP discovery service not started due to command line option." << endl;
+    }
 }
 
 static void show_usage(const std::string &name) {
@@ -291,14 +294,18 @@ int main(int argc, const char *argv[]) {
         if (arg == "-d") {
             daemonize = 1;
         }
+
+        if (arg == "-nodiscovery") {
+            discovery = 0;
+        }
     }
 
     std::ifstream ifs("mule1/TCP_Bridge_config_example.xml");
-    std::string configContent ( (std::istreambuf_iterator<char>(ifs) ),
-		   (std::istreambuf_iterator<char>()    ) );
+    std::string configContent((std::istreambuf_iterator<char>(ifs)),
+                              (std::istreambuf_iterator<char>()));
     std::string encodedConfigContent = encode64(configContent);
     encodedConfig = configPrefix + encodedConfigContent + "\n";
-      
+
     InitializeLabNodes();
 
     const std::string nodeName = "AMM_TCP_Bridge";
@@ -312,11 +319,14 @@ int main(int argc, const char *argv[]) {
     command_sub_listener->SetUpstream(&tl);
     config_sub_listener->SetUpstream(&tl);
 
-    Subscriber *node_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
-    Subscriber *command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+    Subscriber *node_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
+                                                            node_sub_listener);
+    Subscriber *command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic,
+                                                               AMM::DataTypes::getCommandType(), command_sub_listener);
 
     auto *pub_listener = new DDS_Listeners::PubListener();
-    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
+    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                 pub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration

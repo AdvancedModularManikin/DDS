@@ -112,7 +112,6 @@ target_link_libraries(${LOGGER_EXE}
         ${DATAMODEL}
         )
 
-#if (TINYXML2_FOUND)
 set(MODULE_MANAGER_SOURCES src/ModuleManager.cpp src/AMM/ModuleManager.cpp)
 set(MODULE_MANAGER_EXE amm_module_manager)
 add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
@@ -128,38 +127,38 @@ target_link_libraries(${MODULE_MANAGER_EXE}
         ${DATAMODEL}
         )
 
-#    if (RAPIDJSON_FOUND AND Pistache_FOUND)
-set(REST_ADAPTER_SOURCES src/REST_Adapter.cpp)
-set(REST_ADAPTER_EXE amm_rest_adapter)
+if (RAPIDJSON_FOUND AND Pistache_FOUND)
+    set(REST_ADAPTER_SOURCES src/REST_Adapter.cpp)
+    set(REST_ADAPTER_EXE amm_rest_adapter)
 
-add_executable(${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES} src/Net/UdpDiscoveryServer.cpp ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
-set_target_properties(${REST_ADAPTER_EXE} PROPERTIES
-        CXX_STANDARD 14
-        CXX_STANDARD_REQUIRED ON
-        )
-target_link_libraries(${REST_ADAPTER_EXE}
-        fastrtps fastcdr
-        ${RAPIDJSON_LIBRARIES}
-        ${Pistache_LIBRARY}
-        ${TINYXML2_LIBRARIES}
-        Boost::system Boost::filesystem Boost::iostreams
-        Threads::Threads
-        dl sqlite3 pthread
-        ${DATAMODEL}
-        )
-#    endif ()
-#endif ()
+    add_executable(${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES} src/Net/UdpDiscoveryServer.cpp ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+    set_target_properties(${REST_ADAPTER_EXE} PROPERTIES
+            CXX_STANDARD 14
+            CXX_STANDARD_REQUIRED ON
+            )
+    target_link_libraries(${REST_ADAPTER_EXE}
+            fastrtps fastcdr
+            ${RAPIDJSON_LIBRARIES}
+            ${Pistache_LIBRARY}
+            ${TINYXML2_LIBRARIES}
+            Boost::system Boost::filesystem Boost::iostreams
+            Threads::Threads
+            dl sqlite3 pthread
+            ${DATAMODEL}
+            )
+endif ()
+
 
 if (BioGears_FOUND)
     set(PHYSIOLOGY_MANAGER_SOURCES src/PhysiologyManager.cpp src/AMM/PhysiologyEngineManager.cpp src/AMM/PhysiologyThread.cpp)
     set(PHYSIOLOGY_MANAGER_EXE amm_physiology_manager)
-#    add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
-#    target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
-#            fastrtps fastcdr
-#            ${BioGears_LIBRARIES}
-#            Threads::Threads
-#            ${DATAMODEL}
-#            )
+    add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+    target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
+            fastrtps fastcdr
+            ${BioGears_LIBRARIES}
+            Threads::Threads
+            ${DATAMODEL}
+            )
 
     file(COPY ${PROJECT_SOURCE_DIR}/support/Actions DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
     file(COPY ${PROJECT_SOURCE_DIR}/support/patients DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)

@@ -45,7 +45,6 @@
 #include "AMM/DDS_Manager.h"
 
 
-
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <pistache/endpoint.h>
@@ -495,33 +494,35 @@ private:
         Writer<StringBuffer> writer(s);
         writer.StartArray();
 
-        db << "select module_id,manufacturer,model,serial_number,version,capabilities,timestamp from module_capabilities;"
-           >> [&](string module_id, string manufacturer, string model, string serial_number, string version, string capabilities, string timestamp) {
-               writer.StartObject();
+        db
+                << "select module_id,manufacturer,model,serial_number,version,capabilities,timestamp from module_capabilities;"
+                >> [&](string module_id, string manufacturer, string model, string serial_number, string version,
+                       string capabilities, string timestamp) {
+                    writer.StartObject();
 
-               writer.Key("Module_ID");
-               writer.String(module_id.c_str());
+                    writer.Key("Module_ID");
+                    writer.String(module_id.c_str());
 
-               writer.Key("Manufacturer");
-               writer.String(manufacturer.c_str());
+                    writer.Key("Manufacturer");
+                    writer.String(manufacturer.c_str());
 
-               writer.Key("Model");
-               writer.String(model.c_str());
+                    writer.Key("Model");
+                    writer.String(model.c_str());
 
-               writer.Key("Serial_Number");
-               writer.String(serial_number.c_str());
+                    writer.Key("Serial_Number");
+                    writer.String(serial_number.c_str());
 
-               writer.Key("Version");
-               writer.String(version.c_str());
+                    writer.Key("Version");
+                    writer.String(version.c_str());
 
-               writer.Key("Capabilities");
-               writer.String(capabilities.c_str());
+                    writer.Key("Capabilities");
+                    writer.String(capabilities.c_str());
 
-               writer.Key("timestamp");
-               writer.String(timestamp.c_str());
+                    writer.Key("timestamp");
+                    writer.String(timestamp.c_str());
 
-               writer.EndObject();
-           };
+                    writer.EndObject();
+                };
 
 
         writer.EndArray();
@@ -714,7 +715,7 @@ int main(int argc, char *argv[]) {
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(OPERATIONAL);
 
-        std::thread udpD(UdpDiscoveryThread);
+    std::thread udpD(UdpDiscoveryThread);
 
 
     gethostname(hostname, HOST_NAME_MAX);
@@ -740,7 +741,8 @@ int main(int argc, char *argv[]) {
             m_runThread = false;
             cout << "=== [REST_Adapter] Shutting down." << endl;
         }
-        sleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        cout.flush();
     }
 
     server.shutdown();
@@ -749,7 +751,7 @@ int main(int argc, char *argv[]) {
     io_service.stop();
 
 
-        udpD.join();
+    udpD.join();
 
 
     cout << "=== [REST_Adapter] Stopped UDP." << endl;

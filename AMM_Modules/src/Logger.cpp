@@ -177,7 +177,7 @@ public:
     }
 
     void onReaderMatched(RTPSReader *reader, MatchingInfo &info) {
-        cout << "[" << m_listenerName << "] New reader matched: " << info.remoteEndpointGuid;        
+        cout << "[" << m_listenerName << "] New reader matched: " << info.remoteEndpointGuid;
         cout << " - status " << info.status << endl;
     }
 
@@ -216,7 +216,8 @@ public:
         if (change->kind == ALIVE) {
             topicNtypes[fqdn].push_back(proxyData.typeName());
 
-            cout << "[" << m_listenerName << "][" << changeGuid << "] Topic " << fqdn << " with type " << proxyData.typeName() << endl;
+            cout << "[" << m_listenerName << "][" << changeGuid << "] Topic " << fqdn << " with type "
+                 << proxyData.typeName() << endl;
         } else {
             auto it = topicNtypes.find(fqdn);
             if (it != topicNtypes.end()) {
@@ -224,9 +225,11 @@ public:
                         std::find(std::begin(it->second), std::end(it->second), proxyData.typeName());
                 if (loc != std::end(it->second)) {
                     topicNtypes[fqdn].erase(loc, loc + 1);
-                    cout << "[" << m_listenerName << "][" << changeGuid << "] Topic removed " << fqdn << " with type " << proxyData.typeName() << endl;
+                    cout << "[" << m_listenerName << "][" << changeGuid << "] Topic removed " << fqdn << " with type "
+                         << proxyData.typeName() << endl;
                 } else {
-                    cout << "[" << m_listenerName << "][" << changeGuid << "] Unexpected removal on topic " << fqdn << " with type "
+                    cout << "[" << m_listenerName << "][" << changeGuid << "] Unexpected removal on topic " << fqdn
+                         << " with type "
                          << proxyData.typeName() << endl;
                 }
             }
@@ -280,7 +283,8 @@ int main(int argc, char *argv[]) {
             closed = true;
             cout << "=== [Logger] Shutting down." << endl;
         }
-        sleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        cout.flush();
     }
 
 
