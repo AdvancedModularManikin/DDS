@@ -9,7 +9,7 @@
     <capabilities>
       <capability required="true" name="virtual_patient">
         <configuration_data>
-          <data name="scene" value="er_litter" />
+          <data name="scene" value="poi_gurney" />
         </configuration_data>
       </capability>
       <capability name="monitor_level">
