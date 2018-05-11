@@ -727,7 +727,7 @@ int main(int argc, char *argv[]) {
             "REST_Adapter",
             "00001",
             "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/rest_adapter_capabilities.xml")
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/rest_adapter_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

@@ -150,10 +150,10 @@ int main(int argc, char *argv[]) {
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
             "Vcom3D",
-            "Serial_Bridge",
+            nodeName,
             "00001",
             "0.0.1",
-            "capabilityString"
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/serial_bridge_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

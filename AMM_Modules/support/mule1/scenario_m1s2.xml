@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AMMConfiguration>
+  <scenario id="m1s2" name="Mule 1 / Scene 2 / ER">
+    <versions>
+      <data name="scenario" value="1.0.0" />
+      <data name="amm_core" value="0.0.1" />
+      <data name="amm_specification" value="0.0.1" />
+    </versions>
+    <capabilities>
+      <capability required="true" name="virtual_patient">
+        <configuration_data>
+          <data name="scene" value="er_litter" />
+        </configuration_data>
+      </capability>
+      <capability name="monitor_level">
+        <configuration_data>
+          <data name="sound_alarm" value="false" />
+        </configuration_data>
+      </capability>
+      <capability name="detect_button_press">
+        <configuration_data>
+          <data name="button_message" value="O2" />
+        </configuration_data>
+      </capability>
+      <capability required="true" name="labs" />
+      <capability required="true" name="propaq" />
+    </capabilities>
+    <configuration>
+      <!-- BioGears patient file -->
+      <patient filename="StandardMale.xml" />
+      <!-- BioGears environment file -->
+      <environment filename="standard.xml" />
+      <!-- BioGears starting state file -->
+      <starting_state filename="StandardMale@0s.xml" />
+    </configuration>
+  </scenario>
+</AMMConfiguration>

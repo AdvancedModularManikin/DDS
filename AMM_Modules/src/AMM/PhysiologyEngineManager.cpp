@@ -34,7 +34,7 @@ PhysiologyEngineManager::PhysiologyEngineManager() {
             "PhysiologyEngine",
             "00001",
             "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/physiology_engine_capabilities.xml")
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/physiology_engine_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

@@ -335,7 +335,7 @@ int main(int argc, const char *argv[]) {
             nodeName,
             "00001",
             "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/tcp_bridge_capabilities.xml")
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/tcp_bridge_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

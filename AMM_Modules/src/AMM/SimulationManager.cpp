@@ -21,7 +21,7 @@ SimulationManager::SimulationManager() {
             "CommandExecutor",
             "00001",
             "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/simulation_manager_capabilities.xml")
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/simulation_manager_capabilities.xml")
     );
 
     mgr->SetStatus(OPERATIONAL);
