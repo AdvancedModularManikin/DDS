@@ -24,6 +24,7 @@ std::string AMM::DataTypes::powerSupplyTopic = "Power_Supply";
 
 std::string AMM::DataTypes::statusTopic = "Status";
 std::string AMM::DataTypes::configurationTopic = "Configuration";
+std::string AMM::DataTypes::scenarioTopic = "Scenario";
 
 
 AMM::Simulation::TickPubSubType *AMM::DataTypes::getTickType() {
@@ -99,6 +100,10 @@ AMM::Capability::ConfigurationPubSubType *AMM::DataTypes::getConfigurationType()
 
 AMM::Capability::StatusPubSubType *AMM::DataTypes::getStatusType() {
     return new StatusPubSubType();
+};
+
+AMM::Capability::ScenarioPubSubType *AMM::DataTypes::getScenarioType() {
+    return new ScenarioPubSubType();
 };
 
 // AMM Logging types

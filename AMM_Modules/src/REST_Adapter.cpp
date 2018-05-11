@@ -234,10 +234,21 @@ private:
     void getInstance(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
+
         writer.StartObject();
         writer.Key("name");
         writer.String(hostname);
         writer.EndObject();
+
+        std::ifstream t("mule1/current_scenario.txt");
+        std::string scenario((std::istreambuf_iterator<char>(t)),
+                             std::istreambuf_iterator<char>());
+
+        writer.StartObject();
+        writer.Key("scenario");
+        writer.String(scenario.c_str());
+        writer.EndObject();
+
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }

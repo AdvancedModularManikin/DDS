@@ -124,6 +124,29 @@ void DDS_Listeners::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
     }
 }
 
+void DDS_Listeners::ScenarioSubListener::onSubscriptionMatched(Subscriber *sub,
+                                                             MatchingInfo &info) {
+    if (info.status == MATCHED_MATCHING) {
+        n_matched++;
+    } else {
+        n_matched--;
+    }
+}
+
+
+void DDS_Listeners::ScenarioSubListener::onNewDataMessage(Subscriber *sub) {
+    AMM::Capability::Scenario sc;
+
+    if (sub->takeNextData(&sc, &m_info)) {
+        ++n_msg;
+        if (m_info.sampleKind == ALIVE) {
+            if (upstream != nullptr) {
+                upstream->onNewScenarioData(sc, &m_info);
+            }
+
+        }
+    }
+}
 
 void DDS_Listeners::PubListener::onPublicationMatched(Publisher *pub,
                                                       MatchingInfo &info) {
@@ -133,4 +156,7 @@ void DDS_Listeners::PubListener::onPublicationMatched(Publisher *pub,
         n_matched--;
     }
 }
+
+
+
 

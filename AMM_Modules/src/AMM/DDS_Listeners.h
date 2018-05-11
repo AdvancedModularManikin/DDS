@@ -156,5 +156,23 @@ public:
         ListenerInterface *upstream{};
     };
 
+    class ScenarioSubListener : public SubscriberListener {
+    public:
+        ScenarioSubListener() : n_matched(0), n_msg(0) {};
+
+        ~ScenarioSubListener() override = default;;
+
+        void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
+
+        void onNewDataMessage(Subscriber *sub) override;
+
+        SampleInfo_t m_info;
+        int n_matched;
+        int n_msg;
+
+        void SetUpstream(ListenerInterface *l) { upstream = l; };
+        ListenerInterface *upstream{};
+    };
+
 };
 

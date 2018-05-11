@@ -51,6 +51,7 @@ namespace AMM {
         // AMM Capability types
         static AMM::Capability::ConfigurationPubSubType* getConfigurationType();
         static AMM::Capability::StatusPubSubType* getStatusType();
+        static AMM::Capability::ScenarioPubSubType* getScenarioType();
 
         // AMM Logging types
         static AMM::Sys::Log::debugPubSubType* getDebugLogType();
@@ -82,6 +83,7 @@ namespace AMM {
 
         static std::string statusTopic;
         static std::string configurationTopic;
+        static std::string scenarioTopic;
 
     };
 };

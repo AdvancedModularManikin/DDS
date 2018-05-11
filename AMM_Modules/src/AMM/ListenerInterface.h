@@ -22,6 +22,8 @@ public:
 
     virtual void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {};
 
+    virtual void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t *info) {};
+
     std::string sysPrefix = "[SYS]";
     std::string actPrefix = "[ACT]";
     std::string loadPrefix = "LOAD_STATE:";
