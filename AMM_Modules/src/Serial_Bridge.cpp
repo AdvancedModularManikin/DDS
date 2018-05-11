@@ -122,7 +122,8 @@ void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, 
 }
 
 class GenericSerialListener : public ListenerInterface {
-    void onNewNodeData(AMM::Physiology::Node n) {
+public:
+    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
       if (n.nodepath() == "EXIT") {
 	  cout << "Shutting down simulation based on shutdown node-data from physiology engine."  << endl;
 	  closed = true;
@@ -130,7 +131,7 @@ class GenericSerialListener : public ListenerInterface {
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
