@@ -300,7 +300,7 @@ int main(int argc, const char *argv[]) {
         }
     }
 
-    std::ifstream ifs("mule1/TCP_Bridge_config_example.xml");
+    std::ifstream ifs("mule1/module_configuration_static/m1s1_virtual_patient_configuration.xml");
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
     std::string encodedConfigContent = encode64(configContent);
