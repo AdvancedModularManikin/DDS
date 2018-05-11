@@ -43,8 +43,9 @@ const string requestPrefix = "REQUEST=";
 const string keepHistoryPrefix = "KEEP_HISTORY=";
 const string actionPrefix = "ACT=";
 const string keepAlivePrefix = "[KEEPALIVE]";
+const string loadScenarioPrefix = "LOAD_SCENARIO:";
 
-std::string encodedConfig = "";
+string encodedConfig = "";
 
 bool closed = false;
 
@@ -106,21 +107,20 @@ void InitializeLabNodes() {
     labNodes["Substance_BaseExcess"] = 0.0f;
 }
 
-
 void sendConfig(Client *c, std::string clientType) {
     cout << "Reading from current scenario file..." << endl;
     std::ifstream t("mule1/current_scenario.txt");
     std::string scenario((std::istreambuf_iterator<char>(t)),
                          std::istreambuf_iterator<char>());
 
+    scenario.erase(std::remove(scenario.begin(), scenario.end(), '\n'), scenario.end());
+    
     cout << "We got: " << scenario<< endl;
     t.close();
 
-    cout << "Now reading the config data from mule1/..." << endl;
-
-
     ostringstream static_filename;
-    static_filename << "mule1/module_configuration_static/" << scenario << "_" << clientType << ".xml";
+    static_filename << "mule1/module_configuration_static/" << scenario << "_" << clientType << "_configuration.xml";
+    cout << "Loading static filename " << static_filename.str() << endl;
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
@@ -131,6 +131,23 @@ void sendConfig(Client *c, std::string clientType) {
     cout << "The encoded config looks like: " << encodedConfig << endl;
 
     Server::SendToClient(c, encodedConfig);
+}
+
+void sendConfigToAll(string scene) {
+  cout << "Sending config to all!" << endl;
+    ostringstream static_filename;
+    static_filename << "mule1/module_configuration_static/" << scene << "_virtual_patient_configuration.xml";
+    cout << "Loading static filename " << static_filename.str() << endl;
+    std::ifstream ifs(static_filename.str());
+    std::string configContent((std::istreambuf_iterator<char>(ifs)),
+                              (std::istreambuf_iterator<char>()));
+    std::string encodedConfigContent = encode64(configContent);
+    encodedConfig = configPrefix + encodedConfigContent + "\n";
+
+    cout << "The unencoded config looks like: " << configContent << endl;
+    cout << "The encoded config looks like: " << encodedConfig << endl;
+    std::string loadScenarioPrefix = "LOAD_SCENARIO:";
+    s->SendToAll(encodedConfig);
 }
 
 /**
@@ -160,26 +177,29 @@ public:
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
-
-        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
-            std::string value = c.message().substr(sysPrefix.size());
-            if (value.compare("START_SIM") == 0) {
-
-            } else if (value.compare("STOP_SIM") == 0) {
-
-            } else if (value.compare("PAUSE_SIM") == 0) {
-
-            } else if (value.compare("RESET_SIM") == 0) {
-                InitializeLabNodes();
-            }
-        }
-
-
-        std::ostringstream messageOut;
-        messageOut << "ACT" << "=" << c.message() << "|";
-        s->SendToAll(messageOut.str());
+  void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
+    cout << "We got command data!   It is: " << c.message() << endl;
+    if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+      std::string value = c.message().substr(sysPrefix.size());
+      if (value.compare("START_SIM") == 0) {
+	
+      } else if (value.compare("STOP_SIM") == 0) {
+	
+      } else if (value.compare("PAUSE_SIM") == 0) {
+	
+      } else if (value.compare("RESET_SIM") == 0) {
+	InitializeLabNodes();
+      } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+	std::string scene = value.substr(loadScenarioPrefix.size());
+	cout << "We're being asked to load scene " << scene << endl;
+	sendConfigToAll(scene);	
+      } 
+    } else {
+      std::ostringstream messageOut;
+      messageOut << "ACT" << "=" << c.message() << "|";
+      s->SendToAll(messageOut.str());
     }
+  }
 };
 
 // Override client handler code from Net Server
@@ -249,11 +269,12 @@ void *Server::HandleClient(void *args) {
                         cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
                         /*XMLDocument doc (false);
                         doc.Parse (capabilityVal);*/
-
+			/**
                         cout << "[CLIENT][CONFIG] Sending configuration file" << endl;
                         cout << "[CLIENT] Client name is " << c->name << endl;
                         sendConfig(c, "virtual_patient");
                         cout << "[CLIENT][CONFIG] Sent!" << endl;
+			**/
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
