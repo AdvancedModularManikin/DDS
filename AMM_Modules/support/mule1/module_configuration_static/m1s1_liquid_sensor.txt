@@ -1,0 +1,5 @@
+[Scenario]m1s1=mule1_scene1
+[Capability]monitor_level=true
+[Config_Data]sound_alarm=false
+[Capability]detect_button_press=true
+[Config_Data]button_message=some_action_name

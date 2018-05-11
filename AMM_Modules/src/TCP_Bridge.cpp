@@ -18,6 +18,10 @@
 #include "AMM/DDS_Manager.h"
 
 #include "tinyxml2.h"
+#include <fstream>
+#include <string>
+#include <iostream>
+
 
 using namespace std;
 
@@ -100,6 +104,33 @@ void InitializeLabNodes() {
     labNodes["BloodChemistry_Arterial_Oxygen_Pressure"] = 0.0f;
     labNodes["Substance_Bicarbonate"] = 0.0f;
     labNodes["Substance_BaseExcess"] = 0.0f;
+}
+
+
+void sendConfig(Client *c, std::string clientType) {
+    cout << "Reading from current scenario file..." << endl;
+    std::ifstream t("mule1/current_scenario.txt");
+    std::string scenario((std::istreambuf_iterator<char>(t)),
+                         std::istreambuf_iterator<char>());
+
+    cout << "We got: " << scenario<< endl;
+    t.close();
+
+    cout << "Now reading the config data from mule1/..." << endl;
+
+
+    ostringstream static_filename;
+    static_filename << "mule1/module_configuration_static/" << scenario << "_" << clientType << ".xml";
+    std::ifstream ifs(static_filename.str());
+    std::string configContent((std::istreambuf_iterator<char>(ifs)),
+                              (std::istreambuf_iterator<char>()));
+    std::string encodedConfigContent = encode64(configContent);
+    encodedConfig = configPrefix + encodedConfigContent + "\n";
+
+    cout << "The unencoded config looks like: " << configContent << endl;
+    cout << "The encoded config looks like: " << encodedConfig << endl;
+
+    Server::SendToClient(c, encodedConfig);
 }
 
 /**
@@ -220,8 +251,8 @@ void *Server::HandleClient(void *args) {
                         doc.Parse (capabilityVal);*/
 
                         cout << "[CLIENT][CONFIG] Sending configuration file" << endl;
-                        cout << "[CLIENT][CONFIG] Sending " << encodedConfig;
-                        Server::SendToClient(c, encodedConfig);
+                        cout << "[CLIENT] Client name is " << c->name << endl;
+                        sendConfig(c, "virtual_patient");
                         cout << "[CLIENT][CONFIG] Sent!" << endl;
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
@@ -299,12 +330,6 @@ int main(int argc, const char *argv[]) {
             discovery = 0;
         }
     }
-
-    std::ifstream ifs("mule1/module_configuration_static/m1s1_virtual_patient_configuration.xml");
-    std::string configContent((std::istreambuf_iterator<char>(ifs)),
-                              (std::istreambuf_iterator<char>()));
-    std::string encodedConfigContent = encode64(configContent);
-    encodedConfig = configPrefix + encodedConfigContent + "\n";
 
     InitializeLabNodes();
 

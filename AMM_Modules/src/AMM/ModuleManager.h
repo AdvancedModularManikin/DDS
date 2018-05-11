@@ -2,6 +2,9 @@
 
 #include <mutex>
 #include <thread>
+#include <fstream>
+#include <string>
+#include <iostream>
 
 #include <fastrtps/Domain.h>
 #include <fastrtps/participant/Participant.h>
@@ -44,11 +47,13 @@
 
 #include <fastrtps/rtps/participant/RTPSParticipant.h>
 
-#include "AMM/DataTypes.h"
-#include "AMM/DDS_Manager.h"
 #include "DataTypes.h"
 
 #include "DDS_Manager.h"
+
+#include "DDS_Listeners.h"
+
+#include "ListenerInterface.h"
 
 #include "tinyxml2.h"
 
@@ -63,12 +68,13 @@ using namespace tinyxml2;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
-class ModuleManager : public ParticipantListener, public ReaderListener {
+class ModuleManager : public ParticipantListener, public ListenerInterface {
+
 public:
 
     ModuleManager();
 
-    virtual ~ModuleManager() = default;;
+    ~ModuleManager() override = default;;
 
     void Start();
 
@@ -89,8 +95,18 @@ public:
 
     void onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info) override;
 
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override;
+    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override;
+    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) override;
+
     std::map<std::string, std::vector<std::string>> topicNtypes;
     std::map<GUID_t, std::string> discovered_names;
+
+    std::string currentScenario;
+    const std::string scenarioFile = "mule1/current_scenario.txt";
+
+    void SetScenario(std::string scenario);
+    std::string GetScenario();
 
 protected:
 

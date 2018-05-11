@@ -12,6 +12,10 @@
 #include <vector>
 #include <queue>
 #include <stack>
+#include <thread>
+#include <fstream>
+#include <string>
+#include <iostream>
 
 using namespace ::boost::asio;
 using namespace std;
@@ -70,20 +74,22 @@ vector<string> explode( const string &delimiter, const string &str)
 }
 
 void sendConfigInfo() {
-  transmitQ.push(msg1);
-  std::this_thread::sleep_for (std::chrono::milliseconds(100));
- 
-  transmitQ.push(msg2);
-  std::this_thread::sleep_for (std::chrono::milliseconds(100));
-  
-  transmitQ.push(msg3);
-  std::this_thread::sleep_for (std::chrono::milliseconds(100));
+    cout << "Reading from current scenario file..." << endl;
+    std::ifstream t("mule1/current_scenario.txt");
+    std::string scenario((std::istreambuf_iterator<char>(t)),
+                           std::istreambuf_iterator<char>());
 
-  transmitQ.push(msg4);
-  std::this_thread::sleep_for (std::chrono::milliseconds(100));
-  
-  transmitQ.push(msg5);
-  std::this_thread::sleep_for (std::chrono::milliseconds(100));
+    cout << "We got: " << scenario<< endl;
+    t.close();
+
+    cout << "Now reading the config data from mule1/..." << endl;
+    std::ifstream z("mule1/" + scenario + "_liquid_sensor.txt");
+    std::string configMsg((std::istreambuf_iterator<char>(z)),
+                          std::istreambuf_iterator<char>());
+    z.close();
+    cout << "The config looks like: " << configMsg << endl;
+
+    transmitQ.push(configMsg);
 }
 
 void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, size_t bytesTransferred) {

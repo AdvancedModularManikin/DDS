@@ -4,63 +4,8 @@ using namespace std;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 using namespace sqlite;
-using namespace AMM::Capability;
 
 database db("amm.db");
-
-class AMMListener : public ListenerInterface {
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
-        ostringstream module_id;
-        module_id << info->sample_identity.writer_guid();
-        std::size_t pos = module_id.str().find("|");
-        std::string truncated_module_id = module_id.str().substr(0, pos);
-        auto timestamp = std::to_string(time(nullptr));
-
-        cout << "[MM] Received a capability config message " << endl;
-        cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
-        cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
-        cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
-        cout << "[MM]\tModel: " << cfg.model() << endl;
-        cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;
-        cout << "[MM]\tVersion: " << cfg.version() << endl;
-        cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
-        cout << "[MM]\t---" << endl;
-
-         db
-                    << "insert into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
-                    << truncated_module_id
-                    << cfg.manufacturer()
-                    << cfg.model()
-                    << cfg.serial_number()
-                    << cfg.version()
-                    << cfg.capabilities()
-                    << timestamp;
-    }
-
-    void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) {
-        ostringstream module_id;
-        module_id << info->sample_identity.writer_guid();
-        std::size_t pos = module_id.str().find("|");
-        std::string truncated_module_id = module_id.str().substr(0, pos);
-        auto timestamp = std::to_string(time(nullptr));
-
-        cout << "[MM] Received a status message " << endl;
-        cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
-        cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
-        cout << "[MM]\tValue: " << st.status_value() << endl;
-        cout << "[MM]\tCapabilities: " << st.capability() << endl;
-        // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
-        cout << "[MM]\t---" << endl;
-
-            db << "insert into module_status (module_id, capability, status, timestamp) values (?,?,?,?);"
-               << truncated_module_id
-               << st.capability()
-               << "OPERATIONAL"
-               << timestamp;
-
-    }
-
-} rl;
 
 static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
     std::map<std::string, std::vector<uint8_t>> m;
@@ -128,19 +73,24 @@ static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<u
 ModuleManager::ModuleManager() {
     auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
+    auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
 
-    status_sub_listener->SetUpstream(&rl);
-    config_sub_listener->SetUpstream(&rl);
+    status_sub_listener->SetUpstream(this);
+    config_sub_listener->SetUpstream(this);
+    command_sub_listener->SetUpstream(this);
 
     mgr->InitializeSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
                                                   status_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
                                                   config_sub_listener);
-
+    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                   command_sub_listener);
     // Track subscriptions and publishers
     std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mgr->GetParticipant()->getEDPReaders();
     auto result = EDP_Readers.first->setListener(this);
     result &= EDP_Readers.second->setListener(this);
+
+    GetScenario();
 
     m_runThread = false;
 }
@@ -157,7 +107,7 @@ void ModuleManager::Start() {
             "Module_Manager",
             "00001",
             "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/module_manager_capabilities.xml")
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/module_manager_capabilities.xml")
     );
     mgr->SetStatus(OPERATIONAL);
 
@@ -194,6 +144,21 @@ void ModuleManager::Shutdown() {
 
     Cleanup();
 
+}
+
+void ModuleManager::SetScenario(std::string scenario) {
+    currentScenario = scenario;
+    std::ofstream out(scenarioFile);
+    out << currentScenario;
+    out.close();
+}
+
+std::string ModuleManager::GetScenario() {
+    std::ifstream t(scenarioFile);
+    std::string str((std::istreambuf_iterator<char>(t)),
+                    std::istreambuf_iterator<char>());
+    currentScenario = str;
+    return currentScenario;
 }
 
 void ModuleManager::onReaderMatched(RTPSReader *reader, MatchingInfo &info) {
@@ -319,4 +284,75 @@ void ModuleManager::onParticipantDiscovery(Participant *, ParticipantDiscoveryIn
             cout << e.what() << endl;
         }
     }
+}
+
+void ModuleManager::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
+    if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+        std::string value = c.message().substr(sysPrefix.size());
+        cout << "[MM] We received a SYSTEM action: " << value << endl;
+        if (value.compare("LOAD_SCENARIO") == 0) {
+            std::string loadScenario = value.substr(loadPrefix.size());
+            SetScenario(loadScenario);
+        } else if (value.compare("STOP_SIM") == 0) {
+
+        } else if (value.compare("PAUSE_SIM") == 0) {
+
+        } else if (value.compare("RESET_SIM") == 0) {
+
+        }
+    } else {
+        cout << "[MM] Command received: " << c.message() << endl;
+    }
+
+}
+
+void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
+    ostringstream module_id;
+    module_id << info->sample_identity.writer_guid();
+    std::size_t pos = module_id.str().find("|");
+    std::string truncated_module_id = module_id.str().substr(0, pos);
+    auto timestamp = std::to_string(time(nullptr));
+
+    cout << "[MM] Received a capability config message " << endl;
+    cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
+    cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
+    cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
+    cout << "[MM]\tModel: " << cfg.model() << endl;
+    cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;
+    cout << "[MM]\tVersion: " << cfg.version() << endl;
+    cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
+    cout << "[MM]\t---" << endl;
+
+    db
+            << "insert into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities, timestamp) values (?,?,?,?,?,?,?);"
+            << truncated_module_id
+            << cfg.manufacturer()
+            << cfg.model()
+            << cfg.serial_number()
+            << cfg.version()
+            << cfg.capabilities()
+            << timestamp;
+}
+
+void ModuleManager::onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) {
+    ostringstream module_id;
+    module_id << info->sample_identity.writer_guid();
+    std::size_t pos = module_id.str().find("|");
+    std::string truncated_module_id = module_id.str().substr(0, pos);
+    auto timestamp = std::to_string(time(nullptr));
+
+    cout << "[MM] Received a status message " << endl;
+    cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
+    cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
+    cout << "[MM]\tValue: " << st.status_value() << endl;
+    cout << "[MM]\tCapabilities: " << st.capability() << endl;
+    // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
+    cout << "[MM]\t---" << endl;
+
+    db << "insert into module_status (module_id, capability, status, timestamp) values (?,?,?,?);"
+       << truncated_module_id
+       << st.capability()
+       << "OPERATIONAL"
+       << timestamp;
+
 }
