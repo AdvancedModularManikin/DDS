@@ -9,9 +9,9 @@
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
 
+#include <vector>
 #include <queue>
 #include <stack>
-
 
 using namespace ::boost::asio;
 using namespace std;
@@ -24,9 +24,11 @@ using namespace std;
 int daemonize = 1;
 bool closed = false;
 bool transmit = false;
+bool first_message = true;
 std::string reportPrefix = "[REPORT]";
-std::string actionPrefix = "[ACT]";
+std::string actionPrefix = "[AMM_Command]";
 std::string xmlPrefix = "<?xml";
+
 std::string msg1 = "[Scenario]m1s1=mule1_scene1\n";
 std::string msg2 = "[Capability]monitor_level=true\n";
 std::string msg3 = "[Config_Data]sound_alarm=false\n";
@@ -36,44 +38,88 @@ std::string msg5 = "[Config_Data]button_message=some_action_name\n";
 Publisher *command_publisher;
 queue<string> transmitQ;
 
-void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, size_t bytesTransferred) {
-    std::string rsp;
-    std::copy(buffer.begin(), buffer.begin()+bytesTransferred, std::back_inserter(rsp));
+vector<string> explode( const string &delimiter, const string &str)
+{
+  vector<string> arr;
+  
+  int strleng = str.length();
+  int delleng = delimiter.length();
+  if (delleng==0)
+    return arr;//no change
+  
+  int i=0;
+  int k=0;
+  while( i<strleng )
+    {
+      int j=0;
+      while (i+j<strleng && j<delleng && str[i+j]==delimiter[j])
+	j++;
+      if (j==delleng)//found delimiter
+	{
+	  arr.push_back(  str.substr(k, i-k) );
+	  i+=delleng;
+	  k=i;
+	}
+      else
+	{
+	  i++;
+	}
+    }
+  arr.push_back(  str.substr(k, i-k) );
+  return arr;
+}
 
-    if (!rsp.compare(0, reportPrefix.size(), reportPrefix)) {
+void sendConfigInfo() {
+  transmitQ.push(msg1);
+  std::this_thread::sleep_for (std::chrono::milliseconds(100));
+ 
+  transmitQ.push(msg2);
+  std::this_thread::sleep_for (std::chrono::milliseconds(100));
+  
+  transmitQ.push(msg3);
+  std::this_thread::sleep_for (std::chrono::milliseconds(100));
+
+  transmitQ.push(msg4);
+  std::this_thread::sleep_for (std::chrono::milliseconds(100));
+  
+  transmitQ.push(msg5);
+  std::this_thread::sleep_for (std::chrono::milliseconds(100));
+}
+
+void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, size_t bytesTransferred) {
+    std::string inboundBuffer;
+    std::copy(buffer.begin(), buffer.begin()+bytesTransferred, std::back_inserter(inboundBuffer));
+
+    vector<string> v = explode("\n", inboundBuffer);
+    for(int i=0; i<v.size(); i++) {
+      std::string rsp = v[i];
+      if (!rsp.compare(0, reportPrefix.size(), reportPrefix)) {
         std::string value = rsp.substr(reportPrefix.size());
         cout << "=== [SERIAL] Making REPORT: " << value << endl;
-    } else if (!rsp.compare(0, actionPrefix.size(), actionPrefix)) {
+      } else if (!rsp.compare(0, actionPrefix.size(), actionPrefix)) {
         std::string value = rsp.substr(actionPrefix.size());
         cout << "=== [SERIAL] Sending a command: " << value << endl;
         AMM::PatientAction::BioGears::Command cmdInstance;
         boost::trim_right(value);
         cmdInstance.message(value);
         command_publisher->write(&cmdInstance);
-    }  else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
+      }  else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
         std::string value = rsp;
-        cout << "=== [SERIAL] Recieved an XML snippet: " << value << endl;
-
-        cout << "\t[SERIAL][Sending...] " << msg1 << endl;
-        transmitQ.push(msg1);
-
-        cout << "\t[SERIAL][Sending...] " << msg2 << endl;
-        transmitQ.push(msg2);
-        std::this_thread::sleep_for (std::chrono::milliseconds(100));
-
-        cout << "\t[SERIAL][Sending...] " << msg3 << endl;
-        transmitQ.push(msg3);
-        std::this_thread::sleep_for (std::chrono::milliseconds(100));
-
-        cout << "\t[SERIAL][Sending...] " << msg4 << endl;
-        transmitQ.push(msg4);
-        std::this_thread::sleep_for (std::chrono::milliseconds(100));
-
-        cout << "\t[SERIAL][Sending...] " << msg5 << endl;
-        transmitQ.push(msg4);
-        std::this_thread::sleep_for (std::chrono::milliseconds(100));
-    } else {
-       cout << "=== [SERIAL][DEBUG] " << rsp << endl;
+	
+        cout << "=== [SERIAL] Recieved an XML snippet:" << endl;
+	
+	if (first_message) {
+	  cout << "\t[CAPABILITY_XML] " << value << endl;
+	  first_message = false;
+	  sendConfigInfo();
+	} else {
+	  cout << "\t[STATUS_XML] " << value << endl;
+	}
+      } else {
+	if (!rsp.empty() && rsp != "\r") {
+	  cout << "=== [SERIAL][DEBUG] " << rsp << endl;
+	}
+      }
     }
 }
 
@@ -88,9 +134,11 @@ class GenericSerialListener : public ListenerInterface {
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
       cout << "We got a command from elsewhere: " << c.message() << endl;
+
       ostringstream cmdMessage;
-        cmdMessage << "[AMM_Command]" << c.message() << endl;
+      cmdMessage << "[AMM_Command]" << c.message() << endl;
       transmitQ.push(cmdMessage.str());
+      
     }
 };
 
@@ -163,10 +211,12 @@ int main(int argc, char *argv[]) {
 
     while (!closed) {
         while(!transmitQ.empty()) {
-            serialPort.Write(transmitQ.front());
-            transmitQ.pop();
+	  cout << "[SERIAL][SEND_QUEUE] " << transmitQ.front();
+	  serialPort.Write(transmitQ.front());
+	  transmitQ.pop();
         }
-        std::this_thread::sleep_for (std::chrono::seconds(1));
+
+	std::this_thread::sleep_for (std::chrono::milliseconds(250));
         cout.flush();
     }
 
