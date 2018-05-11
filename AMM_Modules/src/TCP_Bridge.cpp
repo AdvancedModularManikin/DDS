@@ -181,18 +181,21 @@ public:
     if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
       std::string value = c.message().substr(sysPrefix.size());
       if (value.compare("START_SIM") == 0) {
-          s->SendToAll("ACT=START_SIM");
+	std::string tmsg = "ACT=START_SIM";
+	s->SendToAll(tmsg);
       } else if (value.compare("STOP_SIM") == 0) {
-          s->SendToAll("ACT=STOP_SIM");
+	std::string tmsg = "ACT=STOP_SIM";
+	s->SendToAll(tmsg);
       } else if (value.compare("PAUSE_SIM") == 0) {
-          s->SendToAll("ACT=PAUSE_SIM");
+	std::string tmsg = "ACT=PAUSE_SIM";
+	s->SendToAll(tmsg);
       } else if (value.compare("RESET_SIM") == 0) {
-          s->SendToAll("ACT=RESET_SIM");
+	std::string tmsg = "ACT=RESET_SIM";
+	s->SendToAll(tmsg);
         InitializeLabNodes();
-
       } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
-	        std::string scene = value.substr(loadScenarioPrefix.size());
-	    sendConfigToAll(scene);
+	std::string scene = value.substr(loadScenarioPrefix.size());
+	sendConfigToAll(scene);
       } 
     } else {
       std::ostringstream messageOut;
