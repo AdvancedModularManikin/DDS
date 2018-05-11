@@ -2,4 +2,4 @@
 [Capability]monitor_level=true
 [Config_Data]sound_alarm=false
 [Capability]detect_button_press=true
-[Config_Data]button_message=some_action_name
+[Config_Data]button_message=Pain_General_9

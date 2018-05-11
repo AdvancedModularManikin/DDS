@@ -14,7 +14,7 @@
       </capability>
       <capability name="monitor_level">
         <configuration_data>
-          <data name="sound_alarm" value="false" />
+          <data name="sound_alarm" value="true" />
         </configuration_data>
       </capability>
       <capability name="detect_button_press">

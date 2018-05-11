@@ -1,0 +1,5 @@
+[Scenario]m1s3=mule1_scene3
+[Capability]monitor_level=false
+[Config_Data]sound_alarm=false
+[Capability]detect_button_press=false
+[Config_Data]button_message=SOMETHING_BAD
