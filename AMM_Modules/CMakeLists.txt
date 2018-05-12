@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.1)
 
 project(AMM_Modules)
 
@@ -103,6 +104,14 @@ set_target_properties(${TCP_BRIDGE_EXE} PROPERTIES
         )
 
 
+set(CAPTURE_SOURCES src/Capture.cpp)
+set(CAPTURE_EXE amm_capture)
+add_executable(${CAPTURE_EXE} ${CAPTURE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+set_target_properties(${CAPTURE_EXE} PROPERTIES
+        CXX_STANDARD 14
+        CXX_STANDARD_REQUIRED ON
+        )
+
 set(LOGGER_SOURCES src/Logger.cpp)
 set(LOGGER_EXE amm_logger)
 add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
@@ -199,6 +208,13 @@ target_link_libraries(${COMMAND_EXECUTOR_EXE}
         fastrtps fastcdr
         ${DATAMODEL}
         )
+
+target_link_libraries(${CAPTURE_EXE}
+        fastrtps fastcdr
+        dl sqlite3 pthread
+        ${DATAMODEL}
+        )
+
 
 target_link_libraries(${HEART_RATE_LED_EXE}
         fastrtps fastcdr
