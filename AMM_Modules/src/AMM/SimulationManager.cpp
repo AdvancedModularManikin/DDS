@@ -20,7 +20,7 @@ SimulationManager::SimulationManager() {
 
     mgr->PublishModuleConfiguration(
             "Vcom3D",
-            "CommandExecutor",
+            "SimulationManager",
             "00001",
             "0.0.1",
             mgr->GetCapabilitiesAsString("mule1/module_capabilities/simulation_manager_capabilities.xml")
