@@ -38,6 +38,7 @@ std::string msg2 = "[Capability]monitor_level=true\n";
 std::string msg3 = "[Config_Data]sound_alarm=false\n";
 std::string msg4 = "[Capability]detect_button_press=true\n";
 std::string msg5 = "[Config_Data]button_message=some_action_name\n";
+std::string haltingString = "HALTING_ERROR";
 
 Publisher *command_publisher;
 queue<string> transmitQ;
@@ -123,7 +124,12 @@ void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, 
         );
 	} else {
 	  cout << "\t[STATUS_XML] " << value << endl;
-        mgr->SetStatus(OPERATIONAL);
+	  std::size_t found = value.find(haltingString);
+	  if (found!=std::string::npos) {
+	    mgr->SetStatus(HALTING_ERROR);
+	  } else {
+	    mgr->SetStatus(OPERATIONAL);
+	  }
 	}
       } else {
 	if (!rsp.empty() && rsp != "\r") {
