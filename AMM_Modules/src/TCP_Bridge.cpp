@@ -51,8 +51,7 @@ bool closed = false;
 
 Publisher *command_publisher;
 
-const std::string nodeName = "AMM_TCP_Bridge";
-auto *mgr = new DDS_Manager(nodeName.c_str());
+DDS_Manager *mgr;
 
 std::vector<std::string> publishNodes = {
         "EXIT",
@@ -369,6 +368,9 @@ int main(int argc, const char *argv[]) {
     }
 
     InitializeLabNodes();
+
+    const std::string nodeName = "AMM_TCP_Bridge";
+    mgr = new DDS_Manager(nodeName.c_str());
 
 
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
