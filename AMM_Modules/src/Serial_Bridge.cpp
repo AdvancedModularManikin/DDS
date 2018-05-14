@@ -44,7 +44,7 @@ queue<string> transmitQ;
 
 // Set up DDS
 const char* nodeName = "AMM_Serial_Bridge";
-DDS_Mamager *mgr;
+DDS_Manager *mgr;
 
 vector<string> explode( const string &delimiter, const string &str)
 {
