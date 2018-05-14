@@ -87,7 +87,14 @@ void sendConfigInfo(std::string scene) {
                               (std::istreambuf_iterator<char>()));
     ifs.close();
     cout << "The config looks like: " << configContent << endl;
-    transmitQ.push(configContent);
+     vector<string> v = explode("\n", configContent);
+    for(int i=0; i<v.size(); i++) {
+    std::this_thread::sleep_for (std::chrono::milliseconds(100));
+      std::string rsp = v[i];
+      transmitQ.push(rsp);
+
+      }
+
 }
 
 void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, size_t bytesTransferred) {
