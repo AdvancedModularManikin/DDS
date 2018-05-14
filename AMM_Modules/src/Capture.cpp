@@ -79,10 +79,12 @@ public:
         // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
         cout << "[MM]\t---" << endl;
 
-        db << "insert into module_status (module_id, capability, status) values (?,?,?);"
+	ostringstream statusValue;
+	statusValue << st.status_value();
+        db << "replace into module_status (module_id, capability, status) values (?,?,?);"
            << truncated_module_id
            << st.capability()
-           << "OPERATIONAL";
+           << statusValue.str();
     };
 
     void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {

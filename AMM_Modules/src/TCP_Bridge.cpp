@@ -44,6 +44,7 @@ const string keepHistoryPrefix = "KEEP_HISTORY=";
 const string actionPrefix = "ACT=";
 const string keepAlivePrefix = "[KEEPALIVE]";
 const string loadScenarioPrefix = "LOAD_SCENARIO:";
+const string haltingString = "HALTING_ERROR";
 
 string encodedConfig = "";
 
@@ -270,8 +271,14 @@ void *Server::HandleClient(void *args) {
                         cout << "[CLIENT][STATUS] Client sent status of: " << statusVal << endl;
                         /*XMLDocument doc (false);
                         doc.Parse (statusVal);*/
-
-                        mgr->SetStatus(OPERATIONAL);
+			std::size_t found = statusVal.find(haltingString);
+			if (found!=std::string::npos) {
+			  cout << "\tThis is a halting error, so set that status" << endl;
+			  mgr->SetStatus(HALTING_ERROR);
+			} else {
+			  cout << "Not a halting error. It was " << found << endl;
+			  mgr->SetStatus(OPERATIONAL);
+			}
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
                         std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
