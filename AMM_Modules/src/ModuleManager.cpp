@@ -81,15 +81,18 @@ int main(int argc, char *argv[]) {
 
             cout << "Creating module capabilities table..." << endl;
             db << "create table if not exists module_capabilities ("
-                    "module_id text,"
-                    "manufacturer text,"
-                    "model text,"
-                    "serial_number text,"
-                    "version text,"
-                    "capabilities text,"
-                    "timestamp text,"
-                    "encounter_id text"
-                    ");";
+	      "model text,"
+	      "module_id text,"
+	      "manufacturer text,"
+	      "serial_number text,"
+	      "version text,"
+	      "capabilities text,"
+	      "timestamp text,"
+	      "encounter_id text"
+	      ");";
+
+	    db << "CREATE UNIQUE INDEX idx_mc_model ON module_capabilities (model);";
+	      
             db << "delete from module_capabilities;";
 
             cout << "Creating module status table..." << endl;
@@ -100,6 +103,7 @@ int main(int argc, char *argv[]) {
                     "timestamp text,"
                     "encounter_id text"
                     ");";
+	    	    db << "CREATE UNIQUE INDEX idx_ms_model ON module_status (module_id);";
             db << "delete from module_status;";
 
             cout << "\tCreated AMM database schema." << endl;

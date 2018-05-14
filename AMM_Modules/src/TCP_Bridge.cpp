@@ -256,7 +256,9 @@ void *Server::HandleClient(void *args) {
                     //                    cout << "We got a message from " << c->name << ": " << str << endl;
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
                         string moduleName = str.substr(modulePrefix.size());
+			ServerThread::LockMutex(c->name);
                         c->SetName(moduleName);
+			ServerThread::UnlockMutex(c->name);
                         cout << "[CLIENT][" << moduleName << "] module connected" << endl;
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
                         // Registering for data

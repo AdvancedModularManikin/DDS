@@ -99,7 +99,7 @@ public:
 
 
         db
-                << "insert into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?);"
+                << "replace into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?);"
                 << truncated_module_id
                 << cfg.manufacturer()
                 << cfg.model()
