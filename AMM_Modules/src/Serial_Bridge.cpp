@@ -42,6 +42,10 @@ std::string msg5 = "[Config_Data]button_message=some_action_name\n";
 Publisher *command_publisher;
 queue<string> transmitQ;
 
+// Set up DDS
+const char* nodeName = "AMM_Serial_Bridge";
+auto *mgr = new DDS_Manager(nodeName);
+
 vector<string> explode( const string &delimiter, const string &str)
 {
   vector<string> arr;
@@ -110,8 +114,16 @@ void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, 
 	if (first_message) {
 	  cout << "\t[CAPABILITY_XML] " << value << endl;
 	  first_message = false;
+        mgr->PublishModuleConfiguration(
+                "Vcom3D",
+                "Arduino",
+                "00001",
+                "0.0.1",
+                value
+        );
 	} else {
 	  cout << "\t[STATUS_XML] " << value << endl;
+        mgr->SetStatus(OPERATIONAL);
 	}
       } else {
 	if (!rsp.empty() && rsp != "\r") {
@@ -176,9 +188,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    // Set up DDS
-    const char* nodeName = "AMM_Serial_Bridge";
-    auto *mgr = new DDS_Manager(nodeName);
+
 
     auto * node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto * command_sub_listener = new DDS_Listeners::CommandSubListener();

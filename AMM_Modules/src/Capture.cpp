@@ -76,7 +76,6 @@ public:
         cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
         cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
         cout << "[MM]\tValue: " << st.status_value() << endl;
-        cout << "[MM]\tCapabilities: " << st.capability() << endl;
         // Iterate the vector || cout << "[MM]\tMessage: " << s.message() << endl;
         cout << "[MM]\t---" << endl;
 
@@ -96,11 +95,6 @@ public:
         cout << "[MM] Received a capability config message " << endl;
         cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
         cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
-        cout << "[MM]\tMfg: " << cfg.manufacturer() << endl;
-        cout << "[MM]\tModel: " << cfg.model() << endl;
-        cout << "[MM]\tSerial Number: " << cfg.serial_number() << endl;
-        cout << "[MM]\tVersion: " << cfg.version() << endl;
-        cout << "[MM]\tCapabilities: " << cfg.capabilities() << endl;
         cout << "[MM]\t---" << endl;
 
 

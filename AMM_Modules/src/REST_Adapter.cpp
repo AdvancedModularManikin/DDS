@@ -521,7 +521,57 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
-    void getModules(const Rest::Request &request, Http::ResponseWriter response) {
+
+
+
+void getModules(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+
+        db << "SELECT "
+  "module_capabilities.module_id AS module_id,"
+  "module_capabilities.capabilities as capabilities,"
+  "module_status.capability as capability,"
+  "module_status.status as capability_status,"
+  "module_capabilities.manufacturer as manufacturer,"
+  "module_capabilities.model as model "
+  " FROM "
+" module_capabilities "
+" LEFT JOIN module_status ON module_capabilities.module_id = module_status.module_id;"
+           >> [&](string module_id, string capabilities, string capability, string capability_status, string manufacturer, string model) {
+               writer.StartObject();
+
+               writer.Key("Module_ID");
+               writer.String(module_id.c_str());
+              
+                writer.Key("Manufacturer");
+                writer.String(manufacturer.c_str());
+                
+                writer.Key("Model");
+                writer.String(model.c_str());
+                
+                      writer.Key("Module_Capabilities");
+                      writer.String(capabilities.c_str());
+
+               writer.Key("Capability_Status");
+               writer.String(capability.c_str());
+
+                      writer.Key("Status");
+                      writer.String(capability_status.c_str());
+
+
+               writer.EndObject();
+           };
+
+
+        writer.EndArray();
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getModulesAlternate(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();

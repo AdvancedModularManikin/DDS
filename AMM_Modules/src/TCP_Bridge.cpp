@@ -51,6 +51,9 @@ bool closed = false;
 
 Publisher *command_publisher;
 
+const std::string nodeName = "AMM_TCP_Bridge";
+auto *mgr = new DDS_Manager(nodeName.c_str());
+
 std::vector<std::string> publishNodes = {
         "EXIT",
         "SIM_TIME",
@@ -266,12 +269,22 @@ void *Server::HandleClient(void *args) {
                         cout << "[CLIENT][STATUS] Client sent status of: " << statusVal << endl;
                         /*XMLDocument doc (false);
                         doc.Parse (statusVal);*/
+
+                        mgr->SetStatus(OPERATIONAL);
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
                         std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
                         cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
                         /*XMLDocument doc (false);
                         doc.Parse (capabilityVal);*/
+
+                        mgr->PublishModuleConfiguration(
+                                "Vcom3D",
+                                c->name,
+                                "00001",
+                                "0.0.1",
+                                capabilityVal
+                        );
 			/**
                         cout << "[CLIENT][CONFIG] Sending configuration file" << endl;
                         cout << "[CLIENT] Client name is " << c->name << endl;
@@ -357,8 +370,7 @@ int main(int argc, const char *argv[]) {
 
     InitializeLabNodes();
 
-    const std::string nodeName = "AMM_TCP_Bridge";
-    auto *mgr = new DDS_Manager(nodeName.c_str());
+
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
