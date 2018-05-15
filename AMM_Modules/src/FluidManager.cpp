@@ -42,6 +42,27 @@ int spi_transfer(int fd, const unsigned char *tx_buf, const unsigned char *rx_bu
 class FluidListener : public ListenerInterface {
     void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
         // rip out the capabilities string and send it on to the TCP client
+        /**
+          <?xml version="1.0" encoding="utf-8"?>
+<AMMConfiguration>
+  <scenario id="m1s2" name="Mule 1 / Scene 2 / ER">
+    <versions>
+      <data name="scenario" value="1.0.0" />
+      <data name="amm_core" value="0.0.1" />
+      <data name="amm_specification" value="0.0.1" />
+    </versions>
+    <capabilities>
+      <capability name="fluidics">
+        <configuration_data>
+          <data name="operating_pressure" value="5.0" />
+        </configuration_data>
+      </capability>
+    </capabilities>
+  </scenario>
+</AMMConfiguration>
+         */
+
+        // Will receive the above xml - need to pass it via SPI and set status as shown below
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
