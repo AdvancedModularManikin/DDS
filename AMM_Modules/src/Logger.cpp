@@ -252,6 +252,7 @@ int main(int argc, char *argv[]) {
 
 
     const char *nodeName = "AMM_Logger";
+    std::string nodeString(nodeName);
     auto mgr = new DDS_Manager(nodeName, &ammL);
     mp_participant = mgr->GetParticipant();
 
@@ -266,6 +267,7 @@ int main(int argc, char *argv[]) {
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            nodeString,
             "Vcom3D",
             "Logger",
             "00001",
@@ -274,7 +276,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(OPERATIONAL);
+    mgr->SetStatus( nodeString,OPERATIONAL);
 
     while (!closed) {
         getline(cin, action);

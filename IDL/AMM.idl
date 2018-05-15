@@ -114,6 +114,7 @@ module AMM{
     };
     
     struct Configuration {
+      string module_name;
       string manufacturer;
       string model;
       string serial_number;
@@ -127,6 +128,7 @@ module AMM{
     };
     
     struct Status {
+      string module_name;
       string capability;
       status_values status_value;
       sequence <string> message;

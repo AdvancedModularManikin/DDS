@@ -47,7 +47,7 @@ DDS_Manager::DDS_Manager(const char *nodeName, ParticipantListener *participantL
     auto *pub_listener = new DDS_Listeners::PubListener();
 
     config_publisher = InitializePublisher(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
-                                                       pub_listener);
+                                           pub_listener);
 
     status_publisher = InitializePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
                                            pub_listener);
@@ -119,37 +119,19 @@ Subscriber *DDS_Manager::InitializeSubscriber(std::string topicName, TopicDataTy
 }
 
 void DDS_Manager::PublishModuleConfiguration(
+        const std::string &module_name,
         const std::string &manufacturer,
         const std::string &model,
         const std::string &serial_number,
         const std::string &version,
-        const AMM::Capability::AMM_version &amm_version,
         const std::string &capabilities
 ) {
     AMM::Capability::Configuration configInstance;
+    configInstance.module_name(module_name);
     configInstance.manufacturer(manufacturer);
     configInstance.model(model);
     configInstance.serial_number(serial_number);
     configInstance.version(version);
-    configInstance.amm_version(amm_version);
-    configInstance.capabilities(capabilities);
-    PublishModuleConfiguration(configInstance);
-}
-
-void DDS_Manager::PublishModuleConfiguration(
-        const std::string &manufacturer,
-        const std::string &model,
-        const std::string &serial_number,
-        const std::string &version,
-        //const AMM::Capability::AMM_version &amm_version,
-        const std::string &capabilities
-) {
-    AMM::Capability::Configuration configInstance;
-    configInstance.manufacturer(manufacturer);
-    configInstance.model(model);
-    configInstance.serial_number(serial_number);
-    configInstance.version(version);
-    //configInstance.amm_version(amm_version);
     configInstance.capabilities(capabilities);
     PublishModuleConfiguration(configInstance);
 }
@@ -159,17 +141,20 @@ void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration conf
     config_publisher->write((void *) &configInstance);
 }
 
-void DDS_Manager::SetStatus(AMM::Capability::status_values status) {
+void DDS_Manager::SetStatus(const std::string &module_name, AMM::Capability::status_values status) {
     AMM::Capability::Status statusInstance;
+    statusInstance.module_name(module_name);
     statusInstance.status_value(status);
     SetStatus(statusInstance);
 }
 
 // Statuses other than OPERATIONAL can have messaging attached to them
-void DDS_Manager::SetStatus(AMM::Capability::status_values status, const std::vector<std::string> &message) {
+void DDS_Manager::SetStatus(const std::string &module_name, AMM::Capability::status_values status,
+                            const std::vector <std::string> &message) {
     AMM::Capability::Status statusInstance;
     statusInstance.status_value(status);
     statusInstance.message(message);
+    statusInstance.module_name(module_name);
     SetStatus(statusInstance);
 }
 
@@ -179,8 +164,8 @@ void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
 
 string DDS_Manager::GetCapabilitiesAsString(const std::string &filename) {
     std::ifstream ifs(filename);
-    std::string capabilitiesContent ( (std::istreambuf_iterator<char>(ifs) ),
-                                      (std::istreambuf_iterator<char>()    ) );
+    std::string capabilitiesContent((std::istreambuf_iterator<char>(ifs)),
+                                    (std::istreambuf_iterator<char>()));
     return capabilitiesContent;
 }
 

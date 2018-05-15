@@ -88,11 +88,11 @@ std::string state_path = "./states/";
 std::string patient_path = "./patients/";
 std::string dataKey = "name";
 
-std::vector<std::string> actions;
+std::vector <std::string> actions;
 
 std::map<std::string, double> nodeDataStorage;
 
-std::map<std::string, std::string> statusStorage = {
+std::map <std::string, std::string> statusStorage = {
         {"STATUS",       "NOT RUNNING"},
         {"LAST_COMMAND", ""},
         {"TICK",         "0"},
@@ -205,16 +205,7 @@ private:
         Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
         Routes::Get(router, "/debug", Routes::bind(&DDSEndpoint::doDebug, this));
 
-
-        Routes::Get(router, "/module/:name", Routes::bind(&DDSEndpoint::getModule, this));
-
-        Routes::Get(router, "/modules/capability", Routes::bind(&DDSEndpoint::getModulesCapability, this));
-        Routes::Get(router, "/modules/status", Routes::bind(&DDSEndpoint::getModulesStatus, this));
         Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
-
-
-        Routes::Get(router, "/subscribers", Routes::bind(&DDSEndpoint::getSubscribers, this));
-        Routes::Get(router, "/publishers", Routes::bind(&DDSEndpoint::getPublishers, this));
 
         Routes::Get(router, "/shutdown", Routes::bind(&DDSEndpoint::doShutdown, this));
 
@@ -233,14 +224,14 @@ private:
 
     void getInstance(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
-        Writer<StringBuffer> writer(s);
+        Writer <StringBuffer> writer(s);
 
-	std::ifstream t("mule1/current_scenario.txt");
+        std::ifstream t("mule1/current_scenario.txt");
         std::string scenario((std::istreambuf_iterator<char>(t)),
                              std::istreambuf_iterator<char>());
-	t.close();
-	
-	
+        t.close();
+
+
         writer.StartObject();
         writer.Key("name");
         writer.String(hostname);
@@ -248,7 +239,7 @@ private:
         writer.String(scenario.c_str());
         writer.EndObject();
 
-	
+
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
@@ -257,7 +248,7 @@ private:
 
 
         StringBuffer s;
-        Writer<StringBuffer> writer(s);
+        Writer <StringBuffer> writer(s);
 
         writer.StartArray();
         if (exists(state_path) && is_directory(state_path)) {
@@ -305,7 +296,7 @@ private:
 
     void getPatients(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
-        Writer<StringBuffer> writer(s);
+        Writer <StringBuffer> writer(s);
 
         writer.StartArray();
         if (exists(patient_path) && is_directory(patient_path)) {
@@ -334,7 +325,7 @@ private:
 
     void getActions(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
-        Writer<StringBuffer> writer(s);
+        Writer <StringBuffer> writer(s);
 
         writer.StartArray();
         if (exists(action_path) && is_directory(action_path)) {
@@ -381,7 +372,7 @@ private:
         auto name = request.param(":name").as<std::string>();
         SendCommand(name);
         StringBuffer s;
-        Writer<StringBuffer> writer(s);
+        Writer <StringBuffer> writer(s);
         writer.StartObject();
         writer.Key("Sent command");
         writer.String(name.c_str());
@@ -390,194 +381,25 @@ private:
         response.send(Http::Code::Ok, s.GetString());
     }
 
-    void getPublishers(const Rest::Request &request, Http::ResponseWriter response) {
+
+    void getModules(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
-        Writer<StringBuffer> writer(s);
-        writer.StartArray();
-/*
-        slave_listener_sub.mapmutex.lock();
-        auto publisher_map = slave_listener_sub.topicNtypes;
-        slave_listener_sub.mapmutex.unlock();
-
-        for (auto &sub_entry: publisher_map) {
-            writer.StartObject();
-            writer.Key("Topic");
-            writer.String(sub_entry.first.c_str());
-            writer.StartArray();
-            for (auto &type : sub_entry.second) {
-                writer.StartObject();
-                writer.Key("Type");
-                writer.String(type.c_str());
-                writer.EndObject();
-            }
-            writer.EndArray();
-            writer.EndObject();
-        }*/
-        writer.EndArray();
-        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-    }
-
-    void getSubscribers(const Rest::Request &request, Http::ResponseWriter response) {
-        StringBuffer s;
-        Writer<StringBuffer> writer(s);
-        writer.StartArray();
-
-        /*slave_listener_pub.mapmutex.lock();
-        auto subscriber_map = slave_listener_pub.topicNtypes;
-        slave_listener_pub.mapmutex.unlock();
-
-        for (auto &sub_entry: subscriber_map) {
-            writer.StartObject();
-            writer.Key("Topic");
-            writer.String(sub_entry.first.c_str());
-            writer.StartArray();
-            for (auto &type : sub_entry.second) {
-                writer.StartObject();
-                writer.Key("Type");
-                writer.String(type.c_str());
-                writer.EndObject();
-            }
-            writer.EndArray();
-            writer.EndObject();
-        }*/
-        writer.EndArray();
-        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-    }
-
-    void getModulesStatus(const Rest::Request &request, Http::ResponseWriter response) {
-        StringBuffer s;
-        Writer<StringBuffer> writer(s);
-        writer.StartArray();
-
-        db << "select module_id,capability,status,timestamp from module_status;"
-           >> [&](string module_id, string capability, string status, string timestamp) {
-
-               writer.StartObject();
-
-
-               writer.Key("Module_ID");
-               writer.String(module_id.c_str());
-
-               writer.Key("Module_Capabilities");
-               writer.String(capability.c_str());
-
-               writer.Key("Module_Status");
-               writer.String(status.c_str());
-
-               writer.Key("timestamp");
-               writer.String(timestamp.c_str());
-
-               writer.EndObject();
-           };
-
-
-        writer.EndArray();
-
-        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-    }
-
-    void getModulesCapability(const Rest::Request &request, Http::ResponseWriter response) {
-        StringBuffer s;
-        Writer<StringBuffer> writer(s);
-        writer.StartArray();
-
-        db
-                << "select module_id,manufacturer,model,serial_number,version,capabilities,timestamp from module_capabilities;"
-                >> [&](string module_id, string manufacturer, string model, string serial_number, string version,
-                       string capabilities, string timestamp) {
-                    writer.StartObject();
-
-                    writer.Key("Module_ID");
-                    writer.String(module_id.c_str());
-
-                    writer.Key("Manufacturer");
-                    writer.String(manufacturer.c_str());
-
-                    writer.Key("Model");
-                    writer.String(model.c_str());
-
-                    writer.Key("Serial_Number");
-                    writer.String(serial_number.c_str());
-
-                    writer.Key("Version");
-                    writer.String(version.c_str());
-
-                    writer.Key("Capabilities");
-                    writer.String(capabilities.c_str());
-
-                    writer.Key("timestamp");
-                    writer.String(timestamp.c_str());
-
-                    writer.EndObject();
-                };
-
-
-        writer.EndArray();
-
-        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-    }
-
-
-
-
-void getModules(const Rest::Request &request, Http::ResponseWriter response) {
-        StringBuffer s;
-        Writer<StringBuffer> writer(s);
+        Writer <StringBuffer> writer(s);
         writer.StartArray();
 
         db << "SELECT "
-  "module_capabilities.module_id AS module_id,"
-  "module_capabilities.capabilities as capabilities,"
-  "module_status.capability as capability,"
-  "module_status.status as capability_status,"
-  "module_capabilities.manufacturer as manufacturer,"
-  "module_capabilities.model as model "
-  " FROM "
-" module_capabilities "
-" LEFT JOIN module_status ON module_capabilities.module_id = module_status.module_id;"
-           >> [&](string module_id, string capabilities, string capability, string capability_status, string manufacturer, string model) {
-               writer.StartObject();
-
-               writer.Key("Module_ID");
-               writer.String(module_id.c_str());
-              
-                writer.Key("Manufacturer");
-                writer.String(manufacturer.c_str());
-                
-                writer.Key("Model");
-                writer.String(model.c_str());
-                
-                      writer.Key("Module_Capabilities");
-                      writer.String(capabilities.c_str());
-
-               writer.Key("Capability_Status");
-               writer.String(capability.c_str());
-
-                      writer.Key("Status");
-                      writer.String(capability_status.c_str());
-
-
-               writer.EndObject();
-           };
-
-
-        writer.EndArray();
-
-        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-    }
-
-    void getModulesAlternate(const Rest::Request &request, Http::ResponseWriter response) {
-        StringBuffer s;
-        Writer<StringBuffer> writer(s);
-        writer.StartArray();
-
-        db << "select module_id,module_name from modules;"
-           >> [&](string module_id, string module_name) {
+                "module_capabilities.module_id AS module_id,"
+                "module_capabilities.module_name AS module_name,"
+                "module_capabilities.capabilities as capabilities,"
+                "module_status.capability as capability,"
+                "module_status.status as capability_status,"
+                "module_capabilities.manufacturer as manufacturer,"
+                "module_capabilities.model as model "
+                " FROM "
+                " module_capabilities "
+                " LEFT JOIN module_status ON module_capabilities.module_name = module_status.module_name;"
+           >> [&](string module_id, string module_name, string capabilities, string capability, string capability_status,
+                  string manufacturer, string model) {
                writer.StartObject();
 
                writer.Key("Module_ID");
@@ -586,50 +408,21 @@ void getModules(const Rest::Request &request, Http::ResponseWriter response) {
                writer.Key("Module_Name");
                writer.String(module_name.c_str());
 
+               writer.Key("Manufacturer");
+               writer.String(manufacturer.c_str());
 
-               writer.Key("Capabilities");
-               writer.StartArray();
-               db
-                       << "select manufacturer,model,serial_number,version,capabilities from module_capabilities where module_id=?;"
-                       << module_id
-                       >> [&](string manufacturer, string model, string serial_number, string version,
-                              string capabilities) {
-                           writer.StartObject();
-                           writer.Key("Manufacturer");
-                           writer.String(manufacturer.c_str());
-                           writer.Key("Model");
-                           writer.String(model.c_str());
-                           writer.Key("Serial_Number");
-                           writer.String(serial_number.c_str());
-                           writer.Key("Version");
-                           writer.String(version.c_str());
-                           writer.Key("Capabilities");
-                           writer.String(capabilities.c_str());
-                           writer.EndObject();
-                       };
-               writer.EndArray();
+               writer.Key("Model");
+               writer.String(model.c_str());
+
+               writer.Key("Module_Capabilities");
+               writer.String(capabilities.c_str());
+
+               writer.Key("Capability_Status");
+               writer.String(capability.c_str());
 
                writer.Key("Status");
-               writer.StartArray();
-               db << "select module_id,capability,status,timestamp from module_status where module_id=?;"
-                  << module_id
-                  >> [&](string module_id, string capability, string status, string timestamp) {
-                      writer.StartObject();
-                      writer.Key("Module_ID");
-                      writer.String(module_id.c_str());
+               writer.String(capability_status.c_str());
 
-                      writer.Key("Module_Capabilities");
-                      writer.String(capability.c_str());
-
-                      writer.Key("Module_Status");
-                      writer.String(status.c_str());
-
-                      writer.Key("timestamp");
-                      writer.String(timestamp.c_str());
-
-                      writer.EndObject();
-                  };
-               writer.EndArray();
 
                writer.EndObject();
            };
@@ -641,23 +434,9 @@ void getModules(const Rest::Request &request, Http::ResponseWriter response) {
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
-    void getModule(const Rest::Request &request, Http::ResponseWriter response) {
-
-        auto name = request.param(":name").as<std::string>();
-        StringBuffer s;
-        Writer<StringBuffer> writer(s);
-
-
-        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-        /**} else {
-            response.send(Http::Code::Not_Found, "Node data does not exist");
-        **/
-    }
-
     void getNodes(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
-        Writer<StringBuffer> writer(s);
+        Writer <StringBuffer> writer(s);
         writer.StartArray();
 
         auto nit = nodeDataStorage.begin();
@@ -690,7 +469,7 @@ void getModules(const Rest::Request &request, Http::ResponseWriter response) {
         auto it = nodeDataStorage.find(name);
         if (it != nodeDataStorage.end()) {
             StringBuffer s;
-            Writer<StringBuffer> writer(s);
+            Writer <StringBuffer> writer(s);
             writer.StartObject();
             writer.Key(it->first.c_str());
             writer.Double(it->second);
@@ -716,10 +495,10 @@ void getModules(const Rest::Request &request, Http::ResponseWriter response) {
     }
 
     typedef std::mutex Lock;
-    typedef std::lock_guard<Lock> Guard;
+    typedef std::lock_guard <Lock> Guard;
     Lock commandLock;
 
-    std::shared_ptr<Http::Endpoint> httpEndpoint;
+    std::shared_ptr <Http::Endpoint> httpEndpoint;
     Rest::Router router;
 };
 
@@ -761,6 +540,7 @@ int main(int argc, char *argv[]) {
     string action;
 
     const char *nodeName = "AMM_REST_Adapter";
+    std::string nodeString(nodeName);
     auto *mgr = new DDS_Manager(nodeName);
     mp_participant = mgr->GetParticipant();
 
@@ -784,6 +564,7 @@ int main(int argc, char *argv[]) {
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            nodeString,
             "Vcom3D",
             "REST_Adapter",
             "00001",
@@ -792,7 +573,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(OPERATIONAL);
+    mgr->SetStatus(nodeString, OPERATIONAL);
 
     std::thread udpD(UdpDiscoveryThread);
 

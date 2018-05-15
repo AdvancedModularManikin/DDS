@@ -81,8 +81,9 @@ public:
 
 	ostringstream statusValue;
 	statusValue << st.status_value();
-        db << "replace into module_status (module_id, capability, status) values (?,?,?);"
+        db << "replace into module_status (module_id, module_name, capability, status) values (?,?,?);"
            << truncated_module_id
+                << st.module_name()
            << st.capability()
            << statusValue.str();
     };
@@ -101,8 +102,9 @@ public:
 
 
         db
-                << "replace into module_capabilities (module_id, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?);"
+                << "replace into module_capabilities (module_id, module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?);"
                 << truncated_module_id
+                << cfg.module_name()
                 << cfg.manufacturer()
                 << cfg.model()
                 << cfg.serial_number()
@@ -182,6 +184,7 @@ int main(int argc, char *argv[]) {
 
     ModuleListener mL;
     const char *nodeName = "AMM_Capture";
+    std::string nodeString(nodeName);
     auto *mgr = new DDS_Manager(nodeName, &mL);
 
     AMMListener ammL;

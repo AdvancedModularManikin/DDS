@@ -55,5 +55,6 @@ protected:
     const char *nodeName = "AMM_ModuleManager";
     DDS_Manager *mgr = new DDS_Manager(nodeName);
 
+
 };
 

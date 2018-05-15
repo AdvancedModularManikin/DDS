@@ -17,8 +17,9 @@ SimulationManager::SimulationManager() {
     m_runThread = false;
 
     currentScenario = mgr->GetScenario();
-
+    std::string nodeString(nodeName);
     mgr->PublishModuleConfiguration(
+            nodeString,
             "Vcom3D",
             "SimulationManager",
             "00001",
@@ -26,7 +27,7 @@ SimulationManager::SimulationManager() {
             mgr->GetCapabilitiesAsString("mule1/module_capabilities/simulation_manager_capabilities.xml")
     );
 
-    mgr->SetStatus(OPERATIONAL);
+    mgr->SetStatus( nodeString,OPERATIONAL);
 }
 
 void SimulationManager::StartSimulation() {

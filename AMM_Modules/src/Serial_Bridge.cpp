@@ -81,12 +81,10 @@ vector<string> explode( const string &delimiter, const string &str)
 void sendConfigInfo(std::string scene) {
     ostringstream static_filename;
     static_filename << "mule1/module_configuration_static/" << scene << "_liquid_sensor.txt";
-    cout << "Loading static filename " << static_filename.str() << endl;
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
     ifs.close();
-    cout << "The config looks like: " << configContent << endl;
      vector<string> v = explode("\n", configContent);
     for(int i=0; i<v.size(); i++) {
     std::this_thread::sleep_for (std::chrono::milliseconds(100));
@@ -123,8 +121,9 @@ void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, 
 	  cout << "\t[CAPABILITY_XML] " << value << endl;
 	  first_message = false;
         mgr->PublishModuleConfiguration(
+                "liquid_reservoir",
                 "Vcom3D",
-                "Arduino",
+                "liquid_reservoir",
                 "00001",
                 "0.0.1",
                 value
@@ -133,9 +132,9 @@ void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, 
 	  cout << "\t[STATUS_XML] " << value << endl;
 	  std::size_t found = value.find(haltingString);
 	  if (found!=std::string::npos) {
-	    mgr->SetStatus(HALTING_ERROR);
+	    mgr->SetStatus("liquid_reservoir", HALTING_ERROR);
 	  } else {
-	    mgr->SetStatus(OPERATIONAL);
+	    mgr->SetStatus("liquid_reservoir", OPERATIONAL);
 	  }
 	}
       } else {
@@ -200,7 +199,7 @@ int main(int argc, char *argv[]) {
             daemonize = 1;
         }
     }
-
+    std::string nodeString(nodeName);
     mgr = new DDS_Manager(nodeName);
 
     auto * node_sub_listener = new DDS_Listeners::NodeSubListener();
@@ -235,6 +234,7 @@ int main(int argc, char *argv[]) {
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            nodeString,
             "Vcom3D",
             nodeName,
             "00001",
@@ -243,7 +243,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(OPERATIONAL);
+    mgr->SetStatus( nodeString,OPERATIONAL);
 
     cout << "=== [Serial_Bridge] Ready ..." << endl;
 

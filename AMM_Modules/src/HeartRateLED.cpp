@@ -97,6 +97,7 @@ int main(int argc, char *argv[]) {
     int spi_fd = open(device, O_RDWR);
 
     const char* nodeName = "AMM_HeartRateLED";
+    std::string nodeString(nodeName);
     auto *mgr = new DDS_Manager(nodeName);
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
@@ -114,6 +115,7 @@ int main(int argc, char *argv[]) {
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            nodeString,
             "Vcom3D",
             "HeartRateLED",
             "00001",
@@ -122,7 +124,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(OPERATIONAL);
+    mgr->SetStatus( nodeString, OPERATIONAL);
 
 
     int count = 0;

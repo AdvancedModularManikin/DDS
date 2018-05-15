@@ -21,7 +21,9 @@
 #include <fstream>
 #include <string>
 #include <iostream>
-
+#include <algorithm>
+#include <string>
+#include <cctype>
 
 using namespace std;
 
@@ -45,6 +47,9 @@ const string actionPrefix = "ACT=";
 const string keepAlivePrefix = "[KEEPALIVE]";
 const string loadScenarioPrefix = "LOAD_SCENARIO:";
 const string haltingString = "HALTING_ERROR";
+const string propaqName = "propaq";
+const string labsName = "labs";
+const string vpName = "virtual_patient";
 
 string encodedConfig = "";
 
@@ -54,7 +59,7 @@ Publisher *command_publisher;
 
 DDS_Manager *mgr;
 
-std::vector<std::string> publishNodes = {
+std::vector <std::string> publishNodes = {
         "EXIT",
         "SIM_TIME",
         "Cardiovascular_HeartRate",
@@ -77,6 +82,16 @@ std::vector<std::string> publishNodes = {
 
 std::map<std::string, double> labNodes;
 
+bool findStringIC(const std::string & strHaystack, const std::string & strNeedle)
+{
+    auto it = std::search(
+            strHaystack.begin(), strHaystack.end(),
+            strNeedle.begin(),   strNeedle.end(),
+            [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+    );
+    return (it != strHaystack.end() );
+}
+
 std::string decode64(const std::string &val) {
     using namespace boost::archive::iterators;
     using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
@@ -87,7 +102,7 @@ std::string decode64(const std::string &val) {
 
 std::string encode64(const std::string &val) {
     using namespace boost::archive::iterators;
-    using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+    using It = base64_from_binary <transform_width<std::string::const_iterator, 6, 8>>;
     auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
     return tmp.append((3 - val.size() % 3) % 3, '=');
 }
@@ -111,27 +126,20 @@ void InitializeLabNodes() {
 }
 
 void sendConfig(Client *c, std::string clientType) {
-    cout << "Reading from current scenario file..." << endl;
     std::ifstream t("mule1/current_scenario.txt");
     std::string scenario((std::istreambuf_iterator<char>(t)),
                          std::istreambuf_iterator<char>());
 
     scenario.erase(std::remove(scenario.begin(), scenario.end(), '\n'), scenario.end());
-    
-    cout << "We got: " << scenario<< endl;
     t.close();
 
     ostringstream static_filename;
     static_filename << "mule1/module_configuration_static/" << scenario << "_" << clientType << "_configuration.xml";
-    cout << "Loading static filename " << static_filename.str() << endl;
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
     std::string encodedConfigContent = encode64(configContent);
     encodedConfig = configPrefix + encodedConfigContent + "\n";
-
-    cout << "The unencoded config looks like: " << configContent << endl;
-    cout << "The encoded config looks like: " << encodedConfig << endl;
 
     Server::SendToClient(c, encodedConfig);
 }
@@ -139,15 +147,12 @@ void sendConfig(Client *c, std::string clientType) {
 void sendConfigToAll(string scene) {
     ostringstream static_filename;
     static_filename << "mule1/module_configuration_static/" << scene << "_virtual_patient_configuration.xml";
-    cout << "Loading static filename " << static_filename.str() << endl;
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
     std::string encodedConfigContent = encode64(configContent);
     encodedConfig = configPrefix + encodedConfigContent + "\n";
 
-    cout << "The unencoded config looks like: " << configContent << endl;
-    cout << "The encoded config looks like: " << encodedConfig << endl;
     std::string loadScenarioPrefix = "LOAD_SCENARIO:";
     s->SendToAll(encodedConfig);
 }
@@ -179,33 +184,33 @@ public:
         }
     }
 
-  void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
-    cout << "We got command data!   It is: " << c.message() << endl;
-    if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
-      std::string value = c.message().substr(sysPrefix.size());
-      if (value.compare("START_SIM") == 0) {
-	std::string tmsg = "ACT=START_SIM";
-	s->SendToAll(tmsg);
-      } else if (value.compare("STOP_SIM") == 0) {
-	std::string tmsg = "ACT=STOP_SIM";
-	s->SendToAll(tmsg);
-      } else if (value.compare("PAUSE_SIM") == 0) {
-	std::string tmsg = "ACT=PAUSE_SIM";
-	s->SendToAll(tmsg);
-      } else if (value.compare("RESET_SIM") == 0) {
-	std::string tmsg = "ACT=RESET_SIM";
-	s->SendToAll(tmsg);
-        InitializeLabNodes();
-      } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
-	std::string scene = value.substr(loadScenarioPrefix.size());
-	sendConfigToAll(scene);
-      } 
-    } else {
-      std::ostringstream messageOut;
-      messageOut << "ACT" << "=" << c.message() << "|";
-      s->SendToAll(messageOut.str());
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
+        cout << "We got command data!   It is: " << c.message() << endl;
+        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+            std::string value = c.message().substr(sysPrefix.size());
+            if (value.compare("START_SIM") == 0) {
+                std::string tmsg = "ACT=START_SIM";
+                s->SendToAll(tmsg);
+            } else if (value.compare("STOP_SIM") == 0) {
+                std::string tmsg = "ACT=STOP_SIM";
+                s->SendToAll(tmsg);
+            } else if (value.compare("PAUSE_SIM") == 0) {
+                std::string tmsg = "ACT=PAUSE_SIM";
+                s->SendToAll(tmsg);
+            } else if (value.compare("RESET_SIM") == 0) {
+                std::string tmsg = "ACT=RESET_SIM";
+                s->SendToAll(tmsg);
+                InitializeLabNodes();
+            } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+                std::string scene = value.substr(loadScenarioPrefix.size());
+                sendConfigToAll(scene);
+            }
+        } else {
+            std::ostringstream messageOut;
+            messageOut << "ACT" << "=" << c.message() << "|";
+            s->SendToAll(messageOut.str());
+        }
     }
-  }
 };
 
 // Override client handler code from Net Server
@@ -248,7 +253,7 @@ void *Server::HandleClient(void *args) {
         } else if (n < 0) {
             cerr << "Error while receiving message from client: " << c->name << endl;
         } else {
-            vector<string> strings;
+            vector <string> strings;
             boost::split(strings, buffer, boost::is_any_of("\n"));
 
             for (auto str : strings) {
@@ -257,9 +262,9 @@ void *Server::HandleClient(void *args) {
                     //                    cout << "We got a message from " << c->name << ": " << str << endl;
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
                         string moduleName = str.substr(modulePrefix.size());
-			ServerThread::LockMutex(c->name);
+                        ServerThread::LockMutex(c->name);
                         c->SetName(moduleName);
-			ServerThread::UnlockMutex(c->name);
+                        ServerThread::UnlockMutex(c->name);
                         cout << "[CLIENT][" << moduleName << "] module connected" << endl;
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
                         // Registering for data
@@ -271,34 +276,45 @@ void *Server::HandleClient(void *args) {
                         cout << "[CLIENT][STATUS] Client sent status of: " << statusVal << endl;
                         /*XMLDocument doc (false);
                         doc.Parse (statusVal);*/
-			std::size_t found = statusVal.find(haltingString);
-			if (found!=std::string::npos) {
-			  cout << "\tThis is a halting error, so set that status" << endl;
-			  mgr->SetStatus(HALTING_ERROR);
-			} else {
-			  cout << "Not a halting error. It was " << found << endl;
-			  mgr->SetStatus(OPERATIONAL);
-			}
+                        std::string nodeName;
+                        if (findStringIC(statusVal,vpName)) {
+                            nodeName = "virtual_patient";
+                        } else if (findStringIC(statusVal,propaqName)) {
+                            nodeName = "propaq";
+                        } else if (findStringIC(statusVal,labsName)) {
+                            nodename = "labs";
+                        }
+                        std::size_t found = statusVal.find(haltingString);
+                        if (found != std::string::npos) {
+                            cout << "\tThis is a halting error, so set that status" << endl;
+                            mgr->SetStatus(nodeName,HALTING_ERROR);
+                        } else {
+                            cout << "Not a halting error. It was " << found << endl;
+                            mgr->SetStatus(nodeName,OPERATIONAL);
+                        }
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
                         std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
                         cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
                         /*XMLDocument doc (false);
                         doc.Parse (capabilityVal);*/
-
+                        std::string nodeName;
+                        if (findStringIC(capabilityVal,vpName)) {
+                            nodeName = "virtual_patient";
+                        } else if (findStringIC(capabilityVal,propaqName)) {
+                            nodeName = "propaq";
+                        } else if (findStringIC(capabilityVal,labsName)) {
+                            nodename = "labs";
+                        }
                         mgr->PublishModuleConfiguration(
+                                nodeName,
                                 "Vcom3D",
                                 c->name,
                                 "00001",
                                 "0.0.1",
                                 capabilityVal
                         );
-			/**
-                        cout << "[CLIENT][CONFIG] Sending configuration file" << endl;
-                        cout << "[CLIENT] Client name is " << c->name << endl;
-                        sendConfig(c, "virtual_patient");
-                        cout << "[CLIENT][CONFIG] Sent!" << endl;
-			**/
+
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
@@ -379,6 +395,7 @@ int main(int argc, const char *argv[]) {
     InitializeLabNodes();
 
     const std::string nodeName = "AMM_TCP_Bridge";
+    std::string nodeString(nodeName);
     mgr = new DDS_Manager(nodeName.c_str());
 
 
@@ -403,6 +420,7 @@ int main(int argc, const char *argv[]) {
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            nodeString,
             "Vcom3D",
             nodeName,
             "00001",
@@ -411,7 +429,7 @@ int main(int argc, const char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(OPERATIONAL);
+    mgr->SetStatus(nodeString, OPERATIONAL);
 
     cout << "=== [Network_Bridge] Ready ..." << endl;
 

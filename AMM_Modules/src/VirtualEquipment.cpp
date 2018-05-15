@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 
     string nodeName = "AMM_VirtualEquipment";
     auto *mgr = new DDS_Manager(nodeName.c_str());
-
+    std::string nodeString(nodeName);
     VirtualEquipmentListener vel;
     vel.SetFilter(&node_paths);
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
@@ -57,6 +57,7 @@ int main(int argc, char *argv[]) {
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            nodeString,
             "Vcom3D",
             nodeName,
             "00001",
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(OPERATIONAL);
+    mgr->SetStatus( nodeString,OPERATIONAL);
 
     cout << "=== [VirtualEquipment] Ready ..." << endl;
 

@@ -24,16 +24,18 @@ bool ModuleManager::isRunning() {
 }
 
 void ModuleManager::Start() {
+    std::string nodeString(nodeName);
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            nodeString,
             "Vcom3D",
             "Module_Manager",
             "00001",
             "0.0.1",
             mgr->GetCapabilitiesAsString("mule1/module_capabilities/module_manager_capabilities.xml")
     );
-    mgr->SetStatus(OPERATIONAL);
+    mgr->SetStatus(nodeString, OPERATIONAL);
 
     if (!m_runThread) {
         m_runThread = true;

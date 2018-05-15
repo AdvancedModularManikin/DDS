@@ -17,14 +17,17 @@ int main(int argc, char *argv[]) {
             return 0;
         }
     }
-    const char* nodeName = "AMM_CommandExecutor";
+    const char *nodeName = "AMM_CommandExecutor";
+    std::string nodeString(nodeName);
     auto *mgr = new DDS_Manager(nodeName);
     auto *pub_listener = new DDS_Listeners::PubListener();
-    Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
+    Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic,
+                                                            AMM::DataTypes::getCommandType(), pub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            nodeString,
             "Vcom3D",
             "CommandExecutor",
             "00001",
@@ -33,7 +36,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(OPERATIONAL);
+    mgr->SetStatus(nodeString, OPERATIONAL);
 
     std::string action;
     bool closed = false;

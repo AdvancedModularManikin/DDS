@@ -39,15 +39,7 @@ public:
 //    ~DDS_Manager();
 
     void PublishModuleConfiguration(
-            const std::string &manufacturer,
-            const std::string &model,
-            const std::string &serial_number,
-            const std::string &version,
-            const AMM::Capability::AMM_version &amm_version,
-            const std::string &capabilities
-    );
-
-    void PublishModuleConfiguration(
+            const std::string &module_name,
             const std::string &manufacturer,
             const std::string &model,
             const std::string &serial_number,
@@ -57,9 +49,9 @@ public:
 
     void PublishModuleConfiguration(AMM::Capability::Configuration configInstance);
 
-    void SetStatus(AMM::Capability::status_values status);
+    void SetStatus(const std::string &module_name, AMM::Capability::status_values status);
 
-    void SetStatus(AMM::Capability::status_values status, const std::vector<std::string> &message);
+    void SetStatus(const std::string &module_name, AMM::Capability::status_values status, const std::vector<std::string> &message);
 
     void SetStatus(AMM::Capability::Status statusInstance);
 
