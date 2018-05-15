@@ -38,9 +38,9 @@ public:
             cout << "[MM] Stored with truncated ID: " << truncated_module_id << endl;
 
             try {
-                db << "insert into modules (module_id, module_name) values (?,?);"
-                   << truncated_module_id
-                   << name;
+	      db << "insert into modules (module_id, module_name) values (?,?);"
+	         << truncated_module_id
+		 << name;
             } catch (exception &e) {
                 cout << e.what() << endl;
             }
@@ -51,8 +51,8 @@ public:
         std::size_t pos = module_id.str().find("|");
         std::string truncated_module_id = module_id.str().substr(0, pos);
         try {
-            db << "delete from modules where module_id=?;"
-               << truncated_module_id;
+	  db << "delete from modules where module_id=?;"
+	     << truncated_module_id;
         } catch (exception &e) {
             cout << e.what() << endl;
         }
@@ -63,7 +63,10 @@ public:
 
 class AMMListener : public ListenerInterface {
 public:
-    std::map<std::string, std::vector<std::string>> topicNtypes;
+
+
+
+  std::map<std::string, std::vector<std::string>> topicNtypes;
     std::mutex m_mutex;
 
     void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) override {
@@ -81,11 +84,16 @@ public:
 
 	ostringstream statusValue;
 	statusValue << st.status_value();
-        db << "replace into module_status (module_id, module_name, capability, status) values (?,?,?);"
-           << truncated_module_id
-                << st.module_name()
-           << st.capability()
-           << statusValue.str();
+	try {
+	  db << "replace into module_status (module_id, module_name, capability, status) values (?,?,?,?);"
+	     << truncated_module_id
+	     << st.module_name()
+	     << st.capability()
+	     << statusValue.str();
+	} catch (exception &e) {
+	  cout << e.what() << endl;
+	}
+
     };
 
     void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
@@ -94,22 +102,26 @@ public:
         std::size_t pos = module_id.str().find("|");
         std::string truncated_module_id = module_id.str().substr(0, pos);
         //    auto timestamp = std::to_string(time(nullptr));
-
+	
         cout << "[MM] Received a capability config message " << endl;
         cout << "[MM] Writer ID\t" << info->sample_identity.writer_guid() << endl;
         cout << "[MM] Truncated ID\t" << truncated_module_id << endl;
         cout << "[MM]\t---" << endl;
 
 
-        db
-                << "replace into module_capabilities (module_id, module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?);"
-                << truncated_module_id
-                << cfg.module_name()
-                << cfg.manufacturer()
-                << cfg.model()
-                << cfg.serial_number()
-                << cfg.version()
-                << cfg.capabilities();
+	try {
+	  db
+	    << "replace into module_capabilities (module_id, module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?,?);"
+	    << truncated_module_id
+	    << cfg.module_name()
+	    << cfg.manufacturer()
+	    << cfg.model()
+	    << cfg.serial_number()
+	    << cfg.version()
+	    << cfg.capabilities();
+	} catch (exception &e) {
+	  cout << e.what() << endl;
+	};
 
     };
 

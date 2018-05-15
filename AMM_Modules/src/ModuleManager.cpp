@@ -41,7 +41,8 @@ int main(int argc, char *argv[]) {
     int daemonize = 0;
     bool setup = false;
     int autostart = 0;
-
+    bool wipe = false;
+    
     cout << "=== [AMM - Module Manager] ===" << endl;
 
     for (int i = 1; i < argc; ++i) {
@@ -59,12 +60,24 @@ int main(int argc, char *argv[]) {
             setup = true;
         }
 
+	if (arg == "-w") {
+	  wipe = true;
+	}
+
         if (arg == "-a") {
             autostart = 1;
         }
 
     }
 
+    if (wipe) {
+      cout << "[MM] Wiping tables on startup" << endl;
+      sqlite_config config;
+      database db("amm.db", config);
+      db << "delete from modules;";
+      db << "delete from module_capabilities;";
+      db << "delete from module_status;";
+    }
 
     if (setup) {
         try {
