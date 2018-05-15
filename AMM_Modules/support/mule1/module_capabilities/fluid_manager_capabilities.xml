@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AMMModuleConfiguration>
+    <module name="fluidics_system" manufacturer="Entropic" model="fluidics_system" serial_number="0" module_version="0.0.1">
+        <versions>
+            <data name="amm_core_version" minimumVersion="0.0.1" />
+            <data name="amm_specification_version" minimumVersion="0.0.1" />
+        </versions>
+        <capabilities>
+            <capability name="fluidics">
+                <configuration_data>
+                    <data name="operating_pressure" type="float" min="0.0" max="15.0"/>
+                </configuration_data>
+            </capability>
+        </capabilities>
+    </module>
+</AMMModuleConfiguration>

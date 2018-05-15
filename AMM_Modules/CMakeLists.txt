@@ -91,6 +91,10 @@ set(HEART_RATE_LED_SOURCES src/HeartRateLED.cpp)
 set(HEART_RATE_LED_EXE amm_heartrate_led)
 add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
 
+set(FLUID_MANAGER_SOURCES src/FluidManager.cpp)
+set(FLUID_MANAGER_EXE amm_fluid_manager)
+add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+
 set(SERIAL_BRIDGE_SOURCES src/Serial_Bridge.cpp src/AMM/SerialPort.cpp src/AMM/SerialPort.h)
 set(SERIAL_BRIDGE_EXE amm_serial_bridge)
 add_executable(${SERIAL_BRIDGE_EXE} ${SERIAL_BRIDGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
@@ -217,6 +221,11 @@ target_link_libraries(${CAPTURE_EXE}
 
 
 target_link_libraries(${HEART_RATE_LED_EXE}
+        fastrtps fastcdr
+        ${DATAMODEL}
+        )
+
+target_link_libraries(${FLUID_MANAGER_EXE}
         fastrtps fastcdr
         ${DATAMODEL}
         )
