@@ -75,7 +75,7 @@ int main(int argc, char *argv[]) {
     auto *mgr = new DDS_Manager(nodeName);
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
-    FluidListener fl
+    FluidListener fl;
     command_sub_listener->SetUpstream(&fl);
     config_sub_listener->SetUpstream(&fl);
 
