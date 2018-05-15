@@ -282,7 +282,7 @@ void *Server::HandleClient(void *args) {
                         } else if (findStringIC(statusVal,propaqName)) {
                             nodeName = "propaq";
                         } else if (findStringIC(statusVal,labsName)) {
-                            nodename = "labs";
+                            nodeName = "labs";
                         }
                         std::size_t found = statusVal.find(haltingString);
                         if (found != std::string::npos) {
@@ -304,7 +304,7 @@ void *Server::HandleClient(void *args) {
                         } else if (findStringIC(capabilityVal,propaqName)) {
                             nodeName = "propaq";
                         } else if (findStringIC(capabilityVal,labsName)) {
-                            nodename = "labs";
+                            nodeName = "labs";
                         }
                         mgr->PublishModuleConfiguration(
                                 nodeName,
