@@ -13,6 +13,10 @@ using namespace std;
 // Daemonize by default
 int daemonize = 1;
 
+
+const string loadScenarioPrefix = "LOAD_SCENARIO:";
+const string haltingString = "HALTING_ERROR";
+
 const string tourniquet_action = "PROPER_TOURNIQUET";
 const string hemorrhage_action = "LEG_HEMORRHAGE";
 float heartrate = 40.0;
@@ -66,9 +70,24 @@ class FluidListener : public ListenerInterface {
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
-
+        cout << "We got command data!   It is: " << c.message() << endl;
+        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+            std::string value = c.message().substr(sysPrefix.size());
+            if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+                std::string scene = value.substr(loadScenarioPrefix.size());
+                ostringstream static_filename;
+                static_filename << "mule1/module_configuration_static/" << scene << "_fluid_manager.xml";
+                std::ifstream ifs(static_filename.str());
+                std::string configContent((std::istreambuf_iterator<char>(ifs)),
+                                          (std::istreambuf_iterator<char>()));
+                ifs.close();
+                // send the config content downstream via SPI?
+                // or just send little pieces
+            }
+        }
     }
 };
+
 
 static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << "\nOptions:\n"
