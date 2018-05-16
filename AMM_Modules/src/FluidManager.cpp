@@ -148,19 +148,7 @@ int main(int argc, char *argv[]) {
 
     int count = 0;
     while (!closed) {
-        //prepare SPI message
-        /*
-         heartrate = 60 (Example)
-         heartrate/60 = 1 = beats/second
-         seconds/ms = 1/1000
-         want ms/beat
-         beats/second*seconds/ms = beats/ms
-         1/beats/ms = ms/beat
 
-         answer = 1/(beats/min * min/sec * sec/ms)
-         answer = 1/(hr * (1/60) * 0.001)
-         */
-        //int spi_msg_full = 1.0/(heartrate * (1.0/60.0) * 0.001);
         unsigned char spi_send[4];
         spi_send[0] = heartrate;
         spi_send[1] = breathrate;
@@ -180,7 +168,7 @@ int main(int argc, char *argv[]) {
         if (spi_rcvd[1] != 0u) {
             //button 2 was pressed
             //send hemorrhage action
-            cout << "=== [HeartRateLED] Sending a command:" << hemorrhage_action << endl;
+            cout << "=== [FluidManager] Sending a command:" << hemorrhage_action << endl;
             AMM::PatientAction::BioGears::Command cmdInstance;
             cmdInstance.message(hemorrhage_action);
             command_publisher->write(&cmdInstance);
