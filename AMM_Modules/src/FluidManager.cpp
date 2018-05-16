@@ -66,7 +66,10 @@ void ProcessConfig(const std::string configContent) {
   while(entry4) {
     if (!strcmp(entry4->ToElement()->Attribute("name"), "fluidics")) break;
     
-    entry4 = entry4->ToElement()->NextSibling()->ToElement();
+	auto v = entry4->ToElement()->NextSibling();
+	if (v) {
+		entry4 = v->ToElement();
+	} else break;
   }
   if (!entry4) {
     perror("[FLUIDMGR] cfg data didn't contain <capability name=fluidics>");
@@ -84,9 +87,12 @@ void ProcessConfig(const std::string configContent) {
       unsigned char spi_send[8];
       memcpy(spi_send+4, &operating_pressure, 4);
       spi_proto_send_msg(&spi_state, spi_send, 4);
+	  break;
     }
-    entry5 = entry5->ToElement()->NextSibling()->ToElement();
-
+	auto v = entry5->ToElement()->NextSibling();
+	if (v) {
+		entry5 = v->ToElement();
+	} else break;
   }
   
   if (!entry5) {
