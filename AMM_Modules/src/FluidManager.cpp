@@ -70,7 +70,6 @@ class FluidListener : public ListenerInterface {
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
-        cout << "We got command data!   It is: " << c.message() << endl;
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
@@ -81,6 +80,11 @@ class FluidListener : public ListenerInterface {
                 std::string configContent((std::istreambuf_iterator<char>(ifs)),
                                           (std::istreambuf_iterator<char>()));
                 ifs.close();
+                /**
+                 <configuration_data>
+                    <data name="operating_pressure" value="5.0" />
+                </configuration_data>
+                 */
                 // send the config content downstream via SPI?
                 // or just send little pieces
             }
