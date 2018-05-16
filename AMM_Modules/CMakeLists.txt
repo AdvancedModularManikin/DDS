@@ -87,7 +87,7 @@ set(COMMAND_EXECUTOR_SOURCES src/CommandExecutor.cpp)
 set(COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
 
-set(HEART_RATE_LED_SOURCES src/HeartRateLED.cpp)
+set(HEART_RATE_LED_SOURCES src/HeartRateLED.cpp src/crc16.cpp src/spi_proto.cpp src/config.h src/spi_proto.h)
 set(HEART_RATE_LED_EXE amm_heartrate_led)
 add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
 
