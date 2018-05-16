@@ -75,18 +75,18 @@ class FluidListener : public ListenerInterface {
         // Will receive the above xml - need to pass it via SPI and set status as shown below
 		
 		tinyxml2::XMLDocument doc;
-	    doc.Parse(cfg.capability);
+	    doc.Parse(cfg.capabilities().c_str());
 		tinyxml2::XMLHandle docHandle(&doc);
 	
 	    tinyxml2::XMLElement *entry = docHandle.FirstChildElement("AMMConfiguration").ToElement();
-		tinyxml2::XMLElement *entry2 = entry->FirstChildElement("scenario").ToElement();
-		tinyxml2::XMLElement *entry3 = entry2->FirstChildElement("capabilities").ToElement();
-		tinyxml2::XMLElement *entry4 = entry2->FirstChildElement("capability").ToElement();
+		tinyxml2::XMLElement *entry2 = entry->FirstChildElement("scenario")->ToElement();
+		tinyxml2::XMLElement *entry3 = entry2->FirstChildElement("capabilities")->ToElement();
+		tinyxml2::XMLElement *entry4 = entry2->FirstChildElement("capability")->ToElement();
 		//scan for capability name=fluidics
 		while(entry4) {
 			if (!strcmp(entry4->ToElement()->Attribute("name"), "fluidics")) break;
 			
-			entry4 = entry4->NextSibling();
+			entry4 = entry4->ToElement()->NextSibling()->ToElement();
 		}
 		if (!entry4) {
 			perror("[FLUIDMGR] cfg data didn't contain <capability name=fluidics>");
@@ -94,9 +94,9 @@ class FluidListener : public ListenerInterface {
 		}
 		
 		//scan for data name=operating pressure
-		tinyxml2::XMLElement *entry5 = entry4->FirstChildElement("configuration_data").ToElement();
+		tinyxml2::XMLElement *entry5 = entry4->FirstChildElement("configuration_data")->ToElement();
 		while (entry5) {
-			tinyxml2::XMLElement *entry5_1 = entry5->FirstChildElement("data").ToElement();
+			tinyxml2::XMLElement *entry5_1 = entry5->FirstChildElement("data")->ToElement();
 			if (!strcmp(entry5_1->ToElement()->Attribute("name"),"operating_pressure")) {
 				operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
 				have_pressure = 1;
@@ -106,10 +106,10 @@ class FluidListener : public ListenerInterface {
 				spi_proto_send_msg(&spi_state, spi_send, 4);
 			}
 			
-			entry5 = entry5->NextSibling();
+			entry5 = entry5->ToElement()->NextSibling()->ToElement();
 		}
 		if (!entry5) {
-			perror ("[FLUIDMGR] cfg data didn't contain <data name=operating_pressure>")
+			perror ("[FLUIDMGR] cfg data didn't contain <data name=operating_pressure>");
 		}
     }
 
@@ -195,14 +195,15 @@ int main(int argc, char *argv[]) {
 
 
     int count = 0;
+	bool closed = 0;
     while (!closed) {
-		int ret = spi_proto_prep_msg(s, sendbuf, SPI_TRANSFER_LEN);
+		int ret = spi_proto_prep_msg(s, sendbuf, TRANSFER_SIZE);
 		
         //do SPI communication
-        int spi_tr_res = spi_transfer(spi_fd, sendbuf, recvbuf, SPI_TRANSFER_LEN);
+        int spi_tr_res = spi_transfer(spi_fd, sendbuf, recvbuf, TRANSFER_SIZE);
 		
 		struct spi_packet pack;
-		memcpy(&pack, recvbuf, SPI_TRANSFER_LEN);
+		memcpy(&pack, recvbuf, TRANSFER_SIZE);
 
         ++count;
     }

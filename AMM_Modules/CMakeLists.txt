@@ -91,7 +91,7 @@ set(HEART_RATE_LED_SOURCES src/HeartRateLED.cpp src/crc16.cpp src/spi_proto.cpp 
 set(HEART_RATE_LED_EXE amm_heartrate_led)
 add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
 
-set(FLUID_MANAGER_SOURCES src/FluidManager.cpp)
+set(FLUID_MANAGER_SOURCES src/FluidManager.cpp src/crc16.cpp src/spi_proto.cpp src/config.h src/spi_proto.h)
 set(FLUID_MANAGER_EXE amm_fluid_manager)
 add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
 
