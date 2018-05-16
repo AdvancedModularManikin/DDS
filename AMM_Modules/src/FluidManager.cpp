@@ -54,9 +54,9 @@ struct spi_state spi_state;
 void ProcessConfig(const std::string configContent) {
   tinyxml2::XMLDocument doc;
   doc.Parse(configContent.c_str());
-
+  
   tinyxml2::XMLHandle docHandle(&doc);
-
+  
   tinyxml2::XMLElement *entry = docHandle.FirstChildElement("AMMConfiguration").ToElement();
   tinyxml2::XMLElement *entry2 = entry->FirstChildElement("scenario")->ToElement();
   tinyxml2::XMLElement *entry3 = entry2->FirstChildElement("capabilities")->ToElement();
@@ -66,19 +66,19 @@ void ProcessConfig(const std::string configContent) {
   while(entry4) {
     if (!strcmp(entry4->ToElement()->Attribute("name"), "fluidics")) break;
     
-	auto v = entry4->ToElement()->NextSibling();
-	if (v) {
-		entry4 = v->ToElement();
-	} else break;
+    auto v = entry4->ToElement()->NextSibling();
+    if (v) {
+      entry4 = v->ToElement();
+    } else break;
   }
   if (!entry4) {
     perror("[FLUIDMGR] cfg data didn't contain <capability name=fluidics>");
     return;
   }
-
+  
   //scan for data name=operating pressure
   tinyxml2::XMLElement *entry5 = entry4->FirstChildElement("configuration_data")->ToElement();
-
+  
   while (entry5) {
     tinyxml2::XMLElement *entry5_1 = entry5->FirstChildElement("data")->ToElement();
     if (!strcmp(entry5_1->ToElement()->Attribute("name"),"operating_pressure")) {
@@ -87,27 +87,26 @@ void ProcessConfig(const std::string configContent) {
       unsigned char spi_send[8];
       memcpy(spi_send+4, &operating_pressure, 4);
       spi_proto_send_msg(&spi_state, spi_send, 4);
-	  break;
+      break;
     }
-	auto v = entry5->ToElement()->NextSibling();
-	if (v) {
-		entry5 = v->ToElement();
-	} else break;
+    auto v = entry5->ToElement()->NextSibling();
+    if (v) {
+      entry5 = v->ToElement();
+    } else break;
   }
   
   if (!entry5) {
     perror ("[FLUIDMGR] cfg data didn't contain <data name=operating_pressure>");
   }
+  
 }
 
 
-
 class FluidListener : public ListenerInterface {
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
-      // Will receive the above xml - need to pass it via SPI and set status as shown below
-      
+  void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
+    // Will receive the above xml - need to pass it via SPI and set status as shown below
 
-    }
+  }
   
   void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
     if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
@@ -119,13 +118,13 @@ class FluidListener : public ListenerInterface {
 	std::ifstream ifs(static_filename.str());
 	std::string configContent((std::istreambuf_iterator<char>(ifs)),
 				  (std::istreambuf_iterator<char>()));
-
+	
 	ifs.close();
 	ProcessConfig(configContent);
-
+	
 	cout << " We would set status here.. " <<endl;
 	//	mgr->SetStatus( nodeString, OPERATIONAL);
-
+	
       }
     }
   }
