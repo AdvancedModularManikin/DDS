@@ -116,7 +116,7 @@ void ProcessConfig(const std::string configContent) {
 
 
 class FluidListener : public ListenerInterface {
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
+    void onNewConfigData(AMM::Capability::Configuration cfg) override {
         // Will receive the above xml - need to pass it via SPI and set status as shown below
 
     }

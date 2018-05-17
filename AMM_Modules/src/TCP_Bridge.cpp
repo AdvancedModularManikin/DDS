@@ -162,10 +162,6 @@ void sendConfigToAll(string scene) {
  */
 class TCPBridgeListener : public ListenerInterface {
 public:
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
-        // rip out the capabilities string and send it on to the TCP client
-    }
-
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         if (n.nodepath() == "EXIT") {
             cout << "Shutting down simulation based on shutdown node-data from physiology engine." << endl;

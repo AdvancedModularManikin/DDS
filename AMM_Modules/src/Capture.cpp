@@ -12,49 +12,45 @@ using namespace eprosima;
 using namespace eprosima::fastrtps;
 using namespace sqlite;
 
+database db("amm.db");
 
 class AMMListener : public ListenerInterface {
 public:
-    AMMListener() {
-       database db("amm.db");
+  std::mutex m_mutex;
+  
+  void onNewStatusData(AMM::Capability::Status st) override {
+    
+    cout << "[MM] Received a status message " << endl;
+    
+    ostringstream statusValue;
+    statusValue << st.status_value();
+    try {
+      db << "replace into module_status (module_name, capability, status) values (?,?,?);"
+	 << st.module_name()
+	 << st.capability()
+	 << statusValue.str();
+    } catch (exception &e) {
+      cout << e.what() << endl;
     }
-
-    std::mutex m_mutex;
-    database db;
-
-    void onNewStatusData(AMM::Capability::Status st) override {
-
-        cout << "[MM] Received a status message " << endl;
-
-        ostringstream statusValue;
-        statusValue << st.status_value();
-        try {
-            db << "replace into module_status (module_name, capability, status) values (?,?,?);"
-               << st.module_name()
-               << st.capability()
-               << statusValue.str();
-        } catch (exception &e) {
-            cout << e.what() << endl;
-        }
-
+    
+  };
+  
+  void onNewConfigData(AMM::Capability::Configuration cfg) override {
+    try {
+      db
+	<< "replace into module_capabilities (module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?);"
+	<< cfg.module_name()
+	<< cfg.manufacturer()
+	<< cfg.model()
+	<< cfg.serial_number()
+	<< cfg.version()
+	<< cfg.capabilities();
+    } catch (exception &e) {
+      cout << e.what() << endl;
     };
-
-    void onNewConfigData(AMM::Capability::Configuration cfg) override {
-        try {
-            db
-                    << "replace into module_capabilities (module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?);"
-                    << cfg.module_name()
-                    << cfg.manufacturer()
-                    << cfg.model()
-                    << cfg.serial_number()
-                    << cfg.version()
-                    << cfg.capabilities();
-        } catch (exception &e) {
-            cout << e.what() << endl;
-        };
-
-    };
-
+    
+  };
+  
 };
 
 static void show_usage(const std::string &name) {
@@ -71,10 +67,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    ModuleListener mL;
+
     const char *nodeName = "AMM_Capture";
     std::string nodeString(nodeName);
-    auto *mgr = new DDS_Manager(nodeName, &mL);
+    auto *mgr = new DDS_Manager(nodeName);
 
     AMMListener ammL;
     auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
