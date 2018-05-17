@@ -87,12 +87,6 @@ int main(int argc, char *argv[]) {
     mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
                               config_sub_listener);
 
-
-    // Track subscriptions and publishers
-    std::pair < StatefulReader * , StatefulReader * > EDP_Readers = mgr->GetParticipant()->getEDPReaders();
-    auto result = EDP_Readers.first->setListener(&ammL);
-    result &= EDP_Readers.second->setListener(&ammL);
-
     std::string action;
     bool closed = false;
     do {
