@@ -138,6 +138,8 @@ void DDS_Manager::PublishModuleConfiguration(
 
 
 void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
+  cout << "Publishing configuration.." << endl;
+  
     config_publisher->write((void *) &configInstance);
 }
 
@@ -159,6 +161,7 @@ void DDS_Manager::SetStatus(const std::string &module_name, AMM::Capability::sta
 }
 
 void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
+  cout << "Setting status... " << endl;
     status_publisher->write((void *) &statusInstance);
 }
 
