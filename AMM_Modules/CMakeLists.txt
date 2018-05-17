@@ -94,6 +94,10 @@ add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURC
 set(FLUID_MANAGER_SOURCES src/FluidManager.cpp src/crc16.cpp src/spi_proto.cpp src/config.h src/spi_proto.h)
 set(FLUID_MANAGER_EXE amm_fluid_manager)
 add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+set_target_properties(${FLUID_MANAGER_EXE} PROPERTIES
+        CXX_STANDARD 14
+        CXX_STANDARD_REQUIRED ON
+        )
 
 set(SERIAL_BRIDGE_SOURCES src/Serial_Bridge.cpp src/AMM/SerialPort.cpp src/AMM/SerialPort.h)
 set(SERIAL_BRIDGE_EXE amm_serial_bridge)
@@ -227,6 +231,7 @@ target_link_libraries(${HEART_RATE_LED_EXE}
 
 target_link_libraries(${FLUID_MANAGER_EXE}
         fastrtps fastcdr
+        ${TINYXML2_LIBRARIES}
         ${DATAMODEL}
         )
 
