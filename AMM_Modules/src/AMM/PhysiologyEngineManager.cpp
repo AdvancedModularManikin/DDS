@@ -202,11 +202,11 @@ void PhysiologyEngineManager::Shutdown() {
 
 
 // Listener events
-void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {
+void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n) {
     // Placeholder to listen for higher-weighted node data
 }
 
-void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {
+void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm) {
     if (!cm.message().compare(0, sysPrefix.size(), sysPrefix)) {
         std::string value = cm.message().substr(sysPrefix.size());
         cout << "[PhysiologyManager] We received a SYSTEM action: " << value << endl;
@@ -242,7 +242,7 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
     }
 }
 
-void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {
+void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti) {
     if (m_runThread) {
         if (ti.frame() == -1) {
             cout << "[SHUTDOWN]" << endl;

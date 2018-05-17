@@ -12,17 +12,17 @@ public:
 
     virtual ~ListenerInterface() {};
 
-    virtual void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {};
+    virtual void onNewNodeData(AMM::Physiology::Node n) {};
 
-    virtual void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {};
+    virtual void onNewTickData(AMM::Simulation::Tick ti) {};
 
-    virtual void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {};
+    virtual void onNewCommandData(AMM::PatientAction::BioGears::Command cm) {};
 
     virtual void onNewStatusData(AMM::Capability::Status st) {};
 
     virtual void onNewConfigData(AMM::Capability::Configuration cfg) {};
 
-    virtual void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t *info) {};
+    virtual void onNewScenarioData(AMM::Capability::Scenario sc) {};
 
     std::string sysPrefix = "[SYS]";
     std::string actPrefix = "[ACT]";

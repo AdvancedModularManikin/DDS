@@ -73,7 +73,7 @@ void ModuleManager::Shutdown() {
 }
 
 
-void ModuleManager::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
+void ModuleManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
     cout << "Module manager fired command " << c.message() << endl;
     if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
         std::string value = c.message().substr(sysPrefix.size());
