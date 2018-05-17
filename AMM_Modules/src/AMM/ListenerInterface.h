@@ -18,11 +18,11 @@ public:
 
     virtual void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {};
 
-    virtual void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) {};
+    virtual void onNewStatusData(AMM::Capability::Status st) {};
 
-    virtual void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {};
+    virtual void onNewConfigData(AMM::Capability::Configuration cfg) {};
 
-    virtual void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t *info) {};
+    virtual void onNewScenarioData(AMM::Capability::Scenario sc) {};
 
     std::string sysPrefix = "[SYS]";
     std::string actPrefix = "[ACT]";

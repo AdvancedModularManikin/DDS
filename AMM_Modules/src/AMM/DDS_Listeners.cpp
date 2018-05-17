@@ -95,7 +95,7 @@ void DDS_Listeners::StatusSubListener::onNewDataMessage(Subscriber *sub) {
         ++n_msg;
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewStatusData(st, &m_info);
+                upstream->onNewStatusData(st);
             }
         }
     }
@@ -117,7 +117,7 @@ void DDS_Listeners::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
         ++n_msg;
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewConfigData(cfg, &m_info);
+                upstream->onNewConfigData(cfg);
             }
 
         }
