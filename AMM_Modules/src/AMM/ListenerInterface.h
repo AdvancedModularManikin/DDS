@@ -22,7 +22,7 @@ public:
 
     virtual void onNewConfigData(AMM::Capability::Configuration cfg) {};
 
-    virtual void onNewScenarioData(AMM::Capability::Scenario sc) {};
+    virtual void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t *info) {};
 
     std::string sysPrefix = "[SYS]";
     std::string actPrefix = "[ACT]";
