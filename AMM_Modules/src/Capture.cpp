@@ -2,6 +2,8 @@
 
 #include "AMM/DDS_Manager.h"
 
+#include "AMM/CaptureListener.h"
+
 #include <sqlite_modern_cpp.h>
 
 #include <fastrtps/participant/ParticipantListener.h>
@@ -12,7 +14,7 @@ using namespace eprosima;
 using namespace eprosima::fastrtps;
 using namespace sqlite;
 
-database db("amm.db");
+
 
 class AMMListener : public ListenerInterface {
 public:
@@ -72,12 +74,13 @@ int main(int argc, char *argv[]) {
     std::string nodeString(nodeName);
     auto *mgr = new DDS_Manager(nodeName);
 
-    AMMListener ammL;
+    CaptureListener cL;
+
     auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
 
-    status_sub_listener->SetUpstream(&ammL);
-    config_sub_listener->SetUpstream(&ammL);
+    status_sub_listener->SetUpstream(&cL);
+    config_sub_listener->SetUpstream(&cL);
 
     mgr->InitializeSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), status_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
