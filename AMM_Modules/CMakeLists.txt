@@ -99,10 +99,10 @@ set_target_properties(${FLUID_MANAGER_EXE} PROPERTIES
         CXX_STANDARD_REQUIRED ON
         )
 
-set(IVC_SOURCES src/IVC.cpp src/crc16.cpp src/spi_proto.cpp src/config.h src/spi_proto.h)
-set(IVC_MANAGER_EXE amm_ivc_module)
-add_executable(${IVC_MANAGER_EXE} ${IVC_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
-set_target_properties(${IVC_MANAGER_EXE} PROPERTIES
+set(IVC_MODULE_SOURCES src/IVC.cpp src/crc16.cpp src/spi_proto.cpp src/config.h src/spi_proto.h)
+set(IVC_MODULE_EXE amm_ivc_module)
+add_executable(${IVC_MODULE_EXE} ${IVC_MODULE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+set_target_properties(${IVC_MODULE_EXE} PROPERTIES
         CXX_STANDARD 14
         CXX_STANDARD_REQUIRED ON
         )
@@ -243,7 +243,7 @@ target_link_libraries(${FLUID_MANAGER_EXE}
         ${DATAMODEL}
         )
 
-target_link_libraries(${IVC_MANAGER_EXE}
+target_link_libraries(${IVC_MODULE_EXE}
         fastrtps fastcdr
         ${TINYXML2_LIBRARIES}
         ${DATAMODEL}
