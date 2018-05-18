@@ -69,7 +69,9 @@ int spi_transfer(int fd, const unsigned char *tx_buf, unsigned char *rx_buf, __u
     return ret;
 }
 
-void send_ivc_spi(unsigned char status)
+struct spi_state spi_state;
+
+void send_ivc_status(unsigned char status)
 {
     unsigned char spi_send[8];
     spi_send[0] = 1;
@@ -77,8 +79,6 @@ void send_ivc_spi(unsigned char status)
     memcpy(spi_send + 4, &operating_pressure, 4);
     spi_proto_send_msg(&spi_state, spi_send, 8);
 }
-
-struct spi_state spi_state;
 
 // @TODO: Need to adjust this to the IVC config
 void ProcessConfig(const std::string configContent) {
@@ -119,7 +119,7 @@ void ProcessConfig(const std::string configContent) {
         if (!strcmp(entry5_1->ToElement()->Attribute("name"), "operating_pressure")) {
             operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
             have_pressure = 1;
-            send_ivc_spi(ivc_status);
+            send_ivc_status(ivc_status);
             break;
         }
         auto v = entry5->ToElement()->NextSibling();
