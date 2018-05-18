@@ -129,7 +129,15 @@ class IVCListener : public ListenerInterface {
         // We received configuration which we need to push via SPI
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
-            if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+	    if (value.compare("START_SIM") == 0) {
+
+	    } else if (value.compare("STOP_SIM") == 0) {
+
+	    } else if (value.compare("PAUSE_SIM") == 0) {
+
+	    } else if (value.compare("RESET_SIM") == 0) {
+
+	    } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
                 std::string scene = value.substr(loadScenarioPrefix.size());
                 boost::algorithm::to_lower(scene);
                 ostringstream static_filename;
@@ -226,16 +234,21 @@ int main(int argc, char *argv[]) {
         //[VALID|PRESSURIZED|NO|NO| F|LO|A|T|]
         if (recvbuf[0]) {
             pressurized = recvbuf[1];
+	    cout << "\tPressurized: " << pressurized << endl;
             float total_flow_new;
             memcpy(&total_flow_new, &recvbuf[4], 4);
             last_flow_change = total_flow_new - total_flow;
             total_flow = total_flow_new;
+	    cout << "\t Total Flow: " << endl;
         }
-        
+
+	
         //TODO send message on pressurization
         
         //TODO send message to biogears about flow
-
+	
+	
+	
         if (send_status) {
             cout << "[IVC] Setting status to " << current_status << endl;
             send_status = false;
