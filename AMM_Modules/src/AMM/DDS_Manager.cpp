@@ -29,30 +29,6 @@ DDS_Manager::DDS_Manager(const char *nodeName) {
                                            pub_listener);
 }
 
-DDS_Manager::DDS_Manager(const char *nodeName, ParticipantListener *participantListener) {
-    ParticipantAttributes PParam;
-    PParam.rtps.builtin.domainId = (uint32_t) domainId;
-    PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
-    PParam.rtps.setName(nodeName);
-    mp_participant = Domain::createParticipant(PParam, participantListener);
-
-    if (mp_participant == nullptr) {
-        std::cout << "Unable to create FastRTPS domain participant." << endl;
-        return;
-    }
-
-    RegisterTypes();
-
-
-    auto *pub_listener = new DDS_Listeners::PubListener();
-
-    config_publisher = InitializePublisher(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
-                                           pub_listener);
-
-    status_publisher = InitializePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
-                                           pub_listener);
-}
-
 Participant *DDS_Manager::GetParticipant() {
     return mp_participant;
 }
