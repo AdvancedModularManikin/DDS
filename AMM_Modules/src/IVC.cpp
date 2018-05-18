@@ -34,6 +34,13 @@ float operating_pressure;
 bool pressurized = false;
 float total_flow = 0, last_flow_change = 0;
 
+#define IVC_STATUS_WAITING  0
+#define IVC_STATUS_START    1
+#define IVC_STATUS_PAUSE    2
+#define IVC_STATUS_STOP     3
+#define IVC_STATUS_RESET    4
+unsigned char ivc_status = IVC_STATUS_WAITING;
+
 bool have_pressure = 0;
 bool send_status = false;
 AMM::Capability::status_values current_status;
@@ -60,6 +67,15 @@ int spi_transfer(int fd, const unsigned char *tx_buf, unsigned char *rx_buf, __u
     if (ret < 1)
         perror("can't send spi message");
     return ret;
+}
+
+void send_ivc_spi(unsigned char status)
+{
+    unsigned char spi_send[8];
+    spi_send[0] = 1;
+    spi_send[1] = ivc_status = status;
+    memcpy(spi_send + 4, &operating_pressure, 4);
+    spi_proto_send_msg(&spi_state, spi_send, 8);
 }
 
 struct spi_state spi_state;
@@ -103,11 +119,7 @@ void ProcessConfig(const std::string configContent) {
         if (!strcmp(entry5_1->ToElement()->Attribute("name"), "operating_pressure")) {
             operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
             have_pressure = 1;
-            unsigned char spi_send[8];
-            spi_send[0] = 1;
-            spi_send[1] = 0;
-            memcpy(spi_send + 4, &operating_pressure, 4);
-            spi_proto_send_msg(&spi_state, spi_send, 8);
+            send_ivc_spi(ivc_status);
             break;
         }
         auto v = entry5->ToElement()->NextSibling();
@@ -129,15 +141,15 @@ class IVCListener : public ListenerInterface {
         // We received configuration which we need to push via SPI
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
-	    if (value.compare("START_SIM") == 0) {
-
-	    } else if (value.compare("STOP_SIM") == 0) {
-
-	    } else if (value.compare("PAUSE_SIM") == 0) {
-
-	    } else if (value.compare("RESET_SIM") == 0) {
-
-	    } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+        if (value.compare("START_SIM") == 0) {
+            send_ivc_status(IVC_STATUS_START);
+        } else if (value.compare("STOP_SIM") == 0) {
+            send_ivc_status(IVC_STATUS_STOP);
+        } else if (value.compare("PAUSE_SIM") == 0) {
+            send_ivc_status(IVC_STATUS_PAUSE);
+        } else if (value.compare("RESET_SIM") == 0) {
+            send_ivc_status(IVC_STATUS_RESET);
+        } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
                 std::string scene = value.substr(loadScenarioPrefix.size());
                 boost::algorithm::to_lower(scene);
                 ostringstream static_filename;
@@ -232,11 +244,11 @@ int main(int argc, char *argv[]) {
         memcpy(&pack, recvbuf, TRANSFER_SIZE);
         //IVC spi response format:
         //[VALID|PRESSURIZED|NO|NO| F|LO|A|T|]
-        if (recvbuf[0]) {
-            pressurized = recvbuf[1];
-	    cout << "\tPressurized: " << pressurized << endl;
+        if (pack.msg[0]) {
+            pressurized = pack.msg[1];
+            cout << "\tPressurized: " << pressurized << endl;
             float total_flow_new;
-            memcpy(&total_flow_new, &recvbuf[4], 4);
+            memcpy(&total_flow_new, &pack.msg[4], 4);
             last_flow_change = total_flow_new - total_flow;
             total_flow = total_flow_new;
 	    cout << "\t Total Flow: " << endl;
