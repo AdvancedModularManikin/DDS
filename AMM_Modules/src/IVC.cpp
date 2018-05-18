@@ -20,6 +20,7 @@
 using namespace std;
 using namespace std::literals::string_literals;
 
+class IVCListener;
 
 // Daemonize by default
 int daemonize = 1;
@@ -51,6 +52,10 @@ static uint8_t bits = 8;
 static uint32_t speed = 1 << 23;
 static uint16_t delay;
 
+Publisher* command_publisher;
+Publisher* node_publisher;
+
+
 //TODO centralize
 #define TRANSFER_SIZE 36
 
@@ -69,8 +74,11 @@ int spi_transfer(int fd, const unsigned char *tx_buf, unsigned char *rx_buf, __u
     return ret;
 }
 
+struct spi_state spi_state;
+
 void send_ivc_spi(unsigned char status)
 {
+  cout << "Sending IVC status " << status << endl;
     unsigned char spi_send[8];
     spi_send[0] = 1;
     spi_send[1] = ivc_status = status;
@@ -78,7 +86,15 @@ void send_ivc_spi(unsigned char status)
     spi_proto_send_msg(&spi_state, spi_send, 8);
 }
 
-struct spi_state spi_state;
+
+
+void PublishNodeData(std::string node, float dbl) {
+  cout << "Publishing " << node << " value " << dbl << endl;
+  AMM::Physiology::Node dataInstance;
+  dataInstance.nodepath(node);
+  dataInstance.dbl(dbl);
+  node_publisher->write(&dataInstance);
+}
 
 // @TODO: Need to adjust this to the IVC config
 void ProcessConfig(const std::string configContent) {
@@ -141,32 +157,33 @@ class IVCListener : public ListenerInterface {
         // We received configuration which we need to push via SPI
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
-        if (value.compare("START_SIM") == 0) {
-            send_ivc_status(IVC_STATUS_START);
-        } else if (value.compare("STOP_SIM") == 0) {
-            send_ivc_status(IVC_STATUS_STOP);
-        } else if (value.compare("PAUSE_SIM") == 0) {
-            send_ivc_status(IVC_STATUS_PAUSE);
-        } else if (value.compare("RESET_SIM") == 0) {
-            send_ivc_status(IVC_STATUS_RESET);
-        } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
-                std::string scene = value.substr(loadScenarioPrefix.size());
-                boost::algorithm::to_lower(scene);
-                ostringstream static_filename;
-                static_filename << "mule1/module_configuration_static/" << scene << "_ivc_module.xml";
-                std::ifstream ifs(static_filename.str());
-                std::string configContent((std::istreambuf_iterator<char>(ifs)),
-                                          (std::istreambuf_iterator<char>()));
-
-                ifs.close();
-
-                ProcessConfig(configContent);
-
-                // These should be sent when a status change is received via spi.
-                // We'll force them for now.
-                send_status = true;
-                current_status = OPERATIONAL;
-            }
+	  cout << " \tWe got a command: " << value << endl;
+	  if (value.compare("START_SIM") == 0) {
+            send_ivc_spi(IVC_STATUS_START);
+	  } else if (value.compare("STOP_SIM") == 0) {
+            send_ivc_spi(IVC_STATUS_STOP);
+	  } else if (value.compare("PAUSE_SIM") == 0) {
+            send_ivc_spi(IVC_STATUS_PAUSE);
+	  } else if (value.compare("RESET_SIM") == 0) {
+            send_ivc_spi(IVC_STATUS_RESET);
+	  } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+	    std::string scene = value.substr(loadScenarioPrefix.size());
+	    boost::algorithm::to_lower(scene);
+	    ostringstream static_filename;
+	    static_filename << "mule1/module_configuration_static/" << scene << "_ivc_module.xml";
+	    std::ifstream ifs(static_filename.str());
+	    std::string configContent((std::istreambuf_iterator<char>(ifs)),
+				      (std::istreambuf_iterator<char>()));
+	    
+	    ifs.close();
+	    
+	    ProcessConfig(configContent);
+	    
+	    // These should be sent when a status change is received via spi.
+	    // We'll force them for now.
+	    send_status = true;
+	    current_status = OPERATIONAL;
+	  }
         }
     }
 };
@@ -218,7 +235,8 @@ int main(int argc, char *argv[]) {
     Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic,
                                                             AMM::DataTypes::getCommandType(), pub_listener);
 
-
+    node_publisher = mgr->InitializePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), pub_listener);
+    
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
 
@@ -246,20 +264,13 @@ int main(int argc, char *argv[]) {
         //[VALID|PRESSURIZED|NO|NO| F|LO|A|T|]
         if (pack.msg[0]) {
             pressurized = pack.msg[1];
-            cout << "\tPressurized: " << pressurized << endl;
             float total_flow_new;
             memcpy(&total_flow_new, &pack.msg[4], 4);
             last_flow_change = total_flow_new - total_flow;
             total_flow = total_flow_new;
-	    cout << "\t Total Flow: " << endl;
+	    PublishNodeData("IVC_TOTAL_BLOOD_LOSS", total_flow);
         }
 
-	
-        //TODO send message on pressurization
-        
-        //TODO send message to biogears about flow
-	
-	
 	
         if (send_status) {
             cout << "[IVC] Setting status to " << current_status << endl;
