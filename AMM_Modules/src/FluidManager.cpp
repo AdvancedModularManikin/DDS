@@ -100,7 +100,7 @@ void ProcessConfig(const std::string configContent) {
             unsigned char spi_send[8];
             spi_send[0] = 1;
             memcpy(spi_send + 4, &operating_pressure, 4);
-            spi_proto_send_msg(&spi_state, spi_send, 4);
+            spi_proto_send_msg(&spi_state, spi_send, 8);
             break;
         }
         auto v = entry5->ToElement()->NextSibling();
