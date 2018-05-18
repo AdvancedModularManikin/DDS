@@ -94,6 +94,7 @@ void PublishNodeData(std::string node, float dbl) {
   dataInstance.dbl(dbl);
   dataInstance.frame(frame);
   node_publisher->write(&dataInstance);
+  frame++;
 }
 
 
