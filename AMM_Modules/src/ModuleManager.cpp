@@ -39,10 +39,8 @@ void show_menu(ModuleManager *modManager) {
 
 int main(int argc, char *argv[]) {
     int daemonize = 0;
-    bool setup = false;
     int autostart = 0;
-    bool wipe = false;
-    
+
     cout << "=== [AMM - Module Manager] ===" << endl;
 
     for (int i = 1; i < argc; ++i) {
@@ -56,75 +54,8 @@ int main(int argc, char *argv[]) {
             daemonize = 1;
         }
 
-        if (arg == "-s") {
-            setup = true;
-        }
-
-	if (arg == "-w") {
-	  wipe = true;
-	}
-
         if (arg == "-a") {
             autostart = 1;
-        }
-
-    }
-
-    if (wipe) {
-      cout << "[MM] Wiping tables on startup" << endl;
-      sqlite_config config;
-      database db("amm.db", config);
-      db << "delete from modules;";
-      db << "delete from module_capabilities;";
-      db << "delete from module_status;";
-    }
-
-    if (setup) {
-        try {
-            sqlite_config config;
-            database db("amm.db", config);
-
-            cout << "Creating modules table..." <<endl;
-            db << "create table if not exists modules("
-                    "module_id text,"
-                    "module_name text,"
-                    "timestamp text"
-                            ");";
-            db << "delete from modules;";
-
-            cout << "Creating module capabilities table..." << endl;
-            db << "create table if not exists module_capabilities ("
-	      "model text,"
-	      "module_id text,"
-            "module_name text,"
-	      "manufacturer text,"
-	      "serial_number text,"
-	      "version text,"
-	      "capabilities text,"
-	      "timestamp text,"
-	      "encounter_id text"
-	      ");";
-
-	    db << "CREATE UNIQUE INDEX idx_mc_model ON module_capabilities (module_name);";
-	      
-            db << "delete from module_capabilities;";
-
-            cout << "Creating module status table..." << endl;
-            db << "create table if not exists module_status ("
-                    "module_id text,"
-                    "module_name text,"
-                    "capability text,"
-                    "status text,"
-                    "timestamp text,"
-                    "encounter_id text"
-                    ");";
-	    	    db << "CREATE UNIQUE INDEX idx_ms_model ON module_status (module_name);";
-            db << "delete from module_status;";
-
-            cout << "\tCreated AMM database schema." << endl;
-
-        } catch (exception &e) {
-            cout << e.what() << endl;
         }
 
     }
