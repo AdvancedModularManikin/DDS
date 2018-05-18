@@ -50,7 +50,7 @@ int spi_transfer(int fd, unsigned char *tx_buf, unsigned char *rx_buf, __u32 buf
 
 class HeartRateListener : public ListenerInterface {
 
-    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
+    void onNewNodeData(AMM::Physiology::Node n) override {
         bool print = false;
         if (n.nodepath() == "EXIT") {
             closed = true;
