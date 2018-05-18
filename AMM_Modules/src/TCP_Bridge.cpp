@@ -162,7 +162,7 @@ void sendConfigToAll(string scene) {
  */
 class TCPBridgeListener : public ListenerInterface {
 public:
-    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
+    void onNewNodeData(AMM::Physiology::Node n) override {
         if (n.nodepath() == "EXIT") {
             cout << "Shutting down simulation based on shutdown node-data from physiology engine." << endl;
             closed = true;
@@ -180,7 +180,7 @@ public:
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
         cout << "We got command data!   It is: " << c.message() << endl;
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());

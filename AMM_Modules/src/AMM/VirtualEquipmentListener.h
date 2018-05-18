@@ -14,11 +14,11 @@ public:
 
     void SetFilter(std::vector<std::string> * node_paths);
 
-    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info);
+    void onNewNodeData(AMM::Physiology::Node n);
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info);
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c);
 
-    void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info);
+    void onNewTickData(AMM::Simulation::Tick t);
 
 private:
     std::vector<std::string> * node_paths;

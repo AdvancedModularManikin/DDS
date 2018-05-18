@@ -28,9 +28,8 @@ int daemonize = 1;
 const string loadScenarioPrefix = "LOAD_SCENARIO:";
 const string haltingString = "HALTING_ERROR";
 
-uint16_t arterial_bleed_period;
-bool have_period = false;
-bool currently_bleeding = false;
+float operating_pressure;
+bool have_pressure = 0;
 bool send_status = false;
 AMM::Capability::status_values current_status;
 
@@ -56,13 +55,6 @@ int spi_transfer(int fd, const unsigned char *tx_buf, unsigned char *rx_buf, __u
     if (ret < 1)
         perror("can't send spi message");
     return ret;
-}
-
-void prepare_bleed_msg(bool active, uint16_t bleed_period, unsigned char (*buff)[4]) {
-    unsigned char *buf = *buff;
-    buf[0] = 1;
-    buf[2] = active;
-    memcpy(&buf[2], &bleed_period, 2);
 }
 
 struct spi_state spi_state;
@@ -98,17 +90,17 @@ void ProcessConfig(const std::string configContent) {
         return;
     }
 
-    //scan for data name=arterial_bleed_period
+    //scan for data name=operating pressure
     tinyxml2::XMLElement *entry5 = entry4->FirstChildElement("configuration_data")->ToElement();
 
     while (entry5) {
         tinyxml2::XMLElement *entry5_1 = entry5->FirstChildElement("data")->ToElement();
-        if (!strcmp(entry5_1->ToElement()->Attribute("name"), "arterial_bleed_period")) {
-            arterial_bleed_period = entry5_1->ToElement()->FloatAttribute("value");
+        if (!strcmp(entry5_1->ToElement()->Attribute("name"), "operating_pressure")) {
+            operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
             have_pressure = 1;
-            unsigned char spi_send[4];
-            prepare_bleed_msg(0, arterial_bleed_period, &spi_send);
-            spi_proto_send_msg(&spi_state, spi_send, 4);
+            unsigned char spi_send[8];
+            memcpy(spi_send + 4, &operating_pressure, 4);
+            spi_proto_send_msg(&spi_state, spi_send, 8);
             break;
         }
         auto v = entry5->ToElement()->NextSibling();

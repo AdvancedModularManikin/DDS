@@ -35,9 +35,6 @@ class DDS_Manager {
 public:
     DDS_Manager(const char *nodeName);
 
-    DDS_Manager(const char *nodeName, ParticipantListener *participantListener);
-//    ~DDS_Manager();
-
     void PublishModuleConfiguration(
             const std::string &module_name,
             const std::string &manufacturer,

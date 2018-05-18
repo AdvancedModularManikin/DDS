@@ -172,7 +172,7 @@ public:
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
         cout << "[COMMAND]" << c.message() << endl;
     }
 
@@ -253,7 +253,7 @@ int main(int argc, char *argv[]) {
 
     const char *nodeName = "AMM_Logger";
     std::string nodeString(nodeName);
-    auto mgr = new DDS_Manager(nodeName, &ammL);
+    auto mgr = new DDS_Manager(nodeName);
     mp_participant = mgr->GetParticipant();
 
     std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();

@@ -42,7 +42,7 @@ public:
 
     void Cleanup();
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override;
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
 
    std::string currentScenario;
 
