@@ -86,12 +86,13 @@ void send_ivc_spi(unsigned char status)
   spi_proto_send_msg(&spi_state, spi_send, 8);
 }
 
+int frame = 0;
 
 void PublishNodeData(std::string node, float dbl) {
-  cout << "Publishing " << node << " value " << dbl << endl;
   AMM::Physiology::Node dataInstance;
   dataInstance.nodepath(node);
   dataInstance.dbl(dbl);
+  dataInstance.frame(frame);
   node_publisher->write(&dataInstance);
 }
 
@@ -134,7 +135,7 @@ void ProcessConfig(const std::string configContent) {
     if (!strcmp(entry5_1->ToElement()->Attribute("name"), "operating_pressure")) {
       operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
       have_pressure = 1;
-      send_ivc_status(ivc_status);
+      send_ivc_spi(ivc_status);
       break;
     }
     auto v = entry5->ToElement()->NextSibling();
@@ -164,6 +165,7 @@ class IVCListener : public ListenerInterface {
       } else if (value.compare("PAUSE_SIM") == 0) {
 	send_ivc_spi(IVC_STATUS_PAUSE);
       } else if (value.compare("RESET_SIM") == 0) {
+	frame = 0;
 	send_ivc_spi(IVC_STATUS_RESET);
       } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
 	std::string scene = value.substr(loadScenarioPrefix.size());
