@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Simulation>
+    <execution>
+        <if>
+            <conditions>
+                <condition var="something" operator="&gt;">400</condition>
+                <!-- more conditions possible -->
+            </conditions>
+            <statements>
+                <!-- do something -->
+            </statements>
+        </if>
+    </execution>
+    <scenes>
+        <scene id="m1s1" name="Mule 1 / Scene 1 / PoI">
+            <versions>
+                <data name="scenario" value="1.0.0" />
+                <data name="amm_core" value="0.0.1" />
+                <data name="amm_specification" value="0.0.1" />
+            </versions>
+            <capabilities>
+                <capability required="true" name="virtual_patient">
+                    <configuration_data>
+                        <data name="scene" value="poi_gurney" />
+                    </configuration_data>
+                </capability>
+                <capability name="monitor_level">
+                    <configuration_data>
+                        <data name="sound_alarm" value="false" />
+                    </configuration_data>
+                </capability>
+                <capability name="detect_button_press">
+                    <configuration_data>
+                        <data name="button_message" value="Pain_General_9" />
+                    </configuration_data>
+                </capability>
+                <capability required="true" name="labs" />
+                <capability required="true" name="propaq" />
+                <capability required="true" name="physiology">
+                    <configuration_data>
+                        <!-- BioGears patient file -->
+                        <patient filename="StandardMale.xml" />
+                        <!-- BioGears environment file -->
+                        <environment filename="standard.xml" />
+                        <!-- BioGears starting state file -->
+                        <starting_state filename="StandardMale@0s.xml" />
+                    </configuration_data>
+                </capability>
+            </capabilities>
+        </scene>
+        <scene id="m1s2" name="Mule 1 / Scene 2 / ER">
+            <versions>
+                <data name="scenario" value="1.0.0" />
+                <data name="amm_core" value="0.0.1" />
+                <data name="amm_specification" value="0.0.1" />
+            </versions>
+            <capabilities>
+                <capability required="true" name="virtual_patient">
+                    <configuration_data>
+                        <data name="scene" value="poi_gurney" />
+                    </configuration_data>
+                </capability>
+                <capability name="monitor_level">
+                    <configuration_data>
+                        <data name="sound_alarm" value="false" />
+                    </configuration_data>
+                </capability>
+                <capability name="detect_button_press">
+                    <configuration_data>
+                        <data name="button_message" value="Pain_General_9" />
+                    </configuration_data>
+                </capability>
+                <capability required="true" name="labs" />
+                <capability required="true" name="propaq" />
+                <capability required="true" name="physiology">
+                    <configuration_data>
+                        <!-- BioGears patient file -->
+                        <patient filename="StandardMale.xml" />
+                        <!-- BioGears environment file -->
+                        <environment filename="standard.xml" />
+                        <!-- BioGears starting state file -->
+                        <starting_state filename="StandardMale@0s.xml" />
+                    </configuration_data>
+                </capability>
+            </capabilities>
+        </scene>
+        <scene id="m1s3" file="scenario_3.xml" />
+    </scenes>
+</Simulation>
