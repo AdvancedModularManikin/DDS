@@ -28,7 +28,12 @@ int daemonize = 1;
 const string loadScenarioPrefix = "LOAD_SCENARIO:";
 const string haltingString = "HALTING_ERROR";
 
+//variables that are sent to the tiny
 float operating_pressure;
+//variables that are received from the tiny
+bool pressurized = false;
+float total_flow = 0, last_flow_change = 0;
+
 bool have_pressure = 0;
 bool send_status = false;
 AMM::Capability::status_values current_status;
@@ -99,6 +104,8 @@ void ProcessConfig(const std::string configContent) {
             operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
             have_pressure = 1;
             unsigned char spi_send[8];
+            spi_send[0] = 1;
+            spi_send[1] = 0;
             memcpy(spi_send + 4, &operating_pressure, 4);
             spi_proto_send_msg(&spi_state, spi_send, 8);
             break;
@@ -208,12 +215,26 @@ int main(int argc, char *argv[]) {
     bool closed = 0;
     while (!closed) {
         int ret = spi_proto_prep_msg(s, sendbuf, TRANSFER_SIZE);
+        //TODO currently no code sends the start command
 
         //do SPI communication
         int spi_tr_res = spi_transfer(spi_fd, sendbuf, recvbuf, TRANSFER_SIZE);
 
         struct spi_packet pack;
         memcpy(&pack, recvbuf, TRANSFER_SIZE);
+        //IVC spi response format:
+        //[VALID|PRESSURIZED|NO|NO| F|LO|A|T|]
+        if (recvbuf[0]) {
+            pressurized = recvbuf[1];
+            float total_flow_new;
+            memcpy(&total_flow_new, &recvbuf[4], 4);
+            last_flow_change = total_flow_new - total_flow;
+            total_flow = total_flow_new;
+        }
+        
+        //TODO send message on pressurization
+        
+        //TODO send message to biogears about flow
 
         if (send_status) {
             cout << "[IVC] Setting status to " << current_status << endl;
