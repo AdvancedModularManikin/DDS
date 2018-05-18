@@ -55,7 +55,17 @@ spi_proto_rcv_msg(struct spi_state *s, struct spi_packet *p, spi_msg_callback_t 
 					s->num_sent_successfully +=k;
 					break;
 				}
-			} 
+			}
+			//TODO remove this, it's a hack
+			while (s->num_sent_but_unconfirmed) {
+				s->num_sent_but_unconfirmed --;
+				s->num_avail ++;
+				s->first_unconfirmed_seq ++;
+				s->first_unconfirmed_seq %= 16;
+				
+				s->num_sent_successfully ++;
+			}
+			
 		} 
 		if (p->preack == s->we_sent_seq) {
 			//the anticipatory ack was the same as our send, so assume send was successful and increment. If it wasn't we'll find out next completed round
