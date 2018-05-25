@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AMMModuleConfiguration>
+    <module name="heart_rate_led" manufacturer="Entropic" model="heart_rate_led" serial_number="0" module_version="0.0.1">
+        <versions>
+            <data name="amm_core_version" minimumVersion="0.0.1" />
+            <data name="amm_specification_version" minimumVersion="0.0.1" />
+        </versions>
+        <capabilities>
+            <capability name="monitor_heart_rate">
+                <published_topics>
+                    <topic name="AMM_Command" /> 
+                </published_topics>
+                <subscribed_topics>
+                    <topic name="AMM_Command" />
+                    <topic name="AMM_Node_Data" nodepath="Respiratory_Respiration_Rate" />
+                    <topic name="AMM_Node_Data" nodepath="Cardiovascular_HeartRate" />                    
+                </subscribed_topics>                
+            </capability>
+        </capabilities>
+    </module>
+</AMMModuleConfiguration>

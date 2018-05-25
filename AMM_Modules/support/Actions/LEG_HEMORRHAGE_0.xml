@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>LEG_HEMORRHAGE_0</Name>
+	<Description>Femoral Artery Hemorrhage Stopped</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	  
+	<!-- LEG_HEMORRHAGE_0 -->
+	<!-- Femoral Artery Hemorrhage -->          
+	<Action xsi:type="HemorrhageData" Compartment="RightLeg">
+		<Comment>Femoral Artery Hemorrhage</Comment>
+		<Rate value="0" unit="mL/min"/>
+	</Action>	
+</Scenario>

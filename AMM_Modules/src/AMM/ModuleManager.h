@@ -1,7 +1,5 @@
 #pragma once
-
-#include <mutex>
-#include <thread>
+#include "stdafx.h"
 
 #include "DataTypes.h"
 
@@ -11,8 +9,18 @@
 
 #include "ListenerInterface.h"
 
+#include "tinyxml2.h"
+
+#include <sqlite_modern_cpp.h>
+
 using namespace std;
 using namespace std::chrono;
+
+using namespace sqlite;
+using namespace tinyxml2;
+
+using namespace eprosima;
+using namespace eprosima::fastrtps;
 
 class ModuleManager : public ListenerInterface {
 
@@ -20,23 +28,23 @@ public:
 
     ModuleManager();
 
-    ~ModuleManager() override = default;;        
+    ~ModuleManager() override = default;;
 
-	void Start();
+    void Start();
 
-	void RunLoop();
-	
-   void Shutdown();
+    void RunLoop();
+
+    void Shutdown();
 
     bool isRunning();
 
+    void ShowStatus();
+
     void Cleanup();
 
-    void onNewNodeData(AMM::Physiology::Node n) override;
-
-    void onNewTickData(AMM::Simulation::Tick t) override;
-
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
+
+   std::string currentScenario;
 
 protected:
 
@@ -44,13 +52,9 @@ protected:
     std::mutex m_mutex;
     bool m_runThread;
 
-	const char* nodeName = "AMM_ModuleManager";
-
+    const char *nodeName = "AMM_ModuleManager";
     DDS_Manager *mgr = new DDS_Manager(nodeName);
 
-    Subscriber *command_subscriber;
-    Publisher *command_publisher;
-    Publisher *tick_publisher;
 
 };
 

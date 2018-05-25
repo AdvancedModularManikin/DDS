@@ -2,7 +2,9 @@
 
 #include "AMM/ModuleManager.h"
 
+
 using namespace std;
+using namespace sqlite;
 
 bool closed = false;
 
@@ -14,7 +16,7 @@ static void show_usage(const std::string &name) {
          endl;
 }
 
-void show_menu(ModuleManager* modManager) {
+void show_menu(ModuleManager *modManager) {
     string action;
 
     cout << endl;
@@ -25,7 +27,7 @@ void show_menu(ModuleManager* modManager) {
     transform(action.begin(), action.end(), action.begin(), ::toupper);
 
     if (action == "1") {
-      // Status
+        modManager->ShowStatus();
     } else if (action == "4") {
         cout << "=== [ModManager] Shutting down Module Manager." << endl;
         closed = true;
@@ -36,9 +38,11 @@ void show_menu(ModuleManager* modManager) {
 }
 
 int main(int argc, char *argv[]) {
-	int daemonize = 0;
-    cout << "=== [AMM - Module Manager] ===" << endl;		
-	
+    int daemonize = 0;
+    int autostart = 0;
+
+    cout << "=== [AMM - Module Manager] ===" << endl;
+
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -50,6 +54,10 @@ int main(int argc, char *argv[]) {
             daemonize = 1;
         }
 
+        if (arg == "-a") {
+            autostart = 1;
+        }
+
     }
 
     ModuleManager modManager;
@@ -57,12 +65,13 @@ int main(int argc, char *argv[]) {
 
 
     while (!closed) {
-        if (daemonize != 1) {
+        if (autostart != 1) {
             show_menu(&modManager);
         }
     }
 
-    cout << "=== [ModuleManager] Exiting." << endl;
+    cout << "=== [ModuleManager] Exiting." <<
+         endl;
 
     return 0;
 }

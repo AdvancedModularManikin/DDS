@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AMMModuleConfiguration>
+    <module name="tcp_bridge" manufacturer="Vcom3D" model="tcp_bridge" serial_number="0" module_version="0.0.1">
+        <versions>
+            <data name="amm_core_version" minimumVersion="0.0.1" />
+            <data name="amm_specification_version" minimumVersion="0.0.1" />
+        </versions>
+        <capabilities>            
+            <capability name="tcp_bridge_passthru">
+                <published_topics>
+                    <topic name="AMM_Tick" />
+                    <topic name="AMM_Command" />
+                </published_topics>
+                <subscribed_topics>
+                    <topic name="AMM_Tick" />
+                    <topic name="AMM_Command" />
+                    <topic name="AMM_Node_Data" />
+                </subscribed_topics>
+            </capability>
+        </capabilities>
+    </module>
+</AMMModuleConfiguration>

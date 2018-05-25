@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario SamplesPerSecond="1" xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><!-- MASK_HOOK_TO_WALL_O2 -->  
+<Name>O2</Name>
+<Description>Hook to Wall Oxygen</Description>
+<!-- Spontaneous breathing with machine connected -->
+<Action xsi:type="AnesthesiaMachineConfigurationData">
+<Configuration State="On">
+<InletFlow value="5.0" unit="L/min"/> <!-- This will determine how fast O2 enters -->
+<InspiratoryExpiratoryRatio value="0.5"/>
+<OxygenFraction value="0.5"/> <!-- This changes the fraction of O2 that comes in with the InletFlow above -->
+<OxygenSource>Wall</OxygenSource>
+<PositiveEndExpiredPressure value="0.0" unit="cmH2O"/> <!-- This should be zero to keep the ventilator off -->
+<PrimaryGas>Air</PrimaryGas> <!-- You can change this to Air and use the ambient Environment values -->
+<ReliefValvePressure value="20.0" unit="cmH2O"/>
+<RespiratoryRate value="16.0" unit="1/min"/>
+<VentilatorMask>On</VentilatorMask>
+<VentilatorPressure value="0.0" unit="cmH2O"/> <!-- This should be zero to keep the ventilator off -->
+<OxygenBottleOne>
+<Volume value="660" unit="L"/>
+</OxygenBottleOne>
+<OxygenBottleTwo>
+<Volume value="660" unit="L"/>
+</OxygenBottleTwo>
+</Configuration>
+</Action>
+</Scenario>
+

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AMMConfiguration>
+  <scenario id="m1s2" name="Mule 1 / Scene 2 / ER">
+    <versions>
+      <data name="scenario" value="1.0.0" />
+      <data name="amm_core" value="0.0.1" />
+      <data name="amm_specification" value="0.0.1" />
+    </versions>
+    <capabilities>
+      <capability name="labs" />
+    </capabilities>
+  </scenario>
+</AMMConfiguration>

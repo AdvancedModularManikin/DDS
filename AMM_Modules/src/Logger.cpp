@@ -51,14 +51,12 @@ using namespace eprosima::fastrtps;
 
 Participant *mp_participant;
 
-std::map<std::string, std::vector<std::string>> topicNtypes;
-std::map<GUID_t, std::string> discovered_names;
-std::map<GuidPrefix_t, std::string> discovered_prefixes;
-std::mutex mapmutex;
-
 class AMMListener : public ListenerInterface, public ParticipantListener {
 public:
     std::string m_listenerName;
+    std::mutex mapmutex;
+    std::map<std::string, std::vector<std::string>> topicNtypes;
+    std::map<GUID_t, std::string> discovered_names;
 
     AMMListener(const std::string listenerName) {
         m_listenerName = listenerName;
@@ -218,7 +216,8 @@ public:
         if (change->kind == ALIVE) {
             topicNtypes[fqdn].push_back(proxyData.typeName());
 
-            cout << "[" << m_listenerName << "][" << changeGuid << "] Topic " << fqdn << " with type " << proxyData.typeName() << endl;
+            cout << "[" << m_listenerName << "][" << changeGuid << "] Topic " << fqdn << " with type "
+                 << proxyData.typeName() << endl;
         } else {
             auto it = topicNtypes.find(fqdn);
             if (it != topicNtypes.end()) {
@@ -226,9 +225,11 @@ public:
                         std::find(std::begin(it->second), std::end(it->second), proxyData.typeName());
                 if (loc != std::end(it->second)) {
                     topicNtypes[fqdn].erase(loc, loc + 1);
-                    cout << "[" << m_listenerName << "][" << changeGuid << "] Topic removed " << fqdn << " with type " << proxyData.typeName() << endl;
+                    cout << "[" << m_listenerName << "][" << changeGuid << "] Topic removed " << fqdn << " with type "
+                         << proxyData.typeName() << endl;
                 } else {
-                    cout << "[" << m_listenerName << "][" << changeGuid << "] Unexpected removal on topic " << fqdn << " with type "
+                    cout << "[" << m_listenerName << "][" << changeGuid << "] Unexpected removal on topic " << fqdn
+                         << " with type "
                          << proxyData.typeName() << endl;
                 }
             }
@@ -249,8 +250,10 @@ int main(int argc, char *argv[]) {
     AMMListener slave_listener_pub("PUB");
     AMMListener slave_listener_sub("SUB");
 
+
     const char *nodeName = "AMM_Logger";
-    auto mgr = new DDS_Manager(nodeName, &ammL);
+    std::string nodeString(nodeName);
+    auto mgr = new DDS_Manager(nodeName);
     mp_participant = mgr->GetParticipant();
 
     std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
@@ -261,6 +264,20 @@ int main(int argc, char *argv[]) {
     command_sub_listener->SetUpstream(&commandL);
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
 
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            nodeString,
+            "Vcom3D",
+            "Logger",
+            "00001",
+            "0.0.1",
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/logger_capabilities.xml")
+    );
+
+    // Normally this would be set AFTER configuration is received
+    mgr->SetStatus( nodeString,OPERATIONAL);
+
     while (!closed) {
         getline(cin, action);
         transform(action.begin(), action.end(), action.begin(), ::toupper);
@@ -268,7 +285,8 @@ int main(int argc, char *argv[]) {
             closed = true;
             cout << "=== [Logger] Shutting down." << endl;
         }
-        sleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        cout.flush();
     }
 
 

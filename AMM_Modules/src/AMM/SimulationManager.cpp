@@ -15,6 +15,19 @@ SimulationManager::SimulationManager() {
     command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                  pub_listener);
     m_runThread = false;
+
+    currentScenario = mgr->GetScenario();
+    std::string nodeString(nodeName);
+    mgr->PublishModuleConfiguration(
+            nodeString,
+            "Vcom3D",
+            "SimulationManager",
+            "00001",
+            "0.0.1",
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/simulation_manager_capabilities.xml")
+    );
+
+    mgr->SetStatus( nodeString,OPERATIONAL);
 }
 
 void SimulationManager::StartSimulation() {
@@ -120,6 +133,9 @@ void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c
             StopSimulation();
             tickCount = 0;
             cout << "=== [SimManager] Reset simulation (restart will be a new simulation)" << endl;
+        } else if (value.compare("LOAD_SCENARIO") == 0) {
+            std::string loadScenario = value.substr(loadScenario.size());
+            mgr->SetScenario(loadScenario);
         }
     } else {
         cout << "[SimManager] Command received: " << c.message() << endl;
@@ -127,10 +143,3 @@ void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c
 
 }
 
-void SimulationManager::onNewNodeData(AMM::Physiology::Node n) {
-
-}
-
-void SimulationManager::onNewTickData(AMM::Simulation::Tick t) {
-
-}

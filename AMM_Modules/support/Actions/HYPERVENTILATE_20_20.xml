@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>HYPERVENTILATE</Name>
+	<Description>Hyperventilate with BVM</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	        
+	<Action xsi:type="AnesthesiaMachineConfigurationData">
+		<Configuration>			
+			<Connection>Tube</Connection>
+			<InletFlow value="5.0" unit="L/min"/>
+			<InspiratoryExpiratoryRatio value="0.5"/>
+			<OxygenFraction value="0.3"/>
+			<OxygenSource>Wall</OxygenSource>
+			<PositiveEndExpiredPressure value="5.0" unit="cmH2O"/>
+			<PrimaryGas>Air</PrimaryGas>
+			<ReliefValvePressure value="20.0" unit="cmH2O"/>
+			<RespiratoryRate value="20.0" unit="1/min"/>
+			<VentilatorPressure value="20.0" unit="cmH2O"/>
+			<OxygenBottleOne>
+				<Volume value="660" unit="L"/>
+			</OxygenBottleOne>
+			<OxygenBottleTwo>
+				<Volume value="660" unit="L"/>
+			</OxygenBottleTwo>
+		</Configuration>
+	</Action>  
+	<Action xsi:type="IntubationData" Type="Tracheal"/>
+</Scenario>

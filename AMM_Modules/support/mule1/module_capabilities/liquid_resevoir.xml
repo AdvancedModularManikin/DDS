@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AMMModuleConfiguration>
+    <module name="liquid_resevoir" manufacturer="Vcom3D" model="liquid_resevoir_mule_1" serial_number="903745" module_version="0.0.1">
+        <versions>
+            <data name="amm_core_version" minimumVersion="0.0.1" />
+            <data name="amm_specification_version" minimumVersion="0.0.1" /> </versions>
+        <capabilities>
+            <capability name="monitor_level">
+                <published_topics>
+                    <topic name="AMM_Command" /> </published_topics>
+                <subscribed_topics>
+                    <topic name="AMM_Command" />
+                    <topic name="AMM_Node_Data" nodepath="Cardiovascular_Pressure_Diastolic" /> </subscribed_topics>
+                <configuration_data>
+                    <data name="sound_alarm" type="boolean" /> </configuration_data>
+            </capability>
+            <capability name="detect_button_press">
+                <published_topics>
+                    <topic name="AMM_Command" /> </published_topics>
+                <subscribed_topics>
+                    <topic name="AMM_Command" />
+                    <topic name="AMM_Node_Data" nodepath="Cardiovascular_Pressure_Diastolic" /> </subscribed_topics>
+                <configuration_data>
+                    <data name="button_message" type="option">
+                        <option value="message 1" />
+                        <option value="message 2" /> </data>
+                </configuration_data>
+            </capability>
+        </capabilities>
+    </module>
+</AMMModuleConfiguration>

@@ -22,6 +22,11 @@ std::string AMM::DataTypes::cleaningSolutionSupplytTopic = "CleaningSolution_Sup
 std::string AMM::DataTypes::clearLiquidSupplyTopic = "ClearLiquid_Supply";
 std::string AMM::DataTypes::powerSupplyTopic = "Power_Supply";
 
+std::string AMM::DataTypes::statusTopic = "Status";
+std::string AMM::DataTypes::configurationTopic = "Configuration";
+std::string AMM::DataTypes::scenarioTopic = "Scenario";
+
+
 AMM::Simulation::TickPubSubType *AMM::DataTypes::getTickType() {
     return new TickPubSubType();
 }
@@ -90,11 +95,15 @@ AMM::Resource::Supply::PowerPubSubType *AMM::DataTypes::getPowerSupplyType() {
 
 // AMM Capability types
 AMM::Capability::ConfigurationPubSubType *AMM::DataTypes::getConfigurationType() {
-    return new AMM::Capability::ConfigurationPubSubType();
+    return new ConfigurationPubSubType();
 };
 
 AMM::Capability::StatusPubSubType *AMM::DataTypes::getStatusType() {
-    return new AMM::Capability::StatusPubSubType();
+    return new StatusPubSubType();
+};
+
+AMM::Capability::ScenarioPubSubType *AMM::DataTypes::getScenarioType() {
+    return new ScenarioPubSubType();
 };
 
 // AMM Logging types

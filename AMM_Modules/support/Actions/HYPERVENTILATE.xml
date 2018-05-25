@@ -6,7 +6,8 @@
 		<PatientFile>StandardMale.xml</PatientFile>
 	</InitialParameters>	  
 	<!-- REMOVE_ET_TUBE -->  
-	<!-- Turn off ventilator -->        
+	<!-- Turn off ventilator -->   
+	<Action xsi:type="IntubationData" Type="Tracheal"/>     
 	<Action xsi:type="AnesthesiaMachineConfigurationData">
 		<Configuration>			
 			<Connection>Tube</Connection>
@@ -15,17 +16,10 @@
 			<OxygenFraction value="0.5"/>
 			<OxygenSource>Wall</OxygenSource>
 			<PositiveEndExpiredPressure value="5.0" unit="cmH2O"/>
-			<PrimaryGas>Nitrogen</PrimaryGas>
+			<PrimaryGas>Air</PrimaryGas>
 			<ReliefValvePressure value="20.0" unit="cmH2O"/>
 			<RespiratoryRate value="16.0" unit="1/min"/>
 			<VentilatorPressure value="22.0" unit="cmH2O"/>
-			<OxygenBottleOne>
-				<Volume value="660" unit="L"/>
-			</OxygenBottleOne>
-			<OxygenBottleTwo>
-				<Volume value="660" unit="L"/>
-			</OxygenBottleTwo>
 		</Configuration>
 	</Action>  
-	<Action xsi:type="IntubationData" Type="Tracheal"/>
 </Scenario>

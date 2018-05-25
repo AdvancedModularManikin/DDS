@@ -11,6 +11,6 @@
 	<Action xsi:type="SubstanceCompoundInfusionData">
 		<SubstanceCompound>Saline</SubstanceCompound>
 		<BagVolume value="2000" unit="mL"/>
-		<Rate value="500" unit="mL/min"/>
+		<Rate value="325" unit="mL/min"/>
 	</Action>
 </Scenario>

@@ -66,12 +66,12 @@ public:
     
     std::string get_filename_date(void);
     std::string get_random_string( size_t length );
-	
+
     void onNewNodeData(AMM::Physiology::Node n) override;
 
-    void onNewTickData(AMM::Simulation::Tick t) override;
+    void onNewTickData(AMM::Simulation::Tick ti) override;
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
+    void onNewCommandData(AMM::PatientAction::BioGears::Command cm) override;
 
 private:
     std::map<std::string, double (PhysiologyThread::*)()> * nodePathMap;

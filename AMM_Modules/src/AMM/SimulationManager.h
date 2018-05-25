@@ -2,6 +2,9 @@
 
 #include <mutex>
 #include <thread>
+#include <fstream>
+#include <string>
+#include <iostream>
 
 #include "DataTypes.h"
 
@@ -42,11 +45,8 @@ public:
 
     void TickLoop();
 
-    void onNewNodeData(AMM::Physiology::Node n) override;
-
-    void onNewTickData(AMM::Simulation::Tick t) override;
-
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
+    std::string currentScenario;
 
 protected:
 

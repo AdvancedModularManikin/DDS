@@ -64,9 +64,7 @@ include(FindPackageHandleStandardArgs)
 if(Pistache_FOUND)
     set(Pistache_INCLUDE_DIRS
             "${Pistache_INCLUDE_DIR}")
-# Add any dependencies here
     set(Pistache_LIBRARIES
             "${Pistache_LIBRARY}")
-# Add any dependencies here
     mark_as_advanced(Pistache_ROOT_DIR)
 endif() 

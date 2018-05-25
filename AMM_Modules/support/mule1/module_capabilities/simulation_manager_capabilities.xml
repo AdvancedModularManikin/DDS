@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AMMModuleConfiguration>
+    <module name="simulation_manager" manufacturer="Vcom3D" model="simulation_manager" serial_number="0" module_version="0.0.1">
+        <versions>
+            <data name="amm_core_version" minimumVersion="0.0.1" />
+            <data name="amm_specification_version" minimumVersion="0.0.1" />
+        </versions>
+        <capabilities>
+            <capability name="sim_clock">
+                <subscribed_topics>
+                    <topic name="AMM_Command" />                    
+                </subscribed_topics>
+                <published_topics>
+                    <topic name="AMM_Tick" />
+                    <topic name="AMM_Command" />
+                </published_topics>
+            </capability>            
+        </capabilities>
+    </module>
+</AMMModuleConfiguration>

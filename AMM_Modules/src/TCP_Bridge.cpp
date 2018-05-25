@@ -4,6 +4,11 @@
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/archive/iterators/binary_from_base64.hpp>
+#include <boost/archive/iterators/base64_from_binary.hpp>
+#include <boost/archive/iterators/transform_width.hpp>
+
+#include <fstream>
 
 #include <Net/Server.h>
 #include <Net/UdpDiscoveryServer.h>
@@ -11,6 +16,14 @@
 #include "AMMPubSubTypes.h"
 
 #include "AMM/DDS_Manager.h"
+
+#include "tinyxml2.h"
+#include <fstream>
+#include <string>
+#include <iostream>
+#include <algorithm>
+#include <string>
+#include <cctype>
 
 using namespace std;
 
@@ -21,21 +34,32 @@ int bridgePort = 9015;
 
 // Daemonize by default
 int daemonize = 1;
+int discovery = 1;
 
-Publisher *command_publisher;
-Subscriber *command_subscriber;
-Subscriber *node_subscriber;
-
+const string capabilityPrefix = "CAPABILITY=";
+const string statusPrefix = "STATUS=";
+const string configPrefix = "CONFIG=";
 const string modulePrefix = "MODULE_NAME=";
 const string registerPrefix = "REGISTER=";
 const string requestPrefix = "REQUEST=";
 const string keepHistoryPrefix = "KEEP_HISTORY=";
 const string actionPrefix = "ACT=";
 const string keepAlivePrefix = "[KEEPALIVE]";
+const string loadScenarioPrefix = "LOAD_SCENARIO:";
+const string haltingString = "HALTING_ERROR";
+const string propaqName = "propaq";
+const string labsName = "labs";
+const string vpName = "virtual_patient";
+
+string encodedConfig = "";
 
 bool closed = false;
 
-std::vector<std::string> publishNodes = {
+Publisher *command_publisher;
+
+DDS_Manager *mgr;
+
+std::vector <std::string> publishNodes = {
         "EXIT",
         "SIM_TIME",
         "Cardiovascular_HeartRate",
@@ -58,6 +82,30 @@ std::vector<std::string> publishNodes = {
 
 std::map<std::string, double> labNodes;
 
+bool findStringIC(const std::string & strHaystack, const std::string & strNeedle)
+{
+    auto it = std::search(
+            strHaystack.begin(), strHaystack.end(),
+            strNeedle.begin(),   strNeedle.end(),
+            [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
+    );
+    return (it != strHaystack.end() );
+}
+
+std::string decode64(const std::string &val) {
+    using namespace boost::archive::iterators;
+    using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
+    return boost::algorithm::trim_right_copy_if(std::string(It(std::begin(val)), It(std::end(val))), [](char c) {
+        return c == '\0';
+    });
+}
+
+std::string encode64(const std::string &val) {
+    using namespace boost::archive::iterators;
+    using It = base64_from_binary <transform_width<std::string::const_iterator, 6, 8>>;
+    auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
+    return tmp.append((3 - val.size() % 3) % 3, '=');
+}
 
 void InitializeLabNodes() {
     labNodes["Substance_Sodium"] = 0.0f;
@@ -75,6 +123,38 @@ void InitializeLabNodes() {
     labNodes["BloodChemistry_Arterial_Oxygen_Pressure"] = 0.0f;
     labNodes["Substance_Bicarbonate"] = 0.0f;
     labNodes["Substance_BaseExcess"] = 0.0f;
+}
+
+void sendConfig(Client *c, std::string clientType) {
+    std::ifstream t("mule1/current_scenario.txt");
+    std::string scenario((std::istreambuf_iterator<char>(t)),
+                         std::istreambuf_iterator<char>());
+
+    scenario.erase(std::remove(scenario.begin(), scenario.end(), '\n'), scenario.end());
+    t.close();
+
+    ostringstream static_filename;
+    static_filename << "mule1/module_configuration_static/" << scenario << "_" << clientType << "_configuration.xml";
+    std::ifstream ifs(static_filename.str());
+    std::string configContent((std::istreambuf_iterator<char>(ifs)),
+                              (std::istreambuf_iterator<char>()));
+    std::string encodedConfigContent = encode64(configContent);
+    encodedConfig = configPrefix + encodedConfigContent + "\n";
+
+    Server::SendToClient(c, encodedConfig);
+}
+
+void sendConfigToAll(string scene) {
+    ostringstream static_filename;
+    static_filename << "mule1/module_configuration_static/" << scene << "_virtual_patient_configuration.xml";
+    std::ifstream ifs(static_filename.str());
+    std::string configContent((std::istreambuf_iterator<char>(ifs)),
+                              (std::istreambuf_iterator<char>()));
+    std::string encodedConfigContent = encode64(configContent);
+    encodedConfig = configPrefix + encodedConfigContent + "\n";
+
+    std::string loadScenarioPrefix = "LOAD_SCENARIO:";
+    s->SendToAll(encodedConfig);
 }
 
 /**
@@ -101,31 +181,38 @@ public:
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
-    	
-		if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+        cout << "We got command data!   It is: " << c.message() << endl;
+        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
-                
+                std::string tmsg = "ACT=START_SIM";
+                s->SendToAll(tmsg);
             } else if (value.compare("STOP_SIM") == 0) {
-                
+                std::string tmsg = "ACT=STOP_SIM";
+                s->SendToAll(tmsg);
             } else if (value.compare("PAUSE_SIM") == 0) {
-                
+                std::string tmsg = "ACT=PAUSE_SIM";
+                s->SendToAll(tmsg);
             } else if (value.compare("RESET_SIM") == 0) {
-					InitializeLabNodes();
+                std::string tmsg = "ACT=RESET_SIM";
+                s->SendToAll(tmsg);
+                InitializeLabNodes();
+            } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+                std::string scene = value.substr(loadScenarioPrefix.size());
+                sendConfigToAll(scene);
             }
-        }    	
-    	
-    	
-        std::ostringstream messageOut;
-        messageOut << "ACT" << "=" << c.message() << "|";
-        s->SendToAll(messageOut.str());
+        } else {
+            std::ostringstream messageOut;
+            messageOut << "ACT" << "=" << c.message() << "|";
+            s->SendToAll(messageOut.str());
+        }
     }
 };
 
 // Override client handler code from Net Server
 void *Server::HandleClient(void *args) {
     auto *c = (Client *) args;
-    char buffer[256 - 25];
+    char buffer[4096 - 25];
     int index;
     ssize_t n;
 
@@ -133,7 +220,7 @@ void *Server::HandleClient(void *args) {
     ServerThread::LockMutex(c->name);
     //Before adding the new client, calculate its id. (Now we have the lock)
     c->SetId(Server::clients.size());
-    string defaultName = "Client n.%d" + c->id;
+    string defaultName = "Client #" + c->id;
     c->SetName(defaultName);
     cout << "Adding client with id: " << c->id << endl;
     Server::clients.push_back(*c);
@@ -162,21 +249,68 @@ void *Server::HandleClient(void *args) {
         } else if (n < 0) {
             cerr << "Error while receiving message from client: " << c->name << endl;
         } else {
-            vector<string> strings;
+            vector <string> strings;
             boost::split(strings, buffer, boost::is_any_of("\n"));
 
             for (auto str : strings) {
                 boost::trim_right(str);
                 if (!str.empty()) {
-                    // cout << "We got a message from " << c->name << ": " << str << endl;
+                    //                    cout << "We got a message from " << c->name << ": " << str << endl;
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
                         string moduleName = str.substr(modulePrefix.size());
+                        ServerThread::LockMutex(c->name);
                         c->SetName(moduleName);
+                        ServerThread::UnlockMutex(c->name);
                         cout << "[CLIENT][" << moduleName << "] module connected" << endl;
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
                         // Registering for data
                         std::string registerVal = str.substr(registerPrefix.size());
-                        // cout << "[CLIENT][REGISTER] Client registered for " << registerVal << endl;
+                        cout << "[CLIENT][REGISTER] Client registered for " << registerVal << endl;
+                    } else if (str.substr(0, statusPrefix.size()) == statusPrefix) {
+                        // Client set their status (OPERATIONAL, etc)
+                        std::string statusVal = decode64(str.substr(statusPrefix.size()));
+                        cout << "[CLIENT][STATUS] Client sent status of: " << statusVal << endl;
+                        /*XMLDocument doc (false);
+                        doc.Parse (statusVal);*/
+                        std::string nodeName;
+                        if (findStringIC(statusVal,vpName)) {
+                            nodeName = "virtual_patient";
+                        } else if (findStringIC(statusVal,propaqName)) {
+                            nodeName = "propaq";
+                        } else if (findStringIC(statusVal,labsName)) {
+                            nodeName = "labs";
+                        }
+                        std::size_t found = statusVal.find(haltingString);
+                        if (found != std::string::npos) {
+                            cout << "\tThis is a halting error, so set that status" << endl;
+                            mgr->SetStatus(nodeName,HALTING_ERROR);
+                        } else {
+                            cout << "Not a halting error. It was " << found << endl;
+                            mgr->SetStatus(nodeName,OPERATIONAL);
+                        }
+                    } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
+                        // Client sent their capabilities / announced
+                        std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
+                        cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
+                        /*XMLDocument doc (false);
+                        doc.Parse (capabilityVal);*/
+                        std::string nodeName;
+                        if (findStringIC(capabilityVal,vpName)) {
+                            nodeName = "virtual_patient";
+                        } else if (findStringIC(capabilityVal,propaqName)) {
+                            nodeName = "propaq";
+                        } else if (findStringIC(capabilityVal,labsName)) {
+                            nodeName = "labs";
+                        }
+                        mgr->PublishModuleConfiguration(
+                                nodeName,
+                                "Vcom3D",
+                                c->name,
+                                "00001",
+                                "0.0.1",
+                                capabilityVal
+                        );
+
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
@@ -219,12 +353,15 @@ void *Server::HandleClient(void *args) {
     return nullptr;
 }
 
-void UdpDiscoveryThread()
-{
-    boost::asio::io_service io_service;
-    UdpDiscoveryServer udps(io_service, discoveryPort);
-    cout << "\tUDP Discovery listening on port " << discoveryPort << endl;
-    io_service.run();
+void UdpDiscoveryThread() {
+    if (discovery) {
+        boost::asio::io_service io_service;
+        UdpDiscoveryServer udps(io_service, discoveryPort);
+        cout << "\tUDP Discovery listening on port " << discoveryPort << endl;
+        io_service.run();
+    } else {
+        cout << "\tUDP discovery service not started due to command line option." << endl;
+    }
 }
 
 static void show_usage(const std::string &name) {
@@ -245,24 +382,50 @@ int main(int argc, const char *argv[]) {
         if (arg == "-d") {
             daemonize = 1;
         }
+
+        if (arg == "-nodiscovery") {
+            discovery = 0;
+        }
     }
 
     InitializeLabNodes();
 
-    const char* nodeName = "AMM_TCP_Bridge";
-    auto *mgr = new DDS_Manager(nodeName);
+    const std::string nodeName = "AMM_TCP_Bridge";
+    std::string nodeString(nodeName);
+    mgr = new DDS_Manager(nodeName.c_str());
+
+
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
-    auto *pub_listener = new DDS_Listeners::PubListener();
+    auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
 
     TCPBridgeListener tl;
     node_sub_listener->SetUpstream(&tl);
     command_sub_listener->SetUpstream(&tl);
+    config_sub_listener->SetUpstream(&tl);
 
-    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+    Subscriber *node_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
+                                                            node_sub_listener);
+    Subscriber *command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic,
+                                                               AMM::DataTypes::getCommandType(), command_sub_listener);
 
-    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
+    auto *pub_listener = new DDS_Listeners::PubListener();
+    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                 pub_listener);
+
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            nodeString,
+            "Vcom3D",
+            nodeName,
+            "00001",
+            "0.0.1",
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/tcp_bridge_capabilities.xml")
+    );
+
+    // Normally this would be set AFTER configuration is received
+    mgr->SetStatus(nodeString, OPERATIONAL);
 
     cout << "=== [Network_Bridge] Ready ..." << endl;
 
