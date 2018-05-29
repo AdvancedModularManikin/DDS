@@ -33,7 +33,7 @@ using namespace eprosima::fastrtps;
 
 class DDS_Manager {
 public:
-    DDS_Manager(const char *nodeName);
+    explicit DDS_Manager(const char *nodeName);
 
     void PublishModuleConfiguration(
             const std::string &module_name,

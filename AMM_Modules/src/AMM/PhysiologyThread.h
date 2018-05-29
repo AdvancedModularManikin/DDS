@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <sstream>
 
-// Boost dependancies
+// Boost dependencies
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
 
@@ -112,7 +112,7 @@ public:
 
     void Status();
 
-    double GetSimluationTime();      
+    double GetSimuluationTime();
 
     static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
     static std::vector<std::string> highFrequencyNodes;

@@ -18,7 +18,7 @@ std::string AMM::DataTypes::powerRequirementTopic = "Power_Requirement";
 
 std::string AMM::DataTypes::airSupplyTopic = "Air_Supply";
 std::string AMM::DataTypes::bloodSupplyTopic = "Blood_Supply";
-std::string AMM::DataTypes::cleaningSolutionSupplytTopic = "CleaningSolution_Supply";
+std::string AMM::DataTypes::cleaningSolutionSupplyTopic = "CleaningSolution_Supply";
 std::string AMM::DataTypes::clearLiquidSupplyTopic = "ClearLiquid_Supply";
 std::string AMM::DataTypes::powerSupplyTopic = "Power_Supply";
 

@@ -17,9 +17,7 @@ SerialPort::SerialPort(
 }
 
 SerialPort::~SerialPort()
-{
-
-}
+= default;
 
 int SerialPort::Initialize()
 {

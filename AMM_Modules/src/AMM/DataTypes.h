@@ -77,7 +77,7 @@ namespace AMM {
 
         static std::string airSupplyTopic;
         static std::string bloodSupplyTopic;
-        static std::string cleaningSolutionSupplytTopic;
+        static std::string cleaningSolutionSupplyTopic;
         static std::string clearLiquidSupplyTopic;
         static std::string powerSupplyTopic;
 
