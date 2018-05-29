@@ -4,6 +4,9 @@
 
 #include "AMMPubSubTypes.h"
 
+using namespace eprosima;
+using namespace eprosima::fastrtps;
+using namespace eprosima::fastrtps::rtps;
 
 /** Common listeners that can be implemented **/
 class ListenerInterface : public ReaderListener {

@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5.1)
 
 project(AMM_Modules)
 
@@ -26,7 +25,6 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/gen/)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
-
 
 find_package(fastrtps REQUIRED)
 find_package(fastcdr REQUIRED)
@@ -177,13 +175,13 @@ endif ()
 if (BioGears_FOUND)
     set(PHYSIOLOGY_MANAGER_SOURCES src/PhysiologyManager.cpp src/AMM/PhysiologyEngineManager.cpp src/AMM/PhysiologyThread.cpp)
     set(PHYSIOLOGY_MANAGER_EXE amm_physiology_manager)
-#    add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
-#    target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
-#            fastrtps fastcdr
-#            ${BioGears_LIBRARIES}
-#            Threads::Threads
-#            ${DATAMODEL}
-#            )
+    add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+    target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
+            fastrtps fastcdr
+            ${BioGears_LIBRARIES}
+            Threads::Threads
+            ${DATAMODEL}
+            )
 
     file(COPY ${PROJECT_SOURCE_DIR}/support/Actions DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)
     file(COPY ${PROJECT_SOURCE_DIR}/support/patients DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/bin/)

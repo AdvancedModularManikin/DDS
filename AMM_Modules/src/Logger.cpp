@@ -48,6 +48,7 @@
 using namespace std;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
+using namespace eprosima::fastrtps::rtps;
 
 Participant *mp_participant;
 
@@ -181,15 +182,15 @@ public:
         cout << " - status " << info.status << endl;
     }
 
-    void onNewCacheChangeAdded(eprosima::fastrtps::rtps::RTPSReader *reader,
-                               const eprosima::fastrtps::CacheChange_t *const change) {
+    void onNewCacheChangeAdded(RTPSReader *reader,
+                               const CacheChange_t *const change) {
 
-        eprosima::fastrtps::rtps::GUID_t changeGuid;
+        GUID_t changeGuid;
         iHandle2GUID(changeGuid, change->instanceHandle);
 
-        eprosima::fastrtps::rtps::WriterProxyData proxyData;
+        WriterProxyData proxyData;
         if (change->kind == ALIVE) {
-            eprosima::fastrtps::CDRMessage_t tempMsg(0);
+            CDRMessage_t tempMsg(0);
             tempMsg.wraps = true;
             tempMsg.msg_endian = change->serializedPayload.encapsulation ==
                                  PL_CDR_BE ? BIGEND : LITTLEEND;
