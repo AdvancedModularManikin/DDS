@@ -1,7 +1,5 @@
 #include "stdafx.h"
 
-#include <string>
-#include <iostream>
 #include <algorithm>
 
 #include <boost/algorithm/string.hpp>
@@ -9,6 +7,7 @@
 #include <thirdparty/tixml2cx.h>
 
 #include "AMM/DDS_Manager.h"
+
 #include "spi_proto.h"
 
 #include <sys/ioctl.h>
@@ -110,7 +109,7 @@ void ProcessConfig(const std::string configContent) {
     }
 
     if (!entry5) {
-        perror("[FLUIDMGR] cfg data didn't contain <data name=??>");
+        perror("[FLUIDMGR] cfg data didn't contain <data name=operating_pressure>");
     }
 
 }

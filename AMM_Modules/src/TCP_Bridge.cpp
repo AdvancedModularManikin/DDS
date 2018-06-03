@@ -18,12 +18,6 @@
 #include "AMM/DDS_Manager.h"
 
 #include "tinyxml2.h"
-#include <fstream>
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <string>
-#include <cctype>
 
 using namespace std;
 

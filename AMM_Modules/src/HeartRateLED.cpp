@@ -3,10 +3,6 @@
 #include "AMM/DDS_Manager.h"
 
 #include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <stdio.h>
-#include <unistd.h>
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
 
@@ -67,7 +63,7 @@ class HeartRateListener : public ListenerInterface {
             print = true;
         }
 
-	print=false;
+        print = false;
         if (print) {
             cout << "=== [HeartRateLED] Received data :  ("
                  << n.nodepath() << ", " << n.dbl() << ')'
@@ -92,12 +88,13 @@ static void show_usage(const std::string &name) {
 
 struct spi_packet spi_recv_msg;
 bool spi_recv_fresh = false;
+
 void
-heartrate_led_callback(struct spi_packet *p)
-{
-	memcpy(&spi_recv_msg, p, sizeof(struct spi_packet));
-	spi_recv_fresh = true;
+heartrate_led_callback(struct spi_packet *p) {
+    memcpy(&spi_recv_msg, p, sizeof(struct spi_packet));
+    spi_recv_fresh = true;
 }
+
 int main(int argc, char *argv[]) {
     cout << "=== [HeartRateLED] Ready ..." << endl;
     for (int i = 1; i < argc; ++i) {
@@ -118,7 +115,7 @@ int main(int argc, char *argv[]) {
     struct spi_state s;
     spi_proto_initialize(&s);
 
-    const char* nodeName = "AMM_HeartRateLED";
+    const char *nodeName = "AMM_HeartRateLED";
     std::string nodeString(nodeName);
     auto *mgr = new DDS_Manager(nodeName);
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
@@ -131,7 +128,8 @@ int main(int argc, char *argv[]) {
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-    Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
+    Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic,
+                                                            AMM::DataTypes::getCommandType(), pub_listener);
 
 
     // Publish module configuration once we've set all our publishers and listeners
@@ -146,7 +144,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus( nodeString, OPERATIONAL);
+    mgr->SetStatus(nodeString, OPERATIONAL);
 
 
     int count = 0;
@@ -170,25 +168,25 @@ int main(int argc, char *argv[]) {
         spi_send[2] = static_cast<unsigned char>(tourniquet);
         spi_send[3] = static_cast<unsigned char>(hemorrhage);
         unsigned char spi_rcvd[4];
-	spi_proto_send_msg(&s, spi_send, 4);
+        spi_proto_send_msg(&s, spi_send, 4);
 
         //do SPI communication
         //int spi_tr_res = spi_transfer(spi_fd, spi_send, spi_rcvd, 4);
-	//TODO send message
-	//TODO prep message
-	int ret = spi_proto_prep_msg(&s, sendbuf, SPI_TRANSFER_LEN);
-	
-	//do transaction
-	spi_transfer(spi_fd, sendbuf, recvbuf, SPI_TRANSFER_LEN);
-	//printf("amt_read = %d\n", amt_read);
-	
-	//process buffer into struct
-	struct spi_packet pack;
-	memcpy(&pack, recvbuf, SPI_TRANSFER_LEN);
-	//TODO maybe fixup the CRC byte order?
-	
-	//process received message
-	spi_proto_rcv_msg(&s, &pack, heartrate_led_callback);
+        //TODO send message
+        //TODO prep message
+        int ret = spi_proto_prep_msg(&s, sendbuf, SPI_TRANSFER_LEN);
+
+        //do transaction
+        spi_transfer(spi_fd, sendbuf, recvbuf, SPI_TRANSFER_LEN);
+        //printf("amt_read = %d\n", amt_read);
+
+        //process buffer into struct
+        struct spi_packet pack;
+        memcpy(&pack, recvbuf, SPI_TRANSFER_LEN);
+        //TODO maybe fixup the CRC byte order?
+
+        //process received message
+        spi_proto_rcv_msg(&s, &pack, heartrate_led_callback);
 
         //std::cout << "spi_msg " << std::hex << std::setw(2)
         //	<< std::setfill('0') << (unsigned int) spi_msg << std::endl;
@@ -196,21 +194,21 @@ int main(int argc, char *argv[]) {
         //	<< std::setfill('0') << (unsigned int) spi_rcvd << std::endl;
         //send press messages based on received SPI
         //the buttons send 1 when they are up and 0 when they are pressed
-	if (spi_recv_fresh) {
-		if (spi_recv_msg.msg[0] == 'A' && spi_recv_msg.msg[1] == 'C') {
-        		//button 2 was pressed
-        		//send hemorrhage action
-			char strspace[32];
-			memcpy(strspace, spi_recv_msg.msg, 32);
-			strspace[31] = 0;
-			char *act = strspace+8;
-        		cout << "=== [HeartRateLED] Sending a command:" << act << endl;
-        		AMM::PatientAction::BioGears::Command cmdInstance;
-        		cmdInstance.message(act);
-        		command_publisher->write(&cmdInstance);
-        	}
-		spi_recv_fresh = false;
-	}
+        if (spi_recv_fresh) {
+            if (spi_recv_msg.msg[0] == 'A' && spi_recv_msg.msg[1] == 'C') {
+                //button 2 was pressed
+                //send hemorrhage action
+                char strspace[32];
+                memcpy(strspace, spi_recv_msg.msg, 32);
+                strspace[31] = 0;
+                char *act = strspace + 8;
+                cout << "=== [HeartRateLED] Sending a command:" << act << endl;
+                AMM::PatientAction::BioGears::Command cmdInstance;
+                cmdInstance.message(act);
+                command_publisher->write(&cmdInstance);
+            }
+            spi_recv_fresh = false;
+        }
 
 
         ++count;

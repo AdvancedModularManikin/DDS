@@ -10,9 +10,9 @@
 
 #include "DDS_Manager.h"
 
-#include "DDS_Listeners.h"
+#include "src/AMM/Listeners/DDS_Listeners.h"
 
-#include "ListenerInterface.h"
+#include "src/AMM/Listeners/ListenerInterface.h"
 
 using namespace std;
 using namespace std::chrono;

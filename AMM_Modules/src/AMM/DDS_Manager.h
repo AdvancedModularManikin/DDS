@@ -1,5 +1,9 @@
 #pragma once
 
+#include <fstream>
+#include <streambuf>
+#include <sstream>
+
 #include <fastrtps/participant/Participant.h>
 #include <fastrtps/attributes/ParticipantAttributes.h>
 
@@ -20,16 +24,13 @@
 
 #include "AMM/DataTypes.h"
 
-#include "AMM/DDS_Listeners.h"
-#include "AMM/ListenerInterface.h"
-#include <fstream>
-#include <streambuf>
-#include <sstream>
+#include "src/AMM/Listeners/DDS_Listeners.h"
+#include "src/AMM/Listeners/ListenerInterface.h"
+#include "AMM/BaseLogger.h"
 
-
-using namespace std;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
+using namespace eprosima::fastrtps::rtps;
 
 class DDS_Manager {
 public:
@@ -64,8 +65,8 @@ public:
     Publisher *config_publisher;
     Publisher *status_publisher;
 
+    // @TODO: Load this from a config file
     const int domainId = 15;
-    const char *partitionName = "AMM";
 
     void RegisterTypes();
 

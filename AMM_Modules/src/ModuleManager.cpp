@@ -2,11 +2,14 @@
 
 #include "AMM/ModuleManager.h"
 
-
 using namespace std;
 using namespace sqlite;
 
 bool closed = false;
+int daemonize = 0;
+bool setup = false;
+int autostart = 0;
+bool wipe = false;
 
 static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>" <<
@@ -29,7 +32,7 @@ void show_menu(ModuleManager *modManager) {
     if (action == "1") {
         modManager->ShowStatus();
     } else if (action == "4") {
-        cout << "=== [ModManager] Shutting down Module Manager." << endl;
+        cout << "=== [ModuleManager] Shutting down Module Manager." << endl;
         closed = true;
         modManager->Shutdown();
     } else {
@@ -38,9 +41,6 @@ void show_menu(ModuleManager *modManager) {
 }
 
 int main(int argc, char *argv[]) {
-    int daemonize = 0;
-    int autostart = 0;
-
     cout << "=== [AMM - Module Manager] ===" << endl;
 
     for (int i = 1; i < argc; ++i) {
@@ -58,6 +58,77 @@ int main(int argc, char *argv[]) {
             autostart = 1;
         }
 
+        if (arg == "-s") {
+            setup = true;
+        }
+
+        if (arg == "-w") {
+            wipe = true;
+        }
+
+    }
+
+    if (wipe) {
+        cout << "[ModuleManager] Wiping tables on startup" << endl;
+        try {
+            sqlite_config config;
+            database db("amm.db", config);
+            db << "delete from modules;";
+            db << "delete from module_capabilities;";
+            db << "delete from module_status;";
+        } catch (exception &e) {
+            cout << e.what() << endl;
+        }
+    }
+
+    if (setup) {
+        try {
+            sqlite_config config;
+            database db("amm.db", config);
+
+            cout << "[ModuleManager] Creating modules table..." << endl;
+            db << "create table if not exists modules("
+                  "module_id text,"
+                  "module_name text,"
+                  "timestamp text"
+                  ");";
+            db << "delete from modules;";
+
+            cout << "[MM] Creating module capabilities table..." << endl;
+            db << "create table if not exists module_capabilities ("
+                  "model text,"
+                  "module_id text,"
+                  "module_name text,"
+                  "manufacturer text,"
+                  "serial_number text,"
+                  "version text,"
+                  "capabilities text,"
+                  "timestamp text,"
+                  "encounter_id text"
+                  ");";
+
+            db << "CREATE UNIQUE INDEX idx_mc_model ON module_capabilities (module_name);";
+
+            db << "delete from module_capabilities;";
+
+            cout << "[ModuleManager] Creating module status table..." << endl;
+            db << "create table if not exists module_status ("
+                  "module_id text,"
+                  "module_name text,"
+                  "capability text,"
+                  "status text,"
+                  "timestamp text,"
+                  "encounter_id text"
+                  ");";
+            db << "CREATE UNIQUE INDEX idx_ms_model ON module_status (module_name);";
+            db << "delete from module_status;";
+
+            cout << "[ModuleManager]\tCreated AMM database schema." << endl;
+
+        } catch (exception &e) {
+            cout << e.what() << endl;
+        }
+        return 0;
     }
 
     ModuleManager modManager;
@@ -70,8 +141,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    cout << "=== [ModuleManager] Exiting." <<
-         endl;
+    cout << "=== [ModuleManager] Exiting." << endl;
 
     return 0;
 }

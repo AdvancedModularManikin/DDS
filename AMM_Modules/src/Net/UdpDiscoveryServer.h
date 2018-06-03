@@ -9,7 +9,7 @@ using boost::asio::ip::udp;
 
 class UdpDiscoveryServer {
 public:
-    UdpDiscoveryServer(boost::asio::io_service &io_service, short port)
+    UdpDiscoveryServer(boost::asio::io_service &io_service, unsigned short port)
             : io_service_(io_service),
               socket_(io_service, udp::endpoint(udp::v4(), port)) {
         // Register async receive-from handler

@@ -44,7 +44,6 @@
 #include "AMM/DataTypes.h"
 #include "AMM/DDS_Manager.h"
 
-
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <pistache/endpoint.h>

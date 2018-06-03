@@ -16,8 +16,8 @@ SerialPort::SerialPort(
     m_serialPort.set_option(baudRate);
 }
 
-SerialPort::~SerialPort()
-= default;
+/*SerialPort::~SerialPort()
+= default;*/
 
 int SerialPort::Initialize()
 {

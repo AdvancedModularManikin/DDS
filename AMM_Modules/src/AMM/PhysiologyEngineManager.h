@@ -2,21 +2,19 @@
 
 #include "DDS_Manager.h"
 
-#include "DDS_Listeners.h"
+#include "src/AMM/Listeners/DDS_Listeners.h"
 
-#include "ListenerInterface.h"
+#include "src/AMM/Listeners/ListenerInterface.h"
 
 #include "PhysiologyThread.h"
+
+#include "AMM/BaseLogger.h"
 
 #include <chrono>
 #include <time.h>
 
 #include <mutex>
 #include <thread>
-
-
-using namespace std;
-using namespace std::chrono;
 
 class PhysiologyEngineManager : public ListenerInterface {
 
@@ -56,16 +54,17 @@ public:
 
     void TickLoop();
 
-    void AdvanceTimeTick();	
+    void AdvanceTimeTick();
 
     bool closed = false;
     bool paused = false;
     int lastFrame = 0;
 
     std::string stateFile = "./states/StandardMale@0s.xml";
-    
+
     std::string get_filename_date(void);
-    std::string get_random_string( size_t length );
+
+    std::string get_random_string(size_t length);
 
     void onNewNodeData(AMM::Physiology::Node n) override;
 
@@ -74,10 +73,10 @@ public:
     void onNewCommandData(AMM::PatientAction::BioGears::Command cm) override;
 
 private:
-    std::map<std::string, double (PhysiologyThread::*)()> * nodePathMap;
+    std::map<std::string, double (PhysiologyThread::*)()> *nodePathMap;
 
 protected:
-    const char* nodeName = "AMM_PhysiologyEngine";
+    const char *nodeName = "AMM_PhysiologyEngine";
 
     DDS_Manager *mgr = new DDS_Manager(nodeName);
 

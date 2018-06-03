@@ -4,12 +4,12 @@ using namespace sqlite;
 
 
 void CaptureListener::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
-    cout << "[CAPTURE][COMMAND]" << c.message() << endl;
+    LOG_TRACE << "[CAPTURE][COMMAND]" << c.message();
 }
 
 void CaptureListener::onNewStatusData(AMM::Capability::Status st) {
     database db("amm.db");
-    cout << "[CAPTURE][STATUS] Received a status message " << endl;
+    LOG_TRACE << "[CAPTURE][STATUS] Received a status message";
     ostringstream statusValue;
     statusValue << st.status_value();
     try {
@@ -18,13 +18,13 @@ void CaptureListener::onNewStatusData(AMM::Capability::Status st) {
            << st.capability()
            << statusValue.str();
     } catch (exception &e) {
-        cout << e.what() << endl;
+        LOG_TRACE << "[CAPTURE][STATUS]" << e.what();
     }
 };
 
 void CaptureListener::onNewConfigData(AMM::Capability::Configuration cfg) {
     database db("amm.db");
-    cout << "[CAPTURE][CONFIG] Received a config message " << endl;
+    LOG_TRACE << "[CAPTURE][CONFIG] Received a config message ";
     try {
         db
                 << "replace into module_capabilities (module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?);"
@@ -35,7 +35,7 @@ void CaptureListener::onNewConfigData(AMM::Capability::Configuration cfg) {
                 << cfg.version()
                 << cfg.capabilities();
     } catch (exception &e) {
-        cout << e.what() << endl;
+        LOG_ERROR << "[CAPTURE][CONFIG]" << e.what();
     };
 
 };

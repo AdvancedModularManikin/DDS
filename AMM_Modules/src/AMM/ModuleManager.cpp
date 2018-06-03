@@ -5,17 +5,22 @@ using namespace eprosima;
 using namespace eprosima::fastrtps;
 using namespace sqlite;
 
-database db("amm.db");
-
-
 ModuleManager::ModuleManager() {
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
+    auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
+    auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
+
     command_sub_listener->SetUpstream(this);
+    status_sub_listener->SetUpstream(this);
+    config_sub_listener->SetUpstream(this);
+
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                   command_sub_listener);
+                              command_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), status_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
+                              config_sub_listener);
 
     currentScenario = mgr->GetScenario();
-
     m_runThread = false;
 }
 
@@ -74,12 +79,45 @@ void ModuleManager::Shutdown() {
 
 
 void ModuleManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
-    cout << "Module manager fired command " << c.message() << endl;
     if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
         std::string value = c.message().substr(sysPrefix.size());
-        cout << "[MM] We received a SYSTEM action: " << value << endl;
+        LOG_TRACE << "[ModuleManager][COMMAND] We received a SYSTEM action: " << value;
     } else {
-        cout << "[MM] Command received: " << c.message() << endl;
+        LOG_TRACE << "[ModuleManager][COMMAND] Command received: " << c.message();
     }
+
+}
+
+void ModuleManager::onNewStatusData(AMM::Capability::Status st) {
+    LOG_TRACE << "[ModuleManager][STATUS] Received a status message ";
+    ostringstream statusValue;
+    statusValue << st.status_value();
+    try {
+        database db("amm.db");
+        db << "replace into module_status (module_name, capability, status) values (?,?,?);"
+           << st.module_name()
+           << st.capability()
+           << statusValue.str();
+    } catch (exception &e) {
+        LOG_ERROR << "[ModuleManager][STATUS]" << e.what();
+    }
+}
+
+void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg) {
+
+    LOG_TRACE << "[ModuleManager][CONFIG] Received a config message ";
+    try {
+        database db("amm.db");
+        db
+                << "replace into module_capabilities (module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?);"
+                << cfg.module_name()
+                << cfg.manufacturer()
+                << cfg.model()
+                << cfg.serial_number()
+                << cfg.version()
+                << cfg.capabilities();
+    } catch (exception &e) {
+        LOG_ERROR << "[ModuleManager][CONFIG]" << e.what();
+    };
 
 }

@@ -1,5 +1,4 @@
 #include "DDS_Listeners.h"
-#include <typeinfo>
 
 using namespace std;
 

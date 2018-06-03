@@ -18,15 +18,14 @@
 #include <fastrtps/subscriber/SubscriberListener.h>
 #include <fastrtps/publisher/PublisherListener.h>
 #include <fastrtps/subscriber/SampleInfo.h>
+#include <fastrtps/Domain.h>
 
 #include "AMMPubSubTypes.h"
 #include "ListenerInterface.h"
-
-#include <fastrtps/Domain.h>
+#include "AMM/BaseLogger.h"
 
 using namespace eprosima;
 using namespace eprosima::fastrtps;
-
 
 class DDS_Listeners {
 

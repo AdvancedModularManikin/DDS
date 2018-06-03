@@ -7,12 +7,7 @@
 using namespace std;
 using namespace std::chrono;
 
-
 PhysiologyEngineManager::PhysiologyEngineManager() {
-
-    cout << "=== [PhysiologyManager] Starting up." << endl;
-    cout << "=== [PhysiologyManager][DDS] Initializing DDS entity manager (DATA)." << endl;
-
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
     tick_sub_listener->SetUpstream(this);
 
@@ -51,8 +46,8 @@ std::string PhysiologyEngineManager::get_random_string(size_t length) {
     auto randchar = []() -> char {
         const char charset[] =
                 "0123456789"
-                        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                        "abcdefghijklmnopqrstuvwxyz";
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                "abcdefghijklmnopqrstuvwxyz";
         const size_t max_index = (sizeof(charset) - 1);
         return charset[rand() % max_index];
     };
@@ -147,8 +142,6 @@ void PhysiologyEngineManager::StartTickSimulation() {
         std::size_t pos2 = state2.find("s");
         std::string state3 = state2.substr(1, pos2 - 1);
         double startPosition = atof(state3.c_str());
-        cout << " === [PhysiologyManager] Loading state file " << stateFile << " at position " << startPosition
-             << " seconds" << endl;
         bg->LoadState(stateFile.c_str(), startPosition);
         nodePathMap = bg->GetNodePathTable();
         m_runThread = true;
@@ -191,13 +184,13 @@ void PhysiologyEngineManager::Status() {
 
 
 void PhysiologyEngineManager::Shutdown() {
-    cout << "=== [PhysiologyManager] Sending -1 values to all topics." << endl;
+    LOG_TRACE << "[PhysiologyManager] Sending -1 values to all topics.";
     SendShutdown();
 
-    cout << "=== [PhysiologyManager][BG] Shutting down BioGears." << endl;
+    LOG_TRACE << "[PhysiologyManager][BG] Shutting down BioGears.";
     bg->Shutdown();
 
-    cout << "=== [PhysiologyManager][DDS] Shutting down DDS Connections." << endl;
+    LOG_TRACE << "[PhysiologyManager][DDS] Shutting down DDS Connections.";
 }
 
 
@@ -209,27 +202,27 @@ void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n) {
 void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm) {
     if (!cm.message().compare(0, sysPrefix.size(), sysPrefix)) {
         std::string value = cm.message().substr(sysPrefix.size());
-        cout << "[PhysiologyManager] We received a SYSTEM action: " << value << endl;
+        LOG_TRACE << "[PhysiologyManager] We received a SYSTEM action: " << value;
         if (value.compare("START_ENGINE") == 0 || value.compare("START_SIM") == 0) {
-            cout << "=== [PhysiologyManager] Started engine based on Tick Simulation" << endl;
+            LOG_TRACE << "[PhysiologyManager] Started engine based on Tick Simulation";
             StartTickSimulation();
         } else if (value.compare("STOP_ENGINE") == 0) {
-            cout << "=== [PhysiologyManager] Stopped engine" << endl;
+            LOG_TRACE << "[PhysiologyManager] Stopped engine";
             StopTickSimulation();
             StopSimulation();
             Shutdown();
         } else if (value.compare("PAUSE_ENGINE") == 0) {
-            cout << "=== [PhysiologyManager] Paused engine" << endl;
+            LOG_TRACE << "[PhysiologyManager] Paused engine" << endl;
             StopTickSimulation();
         } else if (value.compare("RESET_SIM") == 0) {
-            cout << "=== [PhysiologyManager] Reset simulation, clearing engine data " << endl;
+            LOG_TRACE << "[PhysiologyManager] Reset simulation, clearing engine data.";
             StopTickSimulation();
             StopSimulation();
         } else if (value.compare("SAVE_STATE") == 0) {
             std::ostringstream ss;
             ss << "./states/SavedState_" << get_filename_date() << "@" << (int) std::round(bg->GetSimulationTime())
                << "s.xml";
-            cout << "=== [PhysiologyManager] Saved state file: " << ss.str() << endl;
+            LOG_TRACE << "[PhysiologyManager] Saved state file: " << ss.str();
             bg->SaveState(ss.str());
         } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
             StopTickSimulation();
@@ -237,7 +230,7 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
             StartTickSimulation();
         }
     } else {
-        cout << "[PhysiologyManager] Command received: " << cm.message() << endl;
+        LOG_TRACE << "[PhysiologyManager] Command received: " << cm.message();
         bg->ExecuteCommand(cm.message());
     }
 }
@@ -245,15 +238,12 @@ void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Com
 void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti) {
     if (m_runThread) {
         if (ti.frame() == -1) {
-            cout << "[SHUTDOWN]" << endl;
             StopTickSimulation();
             SendShutdown();
         } else if (ti.frame() == -2) {
-            cout << "[PAUSE]" << endl;
             paused = true;
         } else if (ti.frame() > 0 || !paused) {
             if (paused) {
-                cout << "[RESUME]" << endl;
                 paused = false;
             }
 
@@ -264,7 +254,6 @@ void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti) {
 //                cout << ".";
             }
             lastFrame = static_cast<int>(ti.frame());
-
 
             // Per-frame stuff happens here
             AdvanceTimeTick();

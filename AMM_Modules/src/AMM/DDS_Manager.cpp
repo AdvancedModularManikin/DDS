@@ -1,10 +1,10 @@
 #include "DDS_Manager.h"
 
-using namespace std;
 using namespace std::chrono;
 
 using namespace eprosima;
 using namespace eprosima::fastrtps;
+using namespace eprosima::fastrtps::rtps;
 
 DDS_Manager::DDS_Manager(const char *nodeName) {
     ParticipantAttributes PParam;
@@ -14,7 +14,7 @@ DDS_Manager::DDS_Manager(const char *nodeName) {
     mp_participant = Domain::createParticipant(PParam);
 
     if (mp_participant == nullptr) {
-        std::cout << "Unable to create FastRTPS domain participant." << endl;
+        LOG_FATAL << "Unable to create FastRTPS domain participant.";
         return;
     }
 
@@ -114,8 +114,6 @@ void DDS_Manager::PublishModuleConfiguration(
 
 
 void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
-  cout << "Publishing configuration.." << endl;
-  
     config_publisher->write((void *) &configInstance);
 }
 
@@ -128,7 +126,7 @@ void DDS_Manager::SetStatus(const std::string &module_name, AMM::Capability::sta
 
 // Statuses other than OPERATIONAL can have messaging attached to them
 void DDS_Manager::SetStatus(const std::string &module_name, AMM::Capability::status_values status,
-                            const std::vector <std::string> &message) {
+                            const std::vector<std::string> &message) {
     AMM::Capability::Status statusInstance;
     statusInstance.status_value(status);
     statusInstance.message(message);
@@ -137,23 +135,21 @@ void DDS_Manager::SetStatus(const std::string &module_name, AMM::Capability::sta
 }
 
 void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
-  cout << "Setting status... " << endl;
     status_publisher->write((void *) &statusInstance);
 }
 
-string DDS_Manager::GetCapabilitiesAsString(const std::string &filename) {
+std::string DDS_Manager::GetCapabilitiesAsString(const std::string &filename) {
     std::ifstream ifs(filename);
     std::string capabilitiesContent((std::istreambuf_iterator<char>(ifs)),
                                     (std::istreambuf_iterator<char>()));
     return capabilitiesContent;
 }
 
-string DDS_Manager::GetScenario() {
+std::string DDS_Manager::GetScenario() {
     std::ifstream t(scenarioFile);
     std::string str((std::istreambuf_iterator<char>(t)),
                     std::istreambuf_iterator<char>());
     currentScenario = str;
-    cout << "[DDS_MANAGER] Current scenario is " << currentScenario << endl;
     return currentScenario;
 }
 
@@ -163,6 +159,4 @@ void DDS_Manager::SetScenario(std::string scenario) {
     std::ofstream out(scenarioFile);
     out << currentScenario;
     out.close();
-
-    cout << "[DDS_MANAGER] Set scenario to " << currentScenario << endl;
 }

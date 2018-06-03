@@ -1,5 +1,6 @@
 #include "VirtualEquipmentListener.h"
 
+using namespace std;
 
 void VirtualEquipmentListener::onNewNodeData(AMM::Physiology::Node n) {
 

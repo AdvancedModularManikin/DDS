@@ -44,7 +44,6 @@
 #include "AMM/DataTypes.h"
 #include "AMM/DDS_Manager.h"
 
-
 using namespace std;
 using namespace eprosima;
 using namespace eprosima::fastrtps;

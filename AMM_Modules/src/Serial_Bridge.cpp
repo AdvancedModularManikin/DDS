@@ -5,17 +5,7 @@
 #include "AMM/SerialPort.h"
 
 #include <boost/algorithm/string.hpp>
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
 #include <boost/thread.hpp>
-
-#include <vector>
-#include <queue>
-#include <stack>
-#include <thread>
-#include <fstream>
-#include <string>
-#include <iostream>
 
 using namespace ::boost::asio;
 using namespace std;

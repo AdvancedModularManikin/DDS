@@ -19,12 +19,13 @@ This is a series of proof-of-concept AMM modules utilizing DDS.  These can be us
 
     
 * [BioGears](https://github.com/BioGearsEngine/Engine) or [Pulse](https://gitlab.kitware.com/physiology/engine) Physiology Engine SDK built and installed. 
-
-* [libboost](http://www.boost.org) installed. On Debian : sudo apt install libboost-all-dev 
+* [libboost](http://www.boost.org) 1.5.1 or higher installed. On Debian : sudo apt install libboost-all-dev 
+* [libtinyxml2](http://www.grinninglizard.com/tinyxml2/) installed.  On Debian: sudo apt install libtinyxml2-dev
 
 #### Optional:
 * [RapidJSON](https://github.com/miloyip/rapidjson) - JSON parser/generator for C++ (required for REST adapter) 
 * [Pistache](https://github.com/oktal/pistache) - Simple C++ REST framework (required for REST adapter)
+* [sqlite](https://www.sqlite.org/index.html) - Persistent, light-weight storage.  On Debian: sudo apt install sqlite3 libsqlite3-dev sqlite libsqlite-dev 
 
 ### Build Instructions
 
@@ -37,14 +38,24 @@ make
 
 This will build into the `bin` directory.  You will have a few binaries:
 
+**CORE Software**:
+* amm_module_manager - Maintains track of all 
 * amm_sim_manager - outputs ticks at 50hz, start/pause/stop simulation
 * amm_physiology_manager - interface for physiology engine, publishes some node_paths
-* amm_virtual_equipment - command line tool, accepts a node_path to listen for
-* amm_command_executor - command line tool, execute commands and interventions
-* amm_heartrate_led - [BLT](https://github.com/AdvancedModularManikin/development-kit/wiki/AMMDK-Overview) test to flash LED at heart rate
 * amm_rest_adapter - Accept HTTP requests and return data from the DDS bus
 * amm_tcp_bridge - Connector from the DDS bus to TCP, including a UDP auto-discovery server.  Used for Unity3D connectivity.
-* amm_serial_bridge - Connector to devices (Arduino, etc) that communicate via serial / USB.
+* amm_capture
+* amm_logger
+
+**Example modules**:
+* amm_virtual_equipment - command line tool, accepts a node_path to listen for
+* amm_command_executor - command line tool, execute commands and interventions
+
+**Example hardware modules**:
+* amm_heartrate_led - [BLT](https://github.com/AdvancedModularManikin/development-kit/wiki/AMMDK-Overview) test to flash LED at heart rate
+* amm_ivc_module
+* amm_fluid_manager
+* amm_serial_bridge - Connector to devices (Arduino, etc) that communicate via serial / USB. 
 
 ### REST Adapter routes
 The REST adapter exposes the following routes:
@@ -55,6 +66,8 @@ The REST adapter exposes the following routes:
 /actions	  - retrieve a list of all available actions
 /states		  - retrieve a list of all available starting states / scenarios
 /patients	  - retrieve a list of all available patients
+/modules      - retrieve a list of all connected modules and their statuses/capabilities
+/module/<id>  - retrieve a single module's status, configuration and capabilities
 ```
 
 #### Examples: 

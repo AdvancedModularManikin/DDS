@@ -24,7 +24,7 @@ public:
             uint32_t baud,
             std::string const& device);
 
-    ~SerialPort();
+    //~SerialPort() override = default;;
 
     int Initialize();
     void Close();
