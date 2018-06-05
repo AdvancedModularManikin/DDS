@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stdafx.h"
+
 #include <fstream>
 #include <streambuf>
 #include <sstream>
@@ -26,6 +28,7 @@
 
 #include "src/AMM/Listeners/DDS_Listeners.h"
 #include "src/AMM/Listeners/ListenerInterface.h"
+
 #include "AMM/BaseLogger.h"
 
 using namespace eprosima;
