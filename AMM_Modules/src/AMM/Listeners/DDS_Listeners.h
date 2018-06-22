@@ -35,7 +35,7 @@ public:
     public:
         PubListener() : n_matched(0) {};
 
-        ~PubListener() override = default;;
+        ~PubListener() override = default;
 
         void onPublicationMatched(Publisher *pub, MatchingInfo &info) override;
 
@@ -50,7 +50,7 @@ public:
     public:
         DefaultSubListener() : n_matched(0), n_msg(0) {};
 
-        ~DefaultSubListener() override = default;;
+        ~DefaultSubListener() override = default;
 
         void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
 
@@ -68,7 +68,7 @@ public:
     public:
         NodeSubListener() : n_matched(0), n_msg(0) {};
 
-        ~NodeSubListener() override = default;;
+        ~NodeSubListener() override = default;
 
         void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
 
@@ -87,7 +87,7 @@ public:
 
         CommandSubListener() : n_matched(0), n_msg(0) {};
 
-        ~CommandSubListener() override = default;;
+        ~CommandSubListener() override = default;
 
         void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
 
@@ -105,7 +105,7 @@ public:
     public:
         TickSubListener() : n_matched(0), n_msg(0) {};
 
-        ~TickSubListener() override = default;;
+        ~TickSubListener() override = default;
 
         void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
 
@@ -123,7 +123,7 @@ public:
     public:
         StatusSubListener() : n_matched(0), n_msg(0) {};
 
-        ~StatusSubListener() override = default;;
+        ~StatusSubListener() override = default;
 
         void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
 
@@ -141,7 +141,7 @@ public:
     public:
         ConfigSubListener() : n_matched(0), n_msg(0) {};
 
-        ~ConfigSubListener() override = default;;
+        ~ConfigSubListener() override = default;
 
         void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
 
@@ -159,7 +159,7 @@ public:
     public:
         ScenarioSubListener() : n_matched(0), n_msg(0) {};
 
-        ~ScenarioSubListener() override = default;;
+        ~ScenarioSubListener() override = default;
 
         void onSubscriptionMatched(Subscriber *sub, MatchingInfo &info) override;
 

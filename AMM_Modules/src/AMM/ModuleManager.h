@@ -33,7 +33,7 @@ public:
 
     ModuleManager();
 
-    ~ModuleManager() override = default;;
+    ~ModuleManager() override = default;
 
     void Start();
 
@@ -52,7 +52,6 @@ public:
     void onNewStatusData(AMM::Capability::Status st) override;
 
     void onNewConfigData(AMM::Capability::Configuration cfg) override;
-
 
     std::string currentScenario;
 

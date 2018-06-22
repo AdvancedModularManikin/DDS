@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus( nodeString,OPERATIONAL);
+    mgr->SetStatus(nodeString, OPERATIONAL);
 
     cout << "=== [VirtualEquipment] Ready ..." << endl;
 

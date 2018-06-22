@@ -46,7 +46,7 @@ BOOST_LOG_GLOBAL_LOGGER_INIT(logger, src::severity_logger_mt) {
     sink->set_formatter(formatter);
 
     // only messages with severity >= SEVERITY_THRESHOLD are written
-    sink->set_filter(severity >= SEVERITY_THRESHOLD);
+    // sink->set_filter(severity >= SEVERITY_THRESHOLD);
 
     // "register" our sink
     logging::core::get()->add_sink(sink);

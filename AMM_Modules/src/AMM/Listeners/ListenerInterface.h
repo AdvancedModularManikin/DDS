@@ -11,7 +11,7 @@ using namespace eprosima::fastrtps::rtps;
 /** Common listeners that can be implemented **/
 class ListenerInterface : public ReaderListener {
 public:
-    ListenerInterface() = default;;
+    ListenerInterface() = default;
 
     virtual ~ListenerInterface() {};
 

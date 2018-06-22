@@ -23,7 +23,7 @@ public:
 
     SimulationManager();
 
-    ~SimulationManager() override = default;;
+    ~SimulationManager() override = default;
 
     void StartSimulation();
 

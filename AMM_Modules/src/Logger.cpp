@@ -43,6 +43,7 @@
 
 #include "AMM/DataTypes.h"
 #include "AMM/DDS_Manager.h"
+#include "AMM/BaseLogger.h"
 
 using namespace std;
 using namespace eprosima;
@@ -160,7 +161,7 @@ public:
                 if (!name.empty()) {
                     discovered_names[info.rtps.m_guid] = name;
                 }
-                cout << "[" << m_listenerName << "] " << info.rtps.m_guid << " joined with name " << name << endl;
+                LOG_INFO << "[" << m_listenerName << "] " << info.rtps.m_guid << " joined with name " << name;
             }
         } else {
             auto it = discovered_names.find(info.rtps.m_guid);
@@ -168,17 +169,16 @@ public:
             if (it != discovered_names.end()) {
                 discovered_names.erase(it);
             }
-            cout << "[" << m_listenerName << "] " << info.rtps.m_guid << " disconnected " << endl;
+            LOG_INFO << "[" << m_listenerName << "] " << info.rtps.m_guid << " disconnected ";
         }
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
-        cout << "[COMMAND]" << c.message() << endl;
+        LOG_INFO << "[COMMAND]" << c.message();
     }
 
     void onReaderMatched(RTPSReader *reader, MatchingInfo &info) {
-        cout << "[" << m_listenerName << "] New reader matched: " << info.remoteEndpointGuid;
-        cout << " - status " << info.status << endl;
+        LOG_INFO << "[" << m_listenerName << "] New reader matched: " << info.remoteEndpointGuid << " - status " << info.status;
     }
 
     void onNewCacheChangeAdded(RTPSReader *reader,
@@ -216,8 +216,8 @@ public:
         if (change->kind == ALIVE) {
             topicNtypes[fqdn].push_back(proxyData.typeName());
 
-            cout << "[" << m_listenerName << "][" << changeGuid << "] Topic " << fqdn << " with type "
-                 << proxyData.typeName() << endl;
+            LOG_INFO << "[" << m_listenerName << "][" << changeGuid << "] Topic " << fqdn << " with type "
+                 << proxyData.typeName();
         } else {
             auto it = topicNtypes.find(fqdn);
             if (it != topicNtypes.end()) {
@@ -225,12 +225,12 @@ public:
                         std::find(std::begin(it->second), std::end(it->second), proxyData.typeName());
                 if (loc != std::end(it->second)) {
                     topicNtypes[fqdn].erase(loc, loc + 1);
-                    cout << "[" << m_listenerName << "][" << changeGuid << "] Topic removed " << fqdn << " with type "
-                         << proxyData.typeName() << endl;
+                    LOG_INFO << "[" << m_listenerName << "][" << changeGuid << "] Topic removed " << fqdn << " with type "
+                         << proxyData.typeName();
                 } else {
-                    cout << "[" << m_listenerName << "][" << changeGuid << "] Unexpected removal on topic " << fqdn
+                    LOG_INFO << "[" << m_listenerName << "][" << changeGuid << "] Unexpected removal on topic " << fqdn
                          << " with type "
-                         << proxyData.typeName() << endl;
+                         << proxyData.typeName();
                 }
             }
         }
@@ -249,7 +249,6 @@ int main(int argc, char *argv[]) {
     AMMListener commandL("COMMAND");
     AMMListener slave_listener_pub("PUB");
     AMMListener slave_listener_sub("SUB");
-
 
     const char *nodeName = "AMM_Logger";
     std::string nodeString(nodeName);
@@ -275,8 +274,8 @@ int main(int argc, char *argv[]) {
             mgr->GetCapabilitiesAsString("mule1/module_capabilities/logger_capabilities.xml")
     );
 
-    // Normally this would be set AFTER configuration is received
-    mgr->SetStatus( nodeString,OPERATIONAL);
+    // Normally this would be set AFTER configuration is received, but the logger is always operational
+    mgr->SetStatus(nodeString, OPERATIONAL);
 
     while (!closed) {
         getline(cin, action);

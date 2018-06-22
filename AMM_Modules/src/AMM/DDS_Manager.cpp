@@ -27,6 +27,9 @@ DDS_Manager::DDS_Manager(const char *nodeName) {
 
     status_publisher = InitializePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
                                            pub_listener);
+
+    uuid = boost::uuids::random_generator()();
+    module_id = boost::uuids::to_string(uuid);
 }
 
 Participant *DDS_Manager::GetParticipant() {
@@ -78,7 +81,7 @@ Publisher *DDS_Manager::InitializePublisher(std::string topicName, TopicDataType
     PublisherAttributes wparam;
     wparam.topic.topicDataType = topicType->getName();
     wparam.topic.topicName = topicName;
-    Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
+    Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, nullptr);
     return gen_publisher;
 }
 
@@ -95,6 +98,7 @@ Subscriber *DDS_Manager::InitializeSubscriber(std::string topicName, TopicDataTy
 }
 
 void DDS_Manager::PublishModuleConfiguration(
+        const std::string &local_module_id,
         const std::string &module_name,
         const std::string &manufacturer,
         const std::string &model,
@@ -103,6 +107,26 @@ void DDS_Manager::PublishModuleConfiguration(
         const std::string &capabilities
 ) {
     AMM::Capability::Configuration configInstance;
+    configInstance.module_id(local_module_id);
+    configInstance.module_name(module_name);
+    configInstance.manufacturer(manufacturer);
+    configInstance.model(model);
+    configInstance.serial_number(serial_number);
+    configInstance.version(version);
+    configInstance.capabilities(capabilities);
+    PublishModuleConfiguration(configInstance);
+}
+
+void DDS_Manager::PublishModuleConfiguration(
+        const std::string &module_name,
+        const std::string &manufacturer,
+        const std::string &model,
+        const std::string &serial_number,
+        const std::string &version,
+        const std::string &capabilities
+) {
+    AMM::Capability::Configuration configInstance;
+    configInstance.module_id(module_id);
     configInstance.module_name(module_name);
     configInstance.manufacturer(manufacturer);
     configInstance.model(model);
@@ -114,11 +138,17 @@ void DDS_Manager::PublishModuleConfiguration(
 
 
 void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
-    config_publisher->write((void *) &configInstance);
+    try {
+        config_publisher->write(&configInstance);
+
+    } catch (std::exception &e) {
+        LOG_ERROR << "[DDS_Manager][config]" << e.what();
+    }
 }
 
 void DDS_Manager::SetStatus(const std::string &module_name, AMM::Capability::status_values status) {
     AMM::Capability::Status statusInstance;
+    statusInstance.module_id(module_id);
     statusInstance.module_name(module_name);
     statusInstance.status_value(status);
     SetStatus(statusInstance);
@@ -128,14 +158,67 @@ void DDS_Manager::SetStatus(const std::string &module_name, AMM::Capability::sta
 void DDS_Manager::SetStatus(const std::string &module_name, AMM::Capability::status_values status,
                             const std::vector<std::string> &message) {
     AMM::Capability::Status statusInstance;
+    statusInstance.module_id(module_id);
     statusInstance.status_value(status);
     statusInstance.message(message);
     statusInstance.module_name(module_name);
     SetStatus(statusInstance);
 }
 
+
+void DDS_Manager::SetStatus(const std::string &module_name, const std::string &capability,
+                            AMM::Capability::status_values status) {
+    AMM::Capability::Status statusInstance;
+    statusInstance.module_id(module_id);
+    statusInstance.module_name(module_name);
+    statusInstance.status_value(status);
+    statusInstance.capability(capability);
+    SetStatus(statusInstance);
+}
+
+// Statuses other than OPERATIONAL can have messaging attached to them
+void DDS_Manager::SetStatus(const std::string &module_name, const std::string &capability,
+                            AMM::Capability::status_values status,
+                            const std::vector<std::string> &message) {
+    AMM::Capability::Status statusInstance;
+    statusInstance.module_id(module_id);
+    statusInstance.status_value(status);
+    statusInstance.message(message);
+    statusInstance.module_name(module_name);
+    statusInstance.capability(capability);
+    SetStatus(statusInstance);
+}
+
+
+void DDS_Manager::SetStatus(const std::string &module_name, const std::string &local_module_id,
+                            const std::string &capability, AMM::Capability::status_values status) {
+    AMM::Capability::Status statusInstance;
+    statusInstance.module_id(local_module_id);
+    statusInstance.module_name(module_name);
+    statusInstance.status_value(status);
+    statusInstance.capability(capability);
+    SetStatus(statusInstance);
+}
+
+// Statuses other than OPERATIONAL can have messaging attached to them
+void DDS_Manager::SetStatus(const std::string &module_name, const std::string &local_module_id,
+                            const std::string &capability, AMM::Capability::status_values status,
+                            const std::vector<std::string> &message) {
+    AMM::Capability::Status statusInstance;
+    statusInstance.module_id(local_module_id);
+    statusInstance.status_value(status);
+    statusInstance.message(message);
+    statusInstance.module_name(module_name);
+    statusInstance.capability(capability);
+    SetStatus(statusInstance);
+}
+
 void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
-    status_publisher->write((void *) &statusInstance);
+    try {
+        status_publisher->write(&statusInstance);
+    } catch (std::exception &e) {
+        LOG_ERROR << "[DDS_Manager][status]" << e.what();
+    }
 }
 
 std::string DDS_Manager::GetCapabilitiesAsString(const std::string &filename) {

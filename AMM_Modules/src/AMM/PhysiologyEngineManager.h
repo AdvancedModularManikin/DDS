@@ -22,7 +22,7 @@ public:
 
     PhysiologyEngineManager();
 
-    ~PhysiologyEngineManager() override = default;;
+    ~PhysiologyEngineManager() override = default;
 
     void StartSimulation();
 

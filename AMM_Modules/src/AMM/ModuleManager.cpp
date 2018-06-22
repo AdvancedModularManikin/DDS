@@ -89,12 +89,12 @@ void ModuleManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
 }
 
 void ModuleManager::onNewStatusData(AMM::Capability::Status st) {
-    LOG_TRACE << "[ModuleManager][STATUS] Received a status message ";
     ostringstream statusValue;
     statusValue << st.status_value();
     try {
         database db("amm.db");
-        db << "replace into module_status (module_name, capability, status) values (?,?,?);"
+        db << "replace into module_status (module_id, module_name, capability, status) values (?,?,?,?);"
+           << st.module_id()
            << st.module_name()
            << st.capability()
            << statusValue.str();
@@ -104,12 +104,11 @@ void ModuleManager::onNewStatusData(AMM::Capability::Status st) {
 }
 
 void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg) {
-
-    LOG_TRACE << "[ModuleManager][CONFIG] Received a config message ";
-    try {
+ try {
         database db("amm.db");
         db
-                << "replace into module_capabilities (module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?);"
+                << "replace into module_capabilities (module_id, module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?,?);"
+                << cfg.module_id()
                 << cfg.module_name()
                 << cfg.manufacturer()
                 << cfg.model()
