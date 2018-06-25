@@ -105,20 +105,3 @@ AMM::Capability::StatusPubSubType *AMM::DataTypes::getStatusType() {
 AMM::Capability::ScenarioPubSubType *AMM::DataTypes::getScenarioType() {
     return new ScenarioPubSubType();
 };
-
-// AMM Logging types
-AMM::Sys::Log::debugPubSubType *AMM::DataTypes::getDebugLogType() {
-    return new AMM::Sys::Log::debugPubSubType();
-};
-
-AMM::Sys::Log::errorPubSubType *AMM::DataTypes::getErrorLogType() {
-    return new AMM::Sys::Log::errorPubSubType();
-};
-
-AMM::Sys::Log::warningPubSubType *AMM::DataTypes::getWarningLogType() {
-    return new AMM::Sys::Log::warningPubSubType();
-};
-
-AMM::Sys::Log::infoPubSubType *AMM::DataTypes::getInfoLogType() {
-    return new AMM::Sys::Log::infoPubSubType();
-};

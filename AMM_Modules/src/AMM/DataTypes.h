@@ -16,7 +16,6 @@ using namespace AMM::Performance;
 using namespace AMM::Resource::Requirement;
 using namespace AMM::Resource::Supply;
 using namespace AMM::Capability;
-using namespace AMM::Sys::Log;
 
 namespace AMM {
     class DataTypes {
@@ -52,12 +51,6 @@ namespace AMM {
         static AMM::Capability::ConfigurationPubSubType* getConfigurationType();
         static AMM::Capability::StatusPubSubType* getStatusType();
         static AMM::Capability::ScenarioPubSubType* getScenarioType();
-
-        // AMM Logging types
-        static AMM::Sys::Log::debugPubSubType* getDebugLogType();
-        static AMM::Sys::Log::errorPubSubType* getErrorLogType();
-        static AMM::Sys::Log::warningPubSubType* getWarningLogType();
-        static AMM::Sys::Log::infoPubSubType* getInfoLogType();
 
         // Topic names
         static std::string tickTopic;

@@ -12,7 +12,7 @@
 extern "C" {
 
 #include "config.h"
-#include "misc/crc16.h"
+#include "crc16.h"
 
 /* ======================================================================== */
 /*  CRC16_TBL    -- Lookup table used for the CRC-16 code.                  */

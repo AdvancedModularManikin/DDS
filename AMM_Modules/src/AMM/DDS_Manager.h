@@ -30,8 +30,8 @@
 
 #include "AMM/DataTypes.h"
 
-#include "src/AMM/Listeners/DDS_Listeners.h"
-#include "src/AMM/Listeners/ListenerInterface.h"
+#include "AMM/Listeners/DDS_Listeners.h"
+#include "AMM/Listeners/ListenerInterface.h"
 
 #include "AMM/BaseLogger.h"
 

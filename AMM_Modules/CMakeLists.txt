@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.5.1)
 
-project(AMM_Modules)
+project(AMM_Modules VERSION 0.2.1)
+set(VERSION_TYPE "beta" CACHE STRING "version type" FORCE)
+site_name(VERSION_HOST) # read hostname to VERSION_HOST
+set(VERSION_HOST "${VERSION_HOST}" CACHE STRING "host of build" FORCE)
 
 IF (WIN32)
     SET(ENV{BIOGEARS_HOME} "c:/tools/physiology/install")
@@ -17,8 +20,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(fastcdr_DIR "$ENV{FASTRTPS_HOME}/lib/fastcdr/cmake")
 set(fastrtps_DIR "$ENV{FASTRTPS_HOME}/lib/fastrtps/cmake")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/support/cmake ${fastcdr_DIR} ${fastrtps_DIR})
-
-message(STATUS "We're gonna make ${CMAKE_CURRENT_BINARY_DIR}/bin/")
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/logs/)
@@ -55,7 +56,8 @@ endif()
 if(MSVC)
     add_compile_options(/std:c++14 /W3 /WX )
 else()
-    add_compile_options(-std=c++14 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wunused -pedantic)
+    # add_compile_options(-std=c++14 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wunused -pedantic)
+    add_compile_options(-std=c++14)
 endif()
 
 # External resources/repositories are downloaded here
@@ -68,7 +70,7 @@ add_subdirectory(doc)
 add_subdirectory(support)
 
 # Testing
-enable_testing()
+# enable_testing()
 add_subdirectory(test)
 
 # Source code

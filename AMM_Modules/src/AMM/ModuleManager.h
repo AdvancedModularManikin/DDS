@@ -2,21 +2,19 @@
 
 #include "stdafx.h"
 
-#include "DataTypes.h"
+#include "AMM/DataTypes.h"
 
-#include "DDS_Manager.h"
+#include "AMM/DDS_Manager.h"
 
-#include "src/AMM/Listeners/DDS_Listeners.h"
+#include "AMM/Listeners/DDS_Listeners.h"
 
-#include "src/AMM/Listeners/ListenerInterface.h"
-
-#include "src/AMM/Listeners/CaptureListener.h"
+#include "AMM/Listeners/ListenerInterface.h"
 
 #include "AMM/BaseLogger.h"
 
-#include "tinyxml2.h"
+#include <tinyxml2.h>
 
-#include <sqlite_modern_cpp.h>
+#include "thirdparty/sqlite_modern_cpp.h"
 
 using namespace std;
 using namespace std::chrono;

@@ -56,7 +56,7 @@
 
 #include "tinyxml2.h"
 
-#include <sqlite_modern_cpp.h>
+#include "thirdparty/sqlite_modern_cpp.h"
 
 using namespace std;
 using namespace boost::filesystem;

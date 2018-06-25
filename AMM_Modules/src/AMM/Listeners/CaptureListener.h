@@ -7,7 +7,7 @@
 
 #include "AMM/BaseLogger.h"
 
-#include <sqlite_modern_cpp.h>
+#include "thirdparty/sqlite_modern_cpp.h"
 
 using namespace std;
 using namespace sqlite;

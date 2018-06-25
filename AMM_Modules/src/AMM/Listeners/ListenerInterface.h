@@ -13,7 +13,7 @@ class ListenerInterface : public ReaderListener {
 public:
     ListenerInterface() = default;
 
-    virtual ~ListenerInterface() {};
+    ~ListenerInterface() override {};
 
     virtual void onNewNodeData(AMM::Physiology::Node n) {};
 

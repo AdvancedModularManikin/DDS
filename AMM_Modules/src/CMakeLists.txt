@@ -22,9 +22,7 @@ find_package(RapidJSON)
 find_package(Pistache)
 
 include_directories(
-        ${PROJECT_SOURCE_DIR}
         ${PROJECT_SOURCE_DIR}/src
-        ${PROJECT_SOURCE_DIR}/src/thirdparty
         ${CMAKE_CURRENT_BINARY_DIR}/gen
         ${Boost_INCLUDE_DIR}
         ${BioGears_INCLUDE_DIRS}
@@ -87,7 +85,7 @@ set(COMMAND_EXECUTOR_SOURCES CommandExecutor.cpp)
 set(COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 
-set(SPI_SOURCES crc16.cpp spi_proto.cpp config.h spi_proto.h)
+set(SPI_SOURCES spi/crc16.cpp spi/spi_proto.cpp spi/config.h spi/spi_proto.h)
 
 set(HEART_RATE_LED_SOURCES HeartRateLED.cpp)
 set(HEART_RATE_LED_EXE amm_heartrate_led)
@@ -147,31 +145,7 @@ if (BioGears_FOUND)
             Threads::Threads
             ${DATAMODEL}
             )
-
-    file(COPY ${PROJECT_SOURCE_DIR}/support/Actions DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-    file(COPY ${PROJECT_SOURCE_DIR}/support/patients DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-    file(COPY ${PROJECT_SOURCE_DIR}/support/states DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-
-    file(COPY ${PROJECT_SOURCE_DIR}/support/config DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin)
-    file(COPY ${PROJECT_SOURCE_DIR}/support/ecg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-    file(COPY ${PROJECT_SOURCE_DIR}/support/environments DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-    file(COPY ${PROJECT_SOURCE_DIR}/support/nutrition DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-    file(COPY ${PROJECT_SOURCE_DIR}/support/substances DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-
-    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/config DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin)
-    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/ecg DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/environments DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/nutrition DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/substances DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/xsd DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-    #file(COPY $ENV{BIOGEARS_HOME}/library/bin/UCEDefs.txt DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
-
-    configure_file(${PROJECT_SOURCE_DIR}/support/BioGearsConfiguration.xml ${CMAKE_CURRENT_BINARY_DIR}/../bin COPYONLY)
-    configure_file(${PROJECT_SOURCE_DIR}/support/log4j.properties ${CMAKE_CURRENT_BINARY_DIR}/../bin COPYONLY)
 endif ()
-
-file(COPY ${PROJECT_SOURCE_DIR}/support/mule1 DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin)
-
 
 target_link_libraries(${LOGGER_EXE}
         fastrtps fastcdr

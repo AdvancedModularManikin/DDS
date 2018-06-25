@@ -67,13 +67,6 @@ void DDS_Manager::RegisterTypes() {
     Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getConfigurationType());
     Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getStatusType());
 
-    // AMM Logging types
-    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getDebugLogType());
-    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getErrorLogType());
-    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getWarningLogType());
-    Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getInfoLogType());
-
-
 }
 
 Publisher *DDS_Manager::InitializePublisher(std::string topicName, TopicDataType *topicType,

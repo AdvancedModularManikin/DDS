@@ -6,13 +6,13 @@
 #include <string>
 #include <iostream>
 
-#include "DataTypes.h"
+#include "AMM/DataTypes.h"
 
-#include "DDS_Manager.h"
+#include "AMM/DDS_Manager.h"
 
-#include "src/AMM/Listeners/DDS_Listeners.h"
+#include "AMM/Listeners/DDS_Listeners.h"
 
-#include "src/AMM/Listeners/ListenerInterface.h"
+#include "AMM/Listeners/ListenerInterface.h"
 
 using namespace std;
 using namespace std::chrono;

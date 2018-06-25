@@ -1,12 +1,12 @@
 #pragma once
 
-#include "DDS_Manager.h"
+#include "AMM/DDS_Manager.h"
 
-#include "src/AMM/Listeners/DDS_Listeners.h"
+#include "AMM/Listeners/DDS_Listeners.h"
 
-#include "src/AMM/Listeners/ListenerInterface.h"
+#include "AMM/Listeners/ListenerInterface.h"
 
-#include "PhysiologyThread.h"
+#include "AMM/PhysiologyThread.h"
 
 #include "AMM/BaseLogger.h"
 

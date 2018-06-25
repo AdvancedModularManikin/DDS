@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "src/AMM/Listeners/VirtualEquipmentListener.h"
+#include "AMM/Listeners/VirtualEquipmentListener.h"
 
 using namespace std;
 

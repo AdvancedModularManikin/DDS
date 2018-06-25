@@ -6,6 +6,16 @@
 #include <boost/log/trivial.hpp>
 #include <boost/log/sources/global_logger_storage.hpp>
 
+#include <boost/log/expressions/formatters/date_time.hpp>
+#include <boost/log/expressions.hpp>
+#include <boost/log/sinks/sync_frontend.hpp>
+#include <boost/log/sinks/text_ostream_backend.hpp>
+#include <boost/log/support/date_time.hpp>
+#include <boost/core/null_deleter.hpp>
+#include <boost/log/utility/setup/common_attributes.hpp>
+#include <boost/make_shared.hpp>
+#include <fstream>
+
 // the logs are also written to LOGFILE
 #define LOGFILE "logs/amm.log"
 

@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 #include "config.h"
-#include "misc/crc16.h"
+#include "crc16.h"
 #ifdef CPP
 }
 #endif

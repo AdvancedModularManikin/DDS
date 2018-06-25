@@ -8,7 +8,7 @@
 
 #include "AMM/DDS_Manager.h"
 
-#include "spi_proto.h"
+#include "spi/spi_proto.h"
 
 #include <sys/ioctl.h>
 #include <linux/types.h>

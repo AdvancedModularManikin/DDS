@@ -102,19 +102,4 @@ macro(addMiscTargets)
     else()
         message(STATUS "clang-format - code formating             NO ")
     endif()
-
-
-    # Does not work well, left here for future work, but it would still only
-    # provides same info as tidy, only in html form.
-    #
-    # Produces html analysis in *.plist dirs in build dir or build/source directory
-    # add_custom_target(
-    #     analyze
-    #     COMMAND rm -rf ../*.plist
-    #     COMMAND rm -rf *.plist
-    #     COMMAND clang-check -analyze -extra-arg -Xclang -extra-arg -analyzer-output=html
-    #     ${ALL_SOURCE_FILES}
-    #     -p=./
-    #     COMMAND echo ""
-    #     )
 endmacro()
