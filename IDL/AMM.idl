@@ -1,6 +1,18 @@
+struct FMA_Location
+{
+    long id;
+    string description;
+};
 
 module AMM
 {
+    module Environment
+    {
+        struct Settings {
+            string description;
+        };
+    };
+
     module Simulation
     {
         struct Tick {
@@ -9,8 +21,19 @@ module AMM
         };
     };
 
+    struct InstrumentData
+    {
+        string payload;
+    };
+
     module Physiology
     {
+        module Pain {
+            struct PainStimulusData {
+                FMA_Location location;
+                double severity;
+            };
+        };
 
         struct Node {
             @Key long long frame;
@@ -26,6 +49,13 @@ module AMM
             string unit;
             double dbl;
             string str;
+        };
+    };
+
+    module Display
+    {
+        struct PhysicalFinding {
+            FMA_Location location;
         };
     };
 
@@ -60,7 +90,7 @@ module AMM
         struct Assessment {
             string Timestamp;
             string learner_id;
-            string location;
+            FMA_Location location;
             string assessment_type;
             string assessment_info;
             string step;
@@ -154,29 +184,6 @@ module AMM
             @Key string capability;
             status_values status_value;
             sequence<string> message;
-        };
-    };
-
-    // These are not part of the specification
-    module Sys
-    {
-        module Log
-        {
-            struct info {
-                string message;
-            };
-
-            struct warning {
-                string message;
-            };
-
-            struct error {
-                string message;
-            };
-
-            struct debug {
-                string message;
-            };
         };
     };
 };
