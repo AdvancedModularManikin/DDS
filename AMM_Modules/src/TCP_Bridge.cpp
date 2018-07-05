@@ -1,11 +1,4 @@
-
-
-#include <fstream>
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <string>
-#include <cctype>
+#include "stdafx.h"
 
 #include <map>
 #include <boost/assign/std/vector.hpp>
@@ -15,15 +8,23 @@
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 
+#include <fstream>
+
+#include <Net/Server.h>
+#include <Net/UdpDiscoveryServer.h>
+
 #include "AMMPubSubTypes.h"
 
 #include "AMM/DDS_Manager.h"
 
 #include "tinyxml2.h"
+#include <fstream>
+#include <string>
+#include <iostream>
+#include <algorithm>
+#include <string>
+#include <cctype>
 
-#include "AMMPubSubTypes.h"
-
-#include "tinyxml2.h"
 
 
 using namespace std;

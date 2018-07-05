@@ -1,4 +1,4 @@
-
+#include "stdafx.h"
 
 #include <fastrtps/Domain.h>
 #include <fastrtps/participant/Participant.h>
@@ -44,17 +44,20 @@
 #include "AMM/DataTypes.h"
 #include "AMM/DDS_Manager.h"
 
+
 #include <pistache/http.h>
 #include <pistache/router.h>
 #include <pistache/endpoint.h>
 
 #include "rapidjson/writer.h"
 
+#include <Net/UdpDiscoveryServer.h>
+
 #include "boost/filesystem.hpp"
 
 #include "tinyxml2.h"
 
-#include "thirdparty/sqlite_modern_cpp.h"
+#include <thirdparty/sqlite_modern_cpp.h>
 
 using namespace std;
 using namespace boost::filesystem;
