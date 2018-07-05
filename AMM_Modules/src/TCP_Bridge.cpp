@@ -1,5 +1,12 @@
 
 
+#include <fstream>
+#include <string>
+#include <iostream>
+#include <algorithm>
+#include <string>
+#include <cctype>
+
 #include <map>
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
@@ -8,13 +15,16 @@
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
 
-#include <fstream>
-
 #include "AMMPubSubTypes.h"
 
 #include "AMM/DDS_Manager.h"
 
 #include "tinyxml2.h"
+
+#include "AMMPubSubTypes.h"
+
+#include "tinyxml2.h"
+
 
 using namespace std;
 using namespace AMM;
@@ -74,16 +84,15 @@ std::vector <std::string> publishNodes = {
 
 std::map<std::string, double> labNodes;
 
-std::map<std::string, std::string> clientMap;
+std::map <std::string, std::string> clientMap;
 
-bool findStringIC(const std::string & strHaystack, const std::string & strNeedle)
-{
+bool findStringIC(const std::string &strHaystack, const std::string &strNeedle) {
     auto it = std::search(
             strHaystack.begin(), strHaystack.end(),
-            strNeedle.begin(),   strNeedle.end(),
+            strNeedle.begin(), strNeedle.end(),
             [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
     );
-    return (it != strHaystack.end() );
+    return (it != strHaystack.end());
 }
 
 std::string decode64(const std::string &val) {
@@ -271,20 +280,20 @@ void *Server::HandleClient(void *args) {
                         /*XMLDocument doc (false);
                         doc.Parse (statusVal);*/
                         std::string nodeName;
-                        if (findStringIC(statusVal,vpName)) {
+                        if (findStringIC(statusVal, vpName)) {
                             nodeName = "virtual_patient";
-                        } else if (findStringIC(statusVal,propaqName)) {
+                        } else if (findStringIC(statusVal, propaqName)) {
                             nodeName = "propaq";
-                        } else if (findStringIC(statusVal,labsName)) {
+                        } else if (findStringIC(statusVal, labsName)) {
                             nodeName = "labs";
                         }
                         std::size_t found = statusVal.find(haltingString);
                         if (found != std::string::npos) {
                             cout << "\tThis is a halting error, so set that status" << endl;
-                            mgr->SetStatus(c->uuid, nodeName,HALTING_ERROR);
+                            mgr->SetStatus(c->uuid, nodeName, HALTING_ERROR);
                         } else {
                             cout << "Not a halting error. It was " << found << endl;
-                            mgr->SetStatus(c->uuid, nodeName,OPERATIONAL);
+                            mgr->SetStatus(c->uuid, nodeName, OPERATIONAL);
                         }
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
@@ -293,11 +302,11 @@ void *Server::HandleClient(void *args) {
                         /*XMLDocument doc (false);
                         doc.Parse (capabilityVal);*/
                         std::string nodeName;
-                        if (findStringIC(capabilityVal,vpName)) {
+                        if (findStringIC(capabilityVal, vpName)) {
                             nodeName = "virtual_patient";
-                        } else if (findStringIC(capabilityVal,propaqName)) {
+                        } else if (findStringIC(capabilityVal, propaqName)) {
                             nodeName = "propaq";
-                        } else if (findStringIC(capabilityVal,labsName)) {
+                        } else if (findStringIC(capabilityVal, labsName)) {
                             nodeName = "labs";
                         }
                         mgr->PublishModuleConfiguration(
