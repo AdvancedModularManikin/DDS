@@ -10,44 +10,54 @@
 #include <vector>
 #include <deque>
 
+namespace AMM {
+    class SerialPort
+            : public boost::enable_shared_from_this<SerialPort> {
+    public:
+        static uint32_t const k_readBufferSize = 1024;
 
-class SerialPort
-        : public boost::enable_shared_from_this<SerialPort>
-{
-public:
-    static uint32_t const k_readBufferSize = 1024;
+        typedef boost::shared_ptr <std::vector<char>> SharedBufferPtr_t;
 
-    typedef boost::shared_ptr<std::vector<char> > SharedBufferPtr_t;
+        SerialPort(
+                boost::asio::io_service &rIoService,
+                uint32_t baud,
+                std::string const &device);
 
-    SerialPort(
-            boost::asio::io_service &rIoService,
-            uint32_t baud,
-            std::string const& device);
+        //~SerialPort() override = default;
 
-    //~SerialPort() override = default;
+        int Initialize();
 
-    int Initialize();
-    void Close();
+        void Close();
 
-    void Write(std::string const& msg);
+        void Write(std::string const &msg);
 
-    boost::signal<void (boost::array<char,k_readBufferSize> const&, size_t bytesTransferred)> DataRead;
+        boost::signal<
+        void(boost::array<char, k_readBufferSize>
+        const &,
+        size_t bytesTransferred
+        )>
+        DataRead;
 
-private:
-    void BeginRead_();
-    void EndRead_(boost::system::error_code const& error, size_t bytesTransferred);
+    private:
+        void BeginRead_();
 
-    void DoWrite_(SharedBufferPtr_t pBuffer);
-    void BeginWrite_();
-    void EndWrite_(boost::system::error_code const& error, size_t bytes_transferred);
+        void EndRead_(boost::system::error_code const &error, size_t bytesTransferred);
 
-    void DoClose_(boost::system::error_code const& error);
+        void DoWrite_(SharedBufferPtr_t pBuffer);
 
-    bool m_bInitialized;
-    boost::asio::io_service& m_rIoService;
-    boost::asio::serial_port m_serialPort;
-    boost::array<char,k_readBufferSize> m_rdBuf;
-    std::deque<SharedBufferPtr_t> m_wrBuf;
+        void BeginWrite_();
 
-    uint32_t m_bytesTransferred;
-};
+        void EndWrite_(boost::system::error_code const &error, size_t bytes_transferred);
+
+        void DoClose_(boost::system::error_code const &error);
+
+        bool m_bInitialized;
+        boost::asio::io_service &m_rIoService;
+        boost::asio::serial_port m_serialPort;
+        boost::array<char, k_readBufferSize> m_rdBuf;
+        std::deque <SharedBufferPtr_t> m_wrBuf;
+
+        uint32_t m_bytesTransferred;
+    };
+
+}

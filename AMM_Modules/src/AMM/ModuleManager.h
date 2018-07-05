@@ -25,42 +25,44 @@ using namespace tinyxml2;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 
-class ModuleManager : public ListenerInterface {
+namespace AMM {
+    class ModuleManager : public ListenerInterface {
 
-public:
+    public:
 
-    ModuleManager();
+        ModuleManager();
 
-    ~ModuleManager() override = default;
+        ~ModuleManager() override = default;
 
-    void Start();
+        void Start();
 
-    void RunLoop();
+        void RunLoop();
 
-    void Shutdown();
+        void Shutdown();
 
-    bool isRunning();
+        bool isRunning();
 
-    void ShowStatus();
+        void ShowStatus();
 
-    void Cleanup();
+        void Cleanup();
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
+        void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
 
-    void onNewStatusData(AMM::Capability::Status st) override;
+        void onNewStatusData(AMM::Capability::Status st) override;
 
-    void onNewConfigData(AMM::Capability::Configuration cfg) override;
+        void onNewConfigData(AMM::Capability::Configuration cfg) override;
 
-    std::string currentScenario;
+        std::string currentScenario;
 
-protected:
+    protected:
 
-    std::thread m_thread;
-    std::mutex m_mutex;
-    bool m_runThread;
-    const char *nodeName = "AMM_ModuleManager";
-    DDS_Manager *mgr = new DDS_Manager(nodeName);
+        std::thread m_thread;
+        std::mutex m_mutex;
+        bool m_runThread;
+        const char *nodeName = "AMM_ModuleManager";
+        DDS_Manager *mgr = new DDS_Manager(nodeName);
 
 
-};
+    };
 
+}

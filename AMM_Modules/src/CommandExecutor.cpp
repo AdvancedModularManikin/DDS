@@ -1,8 +1,9 @@
-#include "stdafx.h"
+
 
 #include "AMM/DDS_Manager.h"
 
 using namespace std;
+using namespace AMM;
 
 static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n"

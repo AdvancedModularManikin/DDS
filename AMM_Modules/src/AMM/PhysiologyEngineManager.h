@@ -16,79 +16,81 @@
 #include <mutex>
 #include <thread>
 
-class PhysiologyEngineManager : public ListenerInterface {
+namespace AMM {
+    class PhysiologyEngineManager : public ListenerInterface {
 
-public:
+    public:
 
-    PhysiologyEngineManager();
+        PhysiologyEngineManager();
 
-    ~PhysiologyEngineManager() override = default;
+        ~PhysiologyEngineManager() override = default;
 
-    void StartSimulation();
+        void StartSimulation();
 
-    void StopSimulation();
+        void StopSimulation();
 
-    void Shutdown();
+        void Shutdown();
 
-    void StartTickSimulation();
+        void StartTickSimulation();
 
-    void StopTickSimulation();
+        void StopTickSimulation();
 
-    void PublishData(bool force);
+        void PublishData(bool force);
 
-    void PrintAvailableNodePaths();
+        void PrintAvailableNodePaths();
 
-    void PrintAllCurrentData();
+        void PrintAllCurrentData();
 
-    void Status();
+        void Status();
 
-    int GetNodePathCount();
+        int GetNodePathCount();
 
-    int GetTickCount();
+        int GetTickCount();
 
-    bool isRunning();
+        bool isRunning();
 
-    void SendShutdown();
+        void SendShutdown();
 
-    void WriteNodeData(string node);
+        void WriteNodeData(string node);
 
-    void TickLoop();
+        void TickLoop();
 
-    void AdvanceTimeTick();
+        void AdvanceTimeTick();
 
-    bool closed = false;
-    bool paused = false;
-    int lastFrame = 0;
+        bool closed = false;
+        bool paused = false;
+        int lastFrame = 0;
 
-    std::string stateFile = "./states/StandardMale@0s.xml";
+        std::string stateFile = "./states/StandardMale@0s.xml";
 
-    std::string get_filename_date(void);
+        std::string get_filename_date(void);
 
-    std::string get_random_string(size_t length);
+        std::string get_random_string(size_t length);
 
-    void onNewNodeData(AMM::Physiology::Node n) override;
+        void onNewNodeData(AMM::Physiology::Node n) override;
 
-    void onNewTickData(AMM::Simulation::Tick ti) override;
+        void onNewTickData(AMM::Simulation::Tick ti) override;
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command cm) override;
+        void onNewCommandData(AMM::PatientAction::BioGears::Command cm) override;
 
-private:
-    std::map<std::string, double (PhysiologyThread::*)()> *nodePathMap;
+    private:
+        std::map<std::string, double (PhysiologyThread::*)()> *nodePathMap;
 
-protected:
-    const char *nodeName = "AMM_PhysiologyEngine";
+    protected:
+        const char *nodeName = "AMM_PhysiologyEngine";
 
-    DDS_Manager *mgr = new DDS_Manager(nodeName);
+        DDS_Manager *mgr = new DDS_Manager(nodeName);
 
-    Publisher *node_publisher;
-    Subscriber *tick_subscriber;
-    Subscriber *command_subscriber;
+        Publisher *node_publisher;
+        Subscriber *tick_subscriber;
+        Subscriber *command_subscriber;
 
-    PhysiologyThread *bg; //  = new PhysiologyThread("./logs/biogears.log");
+        PhysiologyThread *bg; //  = new PhysiologyThread("./logs/biogears.log");
 
-    std::thread m_thread;
-    std::mutex m_mutex;
-    bool m_runThread;
+        std::thread m_thread;
+        std::mutex m_mutex;
+        bool m_runThread;
 
-};
+    };
 
+}

@@ -77,165 +77,174 @@
 
 // Forward declare what we will use in our thread
 class SESubstance;
+
 class SEEnergySystem;
+
 class SEComprehensiveMetabolicPanel;
+
 class SEGasCompartment;
+
 class SECompleteBloodCount;
+
 class PhysiologyEngine;
-class PhysiologyThread {
 
-public:
-    PhysiologyThread(const std::string &logFile);
+namespace AMM {
+    class PhysiologyThread {
 
-    virtual ~PhysiologyThread();
+    public:
+        PhysiologyThread(const std::string &logFile);
 
-    bool LoadState(const std::string &stateFile, double sec);
+        virtual ~PhysiologyThread();
 
-    bool SaveState(const std::string &stateFile);
-    bool SaveState();
+        bool LoadState(const std::string &stateFile, double sec);
 
-    bool ExecuteCommand(const std::string &cmd);
+        bool SaveState(const std::string &stateFile);
 
-    void Shutdown();
+        bool SaveState();
 
-    void StartSimulation();
+        bool ExecuteCommand(const std::string &cmd);
 
-    void StopSimulation();
+        void Shutdown();
 
-    void AdvanceTimeTick();
+        void StartSimulation();
 
-    double GetSimulationTime();
+        void StopSimulation();
 
-    std::map<std::string, double (PhysiologyThread::*)()> * GetNodePathTable();
-    
-    double GetNodePath(const std::string &nodePath);
+        void AdvanceTimeTick();
 
-    void Status();
+        double GetSimulationTime();
 
-    double GetSimuluationTime();
+        std::map<std::string, double (PhysiologyThread::*)()> *GetNodePathTable();
 
-    static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
-    static std::vector<std::string> highFrequencyNodes;
+        double GetNodePath(const std::string &nodePath);
 
-    std::string getTimestampedFilename(const std::string &basePathname);
-    
-private:
-    bool LoadScenarioFile(const std::string &scenarioFile);
+        void Status();
 
-    void PopulateNodePathTable();
+        double GetSimuluationTime();
 
-    void PreloadSubstances();
+        static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
+        static std::vector <std::string> highFrequencyNodes;
 
-    void PreloadCompartments();
+        std::string getTimestampedFilename(const std::string &basePathname);
 
-    double GetShutdownMessage();
+    private:
+        bool LoadScenarioFile(const std::string &scenarioFile);
 
-    double GetHeartRate();
+        void PopulateNodePathTable();
 
-    double GetBloodVolume();
+        void PreloadSubstances();
 
-    double GetArterialSystolicPressure();
+        void PreloadCompartments();
 
-    double GetArterialDiastolicPressure();
+        double GetShutdownMessage();
 
-    double GetMeanArterialPressure();
+        double GetHeartRate();
 
-    double GetArterialPressure();
+        double GetBloodVolume();
 
-    double GetMeanCentralVenousPressure();
+        double GetArterialSystolicPressure();
 
-    double GetEndTidalCarbonDioxideFraction();
+        double GetArterialDiastolicPressure();
 
-    double GetOxygenSaturation();
+        double GetMeanArterialPressure();
 
-    double GetRespirationRate();
+        double GetArterialPressure();
 
-    double GetCoreTemperature();
+        double GetMeanCentralVenousPressure();
 
-    double GetECGWaveform();
+        double GetEndTidalCarbonDioxideFraction();
 
-    double GetSodiumConcentration();
+        double GetOxygenSaturation();
 
-    double GetSodium();
+        double GetRespirationRate();
 
-    double GetGlucoseConcentration();
+        double GetCoreTemperature();
 
-    double GetBUN();
+        double GetECGWaveform();
 
-    double GetCreatinineConcentration();
+        double GetSodiumConcentration();
 
-    double GetWhiteBloodCellCount();
+        double GetSodium();
 
-    double GetRedBloodCellCount();
+        double GetGlucoseConcentration();
 
-    double GetHemoglobinConcentration();
+        double GetBUN();
 
-    double GetHematocrit();
+        double GetCreatinineConcentration();
 
-    double GetBloodPH();
+        double GetWhiteBloodCellCount();
 
-    double GetArterialCarbonDioxidePressure();
+        double GetRedBloodCellCount();
 
-    double GetArterialOxygenPressure();
+        double GetHemoglobinConcentration();
 
-    double GetBicarbonateConcentration();
+        double GetHematocrit();
 
-    double GetBicarbonate();
+        double GetBloodPH();
 
-    double GetBaseExcess();
+        double GetArterialCarbonDioxidePressure();
 
-    double GetCO2();
+        double GetArterialOxygenPressure();
 
-    double GetPotassium();
+        double GetBicarbonateConcentration();
 
-    double GetChloride();
+        double GetBicarbonate();
 
-    double GetPlateletCount();
+        double GetBaseExcess();
 
-    double GetExhaledCO2();
+        double GetCO2();
 
-    double GetTidalVolume();
+        double GetPotassium();
 
-    double GetTotalLungVolume();
+        double GetChloride();
 
-    double GetLeftLungVolume();
+        double GetPlateletCount();
 
-    double GetRightLungVolume();
+        double GetExhaledCO2();
 
-    double GetLeftPleuralCavityVolume();
+        double GetTidalVolume();
 
-    double GetRightPleuralCavityVolume();
+        double GetTotalLungVolume();
 
-    double GetLeftAlveoliBaselineCompliance();
+        double GetLeftLungVolume();
 
-    double GetRightAlveoliBaselineCompliance();
+        double GetRightLungVolume();
 
-    double GetCardiacOutput();
+        double GetLeftPleuralCavityVolume();
 
-    SESubstance *sodium;
-    SESubstance *glucose;
-    SESubstance *creatinine;
-    SESubstance *hemoglobin;
-    SESubstance *bicarbonate;
-    SESubstance *CO2;
-    SESubstance *N2;
-    SESubstance *O2;
-    SESubstance *CO;
+        double GetRightPleuralCavityVolume();
 
-    const SEGasCompartment *carina;
-    const SEGasCompartment *leftLung;
-    const SEGasCompartment *rightLung;
+        double GetLeftAlveoliBaselineCompliance();
 
-    Logger *GetLogger() {
-        return m_pe->GetLogger();
-    }
+        double GetRightAlveoliBaselineCompliance();
 
+        double GetCardiacOutput();
 
-protected:
-    void AdvanceTime();
+        SESubstance *sodium;
+        SESubstance *glucose;
+        SESubstance *creatinine;
+        SESubstance *hemoglobin;
+        SESubstance *bicarbonate;
+        SESubstance *CO2;
+        SESubstance *N2;
+        SESubstance *O2;
+        SESubstance *CO;
 
-    std::thread m_thread;
-    std::mutex m_mutex;
-    bool m_runThread;
-    std::unique_ptr<PhysiologyEngine> m_pe;
-};
+        const SEGasCompartment *carina;
+        const SEGasCompartment *leftLung;
+        const SEGasCompartment *rightLung;
+
+        Logger *GetLogger() {
+            return m_pe->GetLogger();
+        }
+
+
+    protected:
+        void AdvanceTime();
+
+        std::thread m_thread;
+        std::mutex m_mutex;
+        bool m_runThread;
+        std::unique_ptr <PhysiologyEngine> m_pe;
+    };
+}

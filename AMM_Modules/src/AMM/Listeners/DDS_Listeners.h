@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <fastrtps/participant/Participant.h>
 #include <fastrtps/attributes/ParticipantAttributes.h>
 

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+
 
 #include "AMM/DDS_Manager.h"
 
@@ -14,6 +14,7 @@
 #define SPI_TRANSFER_LEN TRANSFER_SIZE
 
 using namespace std;
+using namespace AMM;
 
 // Daemonize by default
 int daemonize = 1;

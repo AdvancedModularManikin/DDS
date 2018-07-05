@@ -1,10 +1,8 @@
-#include "stdafx.h"
+
 
 #include <algorithm>
 
 #include <boost/algorithm/string.hpp>
-
-#include <thirdparty/tixml2cx.h>
 
 #include "AMM/DDS_Manager.h"
 
@@ -18,7 +16,7 @@
 
 using namespace std;
 using namespace std::literals::string_literals;
-
+using namespace AMM;
 
 // Daemonize by default
 int daemonize = 1;

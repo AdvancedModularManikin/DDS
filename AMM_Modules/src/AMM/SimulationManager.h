@@ -17,54 +17,57 @@
 using namespace std;
 using namespace std::chrono;
 
-class SimulationManager : public ListenerInterface {
+namespace AMM {
+    class SimulationManager : public ListenerInterface {
 
-public:
+    public:
 
-    SimulationManager();
+        SimulationManager();
 
-    ~SimulationManager() override = default;
+        ~SimulationManager() override = default;
 
-    void StartSimulation();
+        void StartSimulation();
 
-    void StopSimulation();
+        void StopSimulation();
 
-    void Shutdown();
+        void Shutdown();
 
-    void SetSampleRate(int rate);
+        void SetSampleRate(int rate);
 
-    int GetSampleRate();
+        int GetSampleRate();
 
-    bool isRunning();
+        bool isRunning();
 
-    int GetTickCount();
+        int GetTickCount();
 
-    void SendCommand(const std::string &command);
+        void SendCommand(const std::string &command);
 
-    void Cleanup();
+        void Cleanup();
 
-    void TickLoop();
+        void TickLoop();
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
-    std::string currentScenario;
+        void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
 
-protected:
+        std::string currentScenario;
 
-    std::thread m_thread;
-    std::mutex m_mutex;
-    bool m_runThread;
+    protected:
 
-    const char* nodeName = "AMM_SimulationManager";
+        std::thread m_thread;
+        std::mutex m_mutex;
+        bool m_runThread;
 
-    DDS_Manager *mgr = new DDS_Manager(nodeName);
+        const char *nodeName = "AMM_SimulationManager";
 
-    Subscriber *command_subscriber;
+        DDS_Manager *mgr = new DDS_Manager(nodeName);
 
-    Publisher *command_publisher;
-    Publisher *tick_publisher;
+        Subscriber *command_subscriber;
 
-    int tickCount = 0;
-    int sampleRate = 50;
+        Publisher *command_publisher;
+        Publisher *tick_publisher;
 
-};
+        int tickCount = 0;
+        int sampleRate = 50;
 
+    };
+
+}

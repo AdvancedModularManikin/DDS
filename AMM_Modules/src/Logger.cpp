@@ -1,4 +1,4 @@
-#include "stdafx.h"
+
 
 #include <fastrtps/Domain.h>
 #include <fastrtps/participant/Participant.h>
@@ -49,6 +49,7 @@ using namespace std;
 using namespace eprosima;
 using namespace eprosima::fastrtps;
 using namespace eprosima::fastrtps::rtps;
+using namespace AMM;
 
 Participant *mp_participant;
 
