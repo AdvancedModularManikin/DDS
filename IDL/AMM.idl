@@ -28,11 +28,17 @@ module AMM
 
     module Physiology
     {
-        module Pain {
+        module Pain
+        {
             struct PainStimulusData {
                 FMA_Location location;
                 double severity;
             };
+        };
+
+        struct Action {
+            FMA_Location location;
+            string payload;
         };
 
         struct Node {
@@ -54,7 +60,12 @@ module AMM
 
     module Display
     {
+        struct Generic {
+            string payload;
+        };
+
         struct PhysicalFinding {
+            string payload;
             FMA_Location location;
         };
     };
