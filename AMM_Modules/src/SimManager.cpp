@@ -3,6 +3,7 @@
 #include "AMM/SimulationManager.h"
 
 using namespace std;
+using namespace AMM;
 
 bool closed = false;
 

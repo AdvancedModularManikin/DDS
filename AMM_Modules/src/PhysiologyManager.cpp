@@ -2,6 +2,8 @@
 
 #include "AMM/PhysiologyEngineManager.h"
 
+using namespace AMM;
+
 bool closed = false;
 
 static void show_usage(const std::string &name) {

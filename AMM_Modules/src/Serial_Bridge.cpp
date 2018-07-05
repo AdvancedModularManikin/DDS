@@ -9,6 +9,7 @@
 
 using namespace ::boost::asio;
 using namespace std;
+using namespace AMM;
 
 #define PORT_LINUX "/dev/tty96B0"
 // #define PORT_LINUX "/dev/ttyACM0"

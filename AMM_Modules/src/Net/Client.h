@@ -5,21 +5,24 @@
 
 #define MAX_NAME_LENGTH 20
 
-using namespace std;
-
 class Client {
-  public:
-    string name;
+public:
     unsigned long id{};
+    std::string name;
+    std::string uuid;
     bool keepHistory = false;
 
     //Socket stuff
     int sock{};
 
-
     Client() {};
-    void SetName(std::string &name);
+
     void SetId(unsigned long id);
+
+    void SetName(std::string &name);
+
+    void SetUUID(std::string &uuid);
+
     void SetKeepHistory(bool historyflag);
 };
 

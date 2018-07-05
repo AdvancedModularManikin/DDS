@@ -20,6 +20,7 @@
 #include "tinyxml2.h"
 
 using namespace std;
+using namespace AMM;
 
 Server *s;
 
@@ -75,6 +76,8 @@ std::vector <std::string> publishNodes = {
 };
 
 std::map<std::string, double> labNodes;
+
+std::map<std::string, std::string> clientMap;
 
 bool findStringIC(const std::string & strHaystack, const std::string & strNeedle)
 {
@@ -216,6 +219,7 @@ void *Server::HandleClient(void *args) {
     c->SetId(Server::clients.size());
     string defaultName = "Client #" + c->id;
     c->SetName(defaultName);
+
     cout << "Adding client with id: " << c->id << endl;
     Server::clients.push_back(*c);
     ServerThread::UnlockMutex(c->name);
@@ -249,13 +253,16 @@ void *Server::HandleClient(void *args) {
             for (auto str : strings) {
                 boost::trim_right(str);
                 if (!str.empty()) {
-                    //                    cout << "We got a message from " << c->name << ": " << str << endl;
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
-                        string moduleName = str.substr(modulePrefix.size());
+                        std::string moduleName = str.substr(modulePrefix.size());
+                        std::string uuid = mgr->GenerateID();
                         ServerThread::LockMutex(c->name);
                         c->SetName(moduleName);
                         ServerThread::UnlockMutex(c->name);
-                        cout << "[CLIENT][" << moduleName << "] module connected" << endl;
+                        ServerThread::LockMutex(c->uuid);
+                        c->SetUUID(uuid);
+                        ServerThread::UnlockMutex(c->uuid);
+                        cout << "[CLIENT][" << moduleName << "] module connected and assigned UUID " << uuid << endl;
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
                         // Registering for data
                         std::string registerVal = str.substr(registerPrefix.size());
@@ -277,10 +284,10 @@ void *Server::HandleClient(void *args) {
                         std::size_t found = statusVal.find(haltingString);
                         if (found != std::string::npos) {
                             cout << "\tThis is a halting error, so set that status" << endl;
-                            mgr->SetStatus(nodeName,HALTING_ERROR);
+                            mgr->SetStatus(c->uuid, nodeName,HALTING_ERROR);
                         } else {
                             cout << "Not a halting error. It was " << found << endl;
-                            mgr->SetStatus(nodeName,OPERATIONAL);
+                            mgr->SetStatus(c->uuid, nodeName,OPERATIONAL);
                         }
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
@@ -297,6 +304,7 @@ void *Server::HandleClient(void *args) {
                             nodeName = "labs";
                         }
                         mgr->PublishModuleConfiguration(
+                                c->uuid,
                                 nodeName,
                                 "Vcom3D",
                                 c->name,

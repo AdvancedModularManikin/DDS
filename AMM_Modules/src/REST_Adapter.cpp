@@ -66,6 +66,7 @@ using namespace eprosima;
 using namespace eprosima::fastrtps;
 using namespace sqlite;
 using namespace tinyxml2;
+using namespace AMM;
 
 // UDP discovery port
 short discoveryPort = 8889;

@@ -4,6 +4,7 @@
 
 using namespace std;
 using namespace sqlite;
+using namespace AMM;
 
 bool closed = false;
 int daemonize = 0;
