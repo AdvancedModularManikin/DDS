@@ -1,4 +1,4 @@
-#include "stdafx.h"
+
 
 #include <fastrtps/Domain.h>
 #include <fastrtps/participant/Participant.h>
@@ -49,8 +49,6 @@
 #include <pistache/endpoint.h>
 
 #include "rapidjson/writer.h"
-
-#include <Net/UdpDiscoveryServer.h>
 
 #include "boost/filesystem.hpp"
 
@@ -564,6 +562,7 @@ int main(int argc, char *argv[]) {
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            mgr->module_id,
             nodeString,
             "Vcom3D",
             "REST_Adapter",
@@ -573,7 +572,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(nodeString, OPERATIONAL);
+    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     std::thread udpD(UdpDiscoveryThread);
 

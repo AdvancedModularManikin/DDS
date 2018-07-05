@@ -1,4 +1,4 @@
-#include "stdafx.h"
+
 
 #include "AMM/DDS_Manager.h"
 
@@ -112,6 +112,8 @@ void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, 
 	  cout << "\t[CAPABILITY_XML] " << value << endl;
 	  first_message = false;
         mgr->PublishModuleConfiguration(
+        mgr
+->module_id,
                 "liquid_reservoir",
                 "Vcom3D",
                 "liquid_reservoir",
@@ -123,9 +125,13 @@ void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, 
 	  cout << "\t[STATUS_XML] " << value << endl;
 	  std::size_t found = value.find(haltingString);
 	  if (found!=std::string::npos) {
-	    mgr->SetStatus("liquid_reservoir", HALTING_ERROR);
+mgr->
+SetStatus(mgr
+->module_id, "liquid_reservoir", HALTING_ERROR);
 	  } else {
-	    mgr->SetStatus("liquid_reservoir", OPERATIONAL);
+mgr->
+SetStatus(mgr
+->module_id, "liquid_reservoir", OPERATIONAL);
 	  }
 	}
       } else {
@@ -225,6 +231,7 @@ int main(int argc, char *argv[]) {
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            mgr->module_id,
             nodeString,
             "Vcom3D",
             nodeName,
@@ -234,7 +241,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus( nodeString,OPERATIONAL);
+    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     cout << "=== [Serial_Bridge] Ready ..." << endl;
 

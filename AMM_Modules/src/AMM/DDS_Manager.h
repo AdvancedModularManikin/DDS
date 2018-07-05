@@ -52,45 +52,15 @@ namespace AMM {
                 const std::string &version,
                 const std::string &capabilities
         );
-
-        void PublishModuleConfiguration(
-                const std::string &module_name,
-                const std::string &manufacturer,
-                const std::string &model,
-                const std::string &serial_number,
-                const std::string &version,
-                const std::string &capabilities
-        ) {
-            PublishModuleConfiguration(module_id, module_name, manufacturer, model, serial_number, version,
-                                       capabilities);
-        }
-
         void PublishModuleConfiguration(AMM::Capability::Configuration configInstance);
 
         /** Set status signatures **/
-        void SetStatus(const std::string &module_name, AMM::Capability::status_values status) {
-            LOG_TRACE << "Set status 1 for " << module_name;
-            SetStatus(module_id, module_name, nullptr, status);
-        };
+        void SetStatus(const std::string &local_module_id, const std::string &module_name,
+                       AMM::Capability::status_values status);
 
-        void SetStatus(const std::string &module_name, AMM::Capability::status_values status,
-                       const std::vector <std::string> &message) {
-            LOG_TRACE << "Set status 2 for " << module_name;
-            SetStatus(module_id, module_name, nullptr, status, message);
-        }
-
-        void SetStatus(const std::string &module_name, const std::string &capability,
-                       AMM::Capability::status_values status) {
-            LOG_TRACE << "Set status 3 for " << module_name;
-            SetStatus(module_id, module_name, capability, status);
-        }
-
-        void SetStatus(const std::string &module_name, const std::string &capability,
+        void SetStatus(const std::string &local_module_id, const std::string &module_name,
                        AMM::Capability::status_values status,
-                       const std::vector <std::string> &message) {
-            LOG_TRACE << "Set status 4 for " << module_name;
-            SetStatus(module_id, module_name, capability, status, message);
-        }
+                       const std::vector <std::string> &message);
 
         void
         SetStatus(const std::string &local_module_id, const std::string &module_name, const std::string &capability,
@@ -150,13 +120,14 @@ namespace AMM {
 
         void SetScenario(std::string scenario);
 
+        std::string module_id;
+
     protected:
         // @TODO: Load this from a config file
         const int domainId = 15;
         const std::string scenarioFile = "current_scenario.txt";
 
         Participant *mp_participant;
-        std::string module_id;
 
         Publisher *genPub;
         Publisher *config_publisher;

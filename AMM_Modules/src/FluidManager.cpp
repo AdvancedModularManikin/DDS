@@ -199,6 +199,7 @@ int main(int argc, char *argv[]) {
     // This announces that we're available for configuration
 
     mgr->PublishModuleConfiguration(
+            mgr->module_id,
             nodeString,
             "Entropic",
             "fluid_manager",
@@ -221,7 +222,7 @@ int main(int argc, char *argv[]) {
         if (send_status) {
             cout << "[FluidManager] Setting status to " << current_status << endl;
             send_status = false;
-            mgr->SetStatus(nodeString, current_status);
+            mgr->SetStatus(mgr->module_id, nodeString, current_status);
         }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));

@@ -1,4 +1,4 @@
-#include "stdafx.h"
+
 
 #include "AMM/Listeners/VirtualEquipmentListener.h"
 
@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            mgr->module_id,
             nodeString,
             "Vcom3D",
             nodeName,
@@ -67,7 +68,7 @@ int main(int argc, char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(nodeString, OPERATIONAL);
+    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     cout << "=== [VirtualEquipment] Ready ..." << endl;
 

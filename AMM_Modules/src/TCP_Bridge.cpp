@@ -1,4 +1,4 @@
-#include "stdafx.h"
+
 
 #include <map>
 #include <boost/assign/std/vector.hpp>
@@ -9,9 +9,6 @@
 #include <boost/archive/iterators/transform_width.hpp>
 
 #include <fstream>
-
-#include <Net/Server.h>
-#include <Net/UdpDiscoveryServer.h>
 
 #include "AMMPubSubTypes.h"
 
@@ -418,6 +415,7 @@ int main(int argc, const char *argv[]) {
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
+            mgr->module_id,
             nodeString,
             "Vcom3D",
             nodeName,
@@ -427,7 +425,7 @@ int main(int argc, const char *argv[]) {
     );
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(nodeString, OPERATIONAL);
+    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     cout << "=== [Network_Bridge] Ready ..." << endl;
 

@@ -20,6 +20,7 @@ namespace AMM {
         currentScenario = mgr->GetScenario();
         std::string nodeString(nodeName);
         mgr->PublishModuleConfiguration(
+                mgr->module_id,
                 nodeString,
                 "Vcom3D",
                 "SimulationManager",
@@ -28,7 +29,7 @@ namespace AMM {
                 mgr->GetCapabilitiesAsString("mule1/module_capabilities/simulation_manager_capabilities.xml")
         );
 
-        mgr->SetStatus(nodeString, OPERATIONAL);
+        mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
     }
 
     void SimulationManager::StartSimulation() {

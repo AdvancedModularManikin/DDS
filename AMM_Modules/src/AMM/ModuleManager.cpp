@@ -34,6 +34,7 @@ namespace AMM {
         // Publish module configuration once we've set all our publishers and listeners
         // This announces that we're available for configuration
         mgr->PublishModuleConfiguration(
+                mgr->module_id,
                 nodeString,
                 "Vcom3D",
                 "Module_Manager",
@@ -42,7 +43,7 @@ namespace AMM {
                 mgr->GetCapabilitiesAsString("mule1/module_capabilities/module_manager_capabilities.xml")
         );
 
-        mgr->SetStatus(nodeString, OPERATIONAL);
+        mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
         if (!m_runThread) {
             m_runThread = true;

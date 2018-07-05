@@ -139,6 +139,26 @@ namespace AMM {
     }
 
     void DDS_Manager::SetStatus(const std::string &local_module_id, const std::string &module_name,
+                                AMM::Capability::status_values status) {
+        AMM::Capability::Status statusInstance;
+        statusInstance.module_id(local_module_id);
+        statusInstance.module_name(module_name);
+        statusInstance.status_value(status);
+        SetStatus(statusInstance);
+    }
+
+    void DDS_Manager::SetStatus(const std::string &local_module_id, const std::string &module_name,
+                                AMM::Capability::status_values status,
+                                const std::vector <std::string> &message) {
+        AMM::Capability::Status statusInstance;
+        statusInstance.module_id(local_module_id);
+        statusInstance.status_value(status);
+        statusInstance.message(message);
+        statusInstance.module_name(module_name);
+        SetStatus(statusInstance);
+    }
+
+    void DDS_Manager::SetStatus(const std::string &local_module_id, const std::string &module_name,
                                 const std::string &capability, AMM::Capability::status_values status) {
         LOG_TRACE << "Creating instance for " << local_module_id;
         AMM::Capability::Status statusInstance;
