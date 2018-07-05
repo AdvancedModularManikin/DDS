@@ -12,10 +12,13 @@
 #include <linux/types.h>
 #include <linux/spi/spidev.h>
 
+#include "tinyxml2.h"
+
 #include <fcntl.h>    /* For O_RDWR */
 
 using namespace std;
 using namespace std::literals::string_literals;
+using namespace tinyxml2;
 using namespace AMM;
 
 // Daemonize by default
