@@ -48,7 +48,7 @@ if(DOXYGEN_FOUND)
     # triggered explicitly
     add_custom_target(doc
             COMMAND ${DOXYGEN_EXECUTABLE} ${doxyfile}
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src
             COMMENT "Generating API documentation with Doxygen"
             VERBATIM)
 

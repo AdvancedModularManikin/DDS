@@ -15,7 +15,7 @@ STRIP_FROM_PATH        = @CMAKE_CURRENT_SOURCE_DIR_LINUX@ \
                          @PROJECT_SOURCE_DIR_LINUX@
 INPUT                  = @PROJECT_SOURCE_DIR_LINUX@/readme.md \
                          @CMAKE_CURRENT_SOURCE_DIR_LINUX@ \
-                         @PROJECT_SOURCE_DIR_LINUX@/source
+                         @PROJECT_SOURCE_DIR_LINUX@/src
 
 FILE_PATTERNS          = *.h \
                          *.hpp \
@@ -26,7 +26,7 @@ FILE_PATTERNS          = *.h \
                          *.cpp \
                          *.md
 RECURSIVE              = YES
-USE_MDFILE_AS_MAINPAGE = "@PROJECT_SOURCE_DIR_LINUX@/readme.md"
+USE_MDFILE_AS_MAINPAGE = "@PROJECT_SOURCE_DIR_LINUX@/README.md"
 # output location
 HTML_OUTPUT            = "@CMAKE_CURRENT_BINARY_DIR_LINUX@/doc"
 
