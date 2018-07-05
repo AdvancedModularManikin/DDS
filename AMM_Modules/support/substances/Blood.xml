@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<SubstanceCompound xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="6.2.0" xsi:schemaLocation="">
+<SubstanceCompound xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.3.0-beta" xsi:schemaLocation="">
     <Name>Blood</Name>
     <Component Name="Hemoglobin">
         <Concentration value="3.7" unit="g/dL"/>
@@ -19,7 +19,7 @@
     <Component Name="Glucose">
         <Concentration value="0.08" unit="g/dL"/>
     </Component>
-    <Component Name="Tristearin">
+    <Component Name="Triacylglycerol">
         <Concentration value="0.107" unit="g/dL"/>
     </Component>
     <Component Name="Calcium">
@@ -28,4 +28,10 @@
     <Component Name="Creatinine">
         <Concentration value="0.001" unit="g/dL"/>
     </Component>
+	<Component Name="Oxygen">
+		<Concentration value="0.0314" unit="g/L"/>
+	</Component>
+	<Component Name="CarbonDioxide">
+		<Concentration value="0.715" unit="g/L"/>
+	</Component>
 </SubstanceCompound>
