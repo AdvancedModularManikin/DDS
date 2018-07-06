@@ -283,7 +283,7 @@ void *Server::HandleClient(void *args) {
                         doc.Parse(statusVal.c_str());
 
                         tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
-                        tinyxml2::XMLElement *module = root->FirstChildElement("module")-ToElement();
+                        tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
                         const char *name = module->Attribute("name");
                         std::string nodeName(name);
 
