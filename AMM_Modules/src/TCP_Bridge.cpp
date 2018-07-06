@@ -26,8 +26,8 @@
 #include <cctype>
 
 
-
 using namespace std;
+using namespace tinyxml2;
 using namespace AMM;
 
 Server *s;
@@ -40,6 +40,7 @@ int daemonize = 1;
 int discovery = 1;
 
 const string capabilityPrefix = "CAPABILITY=";
+const string settingsPrefix = "SETTINGS=";
 const string statusPrefix = "STATUS=";
 const string configPrefix = "CONFIG=";
 const string modulePrefix = "MODULE_NAME=";
@@ -278,38 +279,43 @@ void *Server::HandleClient(void *args) {
                         // Client set their status (OPERATIONAL, etc)
                         std::string statusVal = decode64(str.substr(statusPrefix.size()));
                         cout << "[CLIENT][STATUS] Client sent status of: " << statusVal << endl;
-                        /*XMLDocument doc (false);
-                        doc.Parse (statusVal);*/
-                        std::string nodeName;
-                        if (findStringIC(statusVal, vpName)) {
-                            nodeName = "virtual_patient";
-                        } else if (findStringIC(statusVal, propaqName)) {
-                            nodeName = "propaq";
-                        } else if (findStringIC(statusVal, labsName)) {
-                            nodeName = "labs";
-                        }
+                        XMLDocument doc(false);
+                        doc.Parse(statusVal.c_str());
+
+                        tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
+                        tinyxml2::XMLElement *module = root->FirstChildElement("module")-ToElement();
+                        const char *name = module->Attribute("name");
+                        std::string nodeName(name);
+
                         std::size_t found = statusVal.find(haltingString);
                         if (found != std::string::npos) {
                             cout << "\tThis is a halting error, so set that status" << endl;
                             mgr->SetStatus(c->uuid, nodeName, HALTING_ERROR);
                         } else {
-                            cout << "Not a halting error. It was " << found << endl;
                             mgr->SetStatus(c->uuid, nodeName, OPERATIONAL);
                         }
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
                         std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
                         cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
-                        /*XMLDocument doc (false);
-                        doc.Parse (capabilityVal);*/
-                        std::string nodeName;
-                        if (findStringIC(capabilityVal, vpName)) {
-                            nodeName = "virtual_patient";
-                        } else if (findStringIC(capabilityVal, propaqName)) {
-                            nodeName = "propaq";
-                        } else if (findStringIC(capabilityVal, labsName)) {
-                            nodeName = "labs";
+                        XMLDocument doc(false);
+                        doc.Parse(capabilityVal.c_str());
+
+                        tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
+                        tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
+                        const char *name = module->Attribute("name");
+                        std::string nodeName(name);
+
+                        /**
+                        tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
+                        if (caps) {
+                            for (tinyxml2::XMLNode *node = caps->FirstChildElement(
+                                    "capability"); node; node = node->NextSibling()) {
+                                tinyxml2::XMLElement *e = node->ToElement();
+                            }
                         }
+                        **/
+
                         mgr->PublishModuleConfiguration(
                                 c->uuid,
                                 nodeName,
@@ -319,7 +325,13 @@ void *Server::HandleClient(void *args) {
                                 "0.0.1",
                                 capabilityVal
                         );
-
+                    } else if (str.substr(0, settingsPrefix.size()) == settingsPrefix) {
+                        // Client sent their settings
+                        std::string settingsVal = decode64(str.substr(settingsPrefix.size()));
+                        cout << "[CLIENT][CAPABILITY] Client sent settings of " << settingsVal << endl;
+                        XMLDocument doc (false);
+                        doc.Parse (settingsVal.c_str());
+                        tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
