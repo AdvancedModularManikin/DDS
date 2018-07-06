@@ -15,6 +15,7 @@
 
 #include "AMMPubSubTypes.h"
 
+#include "AMM/BaseLogger.h"
 #include "AMM/DDS_Manager.h"
 
 #include "tinyxml2.h"
@@ -149,8 +150,8 @@ void sendConfig(Client *c, std::string clientType) {
     Server::SendToClient(c, encodedConfig);
 }
 
-void sendConfigToAll(string scene) {
-    ostringstream static_filename;
+void sendConfigToAll(std::string scene) {
+    std::ostringstream static_filename;
     static_filename << "mule1/module_configuration_static/" << scene << "_virtual_patient_configuration.xml";
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
@@ -169,7 +170,7 @@ class TCPBridgeListener : public ListenerInterface {
 public:
     void onNewNodeData(AMM::Physiology::Node n) override {
         if (n.nodepath() == "EXIT") {
-            cout << "Shutting down simulation based on shutdown node-data from physiology engine." << endl;
+            LOG_INFO << "Shutting down simulation based on shutdown node-data from physiology engine.";
             closed = true;
         }
 
@@ -186,7 +187,7 @@ public:
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
-        cout << "We got command data!   It is: " << c.message() << endl;
+        LOG_TRACE << "We got command data!   It is: " << c.message();
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
@@ -221,14 +222,12 @@ void *Server::HandleClient(void *args) {
     int index;
     ssize_t n;
 
-    //Add client in Static clients <vector> (Critical section!)
     ServerThread::LockMutex(c->name);
-    //Before adding the new client, calculate its id. (Now we have the lock)
     c->SetId(Server::clients.size());
     string defaultName = "Client #" + c->id;
     c->SetName(defaultName);
 
-    cout << "Adding client with id: " << c->id << endl;
+    LOG_TRACE << "Adding client with id: " << c->id;
     Server::clients.push_back(*c);
     ServerThread::UnlockMutex(c->name);
 
@@ -238,22 +237,22 @@ void *Server::HandleClient(void *args) {
 
         //Client disconnected?
         if (n == 0) {
-            cout << "Client " << c->name << " disconnected" << endl;
+            LOG_INFO << c->name << " disconnected";
             close(c->sock);
 
             //Remove client in Static clients <vector> (Critical section!)
             ServerThread::LockMutex(c->name);
 
             index = Server::FindClientIndex(c);
-            cout << "Erasing user in position " << index << " whose name id is: "
-                 << Server::clients[index].id << endl;
+            LOG_TRACE << "Erasing user in position " << index << " whose name id is: "
+                 << Server::clients[index].id;
             Server::clients.erase(Server::clients.begin() + index);
 
             ServerThread::UnlockMutex(c->name);
 
             break;
         } else if (n < 0) {
-            cerr << "Error while receiving message from client: " << c->name << endl;
+            LOG_ERROR << "Error while receiving message from client: " << c->name;
         } else {
             vector <string> strings;
             boost::split(strings, buffer, boost::is_any_of("\n"));
@@ -270,15 +269,15 @@ void *Server::HandleClient(void *args) {
                         ServerThread::LockMutex(c->uuid);
                         c->SetUUID(uuid);
                         ServerThread::UnlockMutex(c->uuid);
-                        cout << "[CLIENT][" << moduleName << "] module connected and assigned UUID " << uuid << endl;
+                        LOG_INFO << "Client " << c->id << " module connected: " << moduleName << " (UUID assigned: " << uuid << ")";
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
                         // Registering for data
                         std::string registerVal = str.substr(registerPrefix.size());
-                        cout << "[CLIENT][REGISTER] Client registered for " << registerVal << endl;
+                        LOG_INFO << "Client " << c->id << " registered for: " << registerVal;
                     } else if (str.substr(0, statusPrefix.size()) == statusPrefix) {
                         // Client set their status (OPERATIONAL, etc)
                         std::string statusVal = decode64(str.substr(statusPrefix.size()));
-                        cout << "[CLIENT][STATUS] Client sent status of: " << statusVal << endl;
+                        LOG_INFO << "Client " << c->id << " sent status: " << statusVal;
                         XMLDocument doc(false);
                         doc.Parse(statusVal.c_str());
 
@@ -289,7 +288,7 @@ void *Server::HandleClient(void *args) {
 
                         std::size_t found = statusVal.find(haltingString);
                         if (found != std::string::npos) {
-                            cout << "\tThis is a halting error, so set that status" << endl;
+                            LOG_INFO << "\tThis is a halting error, so set that status";
                             mgr->SetStatus(c->uuid, nodeName, HALTING_ERROR);
                         } else {
                             mgr->SetStatus(c->uuid, nodeName, OPERATIONAL);
@@ -297,7 +296,7 @@ void *Server::HandleClient(void *args) {
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
                         std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
-                        cout << "[CLIENT][CAPABILITY] Client sent capabilities of " << capabilityVal << endl;
+                        LOG_INFO << "Client " << c->id << " sent capabilities: " << capabilityVal;
                         XMLDocument doc(false);
                         doc.Parse(capabilityVal.c_str());
 
@@ -328,7 +327,7 @@ void *Server::HandleClient(void *args) {
                     } else if (str.substr(0, settingsPrefix.size()) == settingsPrefix) {
                         // Client sent their settings
                         std::string settingsVal = decode64(str.substr(settingsPrefix.size()));
-                        cout << "[CLIENT][CAPABILITY] Client sent settings of " << settingsVal << endl;
+                        LOG_INFO << "Client " << c->id << " sent settings: " << settingsVal;
                         XMLDocument doc (false);
                         doc.Parse (settingsVal.c_str());
                         tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
@@ -336,10 +335,10 @@ void *Server::HandleClient(void *args) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
                         if (keepHistory == "TRUE") {
-                            cout << "[CLIENT] Client wants to keep history." << endl;
+                            LOG_DEBUG << "Client " << c->id << " wants to keep history.";
                             c->SetKeepHistory(true);
                         } else {
-                            cout << "[CLIENT] Client does not want to keep history." << endl;
+                            LOG_DEBUG << "Client " << c->id << " does not want to keep history.";
                             c->SetKeepHistory(false);
                         }
                     } else if (str.substr(0, requestPrefix.size()) == requestPrefix) {
@@ -356,14 +355,14 @@ void *Server::HandleClient(void *args) {
                     } else if (str.substr(0, actionPrefix.size()) == actionPrefix) {
                         // Sending action
                         std::string action = str.substr(actionPrefix.size());
-                        cout << "[CLIENT] Posting action to AMM: " << action << endl;
+                        LOG_INFO << "Client " << c->id << " posting action to AMM: " << action;
                         AMM::PatientAction::BioGears::Command cmdInstance;
                         cmdInstance.message(action);
                         command_publisher->write(&cmdInstance);
                     } else if (str.substr(0, keepAlivePrefix.size()) == keepAlivePrefix) {
                         // keepalive, ignore it
                     } else {
-                        cout << "[CLIENT] Unknown message:" << str << endl;
+                        LOG_ERROR << "Client " << c->id << " unknown message:" << str;
                     }
                 }
             }
@@ -378,20 +377,20 @@ void UdpDiscoveryThread() {
     if (discovery) {
         boost::asio::io_service io_service;
         UdpDiscoveryServer udps(io_service, discoveryPort);
-        cout << "\tUDP Discovery listening on port " << discoveryPort << endl;
+        LOG_INFO << "\tUDP Discovery listening on port " << discoveryPort;
         io_service.run();
     } else {
-        cout << "\tUDP discovery service not started due to command line option." << endl;
+        LOG_INFO << "\tUDP discovery service not started due to command line option.";
     }
 }
 
 static void show_usage(const std::string &name) {
-    cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n" << endl;
+    std::cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n" << std::endl;
 }
 
 
 int main(int argc, const char *argv[]) {
-    cout << "=== [AMM - Network Bridge] ===" << endl;
+    std::cout << "=== [AMM - Network Bridge] ===" << std::endl;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -449,7 +448,7 @@ int main(int argc, const char *argv[]) {
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
-    cout << "=== [Network_Bridge] Ready ..." << endl;
+    std::cout << "=== [Network_Bridge] Ready ..." << std::endl;
 
     std::thread t1(UdpDiscoveryThread);
     s = new Server(bridgePort);
@@ -458,6 +457,6 @@ int main(int argc, const char *argv[]) {
     t1.join();
 
 
-    cout << "=== [Network_Bridge] Simulation stopped." << endl;
+    std::cout << "=== [Network_Bridge] Simulation stopped." << std::endl;
 
 }
