@@ -1,0 +1,3 @@
+[submodule "AMM_Modules/src/spi_proto"]
+	path = AMM_Modules/src/spi_proto
+	url = https://github.com/peterohanley/spi_proto

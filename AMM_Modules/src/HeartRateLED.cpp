@@ -12,7 +12,9 @@
 
 #include <fcntl.h>    /* For O_RDWR */
 
-#include "spi_proto.h"
+extern "C" {
+#include "spi_proto/spi_proto.h"
+}
 
 #define TRANSFER_SIZE 36
 #define SPI_TRANSFER_LEN TRANSFER_SIZE

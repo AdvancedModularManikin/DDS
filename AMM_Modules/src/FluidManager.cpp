@@ -9,7 +9,9 @@
 #include <thirdparty/tixml2cx.h>
 
 #include "AMM/DDS_Manager.h"
-#include "spi_proto.h"
+extern "C" {
+#include "spi_proto/spi_proto.h"
+}
 
 #include <sys/ioctl.h>
 #include <linux/types.h>

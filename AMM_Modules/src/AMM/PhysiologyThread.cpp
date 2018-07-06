@@ -499,10 +499,6 @@ double PhysiologyThread::GetCardiacOutput() {
     return m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min);
 }
 
-double PhysiologyThread::GetSimluationTime() {
-  return m_pe->GetSimulationTime(TimeUnit::s);
-}
-
 void PhysiologyThread::Status() {
     m_pe->GetLogger()->Info("");
     m_pe->GetLogger()->Info(std::stringstream() << "Simulation Time : " << m_pe->GetSimulationTime(TimeUnit::s) << "s");
