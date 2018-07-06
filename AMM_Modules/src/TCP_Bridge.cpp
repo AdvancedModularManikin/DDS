@@ -100,10 +100,16 @@ bool findStringIC(const std::string &strHaystack, const std::string &strNeedle) 
 
 std::string decode64(const std::string &val) {
     using namespace boost::archive::iterators;
+    LOG_TRACE << "DECODING: " << val;
     using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
-    return boost::algorithm::trim_right_copy_if(std::string(It(std::begin(val)), It(std::end(val))), [](char c) {
-        return c == '\0';
-    });
+    try {
+        return boost::algorithm::trim_right_copy_if(std::string(It(std::begin(val)), It(std::end(val))), [](char c) {
+            return c == '\0';
+        });
+    } catch (exception &e) {
+        LOG_ERROR << "Error decoding bas64 string: " << e.what();
+        return {};
+    }
 }
 
 std::string encode64(const std::string &val) {
