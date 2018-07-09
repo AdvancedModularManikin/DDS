@@ -105,14 +105,9 @@ std::string decode64(const std::string &val) {
     using namespace boost::archive::iterators;
     LOG_TRACE << "DECODING: " << val;
     using It = transform_width<binary_from_base64<std::string::const_iterator>, 8, 6>;
-    try {
-        return boost::algorithm::trim_right_copy_if(std::string(It(std::begin(val)), It(std::end(val))), [](char c) {
-            return c == '\0';
-        });
-    } catch (exception &e) {
-        LOG_ERROR << "Error decoding base64 string: " << e.what();
-        return {};
-    }
+    return boost::algorithm::trim_right_copy_if(std::string(It(std::begin(val)), It(std::end(val))), [](char c) {
+        return c == '\0';
+    });
 }
 
 std::string encode64(const std::string &val) {
@@ -305,10 +300,8 @@ void *Server::HandleClient(void *args) {
                         // Add the modules name to the static Client vector
                         ServerThread::LockMutex(c->name);
                         c->SetName(moduleName);
-                        ServerThread::UnlockMutex(c->name);
-                        ServerThread::LockMutex(c->uuid);
                         c->SetUUID(uuid);
-                        ServerThread::UnlockMutex(c->uuid);
+                        ServerThread::UnlockMutex(c->name);
                         LOG_INFO << "Client " << c->id << " module connected: " << moduleName << " (UUID assigned: "
                                  << uuid << ")";
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
@@ -317,7 +310,14 @@ void *Server::HandleClient(void *args) {
                         LOG_INFO << "Client " << c->id << " registered for: " << registerVal;
                     } else if (str.substr(0, statusPrefix.size()) == statusPrefix) {
                         // Client set their status (OPERATIONAL, etc)
-                        std::string statusVal = decode64(str.substr(statusPrefix.size()));
+                        std::string statusVal;
+                        try {
+                            statusVal = decode64(str.substr(statusPrefix.size()));
+                        } catch (exception &e) {
+                            LOG_ERROR << "Error decoding base64 string: " << e.what();
+                            break;
+                        }
+
                         LOG_INFO << "Client " << c->id << " sent status: " << statusVal;
                         XMLDocument doc(false);
                         doc.Parse(statusVal.c_str());
@@ -341,7 +341,13 @@ void *Server::HandleClient(void *args) {
                         }
                     } else if (str.substr(0, capabilityPrefix.size()) == capabilityPrefix) {
                         // Client sent their capabilities / announced
-                        std::string capabilityVal = decode64(str.substr(capabilityPrefix.size()));
+                        std::string capabilityVal;
+                        try {
+                            capabilityVal = decode64(str.substr(capabilityPrefix.size()));
+                        } catch (exception &e) {
+                            LOG_ERROR << "Error decoding base64 string: " << e.what();
+                            break;
+                        }
                         LOG_INFO << "Client " << c->id << " sent capabilities: " << capabilityVal;
                         XMLDocument doc(false);
                         doc.Parse(capabilityVal.c_str());
@@ -381,7 +387,13 @@ void *Server::HandleClient(void *args) {
                             }
                         }
                     } else if (str.substr(0, settingsPrefix.size()) == settingsPrefix) {
-                        std::string settingsVal = decode64(str.substr(settingsPrefix.size()));
+                        std::string settingsVal;
+                        try {
+                            settingsVal = decode64(str.substr(settingsPrefix.size()));
+                        } catch (exception &e) {
+                            LOG_ERROR << "Error decoding base64 string: " << e.what();
+                            break;
+                        }
                         LOG_INFO << "Client " << c->id << " sent settings: " << settingsVal;
                         XMLDocument doc(false);
                         doc.Parse(settingsVal.c_str());
