@@ -226,10 +226,19 @@ public:
     }
 };
 
+void PublishSettings() {
+    for(auto & outer_map_pair : equipmentSettings) {
+        LOG_TRACE << outer_map_pair.first << " settings contains: ";
+        for(auto & inner_map_pair : outer_map_pair.second) {
+            LOG_TRACE << "\t" << inner_map_pair.first << ": " << inner_map_pair.second;
+        }
+    }
+}
+
 // Override client handler code from Net Server
 void *Server::HandleClient(void *args) {
     auto *c = (Client *) args;
-    char buffer[4096 - 25];
+    char buffer[8192 - 25];
     int index;
     ssize_t n;
 
@@ -348,11 +357,8 @@ void *Server::HandleClient(void *args) {
                                         std::string settingValue = setting->Attribute("value");
                                         equipmentSettings[capabilityName][settingName] = settingValue;
                                     }
+                                    PublishSettings();
                                 }
-                                /**std::stringstream ss;
-                                boost::archive::text_oarchive oarch(ss);
-                                oarch << equipmentSettings;
-                                LOG_TRACE << "Equipment settings serialized to: " << oarch; **/
                             }
                         }
                     } else if (str.substr(0, settingsPrefix.size()) == settingsPrefix) {
@@ -380,6 +386,7 @@ void *Server::HandleClient(void *args) {
                                         equipmentSettings[capabilityName][settingName] = settingValue;
                                     }
                                 }
+                                PublishSettings();
                             }
                         }
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
