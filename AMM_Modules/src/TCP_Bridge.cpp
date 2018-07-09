@@ -1,6 +1,13 @@
 #include "stdafx.h"
 
+#include <fstream>
+#include <string>
+#include <iostream>
+#include <algorithm>
+#include <string>
+#include <cctype>
 #include <map>
+
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string.hpp>
@@ -11,10 +18,9 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
 
-#include <fstream>
-
 #include <Net/Server.h>
 #include <Net/UdpDiscoveryServer.h>
+#include <Net/Client.h>
 
 #include "AMMPubSubTypes.h"
 
@@ -22,14 +28,6 @@
 #include "AMM/DDS_Manager.h"
 
 #include "tinyxml2.h"
-#include "AMM/DataTypes.h"
-#include <fstream>
-#include <string>
-#include <iostream>
-#include <algorithm>
-#include <string>
-#include <cctype>
-
 
 using namespace std;
 using namespace tinyxml2;
@@ -226,10 +224,25 @@ public:
     }
 };
 
-void PublishSettings() {
-    for(auto & outer_map_pair : equipmentSettings) {
+void DispatchRequest(Client *c, std::string const &request) {
+    LOG_TRACE << "Dispatching request";
+    if (request == "LABS") {
+        LOG_TRACE << "It's a labs request.";
+        auto it = labNodes.begin();
+        while (it != labNodes.end()) {
+            std::ostringstream messageOut;
+            messageOut << it->first << "=" << it->second << "|";
+            Server::SendToClient(c, messageOut.str());
+            ++it;
+        }
+    }
+}
+
+void PublishSettings(std::string const &equipmentType) {
+    LOG_INFO << "Publishing equipment " << equipmentType << " settings";
+    for (auto &outer_map_pair : equipmentSettings) {
         LOG_TRACE << outer_map_pair.first << " settings contains: ";
-        for(auto & inner_map_pair : outer_map_pair.second) {
+        for (auto &inner_map_pair : outer_map_pair.second) {
             LOG_TRACE << "\t" << inner_map_pair.first << ": " << inner_map_pair.second;
         }
     }
@@ -288,6 +301,7 @@ void *Server::HandleClient(void *args) {
                         // Make the entry in our client UUID map
                         clientMap[c->id] = uuid;
 
+                        LOG_TRACE << "Setting client name to " << moduleName;
                         // Add the modules name to the static Client vector
                         ServerThread::LockMutex(c->name);
                         c->SetName(moduleName);
@@ -312,6 +326,11 @@ void *Server::HandleClient(void *args) {
                         tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
                         const char *name = module->Attribute("name");
                         std::string nodeName(name);
+
+                        // Set the client's type
+                        ServerThread::LockMutex(c->clientType);
+                        c->SetClientType(nodeName);
+                        ServerThread::UnlockMutex(c->clientType);
 
                         std::size_t found = statusVal.find(haltingString);
                         if (found != std::string::npos) {
@@ -357,7 +376,7 @@ void *Server::HandleClient(void *args) {
                                         std::string settingValue = setting->Attribute("value");
                                         equipmentSettings[capabilityName][settingName] = settingValue;
                                     }
-                                    PublishSettings();
+                                    PublishSettings(capabilityName);
                                 }
                             }
                         }
@@ -386,7 +405,7 @@ void *Server::HandleClient(void *args) {
                                         equipmentSettings[capabilityName][settingName] = settingValue;
                                     }
                                 }
-                                PublishSettings();
+                                PublishSettings(capabilityName);
                             }
                         }
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
@@ -401,15 +420,7 @@ void *Server::HandleClient(void *args) {
                         }
                     } else if (str.substr(0, requestPrefix.size()) == requestPrefix) {
                         std::string request = str.substr(requestPrefix.size());
-                        if (request == "LABS") {
-                            auto it = labNodes.begin();
-                            while (it != labNodes.end()) {
-                                std::ostringstream messageOut;
-                                messageOut << it->first << "=" << it->second << "|";
-                                Server::SendToClient(c, messageOut.str());
-                                ++it;
-                            }
-                        }
+                        DispatchRequest(c, request);
                     } else if (str.substr(0, actionPrefix.size()) == actionPrefix) {
                         // Sending action
                         std::string action = str.substr(actionPrefix.size());
@@ -449,7 +460,7 @@ static void show_usage(const std::string &name) {
 
 
 int main(int argc, const char *argv[]) {
-    std::cout << "=== [AMM - Network Bridge] ===" << std::endl;
+    LOG_INFO << "=== [AMM - Network Bridge] ===";
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -510,7 +521,7 @@ int main(int argc, const char *argv[]) {
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
-    std::cout << "=== [Network_Bridge] Ready ..." << std::endl;
+    LOG_INFO << "=== [Network_Bridge] Ready ...";
 
     std::thread t1(UdpDiscoveryThread);
     s = new Server(bridgePort);
@@ -519,6 +530,6 @@ int main(int argc, const char *argv[]) {
     t1.join();
 
 
-    std::cout << "=== [Network_Bridge] Simulation stopped." << std::endl;
+    LOG_INFO << "=== [Network_Bridge] Simulation stopped.";
 
 }

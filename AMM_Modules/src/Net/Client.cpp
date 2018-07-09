@@ -11,6 +11,10 @@ void Client::SetUUID(std::string &uuid) {
     this->uuid = uuid;
 }
 
+void Client::SetClientType(std::string &clientType) {
+    this->clientType = clientType;
+}
+
 void Client::SetId(unsigned long id) {
     this->id = id;
 }

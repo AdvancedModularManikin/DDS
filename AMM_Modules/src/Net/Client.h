@@ -10,6 +10,8 @@ public:
     unsigned long id{};
     std::string name;
     std::string uuid;
+    std::string clientType;
+
     bool keepHistory = false;
 
     //Socket stuff
@@ -22,6 +24,8 @@ public:
     void SetName(std::string &name);
 
     void SetUUID(std::string &uuid);
+
+    void SetClientType(std::string &clientType);
 
     void SetKeepHistory(bool historyflag);
 };
