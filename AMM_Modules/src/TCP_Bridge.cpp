@@ -7,6 +7,9 @@
 #include <boost/archive/iterators/binary_from_base64.hpp>
 #include <boost/archive/iterators/base64_from_binary.hpp>
 #include <boost/archive/iterators/transform_width.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
 
 #include <fstream>
 
@@ -19,6 +22,7 @@
 #include "AMM/DDS_Manager.h"
 
 #include "tinyxml2.h"
+#include "AMM/DataTypes.h"
 #include <fstream>
 #include <string>
 #include <iostream>
@@ -61,6 +65,7 @@ string encodedConfig = "";
 bool closed = false;
 
 Publisher *command_publisher;
+Publisher *settings_publisher;
 
 DDS_Manager *mgr;
 
@@ -86,8 +91,8 @@ std::vector <std::string> publishNodes = {
 };
 
 std::map<std::string, double> labNodes;
-
-std::map <std::string, std::string> clientMap;
+std::map <std::string, std::map<std::string, std::string>> equipmentSettings;
+std::map<unsigned long int, std::string> clientMap;
 
 bool findStringIC(const std::string &strHaystack, const std::string &strNeedle) {
     auto it = std::search(
@@ -107,7 +112,7 @@ std::string decode64(const std::string &val) {
             return c == '\0';
         });
     } catch (exception &e) {
-        LOG_ERROR << "Error decoding bas64 string: " << e.what();
+        LOG_ERROR << "Error decoding base64 string: " << e.what();
         return {};
     }
 }
@@ -246,16 +251,17 @@ void *Server::HandleClient(void *args) {
             LOG_INFO << c->name << " disconnected";
             close(c->sock);
 
-            //Remove client in Static clients <vector> (Critical section!)
-            ServerThread::LockMutex(c->name);
+            // Remove from our client/UUID map
+            auto it = clientMap.find(c->id);
+            clientMap.erase(it);
 
+            //Remove client in Static clients <vector>
+            ServerThread::LockMutex(c->name);
             index = Server::FindClientIndex(c);
             LOG_TRACE << "Erasing user in position " << index << " whose name id is: "
-                 << Server::clients[index].id;
+                      << Server::clients[index].id;
             Server::clients.erase(Server::clients.begin() + index);
-
             ServerThread::UnlockMutex(c->name);
-
             break;
         } else if (n < 0) {
             LOG_ERROR << "Error while receiving message from client: " << c->name;
@@ -269,13 +275,19 @@ void *Server::HandleClient(void *args) {
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
                         std::string moduleName = str.substr(modulePrefix.size());
                         std::string uuid = mgr->GenerateID();
+
+                        // Make the entry in our client UUID map
+                        clientMap[c->id] = uuid;
+
+                        // Add the modules name to the static Client vector
                         ServerThread::LockMutex(c->name);
                         c->SetName(moduleName);
                         ServerThread::UnlockMutex(c->name);
                         ServerThread::LockMutex(c->uuid);
                         c->SetUUID(uuid);
                         ServerThread::UnlockMutex(c->uuid);
-                        LOG_INFO << "Client " << c->id << " module connected: " << moduleName << " (UUID assigned: " << uuid << ")";
+                        LOG_INFO << "Client " << c->id << " module connected: " << moduleName << " (UUID assigned: "
+                                 << uuid << ")";
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
                         // Registering for data
                         std::string registerVal = str.substr(registerPrefix.size());
@@ -310,17 +322,6 @@ void *Server::HandleClient(void *args) {
                         tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
                         const char *name = module->Attribute("name");
                         std::string nodeName(name);
-
-                        /**
-                        tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
-                        if (caps) {
-                            for (tinyxml2::XMLNode *node = caps->FirstChildElement(
-                                    "capability"); node; node = node->NextSibling()) {
-                                tinyxml2::XMLElement *e = node->ToElement();
-                            }
-                        }
-                        **/
-
                         mgr->PublishModuleConfiguration(
                                 c->uuid,
                                 nodeName,
@@ -330,13 +331,57 @@ void *Server::HandleClient(void *args) {
                                 "0.0.1",
                                 capabilityVal
                         );
+
+                        tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
+                        if (caps) {
+                            for (tinyxml2::XMLNode *node = caps->FirstChildElement(
+                                    "capability"); node; node = node->NextSibling()) {
+                                tinyxml2::XMLElement *cap = node->ToElement();
+                                std::string capabilityName = cap->Attribute("name");
+                                tinyxml2::XMLElement *starting_settings = cap->FirstChildElement(
+                                        "starting_settings");
+                                if (starting_settings) {
+                                    for (tinyxml2::XMLNode *settingNode = starting_settings->FirstChildElement(
+                                            "setting"); settingNode; settingNode = settingNode->NextSibling()) {
+                                        tinyxml2::XMLElement *setting = settingNode->ToElement();
+                                        std::string settingName = setting->Attribute("name");
+                                        std::string settingValue = setting->Attribute("value");
+                                        equipmentSettings[capabilityName][settingName] = settingValue;
+                                    }
+                                }
+                                /**std::stringstream ss;
+                                boost::archive::text_oarchive oarch(ss);
+                                oarch << equipmentSettings;
+                                LOG_TRACE << "Equipment settings serialized to: " << oarch; **/
+                            }
+                        }
                     } else if (str.substr(0, settingsPrefix.size()) == settingsPrefix) {
-                        // Client sent their settings
                         std::string settingsVal = decode64(str.substr(settingsPrefix.size()));
                         LOG_INFO << "Client " << c->id << " sent settings: " << settingsVal;
-                        XMLDocument doc (false);
-                        doc.Parse (settingsVal.c_str());
+                        XMLDocument doc(false);
+                        doc.Parse(settingsVal.c_str());
                         tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
+                        /** @TODO: Change this when Logan removes the modules nesting **/
+                        tinyxml2::XMLElement *module = root->FirstChildElement("modules")->FirstChildElement("module");
+                        tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
+                        if (caps) {
+                            for (tinyxml2::XMLNode *node = caps->FirstChildElement(
+                                    "capability"); node; node = node->NextSibling()) {
+                                tinyxml2::XMLElement *cap = node->ToElement();
+                                std::string capabilityName = cap->Attribute("name");
+                                tinyxml2::XMLElement *configEl = cap->FirstChildElement(
+                                        "configuration");
+                                if (configEl) {
+                                    for (tinyxml2::XMLNode *settingNode = configEl->FirstChildElement(
+                                            "setting"); settingNode; settingNode = settingNode->NextSibling()) {
+                                        tinyxml2::XMLElement *setting = settingNode->ToElement();
+                                        std::string settingName = setting->Attribute("name");
+                                        std::string settingValue = setting->Attribute("value");
+                                        equipmentSettings[capabilityName][settingName] = settingValue;
+                                    }
+                                }
+                            }
+                        }
                     } else if (str.substr(0, keepHistoryPrefix.size()) == keepHistoryPrefix) {
                         // Setting the KEEP_HISTORY flag
                         std::string keepHistory = str.substr(keepHistoryPrefix.size());
@@ -391,7 +436,8 @@ void UdpDiscoveryThread() {
 }
 
 static void show_usage(const std::string &name) {
-    std::cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n" << std::endl;
+    std::cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
+              << std::endl;
 }
 
 
@@ -438,6 +484,9 @@ int main(int argc, const char *argv[]) {
     auto *pub_listener = new DDS_Listeners::PubListener();
     command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                  pub_listener);
+
+    settings_publisher = mgr->InitializePublisher(AMM::DataTypes::instrumentDataTopic,
+                                                  AMM::DataTypes::getInstrumentDataType(), pub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration

@@ -26,6 +26,7 @@ std::string AMM::DataTypes::statusTopic = "Status";
 std::string AMM::DataTypes::configurationTopic = "Configuration";
 std::string AMM::DataTypes::scenarioTopic = "Scenario";
 
+std::string AMM::DataTypes::instrumentDataTopic = "InstrumentData";
 
 AMM::Simulation::TickPubSubType *AMM::DataTypes::getTickType() {
     return new TickPubSubType();
@@ -104,4 +105,9 @@ AMM::Capability::StatusPubSubType *AMM::DataTypes::getStatusType() {
 
 AMM::Capability::ScenarioPubSubType *AMM::DataTypes::getScenarioType() {
     return new ScenarioPubSubType();
+};
+
+
+AMM::InstrumentDataPubSubType *AMM::DataTypes::getInstrumentDataType() {
+    return new InstrumentDataPubSubType();
 };

@@ -52,6 +52,9 @@ namespace AMM {
         static AMM::Capability::StatusPubSubType* getStatusType();
         static AMM::Capability::ScenarioPubSubType* getScenarioType();
 
+        // AMM Instrument Data type
+        static AMM::InstrumentDataPubSubType* getInstrumentDataType();
+
         // Topic names
         static std::string tickTopic;
 
@@ -78,5 +81,6 @@ namespace AMM {
         static std::string configurationTopic;
         static std::string scenarioTopic;
 
+        static std::string instrumentDataTopic;
     };
 };

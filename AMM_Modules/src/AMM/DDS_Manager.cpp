@@ -74,6 +74,9 @@ namespace AMM {
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getConfigurationType());
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getStatusType());
 
+        // AMM instrument data type
+        Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getInstrumentDataType());
+
     }
 
     Publisher *DDS_Manager::InitializePublisher(const std::string &topicName, TopicDataType *topicType,
