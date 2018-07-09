@@ -387,7 +387,7 @@ void *Server::HandleClient(void *args) {
                         doc.Parse(settingsVal.c_str());
                         tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
                         /** @TODO: Change this when Logan removes the modules nesting **/
-                        tinyxml2::XMLElement *module = root->FirstChildElement("modules")->FirstChildElement("module");
+                        tinyxml2::XMLElement *module = root->FirstChildElement("module");
                         tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
                         if (caps) {
                             for (tinyxml2::XMLNode *node = caps->FirstChildElement(
