@@ -134,7 +134,7 @@ namespace AMM {
 
         double GetNodePath(const std::string &nodePath);
 
-        void Ventilator(const std::string &ventilatorSettings);
+        void SetVentilator(const std::string &ventilatorSettings);
 
         void Status();
 

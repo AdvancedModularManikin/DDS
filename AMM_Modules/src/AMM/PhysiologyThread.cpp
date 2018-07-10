@@ -242,22 +242,17 @@ PaO2 (mmHg)
                 double time_s = adv->GetTime(TimeUnit::s);
                 auto count = (int) (time_s / dT_s);
                 for (int i = 0; i <= count; i++) {
-
                     m_pe->AdvanceModelTime();
-                    // scenarioTime_s = m_pe->GetSimulationTime(TimeUnit::s);
                     currentSampleTime_s += dT_s;
                     if (currentSampleTime_s >= sampleTime_s) {
                         currentSampleTime_s = 0;
-                        // m_pe->GetEngineTrack()->TrackData(scenarioTime_s);
                     }
-
                 }
                 continue;
             } else {
                 m_pe->ProcessAction(*a);
             }
         }
-
         return true;
     }
 
@@ -512,7 +507,7 @@ PaO2 (mmHg)
         return m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min);
     }
 
-    void PhysiologyThread::Ventilator(const std::string &ventilatorSettings) {
+    void PhysiologyThread::SetVentilator(const std::string &ventilatorSettings) {
         LOG_TRACE << "Ventilator initialized with settings: " << ventilatorSettings;
         /*SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
         SEAnesthesiaMachine& config = AMConfig.GetConfiguration();
