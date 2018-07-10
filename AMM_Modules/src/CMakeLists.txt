@@ -10,16 +10,6 @@ configure_file(
 add_custom_target(versionFileTouchForRebuild
         COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/version.cpp")
 
-find_package(fastrtps REQUIRED)
-find_package(fastcdr REQUIRED)
-find_package(Threads REQUIRED)
-find_package(Boost 1.58 COMPONENTS filesystem iostreams system signals thread log log_setup REQUIRED)
-find_package(TinyXML2 REQUIRED)
-find_package(SQLite3 REQUIRED)
-
-find_package(BioGears)
-find_package(RapidJSON)
-find_package(Pistache)
 
 include_directories(
         ${PROJECT_SOURCE_DIR}/src

@@ -18,4 +18,5 @@ if (BioGears_FOUND)
 
     configure_file(${PROJECT_SOURCE_DIR}/support/BioGearsConfiguration.xml ${CMAKE_CURRENT_BINARY_DIR}/../bin COPYONLY)
     configure_file(${PROJECT_SOURCE_DIR}/support/log4j.properties ${CMAKE_CURRENT_BINARY_DIR}/../bin COPYONLY)
+    configure_file(${PROJECT_SOURCE_DIR}/support/UCEDefs.txt ${CMAKE_CURRENT_BINARY_DIR}/../bin COPYONLY)
 endif ()

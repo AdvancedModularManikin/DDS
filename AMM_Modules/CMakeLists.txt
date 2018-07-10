@@ -60,6 +60,18 @@ else()
     add_compile_options(-std=c++14)
 endif()
 
+
+find_package(fastrtps REQUIRED)
+find_package(fastcdr REQUIRED)
+find_package(Threads REQUIRED)
+find_package(Boost 1.58 COMPONENTS filesystem iostreams system signals thread log log_setup REQUIRED)
+find_package(TinyXML2 REQUIRED)
+find_package(SQLite3 REQUIRED)
+
+find_package(BioGears)
+find_package(RapidJSON)
+find_package(Pistache)
+
 # External resources/repositories are downloaded here
 add_subdirectory(support/external)
 
