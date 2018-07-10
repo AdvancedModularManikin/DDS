@@ -51,7 +51,7 @@ namespace AMM {
 
         void SendShutdown();
 
-        void WriteNodeData(string node);
+        void WriteNodeData(std::string node);
 
         void TickLoop();
 
@@ -73,6 +73,7 @@ namespace AMM {
 
         void onNewCommandData(AMM::PatientAction::BioGears::Command cm) override;
 
+        void onNewInstrumentData(AMM::InstrumentData i) override;
     private:
         std::map<std::string, double (PhysiologyThread::*)()> *nodePathMap;
 
@@ -84,6 +85,7 @@ namespace AMM {
         Publisher *node_publisher;
         Subscriber *tick_subscriber;
         Subscriber *command_subscriber;
+        Subscriber *equipment_subscriber;
 
         PhysiologyThread *bg; //  = new PhysiologyThread("./logs/biogears.log");
 

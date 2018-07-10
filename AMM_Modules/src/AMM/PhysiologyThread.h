@@ -120,8 +120,6 @@ namespace AMM {
 
         void Status();
 
-        double GetSimuluationTime();
-
         static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
         static std::vector <std::string> highFrequencyNodes;
 

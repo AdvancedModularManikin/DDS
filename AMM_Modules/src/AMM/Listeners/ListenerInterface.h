@@ -27,6 +27,8 @@ public:
 
     virtual void onNewScenarioData(AMM::Capability::Scenario sc) {};
 
+    virtual void onNewInstrumentData(AMM::InstrumentData i) {};
+
     std::string sysPrefix = "[SYS]";
     std::string actPrefix = "[ACT]";
     std::string loadPrefix = "LOAD_STATE:";

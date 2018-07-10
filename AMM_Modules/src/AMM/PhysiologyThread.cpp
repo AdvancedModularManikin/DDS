@@ -160,14 +160,14 @@ namespace AMM {
 
 /**
 
-Heart rate (bpm), 
+Heart rate (bpm),
 Mean arterial pressure (mmHg),
-Central venous pressure (mmHg), 
-Cardiac output (L/min), 
-blood volume (L), 
+Central venous pressure (mmHg),
+Cardiac output (L/min),
+blood volume (L),
 Hemoglobin content (g)
-Respiratory rate (bpm), 
-SpO2 - peripheral capillary oxygen saturation (%), 
+Respiratory rate (bpm),
+SpO2 - peripheral capillary oxygen saturation (%),
 End tidal CO2 (mmHg)
 Tidal volume (mL)
 Total lung volume (L)
@@ -510,10 +510,6 @@ PaO2 (mmHg)
 
     double PhysiologyThread::GetCardiacOutput() {
         return m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min);
-    }
-
-    double PhysiologyThread::GetSimluationTime() {
-        return m_pe->GetSimulationTime(TimeUnit::s);
     }
 
     void PhysiologyThread::Status() {

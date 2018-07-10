@@ -15,12 +15,19 @@ namespace AMM {
         auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
         command_sub_listener->SetUpstream(this);
 
+        auto *equipment_sub_listener = new DDS_Listeners::EquipmentSubListener();
+        equipment_sub_listener->SetUpstream(this);
+
         auto *pub_listener = new DDS_Listeners::PubListener();
 
         tick_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(),
                                                     tick_sub_listener);
         command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                        command_sub_listener);
+        equipment_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::instrumentDataTopic,
+                                                         AMM::DataTypes::getInstrumentDataType(),
+                                                         equipment_sub_listener);
+
         node_publisher = mgr->InitializePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
                                                   pub_listener);
 
@@ -265,5 +272,9 @@ namespace AMM {
                 cout.flush();
             }
         }
+    }
+
+    void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i) {
+        LOG_TRACE << "Instrument data received with payload: " << i.payload();
     }
 }

@@ -3,6 +3,7 @@
 #include "AMM/PhysiologyEngineManager.h"
 
 using namespace AMM;
+using namespace std;
 
 bool closed = false;
 
