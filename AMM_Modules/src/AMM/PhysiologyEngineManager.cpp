@@ -275,6 +275,10 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i) {
-        LOG_TRACE << "Instrument data received with payload: " << i.payload();
+        LOG_TRACE << "Instrument data for " << i.instrument() << " received with payload: " << i.payload();
+        std::string instrument(i.instrument());
+        if (instrument == "ventilator") {
+            bg->Ventilator(i.payload());
+        }
     }
 }

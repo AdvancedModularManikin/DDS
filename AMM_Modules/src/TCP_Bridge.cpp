@@ -239,13 +239,13 @@ void PublishSettings(std::string const &equipmentType) {
     for (auto &outer_map_pair : equipmentSettings) {
         LOG_TRACE << outer_map_pair.first << " settings contains: ";
         for (auto &inner_map_pair : outer_map_pair.second) {
-            payload << outer_map_pair.first << "|" << inner_map_pair.first << "=" << inner_map_pair.second << std::endl;
+            payload << inner_map_pair.first << "=" << inner_map_pair.second << std::endl;
             LOG_TRACE << "\t" << inner_map_pair.first << ": " << inner_map_pair.second;
         }
     }
 
-    LOG_TRACE << "Publishing payload: " << payload.str();
     AMM::InstrumentData i;
+    i.instrument(equipmentType);
     i.payload(payload.str());
     settings_publisher->write(&i);
 }

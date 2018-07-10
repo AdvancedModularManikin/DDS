@@ -23,6 +23,7 @@ module AMM
 
     struct InstrumentData
     {
+        string instrument;
         string payload;
     };
 

@@ -512,6 +512,26 @@ PaO2 (mmHg)
         return m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min);
     }
 
+    void PhysiologyThread::Ventilator(const std::string &ventilatorSettings) {
+        LOG_TRACE << "Ventilator initialized with settings: " << ventilatorSettings;
+        /*SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
+        SEAnesthesiaMachine& config = AMConfig.GetConfiguration();
+        config.SetConnection(CDM::enumAnesthesiaMachineConnection::Mask);
+        config.GetInletFlow().SetValue(2.0, VolumePerTimeUnit::L_Per_min);
+        config.GetInspiratoryExpiratoryRatio().SetValue(.5);
+        config.GetOxygenFraction().SetValue(.5);
+        config.SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
+        config.GetPositiveEndExpiredPressure().SetValue(0.0, PressureUnit::cmH2O);
+        config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Nitrogen);
+        config.GetReliefValvePressure().SetValue(20.0, PressureUnit::cmH2O);
+        config.GetRespiratoryRate().SetValue(12, FrequencyUnit::Per_min);
+        config.GetVentilatorPressure().SetValue(0.0, PressureUnit::cmH2O);
+        config.GetOxygenBottleOne().GetVolume().SetValue(660.0, VolumeUnit::L);
+        config.GetOxygenBottleTwo().GetVolume().SetValue(660.0, VolumeUnit::L);
+        // Process the action to propagate state into the engine
+        m_pe->ProcessAction(AMConfig);*/
+    }
+
     void PhysiologyThread::Status() {
         m_pe->GetLogger()->Info("");
         m_pe->GetLogger()->Info(

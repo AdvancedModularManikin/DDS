@@ -73,7 +73,19 @@
 #include "substance/SESubstanceManager.h"
 #include "substance/SESubstance.h"
 
+#include "patient/actions/SESubstanceBolus.h"
+#include "system/equipment/Anesthesia/SEAnesthesiaMachine.h"
+#include "system/equipment/Anesthesia/SEAnesthesiaMachineOxygenBottle.h"
+#include "system/equipment/Anesthesia/actions/SEAnesthesiaMachineConfiguration.h"
+#include "system/equipment/Anesthesia/actions/SEMaskLeak.h"
+#include "system/equipment/Anesthesia/actions/SEOxygenWallPortPressureLoss.h"
+#include "system/physiology/SEBloodChemistrySystem.h"
+#include "system/physiology/SECardiovascularSystem.h"
+#include "system/physiology/SERespiratorySystem.h"
+
 #include "AMMPubSubTypes.h"
+
+#include "AMM/BaseLogger.h"
 
 // Forward declare what we will use in our thread
 class SESubstance;
@@ -85,6 +97,10 @@ class SEComprehensiveMetabolicPanel;
 class SEGasCompartment;
 
 class SECompleteBloodCount;
+
+class SEAnesthesiaMachineConfiguration;
+
+class SEAnesthesiaMachine;
 
 class PhysiologyEngine;
 
@@ -118,10 +134,12 @@ namespace AMM {
 
         double GetNodePath(const std::string &nodePath);
 
+        void Ventilator(const std::string &ventilatorSettings);
+
         void Status();
 
         static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
-        static std::vector <std::string> highFrequencyNodes;
+        static std::vector<std::string> highFrequencyNodes;
 
         std::string getTimestampedFilename(const std::string &basePathname);
 
@@ -243,6 +261,6 @@ namespace AMM {
         std::thread m_thread;
         std::mutex m_mutex;
         bool m_runThread;
-        std::unique_ptr <PhysiologyEngine> m_pe;
+        std::unique_ptr<PhysiologyEngine> m_pe;
     };
 }
