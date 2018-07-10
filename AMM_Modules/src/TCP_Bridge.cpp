@@ -67,7 +67,7 @@ Publisher *settings_publisher;
 
 DDS_Manager *mgr;
 
-std::vector <std::string> publishNodes = {
+std::vector<std::string> publishNodes = {
         "EXIT",
         "SIM_TIME",
         "Cardiovascular_HeartRate",
@@ -89,7 +89,7 @@ std::vector <std::string> publishNodes = {
 };
 
 std::map<std::string, double> labNodes;
-std::map <std::string, std::map<std::string, std::string>> equipmentSettings;
+std::map<std::string, std::map<std::string, std::string>> equipmentSettings;
 std::map<unsigned long int, std::string> clientMap;
 
 bool findStringIC(const std::string &strHaystack, const std::string &strNeedle) {
@@ -112,7 +112,7 @@ std::string decode64(const std::string &val) {
 
 std::string encode64(const std::string &val) {
     using namespace boost::archive::iterators;
-    using It = base64_from_binary <transform_width<std::string::const_iterator, 6, 8>>;
+    using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
     auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
     return tmp.append((3 - val.size() % 3) % 3, '=');
 }
@@ -234,13 +234,20 @@ void DispatchRequest(Client *c, std::string const &request) {
 }
 
 void PublishSettings(std::string const &equipmentType) {
+    std::ostringstream payload;
     LOG_INFO << "Publishing equipment " << equipmentType << " settings";
     for (auto &outer_map_pair : equipmentSettings) {
         LOG_TRACE << outer_map_pair.first << " settings contains: ";
         for (auto &inner_map_pair : outer_map_pair.second) {
+            payload << outer_map_pair.first << "|" << inner_map_pair.first << "=" << inner_map_pair.second << std::endl;
             LOG_TRACE << "\t" << inner_map_pair.first << ": " << inner_map_pair.second;
         }
     }
+
+    LOG_TRACE << "Publishing payload: " << payload.str();
+    AMM::InstrumentData i;
+    i.payload(payload.str());
+    settings_publisher->write(&i);
 }
 
 // Override client handler code from Net Server
@@ -283,7 +290,7 @@ void *Server::HandleClient(void *args) {
         } else if (n < 0) {
             LOG_ERROR << "Error while receiving message from client: " << c->name;
         } else {
-            vector <string> strings;
+            vector<string> strings;
             boost::split(strings, buffer, boost::is_any_of("\n"));
 
             for (auto str : strings) {
@@ -399,7 +406,7 @@ void *Server::HandleClient(void *args) {
                         doc.Parse(settingsVal.c_str());
                         tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
                         /** @TODO: Change this when Logan removes the modules nesting **/
-                        tinyxml2::XMLElement *module = root->FirstChildElement("module");
+                        tinyxml2::XMLElement *module = root->FirstChildElement("modules")->FirstChildElement("module");
                         tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
                         if (caps) {
                             for (tinyxml2::XMLNode *node = caps->FirstChildElement(
