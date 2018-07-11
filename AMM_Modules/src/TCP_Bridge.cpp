@@ -82,6 +82,7 @@ std::vector<std::string> publishNodes = {
         "Cardiovascular_Arterial_Pressure",
         "Respiratory_CarbonDioxide_Exhaled",
         "ECG",
+        "Respiratory_Tidal_Volume",
         "Respiratory_LeftPleuralCavity_Volume",
         "Respiratory_LeftLung_Volume",
         "Respiratory_RightPleuralCavity_Volume",
