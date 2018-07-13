@@ -89,7 +89,7 @@ std::vector<std::string> publishNodes = {
         "Respiratory_RightLung_Volume"
 };
 
-std::map<std::string, double> labNodes;
+std::map<std::string, std::map<std::string, double>> labNodes;
 std::map<std::string, std::map<std::string, std::string>> equipmentSettings;
 std::map<unsigned long int, std::string> clientMap;
 
@@ -113,27 +113,80 @@ std::string decode64(const std::string &val) {
 
 std::string encode64(const std::string &val) {
     using namespace boost::archive::iterators;
-    using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
+    using It = base64_from_binary <transform_width<std::string::const_iterator, 6, 8>>;
     auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
     return tmp.append((3 - val.size() % 3) % 3, '=');
 }
 
 void InitializeLabNodes() {
-    labNodes["Substance_Sodium"] = 0.0f;
-    labNodes["MetabolicPanel_CarbonDioxide"] = 0.0f;
-    labNodes["Substance_Glucose_Concentration"] = 0.0f;
-    labNodes["BloodChemistry_BloodUreaNitrogen_Concentration"] = 0.0f;
-    labNodes["Substance_Creatinine_Concentration"] = 0.0f;
-    labNodes["BloodChemistry_WhiteBloodCell_Count"] = 0.0f;
-    labNodes["BloodChemistry_RedBloodCell_Count"] = 0.0f;
-    labNodes["Substance_Hemoglobin_Concentration"] = 0.0f;
-    labNodes["BloodChemistry_Hemaocrit"] = 0.0f;
-    labNodes["CompleteBloodCount_Platelet"] = 0.0f;
-    labNodes["BloodChemistry_BloodPH"] = 0.0f;
-    labNodes["BloodChemistry_Arterial_CarbonDioxide_Pressure"] = 0.0f;
-    labNodes["BloodChemistry_Arterial_Oxygen_Pressure"] = 0.0f;
-    labNodes["Substance_Bicarbonate"] = 0.0f;
-    labNodes["Substance_BaseExcess"] = 0.0f;
+//
+    labNodes["ALL"]["Substance_Sodium"] = 0.0f;
+    labNodes["ALL"]["MetabolicPanel_CarbonDioxide"] = 0.0f;
+    labNodes["ALL"]["Substance_Glucose_Concentration"] = 0.0f;
+    labNodes["ALL"]["BloodChemistry_BloodUreaNitrogen_Concentration"] = 0.0f;
+    labNodes["ALL"]["Substance_Creatinine_Concentration"] = 0.0f;
+    labNodes["ALL"]["BloodChemistry_WhiteBloodCell_Count"] = 0.0f;
+    labNodes["ALL"]["BloodChemistry_RedBloodCell_Count"] = 0.0f;
+    labNodes["ALL"]["Substance_Hemoglobin_Concentration"] = 0.0f;
+    labNodes["ALL"]["BloodChemistry_Hemaocrit"] = 0.0f;
+    labNodes["ALL"]["CompleteBloodCount_Platelet"] = 0.0f;
+    labNodes["ALL"]["BloodChemistry_BloodPH"] = 0.0f;
+    labNodes["ALL"]["BloodChemistry_Arterial_CarbonDioxide_Pressure"] = 0.0f;
+    labNodes["ALL"]["BloodChemistry_Arterial_Oxygen_Pressure"] = 0.0f;
+    labNodes["ALL"]["Substance_Bicarbonate"] = 0.0f;
+    labNodes["ALL"]["Substance_BaseExcess"] = 0.0f;
+
+    labNodes["POCT"]["Substance_Sodium"] = 0.0f;
+    labNodes["POCT"]["MetabolicPanel_Potassium"] = 0.0f;
+    labNodes["POCT"]["MetabolicPanel_Chloride"] = 0.0f;
+    labNodes["POCT"]["MetabolicPanel_CarbonDioxide"] = 0.0f;
+    labNodes["POCT"]["Substance_Glucose_Concentration"] = 0.0f;
+    labNodes["POCT"]["BloodChemistry_BloodUreaNitrogen_Concentration"] = 0.0f;
+    labNodes["POCT"]["Substance_Creatinine_Concentration"] = 0.0f;
+
+    labNodes["Hematology"]["BloodChemistry_Hemaocrit"] = 0.0f;
+    labNodes["Hematology"]["Substance_Hemoglobin_Concentration"] = 0.0f;
+
+    labNodes["ABG"]["BloodChemistry_BloodPH"] = 0.0f;
+    labNodes["ABG"]["BloodChemistry_Arterial_CarbonDioxide_Pressure"] = 0.0f;
+    labNodes["ABG"]["BloodChemistry_Arterial_Oxygen_Pressure"] = 0.0f;
+    labNodes["ABG"]["MetabolicPanel_CarbonDioxide"] = 0.0f;
+    labNodes["ABG"]["Substance_Bicarbonate"] = 0.0f;
+    labNodes["ABG"]["Substance_BaseExcess"] = 0.0f;
+    labNodes["ABG"]["BloodChemistry_Oxygen_Saturation"] = 0.0f;
+
+    labNodes["VBG"]["BloodChemistry_BloodPH"] = 0.0f;
+    labNodes["VBG"]["BloodChemistry_Arterial_CarbonDioxide_Pressure"] = 0.0f;
+    labNodes["VBG"]["BloodChemistry_Arterial_Oxygen_Pressure"] = 0.0f;
+    labNodes["VBG"]["MetabolicPanel_CarbonDioxide"] = 0.0f;
+    labNodes["VBG"]["Substance_Bicarbonate"] = 0.0f;
+    labNodes["VBG"]["Substance_BaseExcess"] = 0.0f;
+
+    labNodes["BMP"]["Substance_Sodium"] = 0.0f;
+    labNodes["BMP"]["MetabolicPanel_Potassium"] = 0.0f;
+    labNodes["BMP"]["MetabolicPanel_Chloride"] = 0.0f;
+    labNodes["BMP"]["MetabolicPanel_CarbonDioxide"] = 0.0f;
+    labNodes["BMP"]["Substance_Glucose_Concentration"] = 0.0f;
+    labNodes["BMP"]["BloodChemistry_BloodUreaNitrogen_Concentration"] = 0.0f;
+    labNodes["BMP"]["Substance_Creatinine_Concentration"] = 0.0f;
+
+    labNodes["CBC"]["BloodChemistry_WhiteBloodCell_Count"] = 0.0f;
+    labNodes["CBC"]["BloodChemistry_RedBloodCell_Count"] = 0.0f;
+    labNodes["CBC"]["Substance_Hemoglobin_Concentration"] = 0.0f;
+    labNodes["CBC"]["BloodChemistry_Hemaocrit"] = 0.0f;
+    labNodes["CBC"]["CompleteBloodCount_Platelet"] = 0.0f;
+
+    labNodes["CMP"]["Substance_Albumin_Concentration"] = 0.0f;
+    labNodes["CMP"]["BloodChemistry_BloodUreaNitrogen_Concentration"] = 0.0f;
+    labNodes["CMP"]["Substance_Calcium_Concentration"] = 0.0f;
+    labNodes["CMP"]["MetabolicPanel_Chloride"] = 0.0f;
+    labNodes["CMP"]["MetabolicPanel_CarbonDioxide"] = 0.0f;
+    labNodes["CMP"]["Substance_Creatinine_Concentration"] = 0.0f;
+    labNodes["CMP"]["Substance_Glucose_Concentration"] = 0.0f;
+    labNodes["CMP"]["MetabolicPanel_Potassium"] = 0.0f;
+    labNodes["CMP"]["Substance_Sodium"] = 0.0f;
+    labNodes["CMP"]["MetabolicPanel_Bilirubin"] = 0.0f;
+    labNodes["CMP"]["MetabolicPanel_Protein"] = 0.0f;
 }
 
 void sendConfig(Client *c, std::string clientType) {
@@ -179,10 +232,14 @@ public:
             closed = true;
         }
 
-        if (labNodes.find(n.nodepath()) != labNodes.end()) {
-            labNodes[n.nodepath()] = n.dbl();
+        // Drop values into the lab sheets
+        for(auto & outer_map_pair : labNodes) {
+            if (labNodes[outer_map_pair.first].find(n.nodepath()) != labNodes[outer_map_pair.first].end()) {
+                labNodes[outer_map_pair.first][n.nodepath()] = n.dbl();
+            }
         }
 
+        // Publish values that are supposed to go out on every change
         if (std::find(publishNodes.begin(), publishNodes.end(), n.nodepath()) != publishNodes.end()) {
             std::ostringstream messageOut;
             messageOut << n.nodepath() << "=" << n.dbl() << "|";
@@ -222,15 +279,30 @@ public:
 };
 
 void DispatchRequest(Client *c, std::string const &request) {
-    LOG_TRACE << "Dispatching request";
-    if (request == "LABS") {
-        LOG_TRACE << "It's a labs request.";
-        auto it = labNodes.begin();
-        while (it != labNodes.end()) {
-            std::ostringstream messageOut;
-            messageOut << it->first << "=" << it->second << "|";
-            Server::SendToClient(c, messageOut.str());
-            ++it;
+    if (boost::starts_with(request, "LABS")) {
+        LOG_TRACE << "It's a labs request: " << request;
+        vector <string> strings;
+        boost::split(strings, request, boost::is_any_of(";"));
+        if (strings.empty()) {
+            for (auto str : strings) {
+                LOG_TRACE << "\tReturn lab values for " << str;
+                auto it = labNodes[str].begin();
+                while (it != labNodes[str].end()) {
+                    std::ostringstream messageOut;
+                    messageOut << it->first << "=" << it->second << "|";
+                    Server::SendToClient(c, messageOut.str());
+                    ++it;
+                }
+            }
+        } else {
+            LOG_TRACE << "No specific labs requested, return all values.";
+            auto it = labNodes["ALL"].begin();
+            while (it != labNodes["ALL"].end()) {
+                std::ostringstream messageOut;
+                messageOut << it->first << "=" << it->second << "|";
+                Server::SendToClient(c, messageOut.str());
+                ++it;
+            }
         }
     }
 }
@@ -292,7 +364,7 @@ void *Server::HandleClient(void *args) {
         } else if (n < 0) {
             LOG_ERROR << "Error while receiving message from client: " << c->name;
         } else {
-            vector<string> strings;
+            vector <string> strings;
             boost::split(strings, buffer, boost::is_any_of("\n"));
 
             for (auto str : strings) {
