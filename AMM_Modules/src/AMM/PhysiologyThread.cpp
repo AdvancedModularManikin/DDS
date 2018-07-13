@@ -25,8 +25,10 @@ namespace AMM {
         sodium = m_pe->GetSubstanceManager().GetSubstance("Sodium");
         glucose = m_pe->GetSubstanceManager().GetSubstance("Glucose");
         creatinine = m_pe->GetSubstanceManager().GetSubstance("Creatinine");
+        calcium = m_pe->GetSubstanceManager().GetSubstance("Calcium");
         hemoglobin = m_pe->GetSubstanceManager().GetSubstance("Hemoglobin");
         bicarbonate = m_pe->GetSubstanceManager().GetSubstance("Bicarbonate");
+        albumin = m_pe->GetSubstanceManager().GetSubstance("Albumin");
         CO2 = m_pe->GetSubstanceManager().GetSubstance("CarbonDioxide");
         N2 = m_pe->GetSubstanceManager().GetSubstance("Nitrogen");
         O2 = m_pe->GetSubstanceManager().GetSubstance("Oxygen");
@@ -88,7 +90,6 @@ namespace AMM {
 
         // Substances
         nodePathTable["Substance_Sodium"] = &PhysiologyThread::GetSodium;
-        nodePathTable["Substance_Sodium"] = &PhysiologyThread::GetSodium;
         nodePathTable["Substance_Sodium_Concentration"] = &PhysiologyThread::GetSodiumConcentration;
         nodePathTable["Substance_Bicarbonate"] = &PhysiologyThread::GetBicarbonate;
         nodePathTable["Substance_Bicarbonate_Concentration"] = &PhysiologyThread::GetBicarbonateConcentration;
@@ -96,7 +97,11 @@ namespace AMM {
         nodePathTable["Substance_Glucose_Concentration"] = &PhysiologyThread::GetGlucoseConcentration;
         nodePathTable["Substance_Creatinine_Concentration"] = &PhysiologyThread::GetCreatinineConcentration;
         nodePathTable["Substance_Hemoglobin_Concentration"] = &PhysiologyThread::GetHemoglobinConcentration;
+        nodePathTable["Substance_Calcium_Concentration"] = &PhysiologyThread::GetCalciumConcentration;
+        nodePathTable["Substance_Albumin_Concentration"] = &PhysiologyThread::GetAlbuminConcentration;
 
+        nodePathTable["MetabolicPanel_Bilirubin"] = &PhysiologyThread::GetTotalBilirubin;
+        nodePathTable["MetabolicPanel_Protein"] = &PhysiologyThread::GetTotalProtein;
         nodePathTable["MetabolicPanel_CarbonDioxide"] = &PhysiologyThread::GetCO2;
         nodePathTable["MetabolicPanel_Potassium"] = &PhysiologyThread::GetPotassium;
         nodePathTable["MetabolicPanel_Chloride"] = &PhysiologyThread::GetChloride;
@@ -377,6 +382,28 @@ PaO2 (mmHg)
 // Creatinine - Creatinine Concentration - mg/dL
     double PhysiologyThread::GetCreatinineConcentration() {
         return creatinine->GetBloodConcentration(MassPerVolumeUnit::mg_Per_dL);
+    }
+
+    double PhysiologyThread::GetCalciumConcentration() {
+        return calcium->GetBloodConcentration(MassPerVolumeUnit::mg_Per_dL);
+    }
+
+    double PhysiologyThread::GetAlbuminConcentration() {
+        return albumin->GetBloodConcentration(MassPerVolumeUnit::mg_Per_dL);
+    }
+
+    double PhysiologyThread::GetTotalBilirubin() {
+        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        m_pe->GetPatientAssessment(metabolicPanel);
+        SEScalarMassPerVolume bilirubin = metabolicPanel.GetTotalBilirubin();
+        return bilirubin.GetValue(MassPerVolumeUnit::mg_Per_dL);
+    }
+
+    double PhysiologyThread::GetTotalProtein() {
+        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        m_pe->GetPatientAssessment(metabolicPanel);
+        SEScalarMassPerVolume protein = metabolicPanel.GetTotalProtein();
+        return protein.GetValue(MassPerVolumeUnit::mg_Per_dL);
     }
 
 // RBC - White Blood Cell Count - ct/uL

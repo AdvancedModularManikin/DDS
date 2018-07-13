@@ -236,9 +236,19 @@ namespace AMM {
 
         double GetCardiacOutput();
 
+        double GetCalciumConcentration();
+
+        double GetAlbuminConcentration();
+
+        double GetTotalBilirubin();
+
+        double GetTotalProtein();
+
         SESubstance *sodium;
         SESubstance *glucose;
         SESubstance *creatinine;
+        SESubstance *calcium;
+        SESubstance *albumin;
         SESubstance *hemoglobin;
         SESubstance *bicarbonate;
         SESubstance *CO2;

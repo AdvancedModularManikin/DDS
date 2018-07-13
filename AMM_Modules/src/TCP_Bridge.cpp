@@ -187,6 +187,7 @@ public:
             std::ostringstream messageOut;
             messageOut << n.nodepath() << "=" << n.dbl() << "|";
             string stringOut = messageOut.str();
+            /** Find out who subscribed to this and only target that *C **/
             s->SendToAll(messageOut.str());
         }
     }
