@@ -64,7 +64,7 @@ Publisher *settings_publisher;
 
 DDS_Manager *mgr;
 
-std::vector<std::string> publishNodes = {
+std::vector <std::string> publishNodes = {
         "EXIT",
         "SIM_TIME",
         "Cardiovascular_HeartRate",
@@ -86,8 +86,8 @@ std::vector<std::string> publishNodes = {
         "Respiratory_RightLung_Volume"
 };
 
-std::map<std::string, std::map<std::string, double>> labNodes;
-std::map<std::string, std::map<std::string, std::string>> equipmentSettings;
+std::map <std::string, std::map<std::string, double>> labNodes;
+std::map <std::string, std::map<std::string, std::string>> equipmentSettings;
 std::map<unsigned long int, std::string> clientMap;
 
 bool findStringIC(const std::string &strHaystack, const std::string &strNeedle) {
@@ -230,7 +230,7 @@ public:
         }
 
         // Drop values into the lab sheets
-        for(auto & outer_map_pair : labNodes) {
+        for (auto &outer_map_pair : labNodes) {
             if (labNodes[outer_map_pair.first].find(n.nodepath()) != labNodes[outer_map_pair.first].end()) {
                 labNodes[outer_map_pair.first][n.nodepath()] = n.dbl();
             }
@@ -277,20 +277,17 @@ public:
 
 void DispatchRequest(Client *c, std::string const &request) {
     if (boost::starts_with(request, "LABS")) {
-        LOG_TRACE << "It's a labs request: " << request;
-        vector <string> strings;
-        boost::split(strings, request, boost::is_any_of(";"));
-        if (!strings.empty()) {
-            for (auto str : strings) {
-                if (str == "LABS") continue;
-                LOG_TRACE << "\tReturn lab values for " << str;
-                auto it = labNodes[str].begin();
-                while (it != labNodes[str].end()) {
-                    std::ostringstream messageOut;
-                    messageOut << it->first << "=" << it->second << "|";
-                    Server::SendToClient(c, messageOut.str());
-                    ++it;
-                }
+        LOG_TRACE << "LABS request: " << request;
+        const auto equals_idx = request.find_first_of(';');
+        if (std::string::npos != equals_idx) {
+            auto str = request.substr(equals_idx + 1);
+            LOG_TRACE << "\tReturn lab values for " << str;
+            auto it = labNodes[str].begin();
+            while (it != labNodes[str].end()) {
+                std::ostringstream messageOut;
+                messageOut << it->first << "=" << it->second << "|";
+                Server::SendToClient(c, messageOut.str());
+                ++it;
             }
         } else {
             LOG_TRACE << "No specific labs requested, return all values.";
