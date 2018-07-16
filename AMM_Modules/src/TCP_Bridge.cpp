@@ -54,9 +54,6 @@ const string actionPrefix = "ACT=";
 const string keepAlivePrefix = "[KEEPALIVE]";
 const string loadScenarioPrefix = "LOAD_SCENARIO:";
 const string haltingString = "HALTING_ERROR";
-const string propaqName = "propaq";
-const string labsName = "labs";
-const string vpName = "virtual_patient";
 
 string encodedConfig = "";
 
@@ -283,7 +280,7 @@ void DispatchRequest(Client *c, std::string const &request) {
         LOG_TRACE << "It's a labs request: " << request;
         vector <string> strings;
         boost::split(strings, request, boost::is_any_of(";"));
-        if (strings.empty()) {
+        if (!strings.empty()) {
             for (auto str : strings) {
                 LOG_TRACE << "\tReturn lab values for " << str;
                 auto it = labNodes[str].begin();
