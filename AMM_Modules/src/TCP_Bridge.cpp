@@ -282,6 +282,7 @@ void DispatchRequest(Client *c, std::string const &request) {
         boost::split(strings, request, boost::is_any_of(";"));
         if (!strings.empty()) {
             for (auto str : strings) {
+                if (str == "LABS") continue;
                 LOG_TRACE << "\tReturn lab values for " << str;
                 auto it = labNodes[str].begin();
                 while (it != labNodes[str].end()) {
