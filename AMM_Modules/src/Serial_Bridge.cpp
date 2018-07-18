@@ -1,9 +1,5 @@
 #include "stdafx.h"
 
-#include "AMM/DDS_Manager.h"
-
-#include "AMM/SerialPort.h"
-
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
@@ -17,8 +13,18 @@
 #include <string>
 #include <iostream>
 
-using namespace ::boost::asio;
+#include "AMMPubSubTypes.h"
+
+#include "AMM/BaseLogger.h"
+#include "AMM/DDS_Manager.h"
+
+#include "AMM/SerialPort.h"
+
+#include "tinyxml2.h"
+
 using namespace std;
+using namespace ::boost::asio;
+using namespace tinyxml2;
 using namespace AMM;
 
 #define PORT_LINUX "/dev/tty96B0"
@@ -28,18 +34,17 @@ using namespace AMM;
 
 int daemonize = 1;
 bool closed = false;
-bool transmit = false;
 bool first_message = true;
+
+std::string requestPrefix = "[REQUEST]";
 std::string reportPrefix = "[REPORT]";
 std::string actionPrefix = "[AMM_Command]";
 std::string xmlPrefix = "<?xml";
 
-std::string msg1 = "[Scenario]m1s1=mule1_scene1\n";
-std::string msg2 = "[Capability]monitor_level=true\n";
-std::string msg3 = "[Config_Data]sound_alarm=false\n";
-std::string msg4 = "[Capability]detect_button_press=true\n";
-std::string msg5 = "[Config_Data]button_message=some_action_name\n";
 std::string haltingString = "HALTING_ERROR";
+
+std::map <std::string, std::string> subscribedTopics;
+std::map <std::string, std::string> publishedTopics;
 
 std::vector <std::string> publishNodes = {
         "EXIT",
@@ -64,14 +69,14 @@ std::vector <std::string> publishNodes = {
 };
 
 Publisher *command_publisher;
-queue <string> transmitQ;
+std::queue <std::string> transmitQ;
 
 // Set up DDS
 const char *nodeName = "AMM_Serial_Bridge";
 DDS_Manager *mgr;
 
-vector <string> explode(const string &delimiter, const string &str) {
-    vector <string> arr;
+std::vector <std::string> explode(const std::string &delimiter, const std::string &str) {
+    std::vector <std::string> arr;
 
     int strleng = str.length();
     int delleng = delimiter.length();
@@ -95,77 +100,125 @@ vector <string> explode(const string &delimiter, const string &str) {
     }
     arr.push_back(str.substr(k, i - k));
     return arr;
-}
+};
 
 void sendConfigInfo(std::string scene) {
-    ostringstream static_filename;
+    std::ostringstream static_filename;
     static_filename << "mule1/module_configuration_static/" << scene << "_liquid_sensor.txt";
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
     ifs.close();
-    vector <string> v = explode("\n", configContent);
+    std::vector <std::string> v = explode("\n", configContent);
     for (int i = 0; i < v.size(); i++) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         std::string rsp = v[i];
         transmitQ.push(rsp);
 
     }
-}
+};
 
-void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, size_t bytesTransferred) {
+void readHandler(boost::array<char, SerialPort::k_readBufferSize> buffer, std::size_t bytesTransferred) {
     std::string inboundBuffer;
-    std::copy(buffer.begin(), buffer.begin()+bytesTransferred, std::back_inserter(inboundBuffer));
-    vector<string> v = explode("\n", inboundBuffer);
-    for(int i=0; i<v.size(); i++) {
+    std::copy(buffer.begin(), buffer.begin() + bytesTransferred, std::back_inserter(inboundBuffer));
+    vector <string> v = explode("\n", inboundBuffer);
+    for (int i = 0; i < v.size(); i++) {
         std::string rsp = v[i];
         if (!rsp.compare(0, reportPrefix.size(), reportPrefix)) {
-std::string value = rsp.substr(reportPrefix.size());
-cout << "=== [SERIAL] Making REPORT: " << value << endl;
-} else if (!rsp.compare(0, actionPrefix.size(), actionPrefix)) {
-std::string value = rsp.substr(actionPrefix.size());
-cout << "=== [SERIAL] Sending a command: " << value << endl;
-AMM::PatientAction::BioGears::Command cmdInstance;
-boost::trim_right(value);
-cmdInstance.message(value);
-command_publisher->write(&cmdInstance);
-}  else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
-std::string value = rsp;
+            std::string value = rsp.substr(reportPrefix.size());
+            cout << "=== [SERIAL] Making REPORT: " << value << endl;
+        } else if (!rsp.compare(0, actionPrefix.size(), actionPrefix)) {
+            std::string value = rsp.substr(actionPrefix.size());
+            cout << "=== [SERIAL] Sending a command: " << value << endl;
+            AMM::PatientAction::BioGears::Command cmdInstance;
+            boost::trim_right(value);
+            cmdInstance.message(value);
+            command_publisher->write(&cmdInstance);
+        } else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
+            std::string value = rsp;
+            cout << "=== [SERIAL] Recieved an XML snippet:" << endl;
+            if (first_message) {
+                first_message = false;
+                cout << "\t[CAPABILITY_XML] " << value << endl;
+                XMLDocument doc(false);
+                doc.Parse(value.c_str());
+                tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
+                tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
+                const char *name = module->Attribute("name");
+                std::string nodeName(name);
+                mgr->PublishModuleConfiguration(
+                        mgr->module_id,
+                        nodeName,
+                        "Vcom3D",
+                        nodeName,
+                        "00001",
+                        "0.0.1",
+                        value
+                );
 
-cout << "=== [SERIAL] Recieved an XML snippet:" << endl;
+                tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
+                if (caps) {
+                    for (tinyxml2::XMLNode *node = caps->FirstChildElement(
+                            "capability"); node; node = node->NextSibling()) {
+                        tinyxml2::XMLElement *cap = node->ToElement();
+                        std::string capabilityName = cap->Attribute("name");
 
-if (first_message) {
-cout << "\t[CAPABILITY_XML] " << value << endl;
-first_message = false;
-mgr->PublishModuleConfiguration(
-        mgr
-->module_id,
-"liquid_reservoir",
-"Vcom3D",
-"liquid_reservoir",
-"00001",
-"0.0.1",
-value
-);
-} else {
-cout << "\t[STATUS_XML] " << value << endl;
-std::size_t found = value.find(haltingString);
-if (found!=std::string::npos) {
-mgr->
-SetStatus(mgr
-->module_id, "liquid_reservoir", HALTING_ERROR);
-} else {
-mgr->
-SetStatus(mgr
-->module_id, "liquid_reservoir", OPERATIONAL);
-}
-}
-} else {
-if (!rsp.empty() && rsp != "\r") {
-cout << "=== [SERIAL][DEBUG] " << rsp << endl;
-}
-}
-}
+                        subscribedTopics[capabilityName].clear();
+                        publishedTopics[capabilityName].clear();
+
+                        // Store subscribed topics for this capability
+                        tinyxml2::XMLElement *subs = node->FirstChildElement("subscribed_topics");
+                        for (tinyxml2::XMLNode *sub = subs->FirstChildElement("topic"); sub; sub = sub->NextSibling()) {
+                            tinyxml2::XMLElement *s = sub->ToElement();
+                            std::string subTopicName = s->Attribute("name");
+                            std::string subTopicNodePath = s->Attribute("nodepath");
+                            if (!subTopicNodePath.empty()) {
+                                LOG_TRACE << "Adding " << subTopicNodePath << " to subscribed topics";
+                                subscribedTopics[capabilityName] = subTopicNodePath;
+                            } else {
+                                LOG_TRACE << "Adding " << subTopicName << " to subscribed topics";
+                                subscribedTopics[capabilityName] = subTopicName;
+                            }
+                        }
+
+                        // Store published topics for this capability
+                        tinyxml2::XMLElement *pubs = node->FirstChildElement("published_topics");
+                        for (tinyxml2::XMLNode *pub = pubs->FirstChildElement("topic"); pub; pub = pub->NextSibling()) {
+                            tinyxml2::XMLElement *p = pub->ToElement();
+                            std::string pubTopicName = p->Attribute("name");
+                            std::string pubTopicNodePath = p->Attribute("nodepath");
+                            if (!pubTopicNodePath.empty()) {
+                                LOG_TRACE << "Adding " << pubTopicNodePath << " to published topics";
+                                publishedTopics[capabilityName] = pubTopicNodePath;
+                            } else {
+                                LOG_TRACE << "Adding " << pubTopicName << " to published topics";
+                                publishedTopics[capabilityName] = pubTopicName;
+                            }
+                        }
+                    }
+                }
+            } else {
+                cout << "\t[STATUS_XML] " << value << endl;
+                XMLDocument doc(false);
+                doc.Parse(value.c_str());
+                tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
+                tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
+                const char *name = module->Attribute("name");
+                std::string nodeName(name);
+
+                std::size_t found = value.find(haltingString);
+                if (found != std::string::npos) {
+                    mgr->SetStatus(mgr->module_id, nodeName, HALTING_ERROR);
+                } else {
+                    mgr->SetStatus(mgr->module_id, nodeName, OPERATIONAL);
+                }
+            }
+        } else {
+            if (!rsp.empty() && rsp != "\r") {
+                cout << "=== [SERIAL][DEBUG] " << rsp << endl;
+            }
+        }
+    }
 }
 
 class GenericSerialListener : public ListenerInterface {
