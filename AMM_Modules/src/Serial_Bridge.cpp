@@ -1,11 +1,21 @@
-
+#include "stdafx.h"
 
 #include "AMM/DDS_Manager.h"
 
 #include "AMM/SerialPort.h"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <boost/thread.hpp>
+
+#include <vector>
+#include <queue>
+#include <stack>
+#include <thread>
+#include <fstream>
+#include <string>
+#include <iostream>
 
 using namespace ::boost::asio;
 using namespace std;
@@ -30,7 +40,6 @@ std::string msg3 = "[Config_Data]sound_alarm=false\n";
 std::string msg4 = "[Capability]detect_button_press=true\n";
 std::string msg5 = "[Config_Data]button_message=some_action_name\n";
 std::string haltingString = "HALTING_ERROR";
-
 
 std::vector <std::string> publishNodes = {
         "EXIT",
@@ -102,74 +111,33 @@ void sendConfigInfo(std::string scene) {
         transmitQ.push(rsp);
 
     }
-
 }
 
-void readHandler(boost::array < char, SerialPort::k_readBufferSize >
-const& buffer,
-size_t bytesTransferred
-) {
-std::string inboundBuffer;
-std::copy(buffer
-.
-
-begin(), buffer
-
-.
-
-begin()
-
-+bytesTransferred,
-std::back_inserter(inboundBuffer)
-);
-
-vector <string> v = explode("\n", inboundBuffer);
-for (
-int i = 0;
-i<v.
-
-size();
-
-i++) {
-std::string rsp = v[i];
-if (!rsp.compare(0, reportPrefix.
-
-size(), reportPrefix
-
-)) {
+void readHandler(boost::array<char,SerialPort::k_readBufferSize> const& buffer, size_t bytesTransferred) {
+    std::string inboundBuffer;
+    std::copy(buffer.begin(), buffer.begin()+bytesTransferred, std::back_inserter(inboundBuffer));
+    vector<string> v = explode("\n", inboundBuffer);
+    for(int i=0; i<v.size(); i++) {
+        std::string rsp = v[i];
+        if (!rsp.compare(0, reportPrefix.size(), reportPrefix)) {
 std::string value = rsp.substr(reportPrefix.size());
-cout << "=== [SERIAL] Making REPORT: " << value <<
-endl;
-} else if (!rsp.compare(0, actionPrefix.
-
-size(), actionPrefix
-
-)) {
+cout << "=== [SERIAL] Making REPORT: " << value << endl;
+} else if (!rsp.compare(0, actionPrefix.size(), actionPrefix)) {
 std::string value = rsp.substr(actionPrefix.size());
-cout << "=== [SERIAL] Sending a command: " << value <<
-endl;
+cout << "=== [SERIAL] Sending a command: " << value << endl;
 AMM::PatientAction::BioGears::Command cmdInstance;
 boost::trim_right(value);
-cmdInstance.
-message(value);
-command_publisher->
-write(&cmdInstance);
-}  else if (!rsp.compare(0, xmlPrefix.
-
-size(), xmlPrefix
-
-)) {
+cmdInstance.message(value);
+command_publisher->write(&cmdInstance);
+}  else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
 std::string value = rsp;
 
-cout << "=== [SERIAL] Recieved an XML snippet:" <<
-endl;
+cout << "=== [SERIAL] Recieved an XML snippet:" << endl;
 
 if (first_message) {
-cout << "\t[CAPABILITY_XML] " << value <<
-endl;
+cout << "\t[CAPABILITY_XML] " << value << endl;
 first_message = false;
-mgr->
-PublishModuleConfiguration(
+mgr->PublishModuleConfiguration(
         mgr
 ->module_id,
 "liquid_reservoir",
@@ -180,8 +148,7 @@ PublishModuleConfiguration(
 value
 );
 } else {
-cout << "\t[STATUS_XML] " << value <<
-endl;
+cout << "\t[STATUS_XML] " << value << endl;
 std::size_t found = value.find(haltingString);
 if (found!=std::string::npos) {
 mgr->
@@ -194,13 +161,8 @@ SetStatus(mgr
 }
 }
 } else {
-if (!rsp.
-
-empty() &&
-
-rsp != "\r") {
-cout << "=== [SERIAL][DEBUG] " << rsp <<
-endl;
+if (!rsp.empty() && rsp != "\r") {
+cout << "=== [SERIAL][DEBUG] " << rsp << endl;
 }
 }
 }
@@ -320,7 +282,6 @@ int main(int argc, char *argv[]) {
 
     while (!closed) {
         while (!transmitQ.empty()) {
-            cout << "[SERIAL][SEND_QUEUE] " << transmitQ.front();
             serialPort.Write(transmitQ.front());
             transmitQ.pop();
         }
