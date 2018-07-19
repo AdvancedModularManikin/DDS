@@ -14,7 +14,7 @@ namespace AMM {
     class SerialPort
             : public boost::enable_shared_from_this<SerialPort> {
     public:
-        static uint32_t const k_readBufferSize = 1024;
+        static uint32_t const k_readBufferSize = 8192;
 
         typedef boost::shared_ptr <std::vector<char>> SharedBufferPtr_t;
 
