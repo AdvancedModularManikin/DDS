@@ -43,8 +43,8 @@ std::string xmlPrefix = "<?xml";
 
 std::string haltingString = "HALTING_ERROR";
 
-std::map <std::string, std::string> subscribedTopics;
-std::map <std::string, std::string> publishedTopics;
+std::vector <std::string> subscribedTopics;
+std::vector <std::string> publishedTopics;
 
 std::vector <std::string> publishNodes = {
         "EXIT",
@@ -118,9 +118,10 @@ void sendConfigInfo(std::string scene) {
     }
 };
 
-void readHandler(boost::array<char, SerialPort::k_readBufferSize> buffer, std::size_t bytesTransferred) {
-    std::string inboundBuffer;
-    std::copy(buffer.begin(), buffer.begin() + bytesTransferred, std::back_inserter(inboundBuffer));
+void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer, std::size_t bytesTransferred) {
+  LOG_TRACE << "Read in " << bytesTransferred << "bytes.";
+  std::string inboundBuffer;    
+  std::copy(buffer.begin(), buffer.begin() + bytesTransferred, std::back_inserter(inboundBuffer));
     vector <string> v = explode("\n", inboundBuffer);
     for (int i = 0; i < v.size(); i++) {
         std::string rsp = v[i];
@@ -140,21 +141,27 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> buffer, std::s
             if (first_message) {
                 first_message = false;
                 cout << "\t[CAPABILITY_XML] " << value << endl;
-                XMLDocument doc(false);
-                doc.Parse(value.c_str());
-                LOG_TRACE << "Parsed XML document";
-                tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
-                tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
-                const char *name = module->Attribute("name");
-                LOG_TRACE << "Got name " << name;
-                const char *manufacturer = module->Attribute("manufacturer");
-                LOG_TRACE << "Got manufacturer " << manufacturer;
-                const char *model = module->Attribute("model");
-                LOG_TRACE << "Got model " << model;
+		/**
+		   XMLDocument doc(false);
+		   doc.Parse(value.c_str());
+		   tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
+		   tinyxml2::XMLNode *mod = root->FirstChildElement("module");
+		   tinyxml2::XMLElement *module = mod->ToElement();
+		   LOG_TRACE << "Found module";
+		   const char *name = module->Attribute("name");
+		   LOG_TRACE << "Got name " << name;
+		   const char *manufacturer = module->Attribute("manufacturer");
+		   LOG_TRACE << "Got manufacturer " << manufacturer;
+		   const char *model = module->Attribute("model");
+		   LOG_TRACE << "Got model " << model;
 
-                std::string nodeName(name);
-                std::string nodeManufacturer(manufacturer);
-                std::string nodeModel(model);
+		   std::string nodeName(name);
+		   std::string nodeManufacturer(manufacturer);
+		   std::string nodeModel(model);
+		**/
+		std::string nodeName("liquid_resevoir");
+		std::string nodeManufacturer("Vcom3D");
+		std::string nodeModel("liquid_resevoir");
 
                 mgr->PublishModuleConfiguration(
                         mgr->module_id,
@@ -166,6 +173,12 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> buffer, std::s
                         value
                 );
 
+		
+		std::string HR("Cardiovascular_HeartRate");
+		subscribedTopics.push_back(HR);
+
+		/**
+
                 tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
                 if (caps) {
                     for (tinyxml2::XMLNode *node = caps->FirstChildElement(
@@ -173,8 +186,8 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> buffer, std::s
                         tinyxml2::XMLElement *cap = node->ToElement();
                         std::string capabilityName = cap->Attribute("name");
 
-                        subscribedTopics[capabilityName].clear();
-                        publishedTopics[capabilityName].clear();
+                        subscribedTopics.clear();
+                        publishedTopics.clear();
 
                         // Store subscribed topics for this capability
                         tinyxml2::XMLElement *subs = node->FirstChildElement("subscribed_topics");
@@ -184,10 +197,10 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> buffer, std::s
                             std::string subTopicNodePath = s->Attribute("nodepath");
                             if (!subTopicNodePath.empty()) {
                                 LOG_TRACE << "Adding " << subTopicNodePath << " to subscribed topics";
-                                subscribedTopics[capabilityName] = subTopicNodePath;
+                                subscribedTopics.push_back(subTopicNodePath);
                             } else {
                                 LOG_TRACE << "Adding " << subTopicName << " to subscribed topics";
-                                subscribedTopics[capabilityName] = subTopicName;
+                                subscribedTopics.push_back(subTopicName);
                             }
                         }
 
@@ -199,14 +212,17 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> buffer, std::s
                             std::string pubTopicNodePath = p->Attribute("nodepath");
                             if (!pubTopicNodePath.empty()) {
                                 LOG_TRACE << "Adding " << pubTopicNodePath << " to published topics";
-                                publishedTopics[capabilityName] = pubTopicNodePath;
+                                publishedTopics.push_back(pubTopicNodePath);
                             } else {
                                 LOG_TRACE << "Adding " << pubTopicName << " to published topics";
-                                publishedTopics[capabilityName] = pubTopicName;
+                                publishedTopics.push_back(fg
+pubTopicName);
                             }
                         }
                     }
                 }
+		**/
+		
             } else {
                 cout << "\t[STATUS_XML] " << value << endl;
                 XMLDocument doc(false);
@@ -241,11 +257,11 @@ public:
         }
 
         // Publish values that are supposed to go out on every change
-        if (std::find(publishNodes.begin(), publishNodes.end(), n.nodepath()) != publishNodes.end()) {
-            std::ostringstream messageOut;
-            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl();
-            string stringOut = messageOut.str();
-            transmitQ.push(messageOut.str());
+        if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {
+	  std::ostringstream messageOut;
+	  messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl();
+	  string stringOut = messageOut.str();
+	  transmitQ.push(messageOut.str());
         }
     }
 
