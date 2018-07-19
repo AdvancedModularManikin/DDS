@@ -431,12 +431,18 @@ void *Server::HandleClient(void *args) {
                         tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
                         tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
                         const char *name = module->Attribute("name");
+                        const char *manufacturer = module->Attribute("manufacturer");
+                        const char *model = module->Attribute("model");
+
                         std::string nodeName(name);
+                        std::string nodeManufacturer(manufacturer);
+                        std::string nodeModel(model);
+
                         mgr->PublishModuleConfiguration(
                                 c->uuid,
                                 nodeName,
-                                "Vcom3D",
-                                c->name,
+                                nodeManufacturer,
+                                nodeModel,
                                 "00001",
                                 "0.0.1",
                                 capabilityVal

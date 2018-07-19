@@ -142,15 +142,25 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> buffer, std::s
                 cout << "\t[CAPABILITY_XML] " << value << endl;
                 XMLDocument doc(false);
                 doc.Parse(value.c_str());
+                LOG_TRACE << "Parsed XML document";
                 tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
                 tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
                 const char *name = module->Attribute("name");
+                LOG_TRACE << "Got name " << name;
+                const char *manufacturer = module->Attribute("manufacturer");
+                LOG_TRACE << "Got manufacturer " << manufacturer;
+                const char *model = module->Attribute("model");
+                LOG_TRACE << "Got model " << model;
+
                 std::string nodeName(name);
+                std::string nodeManufacturer(manufacturer);
+                std::string nodeModel(model);
+
                 mgr->PublishModuleConfiguration(
                         mgr->module_id,
                         nodeName,
-                        "Vcom3D",
-                        nodeName,
+                        nodeManufacturer,
+                        nodeModel,
                         "00001",
                         "0.0.1",
                         value
