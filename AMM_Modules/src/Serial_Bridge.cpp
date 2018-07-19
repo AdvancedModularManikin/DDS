@@ -43,8 +43,15 @@ std::string xmlPrefix = "<?xml";
 
 std::string haltingString = "HALTING_ERROR";
 
-std::vector <std::string> subscribedTopics;
-std::vector <std::string> publishedTopics;
+std::vector <std::string> subscribedTopics = {
+        "Cardiovascular_HeartRate",
+        "Cardiovascular_Arterial_Systolic_Pressure",
+        "Cardiovascular_Arterial_Diastolic_Pressure"
+};
+
+std::vector <std::string> publishedTopics = {
+        "Command"
+};
 
 std::vector <std::string> publishNodes = {
         "EXIT",
@@ -172,10 +179,6 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
                         "0.0.1",
                         value
                 );
-
-		
-		std::string HR("Cardiovascular_HeartRate");
-		subscribedTopics.push_back(HR);
 
 		/**
 
