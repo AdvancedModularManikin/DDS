@@ -119,7 +119,7 @@ void sendConfigInfo(std::string scene) {
     std::vector <std::string> v = explode("\n", configContent);
     for (int i = 0; i < v.size(); i++) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        std::string rsp = v[i] + std::endl;
+        std::string rsp = v[i] + "\n";
         transmitQ.push(rsp);
 
     }
@@ -230,16 +230,32 @@ pubTopicName);
                 LOG_TRACE << "\tSTATUS XML: " << value;
                 XMLDocument doc(false);
                 doc.Parse(value.c_str());
-                tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
+                tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleStatus");
                 tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
                 const char *name = module->Attribute("name");
                 std::string nodeName(name);
 
-                std::size_t found = value.find(haltingString);
-                if (found != std::string::npos) {
-                    mgr->SetStatus(mgr->module_id, nodeName, HALTING_ERROR);
-                } else {
-                    mgr->SetStatus(mgr->module_id, nodeName, OPERATIONAL);
+		tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
+		if (caps) {
+		  for (tinyxml2::XMLNode *node = caps->FirstChildElement("capability"); node; node = node->NextSibling()) {
+		    tinyxml2::XMLElement *cap = node->ToElement();
+		    std::string capabilityName = cap->Attribute("name");
+		    std::string statusVal = cap->Attribute("status");
+
+		    if (statusVal == "OPERATIONAL") {
+		      mgr->SetStatus(mgr->module_id, nodeName, capabilityName, OPERATIONAL);
+		    } else if (statusVal == "HALTING_ERROR") {
+		      std::string errorMessage = cap->Attribute("message");
+		      std::vector<std::string> errorMessages = { errorMessage };
+		      mgr->SetStatus(mgr->module_id, nodeName, capabilityName, HALTING_ERROR, errorMessages);
+		    } else if (statusVal == "IMPENDING_ERROR") {
+		      std::string errorMessage = cap->Attribute("message");
+		      std::vector<std::string> errorMessages = { errorMessage };
+		      mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR, errorMessages);
+		    } else {
+		      LOG_ERROR << "Invalid status value " << statusVal << " for capability " << capabilityName;
+		    }
+		  }
                 }
             }
         } else {
