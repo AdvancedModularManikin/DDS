@@ -119,7 +119,7 @@ void sendConfigInfo(std::string scene) {
     std::vector <std::string> v = explode("\n", configContent);
     for (int i = 0; i < v.size(); i++) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        std::string rsp = v[i];
+        std::string rsp = v[i] + std::endl;
         transmitQ.push(rsp);
 
     }
