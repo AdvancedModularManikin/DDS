@@ -134,20 +134,20 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
         std::string rsp = v[i];
         if (!rsp.compare(0, reportPrefix.size(), reportPrefix)) {
             std::string value = rsp.substr(reportPrefix.size());
-            cout << "=== [SERIAL] Making REPORT: " << value << endl;
+            LOG_TRACE << "Received report via serial: " << value;
         } else if (!rsp.compare(0, actionPrefix.size(), actionPrefix)) {
             std::string value = rsp.substr(actionPrefix.size());
-            cout << "=== [SERIAL] Sending a command: " << value << endl;
+            LOG_TRACE << "Received command via serial: " << value;
             AMM::PatientAction::BioGears::Command cmdInstance;
             boost::trim_right(value);
             cmdInstance.message(value);
             command_publisher->write(&cmdInstance);
         } else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
             std::string value = rsp;
-            cout << "=== [SERIAL] Recieved an XML snippet:" << endl;
+            LOG_TRACE << "Received an XML snippet";
             if (first_message) {
                 first_message = false;
-                cout << "\t[CAPABILITY_XML] " << value << endl;
+                LOG_TRACE << "\tCAPABILITY XML:  " << value;
 		/**
 		   XMLDocument doc(false);
 		   doc.Parse(value.c_str());
@@ -227,7 +227,7 @@ pubTopicName);
 		**/
 		
             } else {
-                cout << "\t[STATUS_XML] " << value << endl;
+                LOG_TRACE << "\tSTATUS XML: " << value;
                 XMLDocument doc(false);
                 doc.Parse(value.c_str());
                 tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
@@ -244,7 +244,7 @@ pubTopicName);
             }
         } else {
             if (!rsp.empty() && rsp != "\r") {
-                cout << "=== [SERIAL][DEBUG] " << rsp << endl;
+                LOG_TRACE << "Unknown message: " << rsp;
             }
         }
     }
@@ -254,7 +254,7 @@ class GenericSerialListener : public ListenerInterface {
 public:
     void onNewNodeData(AMM::Physiology::Node n) override {
         if (n.nodepath() == "EXIT") {
-            cout << "Shutting down simulation based on shutdown node-data from physiology engine." << endl;
+            LOG_INFO << "Shutting down simulation based on shutdown node-data from physiology engine.";
             closed = true;
             return;
         }
@@ -269,7 +269,7 @@ public:
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
-        cout << "We got some command data!  " << c.message() << endl;
+        LOG_TRACE << "Command received from AMM: " << c.message();
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
@@ -281,14 +281,13 @@ public:
             } else if (value.compare("RESET_SIM") == 0) {
 
             } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
-
                 std::string scene = value.substr(loadScenarioPrefix.size());
-                cout << "Time to load scene " << scene << endl;
+                LOG_TRACE << "Time to load scene " << scene;
                 sendConfigInfo(scene);
             }
         } else {
             ostringstream cmdMessage;
-            cmdMessage << "[AMM_Command]" << c.message() << endl;
+            cmdMessage << "[AMM_Command]" << c.message();
             transmitQ.push(cmdMessage.str());
         }
     }
@@ -299,7 +298,7 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, char *argv[]) {
-    cout << "=== [AMM - Serial Module Bridge] ===" << endl;
+    LOG_INFO << "AMM - Serial Bridge startup";
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -340,7 +339,7 @@ int main(int argc, char *argv[]) {
                     &io));
 
     if (serialPort.Initialize()) {
-        std::cerr << "Initialization failed!" << std::endl;
+        LOG_ERROR << "Initialization failed!";
         return 1;
     }
 
@@ -360,7 +359,7 @@ int main(int argc, char *argv[]) {
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
-    cout << "=== [Serial_Bridge] Ready ..." << endl;
+    LOG_INFO << "Serial_Bridge ready";
 
     while (!closed) {
         while (!transmitQ.empty()) {
@@ -372,7 +371,7 @@ int main(int argc, char *argv[]) {
         cout.flush();
     }
 
-    cout << "=== [Serial_Bridge] Simulation stopped." << endl;
+    LOG_INFO << "Serial_Bridge simulation stopped.";
 
     return 0;
 

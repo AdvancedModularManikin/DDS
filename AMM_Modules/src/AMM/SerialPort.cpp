@@ -67,7 +67,6 @@ namespace AMM {
             DataRead(m_rdBuf, bytesTransferred);
         }
         BeginRead_();
-
     }
 
     void SerialPort::DoWrite_(SharedBufferPtr_t pBuffer) {

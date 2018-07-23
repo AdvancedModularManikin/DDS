@@ -31,12 +31,7 @@ namespace AMM {
 
         void Write(std::string const &msg);
 
-        boost::signal<
-        void(boost::array<char, k_readBufferSize>
-        const &,
-        size_t bytesTransferred
-        )>
-        DataRead;
+        boost::signal<void(boost::array<char, k_readBufferSize> const &, size_t bytesTransferred)> DataRead;
 
     private:
         void BeginRead_();
