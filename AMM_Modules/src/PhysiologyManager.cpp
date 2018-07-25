@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
 
     if (autostart == 1) {
         cout << " == Auto-starting physiology simulation based on ticks" << endl;
-        pe.StartTickSimulation();
+        // pe.StartTickSimulation();
     }
 
     while (!closed) {
