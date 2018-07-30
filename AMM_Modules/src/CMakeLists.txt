@@ -29,7 +29,7 @@ add_library(amm::logger ALIAS amm_base_logger)
 
 target_link_libraries(
   amm_base_logger 
-  PUBLIC pthread
+  PUBLIC Threads::Threads
   PUBLIC Boost::log
 )
 
@@ -141,7 +141,7 @@ if (BioGears_FOUND)
     target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
             fastrtps fastcdr
             amm::logger
-            ${BioGears_LIBRARIES}
+            Biogears::libbiogears
             Threads::Threads
             ${DATAMODEL}
             )
