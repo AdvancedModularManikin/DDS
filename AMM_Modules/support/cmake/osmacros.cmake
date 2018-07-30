@@ -22,13 +22,20 @@ MACRO (DEFINE_FastRTPS_SOURCES idlfilename)
   SET(outsources ${outsources} ${CMAKE_CURRENT_BINARY_DIR}/gen/${nfile}PubSubTypes.cxx ${CMAKE_CURRENT_BINARY_DIR}/gen/${nfile}PubSubTypes.h)
 ENDMACRO (DEFINE_FastRTPS_SOURCES)
 
+if (NOT FASTRTP_GEN_EXECUTABLE)
+  find_program(FASTRTP_GEN_EXECUTABLE NAME fastrtpsgen
+    DOC "FastRTP TPS code generator"
+    PATH_SUFFIXES bin
+  )
+endif()
+
 MACRO (FastRTPS_IDLGEN idlfilename)
   GET_FILENAME_COMPONENT(it ${idlfilename} ABSOLUTE)
   GET_FILENAME_COMPONENT(idlfilename ${idlfilename} NAME)
   DEFINE_FastRTPS_SOURCES(${ARGV})
   ADD_CUSTOM_COMMAND (
           OUTPUT ${outsources}
-          COMMAND fastrtpsgen
+          COMMAND ${FASTRTP_GEN_EXECUTABLE} 
           ARGS
           #-example x64Linux2.6gcc
           -replace -d gen ${idlfilename}
