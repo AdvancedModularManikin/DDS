@@ -11,17 +11,6 @@ add_custom_target(versionFileTouchForRebuild
         COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/version.cpp")
 
 
-include_directories(
-        ${PROJECT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_BINARY_DIR}/gen
-        ${BioGears_INCLUDE_DIRS}
-        ${fastrtps_INCLUDE_DIR}
-        ${fastcdr_INCLUDE_DIR}
-        ${TINYXML2_INCLUDE_DIR}
-)
-
-link_directories(${Boost_LIBRARY_DIRS})
-
 set(BASE_LOGGER amm_base_logger)
 set(BASE_LOGGER_SOURCES AMM/BaseLogger.cpp)
 add_library(amm_base_logger  SHARED ${BASE_LOGGER_SOURCES})
@@ -32,8 +21,6 @@ target_link_libraries(
   PUBLIC Threads::Threads
   PUBLIC Boost::log
 )
-
-set(DATAMODEL amm_types)
 
 set(idls AMM.idl)
 foreach (idl ${idls})
@@ -49,19 +36,23 @@ endforeach (idl)
 set(DDS_MANAGER dds_manager)
 set(DDS_MANAGER_SOURCES AMM/DDS_Manager.cpp AMM/Listeners/DDS_Listeners.cpp AMM/Listeners/ListenerInterface.h)
 set(DDS_TYPE_SOURCES AMM/DataTypes.cpp AMM/DataTypes.h)
-add_library(${DATAMODEL} SHARED ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
-add_dependencies(${DATAMODEL} versionFileTouchForRebuild amm::logger)
+add_library(amm_types SHARED ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+add_library(amm::datamodel ALIAS amm_types)
+add_dependencies(amm_types  versionFileTouchForRebuild )
 target_link_libraries(
-        ${DATAMODEL}
+        amm_types
         fastrtps fastcdr
         amm::logger
 )
-
+target_include_directories(amm_types PUBLIC 
+  PUBLIC ${PROJECT_SOURCE_DIR}/src
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/gen
+)
 
 set(SIM_MANAGER_SOURCES SimManager.cpp AMM/SimulationManager.cpp)
 set(SIM_MANAGER_EXE amm_sim_manager)
 add_executable(${SIM_MANAGER_EXE} ${SIM_MANAGER_SOURCES})
-add_dependencies(${SIM_MANAGER_EXE} versionFileTouchForRebuild ${DATAMODEL})
+add_dependencies(${SIM_MANAGER_EXE} versionFileTouchForRebuild )
 install(TARGETS ${SIM_MANAGER_EXE}
         BUNDLE DESTINATION "."
         RUNTIME DESTINATION bin)
@@ -112,8 +103,8 @@ add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
         amm::logger
         Threads::Threads
         ${TINYXML2_LIBRARIES}
-        dl sqlite3 pthread
-        ${DATAMODEL}
+        SQLite3::SQLite3
+        amm::datamodel
         )
 
     set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
@@ -128,8 +119,8 @@ add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
             ${TINYXML2_LIBRARIES}
             Boost::system Boost::filesystem Boost::iostreams
             Threads::Threads
-            dl sqlite3 pthread
-            ${DATAMODEL}
+            SQLite3::SQLite3
+            amm::datamodel
             )
 
 
@@ -143,7 +134,7 @@ if (BioGears_FOUND)
             amm::logger
             Biogears::libbiogears
             Threads::Threads
-            ${DATAMODEL}
+            amm::datamodel
             )
 endif ()
 
@@ -152,44 +143,45 @@ target_link_libraries(${LOGGER_EXE}
         PUBLIC amm::logger
         PUBLIC Boost::system
         PUBLIC pthread
-        PUBLIC ${DATAMODEL}
+        PUBLIC amm::datamodel
         )
 
 target_link_libraries(${SIM_MANAGER_EXE}
         fastrtps fastcdr
         amm::logger
         Threads::Threads
-        ${DATAMODEL}
+        amm::datamodel
         )
 
 target_link_libraries(${VIRTUAL_EQUIPMENT_EXE}
         fastrtps fastcdr
-        ${DATAMODEL}
+        amm::datamodel
         )
+
 
 target_link_libraries(${COMMAND_EXECUTOR_EXE}
         fastrtps fastcdr
-        ${DATAMODEL}
+        amm::datamodel
         )
 
 target_link_libraries(${HEART_RATE_LED_EXE}
         fastrtps fastcdr
         amm::logger
-        ${DATAMODEL}
+        amm::datamodel
         )
 
 target_link_libraries(${FLUID_MANAGER_EXE}
         fastrtps fastcdr
         amm::logger
         ${TINYXML2_LIBRARIES}
-        ${DATAMODEL}
+        amm::datamodel
         )
 
 target_link_libraries(${IVC_MODULE_EXE}
         fastrtps fastcdr
         amm::logger
         ${TINYXML2_LIBRARIES}
-        ${DATAMODEL}
+        amm::datamodel
         )
 
 target_link_libraries(${SERIAL_BRIDGE_EXE}
@@ -199,7 +191,7 @@ target_link_libraries(${SERIAL_BRIDGE_EXE}
         Threads::Threads
         pthread
         ${TINYXML2_LIBRARIES}
-        ${DATAMODEL}
+        amm::datamodel
         )
 
 target_link_libraries(${TCP_BRIDGE_EXE}
@@ -208,16 +200,16 @@ target_link_libraries(${TCP_BRIDGE_EXE}
         Boost::system
         Threads::Threads
         ${TINYXML2_LIBRARIES}
-        ${DATAMODEL}
+        amm::datamodel
         )
 
 
-#add_executable(amm_info amm_info.cpp)
+#add_executable(amm_info amm_info.cpp )
 #target_link_libraries(amm_info
 #        fastrtps
 #        fastcdr
-#        ${DATAMODEL}
-#       )
+#        amm::datamodel
+#        )
 
 
 add_subdirectory(unittest)
