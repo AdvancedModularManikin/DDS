@@ -63,7 +63,7 @@ find_package(Boost 1.58 COMPONENTS filesystem iostreams system signals thread lo
 find_package(TinyXML2 REQUIRED)
 find_package(SQLite3 REQUIRED)
 
-find_package(BioGears)
+find_package(Biogears)
 find_package(RapidJSON)
 find_package(Pistache)
 

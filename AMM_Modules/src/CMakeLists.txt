@@ -125,7 +125,7 @@ add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
 
 
 
-if (BioGears_FOUND)
+if (Biogears_FOUND)
     set(PHYSIOLOGY_MANAGER_SOURCES PhysiologyManager.cpp AMM/PhysiologyEngineManager.cpp AMM/PhysiologyThread.cpp)
     set(PHYSIOLOGY_MANAGER_EXE amm_physiology_manager)
     add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES})
