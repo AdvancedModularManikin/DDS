@@ -14,7 +14,6 @@ add_custom_target(versionFileTouchForRebuild
 include_directories(
         ${PROJECT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_BINARY_DIR}/gen
-        ${Boost_INCLUDE_DIR}
         ${BioGears_INCLUDE_DIRS}
         ${fastrtps_INCLUDE_DIR}
         ${fastcdr_INCLUDE_DIR}
@@ -25,11 +24,13 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 set(BASE_LOGGER amm_base_logger)
 set(BASE_LOGGER_SOURCES AMM/BaseLogger.cpp)
-add_library(${BASE_LOGGER} SHARED ${BASE_LOGGER_SOURCES})
+add_library(amm_base_logger  SHARED ${BASE_LOGGER_SOURCES})
+add_library(amm::logger ALIAS amm_base_logger)
+
 target_link_libraries(
-        ${BASE_LOGGER}
-        ${Boost_LIBRARIES}
-        pthread
+  amm_base_logger 
+  PUBLIC pthread
+  PUBLIC Boost::log
 )
 
 set(DATAMODEL amm_types)
@@ -49,11 +50,11 @@ set(DDS_MANAGER dds_manager)
 set(DDS_MANAGER_SOURCES AMM/DDS_Manager.cpp AMM/Listeners/DDS_Listeners.cpp AMM/Listeners/ListenerInterface.h)
 set(DDS_TYPE_SOURCES AMM/DataTypes.cpp AMM/DataTypes.h)
 add_library(${DATAMODEL} SHARED ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
-add_dependencies(${DATAMODEL} versionFileTouchForRebuild ${BASE_LOGGER})
+add_dependencies(${DATAMODEL} versionFileTouchForRebuild amm::logger)
 target_link_libraries(
         ${DATAMODEL}
         fastrtps fastcdr
-        ${BASE_LOGGER}
+        amm::logger
 )
 
 
@@ -107,15 +108,13 @@ add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
     add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
 
     target_link_libraries(${MODULE_MANAGER_EXE}
-            fastrtps fastcdr
-            ${BASE_LOGGER}
-            Threads::Threads
-            ${TINYXML2_LIBRARIES}
-            dl sqlite3 pthread
-            ${DATAMODEL}
-            )
-
-
+        fastrtps fastcdr
+        amm::logger
+        Threads::Threads
+        ${TINYXML2_LIBRARIES}
+        dl sqlite3 pthread
+        ${DATAMODEL}
+        )
 
     set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
     set(REST_ADAPTER_EXE amm_rest_adapter)
@@ -123,7 +122,7 @@ add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
     add_executable(${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES})
     target_link_libraries(${REST_ADAPTER_EXE}
             fastrtps fastcdr
-            ${BASE_LOGGER}
+            amm::logger
             ${RAPIDJSON_LIBRARIES}
             ${Pistache_LIBRARY}
             ${TINYXML2_LIBRARIES}
@@ -141,7 +140,7 @@ if (BioGears_FOUND)
     add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES})
     target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
             fastrtps fastcdr
-            ${BASE_LOGGER}
+            amm::logger
             ${BioGears_LIBRARIES}
             Threads::Threads
             ${DATAMODEL}
@@ -149,17 +148,16 @@ if (BioGears_FOUND)
 endif ()
 
 target_link_libraries(${LOGGER_EXE}
-        fastrtps fastcdr
-        ${BASE_LOGGER}
-        Boost::system
-        pthread
-        ${DATAMODEL}
+        PUBLIC fastrtps fastcdr
+        PUBLIC amm::logger
+        PUBLIC Boost::system
+        PUBLIC pthread
+        PUBLIC ${DATAMODEL}
         )
-
 
 target_link_libraries(${SIM_MANAGER_EXE}
         fastrtps fastcdr
-        ${BASE_LOGGER}
+        amm::logger
         Threads::Threads
         ${DATAMODEL}
         )
@@ -176,27 +174,27 @@ target_link_libraries(${COMMAND_EXECUTOR_EXE}
 
 target_link_libraries(${HEART_RATE_LED_EXE}
         fastrtps fastcdr
-        ${BASE_LOGGER}
+        amm::logger
         ${DATAMODEL}
         )
 
 target_link_libraries(${FLUID_MANAGER_EXE}
         fastrtps fastcdr
-        ${BASE_LOGGER}
+        amm::logger
         ${TINYXML2_LIBRARIES}
         ${DATAMODEL}
         )
 
 target_link_libraries(${IVC_MODULE_EXE}
         fastrtps fastcdr
-        ${BASE_LOGGER}
+        amm::logger
         ${TINYXML2_LIBRARIES}
         ${DATAMODEL}
         )
 
 target_link_libraries(${SERIAL_BRIDGE_EXE}
         fastrtps fastcdr
-        ${BASE_LOGGER}
+        amm::logger
         Boost::system Boost::filesystem Boost::iostreams Boost::signals Boost::thread
         Threads::Threads
         pthread
@@ -206,7 +204,7 @@ target_link_libraries(${SERIAL_BRIDGE_EXE}
 
 target_link_libraries(${TCP_BRIDGE_EXE}
         fastrtps fastcdr
-        ${BASE_LOGGER}
+        amm::logger
         Boost::system
         Threads::Threads
         ${TINYXML2_LIBRARIES}
