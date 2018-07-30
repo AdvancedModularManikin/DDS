@@ -1,4 +1,6 @@
 build/
 build-*/
 
+**.swp
+
 AMM_Modules/support/external/Catch/
