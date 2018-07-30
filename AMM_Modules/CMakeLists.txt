@@ -49,6 +49,12 @@ else()
     add_compile_options(-std=c++14)
 endif()
 
+if(DEFINED ENV{BIOGEARS_HOME})
+  list(APPEND CMAKE_PREFIX_PATH $ENV{BIOGEARS_HOME})
+endif()
+if(DEFINED ENV{FASTRTPS_HOME})
+  list(APPEND CMAKE_PREFIX_PATH  $ENV{FASTRTPS_HOME})
+endif()
 
 find_package(fastrtps REQUIRED)
 find_package(fastcdr REQUIRED)
