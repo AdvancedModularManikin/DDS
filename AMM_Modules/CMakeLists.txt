@@ -9,7 +9,7 @@ IF (WIN32)
     SET(ENV{BIOGEARS_HOME} "c:/tools/physiology/install")
     SET(ENV{FASTRTPS_HOME} "C:/tools/fast-rtps")
 ELSE ()
-    SET(ENV{BIOGEARS_HOME} "/usr/local/physiology")
+    SET(ENV{BIOGEARS_HOME} "/opt/biogears")
     SET(ENV{FASTRTPS_HOME} "/usr/local")
 ENDIF ()
 

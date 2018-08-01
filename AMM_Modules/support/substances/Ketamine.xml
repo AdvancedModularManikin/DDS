@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Substance xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="6.2.0" xsi:schemaLocation="">
+<Substance xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.3.0-beta" xsi:schemaLocation="">
     <Name>Ketamine</Name>
+    <Classification>Anesthetic</Classification>
     <MolarMass value="237.73" unit="g/mol"/>
     <State>Liquid</State>
     <Clearance>
@@ -71,10 +72,10 @@
     </Pharmacokinetics>
     <Pharmacodynamics>
         <Bronchodilation value="1.0"/>
-        <DiastolicPressureModifier value="0.25"/>
+        <DiastolicPressureModifier value="0.075"/>
         <EC50 value="0.4319" unit="ug/mL"/>
         <EMaxShapeParameter value="1.0"/>
-        <HeartRateModifier value="0.2"/>
+        <HeartRateModifier value="0.075"/>
         <NeuromuscularBlock value="0.0"/>
         <PupillaryResponse>
             <ReactivityModifier value="-0.5"/>
@@ -85,5 +86,7 @@
         <SystolicPressureModifier value="0.25"/>
         <TidalVolumeModifier value="0.0"/>
         <TubularPermeabilityModifier value="0.0"/>
+        <CentralNervousModifier value="0.0"/>
+        <EffectSiteRateConstant value="0.0" unit="1/min"/>
     </Pharmacodynamics>
 </Substance>

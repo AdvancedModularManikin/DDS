@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Substance xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="6.2.0" xsi:schemaLocation="">
+<Substance xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.3.0-beta" xsi:schemaLocation="">
     <Name>Calcium</Name>
+    <Classification>Ion</Classification>
     <MolarMass value="40.08" unit="g/mol"/>
     <State>Liquid</State>
+    <MembraneResistance value="248.0" unit="ohm"/>
     <Clearance>
         <Systemic>
             <FractionExcretedInFeces value="0.0"/>
@@ -15,7 +17,7 @@
             <Regulation>
                 <ChargeInBlood>Positive</ChargeInBlood>
                 <FractionUnboundInPlasma value="1.0"/>
-                <ReabsorptionRatio value="0.99"/>
+                <ReabsorptionRatio value="1.8"/>
                 <TransportMaximum value="INF" unit="mg/min"/>
             </Regulation>
         </RenalDynamics>
