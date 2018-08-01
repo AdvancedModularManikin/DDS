@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AMMModuleConfiguration>
+	<!-- Basic definition of manufacturer, name/model, serial numbers, etc -->
+    <module name="liquid_resevoir" manufacturer="Vcom3D" model="liquid_resevoir_mule_1" serial_number="903745" module_version="0.0.1">
+		<!-- Define which AMM versions this module is compatible with. -->
+        <versions>
+            <data name="amm_core_version" minimumVersion="0.0.1" />
+            <data name="amm_specification_version" minimumVersion="0.0.1" />
+		</versions>
+		<!-- Iterable capabilities.  Each module can have multiple capabilities. -->
+        <capabilities>
+			<!-- Each capability has a definition where it includes what AMM topics it will publish, subscribe to and what configuration options are available -->
+            <capability name="monitor_level">
+				<!-- OPTIONAL: Published topics.  This indicates that this capability will publish AMM Command messages but nothing else. -->
+                <published_topics>
+                    <topic name="AMM_Command" />
+				</published_topics>
+				<!-- OPTIONAL: Subscribed topics -->
+                <subscribed_topics>					
+                    <topic name="AMM_Command" />
+					<!-- The AMM_Node_Data topic contains all physiological data.  Subscribing to it will include a lot of data. -->
+					<!-- Restricting this with nodepath= will subscribe to only a specific node path rather than the entire topic. -->
+                    <topic name="AMM_Node_Data" nodepath="Cardiovascular_Pressure_Diastolic" />
+				</subscribed_topics>
+				<!-- OPTIONAL: Configurable data.  This lets the scenario developer know what settings they can change on this module. -->
+				<!-- This is NOT setting configuration data - only informing AMM what items are configurable. -->
+                <configuration_data>
+					<!-- Configurable data can be of type: boolean, float, integer, string, option -->
+					<!-- Float/integer can specify a min= and max= -->
+					<!-- Option requires a list of option values.  See capability detect_button_press below. -->
+                    <data name="sound_alarm" type="boolean" />
+				</configuration_data>
+            </capability>
+            <capability name="detect_button_press">
+                <published_topics>
+                    <topic name="AMM_Command" />
+				</published_topics>
+                <subscribed_topics>
+                    <topic name="AMM_Command" />
+                    <topic name="AMM_Node_Data" nodepath="Cardiovascular_Pressure_Diastolic" />
+				</subscribed_topics>
+                <configuration_data>
+                    <data name="button_message" type="option">
+                        <option value="message 1" />
+                        <option value="message 2" />
+					</data>
+                </configuration_data>
+            </capability>
+        </capabilities>
+    </module>
+</AMMModuleConfiguration>

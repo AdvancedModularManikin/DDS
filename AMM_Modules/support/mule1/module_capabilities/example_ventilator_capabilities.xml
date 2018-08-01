@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-16"?>
+<AMMModuleConfiguration>
+  <module name="ventilator" manufacturer="Vcom3D" model="ventilator" serial_number="0" module_version="0.0.1">
+    <versions>
+      <data name="amm_core_version" minimumVersion="0.0.1" />
+      <data name="amm_specification_version" minimumVersion="0.0.1" />
+    </versions>
+    <capabilities>
+      <capability name="ventilator">
+        <subscribed_topics>
+          <topic name="AMM_Node_Data" nodepath="Cardiovascular_HeartRate" />
+          <topic name="AMM_Node_Data" nodepath="Respiratory_Respiration_Rate" />
+        </subscribed_topics>
+        <published_topics>
+          <topic name="AMM_Instrument_Data" />
+        </published_topics>
+        <configuration_data>
+          <data name="starting_mode" type="option">
+            <option value="pressure" />
+            <option value="volume" />
+          </data>
+        </configuration_data>
+        <starting_settings>
+          <setting name="OxygenFraction" value="0.5" unit="" />
+          <setting name="VentilatorPressure" value="0.1" unit="cmH2O" />
+          <setting name="PositiveEndExpiredPressure" value="0.5" unit="cmH2O" />
+          <setting name="TidalVolume" value="0.5" unit="" />
+          <setting name="RespiratoryRate" value="50" unit="1/min" />
+        </starting_settings>
+      </capability>
+    </capabilities>
+  </module>
+</AMMModuleConfiguration>
