@@ -11,77 +11,43 @@
 #include <boost/assign/list_of.hpp>
 
 // BioGears core
-#include "BioGearsPhysiologyEngine.h"
-#include "engine/PhysiologyEngineTrack.h"
-#include "scenario/requests/SEDataRequest.h"
-#include "properties/SEScalarTime.h"
+#include <biogears/cdm/CommonDataModel.h>
+#include <biogears/engine/BioGearsPhysiologyEngine.h>
 
-// Units of measurement
-#include "patient/SEPatient.h"
-#include "patient/assessments/SEPulmonaryFunctionTest.h"
-#include "compartment/SECompartmentManager.h"
-#include "compartment/fluid/SEGasCompartment.h"
-#include "compartment/fluid/SELiquidCompartment.h"
-#include "compartment/SECompartmentManager.h"
-#include "system/physiology/SEBloodChemistrySystem.h"
-#include "system/physiology/SECardiovascularSystem.h"
-#include "system/physiology/SEEnergySystem.h"
-#include "system/physiology/SERespiratorySystem.h"
-#include "substance/SESubstanceManager.h"
-#include "substance/SESubstance.h"
-#include "engine/PhysiologyEngineTrack.h"
-#include "utils/SEEventHandler.h"
+#include <biogears/cdm/patient/SEPatient.h>
+#include <biogears/cdm/compartment/SECompartmentManager.h>
+#include <biogears/cdm/compartment/fluid/SEGasCompartment.h>
+#include <biogears/cdm/compartment/fluid/SELiquidCompartment.h>
+#include <biogears/cdm/compartment/SECompartmentManager.h>
+#include <biogears/cdm/system/physiology/SEBloodChemistrySystem.h>
+#include <biogears/cdm/system/physiology/SECardiovascularSystem.h>
+#include <biogears/cdm/system/physiology/SEEnergySystem.h>
+#include <biogears/cdm/system/physiology/SERespiratorySystem.h>
+#include <biogears/cdm/substance/SESubstanceManager.h>
+#include <biogears/cdm/substance/SESubstance.h>
+#include <biogears/cdm/engine/PhysiologyEngineTrack.h>
+#include <biogears/cdm/utils/SEEventHandler.h>
 
-#include "properties/SEScalarFraction.h"
-#include "properties/SEScalarFrequency.h"
-#include "properties/SEScalarMassPerVolume.h"
-#include "properties/SEScalarMassPerAmount.h"
-#include "properties/SEScalarPressure.h"
-#include "properties/SEScalarTemperature.h"
-#include "properties/SEScalarTime.h"
-#include "properties/SEScalarVolume.h"
-#include "properties/SEScalarVolumePerTime.h"
-#include "properties/SEFunctionVolumeVsTime.h"
-#include "properties/SEScalarMass.h"
-#include "properties/SEScalarLength.h"
-#include "properties/SEScalarFrequency.h"
-#include "properties/SEScalarTime.h"
-#include "properties/SEScalarVolume.h"
-#include "properties/SEScalarAmountPerVolume.h"
-#include "properties/SEScalarAmountPerMass.h"
+#include <biogears/cdm/properties/SEScalarFraction.h>
+#include <biogears/cdm/properties/SEScalarFrequency.h>
+#include <biogears/cdm/properties/SEScalarMassPerVolume.h>
+#include <biogears/cdm/properties/SEScalarPressure.h>
+#include <biogears/cdm/properties/SEScalarTemperature.h>
+#include <biogears/cdm/properties/SEScalarTime.h>
+#include <biogears/cdm/properties/SEScalarVolume.h>
+#include <biogears/cdm/properties/SEScalarVolumePerTime.h>
+#include <biogears/cdm/properties/SEFunctionVolumeVsTime.h>
+#include <biogears/cdm/properties/SEScalarMass.h>
+#include <biogears/cdm/properties/SEScalarLength.h>
+#include <biogears/cdm/properties/SEScalarAmountPerVolume.h>
 
-#include "system/environment/conditions/SEInitialEnvironment.h"
+#include <biogears/cdm/patient/assessments/SEComprehensiveMetabolicPanel.h>
+#include <biogears/cdm/patient/assessments/SEPulmonaryFunctionTest.h>
+#include <biogears/cdm/patient/assessments/SECompleteBloodCount.h>
 
-#include "scenario/SEScenario.h"
-#include "scenario/SEScenarioInitialParameters.h"
-#include "scenario/SEScenarioExec.h"
+#include <biogears/cdm/system/equipment/ElectroCardioGram/SEElectroCardioGram.h>
 
-#include "scenario/SEAdvanceTime.h"
-
-#include "compartment/SECompartmentManager.h"
-
-#include "cdm/circuit/SECircuitPath.h"
-#include "system/physiology/SEBloodChemistrySystem.h"
-#include "system/physiology/SECardiovascularSystem.h"
-#include "system/physiology/SEEnergySystem.h"
-#include "system/physiology/SERespiratorySystem.h"
-#include "system/equipment/ElectroCardioGram/SEElectroCardioGram.h"
-#include "patient/assessments/SEPulmonaryFunctionTest.h"
-#include "patient/assessments/SECompleteBloodCount.h"
-#include "patient/assessments/SEPatientAssessment.h"
-#include "patient/assessments/SEComprehensiveMetabolicPanel.h"
-#include "substance/SESubstanceManager.h"
-#include "substance/SESubstance.h"
-
-#include "patient/actions/SESubstanceBolus.h"
-#include "system/equipment/Anesthesia/SEAnesthesiaMachine.h"
-#include "system/equipment/Anesthesia/SEAnesthesiaMachineOxygenBottle.h"
-#include "system/equipment/Anesthesia/actions/SEAnesthesiaMachineConfiguration.h"
-#include "system/equipment/Anesthesia/actions/SEMaskLeak.h"
-#include "system/equipment/Anesthesia/actions/SEOxygenWallPortPressureLoss.h"
-#include "system/physiology/SEBloodChemistrySystem.h"
-#include "system/physiology/SECardiovascularSystem.h"
-#include "system/physiology/SERespiratorySystem.h"
+#include <biogears/cdm/scenario/SEScenarioExec.h>
 
 #include "AMMPubSubTypes.h"
 
@@ -102,15 +68,18 @@ class SEAnesthesiaMachineConfiguration;
 
 class SEAnesthesiaMachine;
 
+class SEHemorrhage;
+
+class SESubstanceCompoundInfusion;
+
 class PhysiologyEngine;
 
 namespace AMM {
     class PhysiologyThread {
-
     public:
-        PhysiologyThread(const std::string &logFile);
+        PhysiologyThread();
 
-        virtual ~PhysiologyThread();
+        ~PhysiologyThread();
 
         bool LoadState(const std::string &stateFile, double sec);
 
@@ -266,9 +235,6 @@ namespace AMM {
 
 
     protected:
-        void AdvanceTime();
-
-        std::thread m_thread;
         std::mutex m_mutex;
         bool m_runThread;
         std::unique_ptr<PhysiologyEngine> m_pe;

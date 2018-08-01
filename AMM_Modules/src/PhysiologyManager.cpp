@@ -2,6 +2,8 @@
 
 #include "AMM/PhysiologyEngineManager.h"
 
+#include "AMM/BaseLogger.h"
+
 using namespace AMM;
 using namespace std;
 
@@ -16,7 +18,7 @@ static void show_usage(const std::string &name) {
          endl;
 }
 
-void show_menu(PhysiologyEngineManager *pe) {
+void show_menu(AMM::PhysiologyEngineManager *pe) {
     string action;
 
     cout << endl;
@@ -78,7 +80,6 @@ void show_menu(PhysiologyEngineManager *pe) {
 int main(int argc, char *argv[]) {
     int daemonize = 0;
     int autostart = 0;
-    cout << "=== [AMM - Physiology Manager] ===" << endl;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -96,22 +97,22 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    PhysiologyEngineManager pe;
+    AMM::PhysiologyEngineManager *pe = new AMM::PhysiologyEngineManager();
 
     if (autostart == 1) {
-        cout << " == Auto-starting physiology simulation based on ticks" << endl;
-        // pe.StartTickSimulation();
+        LOG_INFO << "Auto-starting physiology simulation based on ticks";
+        pe->StartTickSimulation();
     }
 
     while (!closed) {
         if (autostart != 1) {
-            show_menu(&pe);
+            show_menu(pe);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
         cout.flush();
     }
 
-    cout << "=== [PhysiologyManager] Exiting." << endl;
+    LOG_INFO << "Exiting.";
 
     return 0;
 }

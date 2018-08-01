@@ -4,15 +4,12 @@ using namespace std;
 using namespace AMM::Physiology;
 
 namespace AMM {
-    std::vector <std::string> PhysiologyThread::highFrequencyNodes;
+    std::vector<std::string> PhysiologyThread::highFrequencyNodes;
     std::map<std::string, double (PhysiologyThread::*)()> PhysiologyThread::nodePathTable;
 
-    PhysiologyThread::PhysiologyThread(const std::string &logFile) :
-            m_pe(CreateBioGearsEngine(logFile)) {
-
+    PhysiologyThread::PhysiologyThread() {
+        m_pe = CreateBioGearsEngine("biogears.log");
         PopulateNodePathTable();
-
-
         m_runThread = false;
     }
 
@@ -131,14 +128,14 @@ namespace AMM {
     void PhysiologyThread::StartSimulation() {
         if (!m_runThread) {
             m_runThread = true;
-            m_thread = std::thread(&PhysiologyThread::AdvanceTime, this);
+            //     m_thread = std::thread(&PhysiologyThread::AdvanceTime, this);
         }
     }
 
     void PhysiologyThread::StopSimulation() {
         if (m_runThread) {
             m_runThread = false;
-            m_thread.join();
+            //   m_thread.join();
         }
     }
 
@@ -152,9 +149,9 @@ namespace AMM {
         SEScalarTime startTime;
         startTime.SetValue(sec, TimeUnit::s);
 
+        LOG_INFO << "Loading state file " << stateFile << " at position " << sec << " seconds";
         if (!m_pe->LoadState(stateFile, &startTime)) {
-            m_pe->GetLogger()->Error("Could not load state, check the error");
-            std::cerr << "[BioGears]: ERROR initializing!" << std::endl;
+            LOG_ERROR << "Error initializing state";
             return false;
         }
 
@@ -162,27 +159,6 @@ namespace AMM {
         PreloadCompartments();
 
         std::string logFilename = getTimestampedFilename("./logs/Output_");
-
-/**
-
-Heart rate (bpm),
-Mean arterial pressure (mmHg),
-Central venous pressure (mmHg),
-Cardiac output (L/min),
-blood volume (L),
-Hemoglobin content (g)
-Respiratory rate (bpm),
-SpO2 - peripheral capillary oxygen saturation (%),
-End tidal CO2 (mmHg)
-Tidal volume (mL)
-Total lung volume (L)
-Intracranial pressure (mmHg)
-pH
-Arterial blood lactate concentration (mEqu/L)
-PaCO2 (mmHg)
-PaO2 (mmHg)
-
- */
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
                                                                                           FrequencyUnit::Per_min);
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
@@ -229,7 +205,7 @@ PaO2 (mmHg)
 // Load a scenario from an XML file, apply conditions and iterate through the actions
 // This bypasses the standard BioGears ExecuteScenario method to avoid resetting the BioGears engine
     bool PhysiologyThread::LoadScenarioFile(const std::string &scenarioFile) {
-        SEScenario sce(m_pe->GetSubstanceManager());
+        /*SEScenario sce(m_pe->GetSubstanceManager());
         sce.LoadFile(scenarioFile);
 
         double dT_s = m_pe->GetTimeStep(TimeUnit::s);
@@ -257,26 +233,16 @@ PaO2 (mmHg)
             } else {
                 m_pe->ProcessAction(*a);
             }
-        }
+        }*/
         return true;
     }
 
-    void PhysiologyThread::AdvanceTime() {
+    void PhysiologyThread::AdvanceTimeTick() {
         while (m_runThread) {
             m_mutex.lock();
-            m_pe->AdvanceModelTime(1, TimeUnit::s);
+            m_pe->AdvanceModelTime();
             m_mutex.unlock();
-            std::this_thread::sleep_for(std::chrono::milliseconds(25)); // let other things happen
         }
-    }
-
-    void PhysiologyThread::AdvanceTimeTick() {
-        m_mutex.lock();
-        m_runThread = true;
-        m_pe->AdvanceModelTime();
-        m_pe->GetEngineTrack()->TrackData(m_pe->GetSimulationTime(TimeUnit::s));
-        m_runThread = false;
-        m_mutex.unlock();
     }
 
     double PhysiologyThread::GetShutdownMessage() {
@@ -294,7 +260,7 @@ PaO2 (mmHg)
             return (this->*(entry->second))();
         }
 
-        m_pe->GetLogger()->Error("Unable to access nodePath: " + nodePath);
+        LOG_ERROR << "Unable to access nodepath " << nodePath;
         return 0;
 
     }
@@ -393,14 +359,14 @@ PaO2 (mmHg)
     }
 
     double PhysiologyThread::GetTotalBilirubin() {
-        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarMassPerVolume bilirubin = metabolicPanel.GetTotalBilirubin();
         return bilirubin.GetValue(MassPerVolumeUnit::mg_Per_dL);
     }
 
     double PhysiologyThread::GetTotalProtein() {
-        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarMassPerVolume protein = metabolicPanel.GetTotalProtein();
         return protein.GetValue(MassPerVolumeUnit::mg_Per_dL);
@@ -457,21 +423,21 @@ PaO2 (mmHg)
     }
 
     double PhysiologyThread::GetCO2() {
-        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarAmountPerVolume CO2 = metabolicPanel.GetCO2();
         return CO2.GetValue(AmountPerVolumeUnit::mmol_Per_L);
     }
 
     double PhysiologyThread::GetPotassium() {
-        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarAmountPerVolume potassium = metabolicPanel.GetPotassium();
         return potassium.GetValue(AmountPerVolumeUnit::ct_Per_uL);
     }
 
     double PhysiologyThread::GetChloride() {
-        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarAmountPerVolume chloride = metabolicPanel.GetChloride();
         return chloride.GetValue(AmountPerVolumeUnit::ct_Per_uL);
@@ -479,7 +445,7 @@ PaO2 (mmHg)
 
 // PLT - Platelet Count - ct/uL
     double PhysiologyThread::GetPlateletCount() {
-        SECompleteBloodCount CBC(m_pe->GetLogger());
+        SECompleteBloodCount CBC(GetLogger());
         m_pe->GetPatientAssessment(CBC);
         SEScalarAmountPerVolume plateletCount = CBC.GetPlateletCount();
         return plateletCount.GetValue(AmountPerVolumeUnit::ct_Per_uL) / 1000;
@@ -555,37 +521,37 @@ PaO2 (mmHg)
     }
 
     void PhysiologyThread::Status() {
-        m_pe->GetLogger()->Info("");
-        m_pe->GetLogger()->Info(
+        GetLogger()->Info("");
+        GetLogger()->Info(
                 std::stringstream() << "Simulation Time : " << m_pe->GetSimulationTime(TimeUnit::s) << "s");
-        m_pe->GetLogger()->Info(
+        GetLogger()->Info(
                 std::stringstream() << "Cardiac Output : "
                                     << m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min)
                                     << VolumePerTimeUnit::mL_Per_min);
-        m_pe->GetLogger()->Info(
+        GetLogger()->Info(
                 std::stringstream() << "Blood Volume : "
                                     << m_pe->GetCardiovascularSystem()->GetBloodVolume(VolumeUnit::mL)
                                     << VolumeUnit::mL);
-        m_pe->GetLogger()->Info(
+        GetLogger()->Info(
                 std::stringstream() << "Mean Arterial Pressure : "
                                     << m_pe->GetCardiovascularSystem()->GetMeanArterialPressure(PressureUnit::mmHg)
                                     << PressureUnit::mmHg);
-        m_pe->GetLogger()->Info(
+        GetLogger()->Info(
                 std::stringstream() << "Systolic Pressure : "
                                     << m_pe->GetCardiovascularSystem()->GetSystolicArterialPressure(PressureUnit::mmHg)
                                     << PressureUnit::mmHg);
-        m_pe->GetLogger()->Info(
+        GetLogger()->Info(
                 std::stringstream() << "Diastolic Pressure : "
                                     << m_pe->GetCardiovascularSystem()->GetDiastolicArterialPressure(PressureUnit::mmHg)
                                     << PressureUnit::mmHg);
-        m_pe->GetLogger()->Info(
+        GetLogger()->Info(
                 std::stringstream() << "Heart Rate : "
                                     << m_pe->GetCardiovascularSystem()->GetHeartRate(FrequencyUnit::Per_min)
                                     << "bpm");
-        m_pe->GetLogger()->Info(
+        GetLogger()->Info(
                 std::stringstream() << "Respiration Rate : "
                                     << m_pe->GetRespiratorySystem()->GetRespirationRate(FrequencyUnit::Per_min)
                                     << "bpm");
-        m_pe->GetLogger()->Info("");
+        GetLogger()->Info("");
     }
 }

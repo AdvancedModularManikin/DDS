@@ -9,6 +9,11 @@ using namespace std::chrono;
 
 namespace AMM {
     PhysiologyEngineManager::PhysiologyEngineManager() {
+        if (bg == nullptr) {
+            LOG_ERROR << "BioGears thread did not load.";
+        }
+
+
         auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
         tick_sub_listener->SetUpstream(this);
 
@@ -87,7 +92,7 @@ namespace AMM {
 
     void PhysiologyEngineManager::TickLoop() {
         while (m_runThread) {
-            // Do this while the tickloop is running...  data process is handled by the listener events now
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
     }
 
@@ -145,20 +150,20 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::StartTickSimulation() {
-        if (!m_runThread) {
-            bg = new PhysiologyThread("./logs/biogears.log");
-            std::size_t pos = stateFile.find("@");
-            std::string state2 = stateFile.substr(pos);
-            std::size_t pos2 = state2.find("s");
-            std::string state3 = state2.substr(1, pos2 - 1);
-            double startPosition = atof(state3.c_str());
-            bg->LoadState(stateFile.c_str(), startPosition);
-            nodePathMap = bg->GetNodePathTable();
-            m_runThread = true;
-            paused = false;
-            m_thread = std::thread(&PhysiologyEngineManager::TickLoop, this);
+        std::string stateFile = "./states/StandardMale@0s.xml";
+        std::size_t pos = stateFile.find("@");
+        std::string state2 = stateFile.substr(pos);
+        std::size_t pos2 = state2.find("s");
+        std::string state3 = state2.substr(1, pos2 - 1);
+        double startPosition = atof(state3.c_str());
 
-        }
+        m_mutex.lock();
+        bg->LoadState(stateFile.c_str(), startPosition);
+        m_mutex.unlock();
+
+        nodePathMap = bg->GetNodePathTable();
+        m_runThread = true;
+        paused = false;
     }
 
     void PhysiologyEngineManager::StopTickSimulation() {
@@ -168,7 +173,7 @@ namespace AMM {
             paused = false;
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
             m_mutex.unlock();
-            m_thread.detach();
+            // m_thread.detach();
         }
     }
 
@@ -236,7 +241,7 @@ namespace AMM {
                 bg->SaveState(ss.str());
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
                 StopTickSimulation();
-                stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
+                // stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
                 StartTickSimulation();
             }
         } else {
