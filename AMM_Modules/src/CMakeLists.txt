@@ -67,7 +67,7 @@ install(TARGETS ${SIM_MANAGER_EXE}
 addRunAndDebugTargets(${SIM_MANAGER_EXE})
 add_custom_target(run DEPENDS ${SIM_MANAGER_EXE}-run)
 
-set(VIRTUAL_EQUIPMENT_SOURCES VirtualEquipment.cpp AMM/Listeners/VirtualEquipmentListener.cpp AMM/Listeners/VirtualEquipmentListener.h)
+set(VIRTUAL_EQUIPMENT_SOURCES VirtualEquipment.cpp AMM/Listeners/VirtualEquipmentListener.cpp)
 set(VIRTUAL_EQUIPMENT_EXE amm_virtual_equipment)
 add_executable(${VIRTUAL_EQUIPMENT_EXE} ${VIRTUAL_EQUIPMENT_SOURCES})
 
@@ -101,11 +101,22 @@ set(LOGGER_SOURCES Logger.cpp)
 set(LOGGER_EXE amm_logger)
 add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
 
-set(MODULE_MANAGER_SOURCES ModuleManager.cpp AMM/ModuleManager.cpp)
-set(MODULE_MANAGER_EXE amm_module_manager)
-add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
+if (TinyXML2_Found AND SQLite3_Found)
+    set(MODULE_MANAGER_SOURCES ModuleManager.cpp AMM/ModuleManager.cpp)
+    set(MODULE_MANAGER_EXE amm_module_manager)
+    add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
 
-if (RAPIDJSON_FOUND AND Pistache_FOUND)
+    target_link_libraries(${MODULE_MANAGER_EXE}
+            fastrtps fastcdr
+            ${BASE_LOGGER}
+            Threads::Threads
+            ${TINYXML2_LIBRARIES}
+            dl sqlite3 pthread
+            ${DATAMODEL}
+            )
+endif ()
+
+if (RAPIDJSON_FOUND AND Pistache_FOUND AND SQLite3_Found)
     set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
     set(REST_ADAPTER_EXE amm_rest_adapter)
 
@@ -145,14 +156,6 @@ target_link_libraries(${LOGGER_EXE}
         ${DATAMODEL}
         )
 
-target_link_libraries(${MODULE_MANAGER_EXE}
-        fastrtps fastcdr
-        ${BASE_LOGGER}
-        Threads::Threads
-        ${TINYXML2_LIBRARIES}
-        dl sqlite3 pthread
-        ${DATAMODEL}
-        )
 
 target_link_libraries(${SIM_MANAGER_EXE}
         fastrtps fastcdr
@@ -211,13 +214,12 @@ target_link_libraries(${TCP_BRIDGE_EXE}
         )
 
 
-
-add_executable(amm_info amm_info.cpp )
-target_link_libraries(amm_info
-        fastrtps
-        fastcdr
-        ${DATAMODEL}
-        )
+#add_executable(amm_info amm_info.cpp)
+#target_link_libraries(amm_info
+#        fastrtps
+#        fastcdr
+#        ${DATAMODEL}
+#       )
 
 
 add_subdirectory(unittest)
