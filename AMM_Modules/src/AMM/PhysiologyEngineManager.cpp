@@ -224,6 +224,7 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm) {
+        LOG_INFO << "We got a command: " << cm.message();
         if (!cm.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = cm.message().substr(sysPrefix.size());
             LOG_TRACE << "[PhysiologyManager] We received a SYSTEM action: " << value;
