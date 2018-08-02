@@ -142,12 +142,11 @@ namespace AMM {
                  bg->highFrequencyNodes.end())
                 || (lastFrame % 10) == 0 || force) {
                 if (it->first != "EXIT") {
-		  try {
-		    WriteNodeData(it->first);
-		  }  catch (exception &e) {
-		    LOG_ERROR << "Unable to write node data  " << it->first << ": " << e.what();
-		    break;
-		  }
+                    try {
+                        WriteNodeData(it->first);
+                    } catch (exception &e) {
+                        LOG_ERROR << "Unable to write node data  " << it->first << ": " << e.what();
+                    }
                 }
             }
             ++it;
@@ -195,9 +194,10 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::SetLogging(bool logging_enabled) {
-        logging_enabled= logging_enabled;
+        logging_enabled = logging_enabled;
         bg->logging_enabled = logging_enabled;
     }
+
     int PhysiologyEngineManager::GetTickCount() {
         return lastFrame;
     }
