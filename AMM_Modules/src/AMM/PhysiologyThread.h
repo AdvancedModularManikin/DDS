@@ -25,8 +25,8 @@
 #include <biogears/cdm/system/physiology/SERespiratorySystem.h>
 #include <biogears/cdm/substance/SESubstanceManager.h>
 #include <biogears/cdm/substance/SESubstance.h>
-#include <biogears/cdm/engine/PhysiologyEngineTrack.h>
 #include <biogears/cdm/utils/SEEventHandler.h>
+#include <biogears/cdm/engine/PhysiologyEngineTrack.h>
 
 #include <biogears/cdm/properties/SEScalarFraction.h>
 #include <biogears/cdm/properties/SEScalarFrequency.h>
@@ -47,7 +47,9 @@
 
 #include <biogears/cdm/system/equipment/ElectroCardioGram/SEElectroCardioGram.h>
 
+#include <biogears/cdm/scenario/SEScenario.h>
 #include <biogears/cdm/scenario/SEScenarioExec.h>
+#include <biogears/cdm/scenario/SEAdvanceTime.h>
 
 #include "AMMPubSubTypes.h"
 
@@ -57,6 +59,10 @@
 class SESubstance;
 
 class SEEnergySystem;
+
+class SEScenario;
+
+class SEAdvanceTime;
 
 class SEComprehensiveMetabolicPanel;
 
@@ -77,7 +83,7 @@ class PhysiologyEngine;
 namespace AMM {
     class PhysiologyThread {
     public:
-        PhysiologyThread();
+        PhysiologyThread(const std::string &stateFile);
 
         ~PhysiologyThread();
 
@@ -109,6 +115,8 @@ namespace AMM {
 
         static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
         static std::vector<std::string> highFrequencyNodes;
+
+        bool logging_enabled = false;
 
         std::string getTimestampedFilename(const std::string &basePathname);
 

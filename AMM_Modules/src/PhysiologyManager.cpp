@@ -13,7 +13,7 @@ static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>" <<
          "\nOptions:\n" <<
          "\t-a\t\tAuto-start based on ticks\n" <<
-         "\t-d\t\tDaemonize\n" <<
+         "\t-l\t\tEnable physiology CSV logging\n" <<
          "\t-h,--help\t\tShow this help message\n" <<
          endl;
 }
@@ -78,8 +78,8 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
 }
 
 int main(int argc, char *argv[]) {
-    int daemonize = 0;
     int autostart = 0;
+    bool logging = false;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -88,8 +88,8 @@ int main(int argc, char *argv[]) {
             return 0;
         }
 
-        if (arg == "-d") {
-            daemonize = 1;
+        if (arg == "-l") {
+            logging = true;
         }
 
         if (arg == "-a") {
@@ -98,6 +98,7 @@ int main(int argc, char *argv[]) {
     }
 
     AMM::PhysiologyEngineManager *pe = new AMM::PhysiologyEngineManager();
+    pe->SetLogging(logging);
 
     if (autostart == 1) {
         LOG_INFO << "Auto-starting physiology simulation based on ticks";

@@ -189,6 +189,10 @@ namespace AMM {
         bg->AdvanceTimeTick();
     }
 
+    void PhysiologyEngineManager::SetLogging(bool logging_enabled) {
+        logging_enabled= logging_enabled;
+        bg->logging_enabled = logging_enabled;
+    }
     int PhysiologyEngineManager::GetTickCount() {
         return lastFrame;
     }
