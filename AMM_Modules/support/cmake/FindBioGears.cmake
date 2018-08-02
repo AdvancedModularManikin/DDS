@@ -22,7 +22,7 @@ FIND_LIBRARY(CDM_LIBRARY
 
 FIND_LIBRARY(LOG4CPP_LIBRARY
         NAMES
-        log4cpp
+        log4cpp Log4cpp
         )
 
 FIND_LIBRARY(XERCES_LIBRARY

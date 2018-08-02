@@ -142,7 +142,12 @@ namespace AMM {
                  bg->highFrequencyNodes.end())
                 || (lastFrame % 10) == 0 || force) {
                 if (it->first != "EXIT") {
-                    WriteNodeData(it->first);
+		  try {
+		    WriteNodeData(it->first);
+		  }  catch (exception &e) {
+		    LOG_ERROR << "Unable to write node data  " << it->first << ": " << e.what();
+		    break;
+		  }
                 }
             }
             ++it;
