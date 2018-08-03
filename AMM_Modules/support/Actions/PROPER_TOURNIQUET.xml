@@ -9,6 +9,6 @@
 	<!-- Proper Tourniquet Placement -->          
 	<Action xsi:type="HemorrhageData" Compartment="RightLeg">
 		<Comment>Intervention: Bleeding stopped (tourniquet applied)</Comment>
-		<Rate value="0" unit="mL/min"/>
+		<InitialRate value="0" unit="mL/min"/>
 	</Action>
 </Scenario>

@@ -9,6 +9,6 @@
 	<!-- Femoral Artery Hemorrhage -->          
 	<Action xsi:type="HemorrhageData" Compartment="RightLeg">
 		<Comment>Femoral Artery Hemorrhage</Comment>
-		<Rate value="500" unit="mL/min"/>
+		<InitialRate value="500" unit="mL/min"/>
 	</Action>	
 </Scenario>

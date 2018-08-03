@@ -9,6 +9,6 @@
 	<!-- Improper Tourniquet Placement -->          
 	<Action xsi:type="HemorrhageData" Compartment="RightLeg">
 		<Comment>Intervention: Bleeding reduced (manual pressure applied)</Comment>
-		<Rate value="50" unit="mL/min"/>
+		<InitialRate value="50" unit="mL/min"/>
 	</Action>	
 </Scenario>
