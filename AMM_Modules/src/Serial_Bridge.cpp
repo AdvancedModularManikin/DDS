@@ -316,34 +316,6 @@ int main(int argc, char *argv[]) {
   mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
   mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
   
-  command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-					       pub_listener);
-  
-  // Set up serial
-  io_service io;
-  SerialPort serialPort(io, 115200, PORT_LINUX);
-  serialPort.DataRead.connect(&readHandler);
-  boost::thread t(boost::bind(&boost::asio::io_service::run, &io));
-  
-  if (serialPort.Initialize()) {
-    LOG_ERROR << "Initialization failed!";
-    return 1;
-  }
-  
-  std::string nodeString(nodeName);
-  mgr = new DDS_Manager(nodeName);
-  
-  auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
-  auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
-  auto *pub_listener = new DDS_Listeners::PubListener();
-  
-  GenericSerialListener al;
-  node_sub_listener->SetUpstream(&al);
-  command_sub_listener->SetUpstream(&al);
-  
-  mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
-  mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-  
   command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
   
   // Set up serial

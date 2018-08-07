@@ -303,3 +303,4 @@ CTestTestfile.cmake
 # Catch and artifacts
 support/external/Catch/src
 support/external/Catch/tmp
+
