@@ -244,15 +244,15 @@ public:
             auto it = clientMap.begin();
             while (it != clientMap.end()) {
                 unsigned long cid = it->first;
-                LOG_INFO << "Checking client id " << cid;
-                auto subV = subscribedTopics[cid];
+		std::vector<std::string> subV = subscribedTopics[cid];
+		
                 if (std::find(subV.begin(), subV.end(), n.nodepath()) != subV.end())
                 {
                     LOG_INFO << " -- Send " << n.nodepath() << " data to client " << it->first;
                     Client * c = Server::GetClientByIndex(it->first);
                     if (c) {
                         LOG_INFO << "Found client " << c->id;
-                        // Server::SendToClient(c, messageOut.str());
+                        Server::SendToClient(c, messageOut.str());
                     }
                 }
                 ++it;
