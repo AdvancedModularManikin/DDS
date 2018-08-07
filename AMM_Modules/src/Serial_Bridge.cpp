@@ -42,23 +42,23 @@ std::string reportPrefix = "[REPORT]";
 std::string actionPrefix = "[AMM_Command]";
 std::string xmlPrefix = "<?xml";
 
-std::vector <std::string> subscribedTopics;
-std::vector <std::string> publishedTopics;
+std::vector<std::string> subscribedTopics;
+std::vector<std::string> publishedTopics;
 
 Publisher *command_publisher;
-std::queue <std::string> transmitQ;
+std::queue<std::string> transmitQ;
 
 // Set up DDS
 const char *nodeName = "AMM_Serial_Bridge";
 DDS_Manager *mgr;
 
-void add_once(std::vector<std::string>& vec, const std::string& element) {
-  std::remove(vec.begin(), vec.end(), element);
-  vec.push_back(element);
+void add_once(std::vector<std::string> &vec, const std::string &element) {
+    std::remove(vec.begin(), vec.end(), element);
+    vec.push_back(element);
 }
 
-std::vector <std::string> explode(const std::string &delimiter, const std::string &str) {
-    std::vector <std::string> arr;
+std::vector<std::string> explode(const std::string &delimiter, const std::string &str) {
+    std::vector<std::string> arr;
 
     int strleng = str.length();
     int delleng = delimiter.length();
@@ -91,7 +91,7 @@ void sendConfigInfo(std::string scene) {
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
     ifs.close();
-    std::vector <std::string> v = explode("\n", configContent);
+    std::vector<std::string> v = explode("\n", configContent);
     for (int i = 0; i < v.size(); i++) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
         std::string rsp = v[i] + "\n";
@@ -101,13 +101,13 @@ void sendConfigInfo(std::string scene) {
 };
 
 void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer, std::size_t bytesTransferred) {
-  std::copy(buffer.begin(), buffer.begin() + bytesTransferred, std::back_inserter(globalInboundBuffer));
-  if (!boost::algorithm::ends_with(globalInboundBuffer, "\n")) {
-    return;
-  }
-  vector <string> v = explode("\n", globalInboundBuffer);
-  globalInboundBuffer.clear();
-  for (int i = 0; i < v.size(); i++) {
+    std::copy(buffer.begin(), buffer.begin() + bytesTransferred, std::back_inserter(globalInboundBuffer));
+    if (!boost::algorithm::ends_with(globalInboundBuffer, "\n")) {
+        return;
+    }
+    vector<string> v = explode("\n", globalInboundBuffer);
+    globalInboundBuffer.clear();
+    for (int i = 0; i < v.size(); i++) {
         std::string rsp = v[i];
         if (!rsp.compare(0, reportPrefix.size(), reportPrefix)) {
             std::string value = rsp.substr(reportPrefix.size());
@@ -121,100 +121,117 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
             command_publisher->write(&cmdInstance);
         } else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
             std::string value = rsp;
-	    LOG_INFO << "Received XML via serial";
+            LOG_INFO << "Received XML via serial";
             if (first_message) {
-	      first_message = false;
-	      LOG_TRACE << "\tCAPABILITY XML:  " << value;
+                first_message = false;
+                LOG_TRACE << "\tCAPABILITY XML:  " << value;
 
-	      XMLDocument doc(false);
-	      doc.Parse(value.c_str());
-	      tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
-	      tinyxml2::XMLNode *mod = root->FirstChildElement("module");
-	      
-	      tinyxml2::XMLElement *module = mod->ToElement();
-	      std::string module_name = module->Attribute("name");
-	      std::string manufacturer = module->Attribute("manufacturer");
-	      std::string model = module->Attribute("model");
-	      std::string serial_number = module->Attribute("serial_number");
-	      std::string module_version = module->Attribute("module_version");
-	      
-	      mgr->PublishModuleConfiguration(
-					      mgr->module_id,
-					      module_name,
-					      manufacturer,
-					      model,
-					      serial_number,
-					      module_version,
-					      value
-					      );
-	      
-	      subscribedTopics.clear();
-	      publishedTopics.clear();
-	      tinyxml2::XMLNode *caps = mod->FirstChildElement("capabilities");
-	      
-	      if (caps) {
-		for (tinyxml2::XMLNode *node = caps->FirstChildElement("capability"); node; node = node->NextSibling()) {
-		  tinyxml2::XMLElement *cap = node->ToElement();
-		  std::string capabilityName = cap->Attribute("name");
-		  
-		  // Store subscribed topics for this capability
-		  tinyxml2::XMLNode *subs = node->FirstChildElement("subscribed_topics");
-		  if (subs) {
-		    for (tinyxml2::XMLNode *sub = subs->FirstChildElement("topic"); sub; sub = sub->NextSibling()) {
-		      tinyxml2::XMLElement *s = sub->ToElement();
-		      std::string subTopicName = s->Attribute("name");
-		      
-		      if (s->Attribute("nodepath")) {
-			subTopicName = s->Attribute("nodepath");
-		      }
-		      add_once(subscribedTopics,subTopicName);
-		      LOG_TRACE << "[" << capabilityName << "] Subscribed to " << subTopicName;
-		    }
-		  }
-		  
-		  // Store published topics for this capability
-		  tinyxml2::XMLNode *pubs = node->FirstChildElement("published_topics");
-		  if (pubs) {
-		    for (tinyxml2::XMLNode *pub = pubs->FirstChildElement("topic"); pub; pub = pub->NextSibling()) {
-		      tinyxml2::XMLElement *p = pub->ToElement();
-		      std::string pubTopicName = p->Attribute("name");
-		      add_once(publishedTopics,pubTopicName);
-		      LOG_TRACE << "[" << capabilityName << "] Publishing to " << pubTopicName;
-		    }
-		  }
-		}
-	      }
+                XMLDocument doc(false);
+                doc.Parse(value.c_str());
+                tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
+                tinyxml2::XMLNode *mod = root->FirstChildElement("module");
+
+                tinyxml2::XMLElement *module = mod->ToElement();
+                std::string module_name = module->Attribute("name");
+                std::string manufacturer = module->Attribute("manufacturer");
+                std::string model = module->Attribute("model");
+                std::string serial_number = module->Attribute("serial_number");
+                std::string module_version = module->Attribute("module_version");
+
+                mgr->PublishModuleConfiguration(
+                        mgr->module_id,
+                        module_name,
+                        manufacturer,
+                        model,
+                        serial_number,
+                        module_version,
+                        value
+                );
+
+                subscribedTopics.clear();
+                publishedTopics.clear();
+                tinyxml2::XMLNode *caps = mod->FirstChildElement("capabilities");
+
+                if (caps) {
+                    for (tinyxml2::XMLNode *node = caps->FirstChildElement(
+                            "capability"); node; node = node->NextSibling()) {
+                        tinyxml2::XMLElement *cap = node->ToElement();
+                        std::string capabilityName = cap->Attribute("name");
+
+                        tinyxml2::XMLElement *starting_settings = cap->FirstChildElement(
+                                "starting_settings");
+                        if (starting_settings) {
+                            LOG_TRACE << "Received starting settings";
+                            for (tinyxml2::XMLNode *settingNode = starting_settings->FirstChildElement(
+                                    "setting"); settingNode; settingNode = settingNode->NextSibling()) {
+                                tinyxml2::XMLElement *setting = settingNode->ToElement();
+                                std::string settingName = setting->Attribute("name");
+                                std::string settingValue = setting->Attribute("value");
+                                LOG_TRACE << "[" << settingName << "] = " << settingValue;
+                            }
+                        }
+
+                        // Store subscribed topics for this capability
+                        tinyxml2::XMLNode *subs = node->FirstChildElement("subscribed_topics");
+                        if (subs) {
+                            for (tinyxml2::XMLNode *sub = subs->FirstChildElement(
+                                    "topic"); sub; sub = sub->NextSibling()) {
+                                tinyxml2::XMLElement *s = sub->ToElement();
+                                std::string subTopicName = s->Attribute("name");
+
+                                if (s->Attribute("nodepath")) {
+                                    subTopicName = s->Attribute("nodepath");
+                                }
+                                add_once(subscribedTopics, subTopicName);
+                                LOG_TRACE << "[" << capabilityName << "] Subscribed to " << subTopicName;
+                            }
+                        }
+
+                        // Store published topics for this capability
+                        tinyxml2::XMLNode *pubs = node->FirstChildElement("published_topics");
+                        if (pubs) {
+                            for (tinyxml2::XMLNode *pub = pubs->FirstChildElement(
+                                    "topic"); pub; pub = pub->NextSibling()) {
+                                tinyxml2::XMLElement *p = pub->ToElement();
+                                std::string pubTopicName = p->Attribute("name");
+                                add_once(publishedTopics, pubTopicName);
+                                LOG_TRACE << "[" << capabilityName << "] Publishing to " << pubTopicName;
+                            }
+                        }
+                    }
+                }
             } else {
-	      LOG_TRACE << "\tSTATUS XML: " << value;
-	      XMLDocument doc(false);
-	      doc.Parse(value.c_str());
-	      tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleStatus");
-	      tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
-	      const char *name = module->Attribute("name");
-	      std::string nodeName(name);
-	      
-	      tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
-	      if (caps) {
-		for (tinyxml2::XMLNode *node = caps->FirstChildElement("capability"); node; node = node->NextSibling()) {
-		  tinyxml2::XMLElement *cap = node->ToElement();
-		  std::string capabilityName = cap->Attribute("name");
-		  std::string statusVal = cap->Attribute("status");
-		  
-		  if (statusVal == "OPERATIONAL") {
-		    mgr->SetStatus(mgr->module_id, nodeName, capabilityName, OPERATIONAL);
-		  } else if (statusVal == "HALTING_ERROR") {
-		    std::string errorMessage = cap->Attribute("message");
-		    std::vector<std::string> errorMessages = { errorMessage };
-		    mgr->SetStatus(mgr->module_id, nodeName, capabilityName, HALTING_ERROR, errorMessages);
-		  } else if (statusVal == "IMPENDING_ERROR") {
-		    std::string errorMessage = cap->Attribute("message");
-		    std::vector<std::string> errorMessages = { errorMessage };
-		    mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR, errorMessages);
-		  } else {
-		    LOG_ERROR << "Invalid status value " << statusVal << " for capability " << capabilityName;
-		  }
-		}
-	      }
+                LOG_TRACE << "\tSTATUS XML: " << value;
+                XMLDocument doc(false);
+                doc.Parse(value.c_str());
+                tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleStatus");
+                tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
+                const char *name = module->Attribute("name");
+                std::string nodeName(name);
+
+                tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
+                if (caps) {
+                    for (tinyxml2::XMLNode *node = caps->FirstChildElement(
+                            "capability"); node; node = node->NextSibling()) {
+                        tinyxml2::XMLElement *cap = node->ToElement();
+                        std::string capabilityName = cap->Attribute("name");
+                        std::string statusVal = cap->Attribute("status");
+
+                        if (statusVal == "OPERATIONAL") {
+                            mgr->SetStatus(mgr->module_id, nodeName, capabilityName, OPERATIONAL);
+                        } else if (statusVal == "HALTING_ERROR") {
+                            std::string errorMessage = cap->Attribute("message");
+                            std::vector<std::string> errorMessages = {errorMessage};
+                            mgr->SetStatus(mgr->module_id, nodeName, capabilityName, HALTING_ERROR, errorMessages);
+                        } else if (statusVal == "IMPENDING_ERROR") {
+                            std::string errorMessage = cap->Attribute("message");
+                            std::vector<std::string> errorMessages = {errorMessage};
+                            mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR, errorMessages);
+                        } else {
+                            LOG_ERROR << "Invalid status value " << statusVal << " for capability " << capabilityName;
+                        }
+                    }
+                }
             }
         } else {
             if (!rsp.empty() && rsp != "\r") {
@@ -226,44 +243,45 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
 
 class GenericSerialListener : public ListenerInterface {
 public:
-  void onNewNodeData(AMM::Physiology::Node n) override {
-    if (n.nodepath() == "EXIT") {
-      LOG_INFO << "Shutting down simulation based on shutdown node-data from physiology engine.";
-      closed = true;
-      return;
+
+    void onNewNodeData(AMM::Physiology::Node n) override {
+        if (n.nodepath() == "EXIT") {
+            LOG_INFO << "Shutting down simulation based on shutdown node-data from physiology engine.";
+            closed = true;
+            return;
+        }
+
+        // Publish values that are supposed to go out on every change
+        if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {
+            std::ostringstream messageOut;
+            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl();
+            transmitQ.push(messageOut.str());
+        }
     }
 
-    if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {      
-      std::ostringstream messageOut;
-      messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl();
-      LOG_INFO << messageOut.str();
-      transmitQ.push(messageOut.str());
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
+        LOG_TRACE << "Command received from AMM: " << c.message();
+        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+            std::string value = c.message().substr(sysPrefix.size());
+            if (value.compare("START_SIM") == 0) {
+
+            } else if (value.compare("STOP_SIM") == 0) {
+
+            } else if (value.compare("PAUSE_SIM") == 0) {
+
+            } else if (value.compare("RESET_SIM") == 0) {
+
+            } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+                std::string scene = value.substr(loadScenarioPrefix.size());
+                LOG_TRACE << "Time to load scene " << scene;
+                sendConfigInfo(scene);
+            }
+        } else {
+            ostringstream cmdMessage;
+            cmdMessage << "[AMM_Command]" << c.message();
+            transmitQ.push(cmdMessage.str());
+        }
     }
-  }
-  
-  void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
-    LOG_TRACE << "Command received from AMM: " << c.message();
-    if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
-      std::string value = c.message().substr(sysPrefix.size());
-      if (value.compare("START_SIM") == 0) {
-	
-      } else if (value.compare("STOP_SIM") == 0) {
-	
-      } else if (value.compare("PAUSE_SIM") == 0) {
-	
-      } else if (value.compare("RESET_SIM") == 0) {
-	
-      } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
-	std::string scene = value.substr(loadScenarioPrefix.size());
-	LOG_TRACE << "Time to load scene " << scene;
-	sendConfigInfo(scene);
-      }
-    } else {
-      ostringstream cmdMessage;
-      cmdMessage << "[AMM_Command]" << c.message();
-      transmitQ.push(cmdMessage.str());
-    }
-  }
 };
 
 static void show_usage(const std::string &name) {
@@ -284,6 +302,34 @@ int main(int argc, char *argv[]) {
       daemonize = 1;
     }
   }
+  std::string nodeString(nodeName);
+  mgr = new DDS_Manager(nodeName);
+  
+  auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
+  auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
+  auto *pub_listener = new DDS_Listeners::PubListener();
+  
+  GenericSerialListener al;
+  node_sub_listener->SetUpstream(&al);
+  command_sub_listener->SetUpstream(&al);
+  
+  mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
+  mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+  
+  command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+					       pub_listener);
+  
+  // Set up serial
+  io_service io;
+  SerialPort serialPort(io, 115200, PORT_LINUX);
+  serialPort.DataRead.connect(&readHandler);
+  boost::thread t(boost::bind(&boost::asio::io_service::run, &io));
+  
+  if (serialPort.Initialize()) {
+    LOG_ERROR << "Initialization failed!";
+    return 1;
+  }
+  
   std::string nodeString(nodeName);
   mgr = new DDS_Manager(nodeName);
   

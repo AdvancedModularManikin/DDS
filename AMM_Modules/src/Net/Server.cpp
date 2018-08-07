@@ -107,3 +107,10 @@ int Server::FindClientIndex(Client *c) {
     cerr << "Client id not found." << endl;
     return -1;
 }
+
+Client * Server::GetClientByIndex(unsigned long id) {
+    for (size_t i = 0; i < clients.size(); i++) {
+        if ((Server::clients[i].id) == id) return &Server::clients[i];
+    }
+    return nullptr;
+}

@@ -66,14 +66,14 @@ namespace AMM {
     }
 
     void SimulationManager::SendCommand(const std::string &command) {
-        cout << endl << "=== [SimManager][CommandExecutor] Sending a command:" << command << endl;
+        LOG_INFO << "Sending a command:" << command;
         AMM::PatientAction::BioGears::Command cmdInstance;
         cmdInstance.message(command);
         command_publisher->write(&cmdInstance);
     }
 
     void SimulationManager::TickLoop() {
-        using frames = duration <int64_t, ratio<1, 50>>;
+        using frames = duration<int64_t, ratio<1, 50>>;
         auto nextFrame = system_clock::now();
         auto lastFrame = nextFrame - frames{1};
 
@@ -117,32 +117,31 @@ namespace AMM {
     void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
-            cout << "[SimManager] We received a SYSTEM action: " << value << endl;
+            LOG_INFO << "We received a SYSTEM action: " << value;
             if (value.compare("START_SIM") == 0) {
-                cout << "=== [SimManager] Started simulation" << endl;
+                LOG_INFO << "Started simulation";
                 StartSimulation();
             } else if (value.compare("STOP_SIM") == 0) {
-                cout << "=== [SimManager] Stopped simulation" << endl;
+                LOG_INFO << "Stopped simulation";
                 StopSimulation();
-                cout << " == Exited after " << GetTickCount() << " ticks." << endl;
-                cout << "=== [SimManager] Shutting down Simulation Manager." << endl;
+                LOG_INFO << "Exited after " << GetTickCount() << " ticks.";
+                LOG_INFO << "Shutting down Simulation Manager.";
                 Shutdown();
                 tickCount = 0;
             } else if (value.compare("PAUSE_SIM") == 0) {
-                cout << "=== [SimManager] Paused simulation (can be restarted)" << endl;
+                LOG_INFO << "Paused simulation (can be restarted)";
                 StopSimulation();
             } else if (value.compare("RESET_SIM") == 0) {
                 StopSimulation();
                 tickCount = 0;
-                cout << "=== [SimManager] Reset simulation (restart will be a new simulation)" << endl;
+                LOG_INFO << "Reset simulation (restart will be a new simulation)";
             } else if (value.compare("LOAD_SCENARIO") == 0) {
                 std::string loadScenario = value.substr(loadScenario.size());
                 mgr->SetScenario(loadScenario);
             }
         } else {
-            cout << "[SimManager] Command received: " << c.message() << endl;
+            LOG_WARNING << "Unknown command received: " << c.message();
         }
 
     }
-
 }

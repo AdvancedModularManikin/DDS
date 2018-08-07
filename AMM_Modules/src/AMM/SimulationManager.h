@@ -6,6 +6,8 @@
 #include <string>
 #include <iostream>
 
+#include "AMM/BaseLogger.h"
+
 #include "AMM/DataTypes.h"
 
 #include "AMM/DDS_Manager.h"
