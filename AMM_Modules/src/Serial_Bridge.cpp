@@ -232,11 +232,11 @@ public:
       closed = true;
       return;
     }
-    
-    // Publish values that are supposed to go out on every change
-    if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {
+
+    if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {      
       std::ostringstream messageOut;
       messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl();
+      LOG_INFO << messageOut.str();
       transmitQ.push(messageOut.str());
     }
   }
@@ -311,7 +311,7 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   
-  // Publish module configuration once we've set all our publishers and listeners
+  // Publish bridge module configuration once we've set all our publishers and listeners
   // This announces that we're available for configuration
   mgr->PublishModuleConfiguration(
 				  mgr->module_id,
@@ -333,7 +333,7 @@ int main(int argc, char *argv[]) {
       transmitQ.pop();
     }
     
-    std::this_thread::sleep_for(std::chrono::milliseconds(250));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     cout.flush();
   }
   
