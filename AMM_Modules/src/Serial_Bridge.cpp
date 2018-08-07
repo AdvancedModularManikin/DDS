@@ -243,6 +243,7 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
 
 class GenericSerialListener : public ListenerInterface {
 public:
+
     void onNewNodeData(AMM::Physiology::Node n) override {
         if (n.nodepath() == "EXIT") {
             LOG_INFO << "Shutting down simulation based on shutdown node-data from physiology engine.";
@@ -288,74 +289,73 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, char *argv[]) {
-    LOG_INFO << "Serial_Bridge starting up";
-
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-        if ((arg == "-h") || (arg == "--help")) {
-            show_usage(argv[0]);
-            return 0;
-        }
-
-        if (arg == "-d") {
-            daemonize = 1;
-        }
+  LOG_INFO << "Serial_Bridge starting up";
+  
+  for (int i = 1; i < argc; ++i) {
+    std::string arg = argv[i];
+    if ((arg == "-h") || (arg == "--help")) {
+      show_usage(argv[0]);
+      return 0;
     }
-    std::string nodeString(nodeName);
-    mgr = new DDS_Manager(nodeName);
-
-    auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
-    auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
-    auto *pub_listener = new DDS_Listeners::PubListener();
-
-    GenericSerialListener al;
-    node_sub_listener->SetUpstream(&al);
-    command_sub_listener->SetUpstream(&al);
-
-    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-
-    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                 pub_listener);
-
-    // Set up serial
-    io_service io;
-    SerialPort serialPort(io, 115200, PORT_LINUX);
-    serialPort.DataRead.connect(&readHandler);
-    boost::thread t(boost::bind(&boost::asio::io_service::run, &io));
-
-    if (serialPort.Initialize()) {
-        LOG_ERROR << "Initialization failed!";
-        return 1;
+    
+    if (arg == "-d") {
+      daemonize = 1;
     }
-
-    // Publish module configuration once we've set all our publishers and listeners
-    // This announces that we're available for configuration
-    mgr->PublishModuleConfiguration(
-            mgr->module_id,
-            nodeString,
-            "Vcom3D",
-            nodeName,
-            "00001",
-            "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/module_capabilities/serial_bridge_capabilities.xml")
-    );
-
-    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
-
-    LOG_INFO << "Serial_Bridge ready";
-
-    while (!closed) {
-        while (!transmitQ.empty()) {
-            serialPort.Write(transmitQ.front());
-            transmitQ.pop();
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
-        cout.flush();
+  }
+  std::string nodeString(nodeName);
+  mgr = new DDS_Manager(nodeName);
+  
+  auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
+  auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
+  auto *pub_listener = new DDS_Listeners::PubListener();
+  
+  GenericSerialListener al;
+  node_sub_listener->SetUpstream(&al);
+  command_sub_listener->SetUpstream(&al);
+  
+  mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
+  mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+  
+  command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
+  
+  // Set up serial
+  io_service io;
+  SerialPort serialPort(io, 115200, PORT_LINUX);
+  serialPort.DataRead.connect(&readHandler);
+  boost::thread t(boost::bind(&boost::asio::io_service::run, &io));
+  
+  if (serialPort.Initialize()) {
+    LOG_ERROR << "Initialization failed!";
+    return 1;
+  }
+  
+  // Publish bridge module configuration once we've set all our publishers and listeners
+  // This announces that we're available for configuration
+  mgr->PublishModuleConfiguration(
+				  mgr->module_id,
+				  nodeString,
+				  "Vcom3D",
+				  nodeName,
+				  "00001",
+				  "0.0.1",
+				  mgr->GetCapabilitiesAsString("mule1/module_capabilities/serial_bridge_capabilities.xml")
+				  );
+  
+  mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
+  
+  LOG_INFO << "Serial_Bridge ready";
+  
+  while (!closed) {
+    while (!transmitQ.empty()) {
+      serialPort.Write(transmitQ.front());
+      transmitQ.pop();
     }
-
-    LOG_INFO << "Serial_Bridge simulation stopped.";
-    return 0;
+    
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    cout.flush();
+  }
+  
+  LOG_INFO << "Serial_Bridge simulation stopped.";
+  return 0;
 }
 
