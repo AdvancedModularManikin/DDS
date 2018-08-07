@@ -11,6 +11,8 @@
 #include "AMM/DDS_Manager.h"
 extern "C" {
 #include "spi_proto/spi_proto.h"
+#include "spi_proto/spi_proto_lib/spi_chunks.h"
+#include "spi_proto/spi_remote.h"
 }
 
 #include <sys/ioctl.h>
@@ -59,6 +61,32 @@ Publisher* node_publisher;
 
 //TODO centralize
 #define TRANSFER_SIZE 36
+#define SPI_PAYLOAD_LEN 32
+/*
+ * the task has two modes: waiting and running.
+ * START moves it to running from whereever.
+ * PAUSE and STOP and WAITING move it to waiting
+ * RESET moves it to waiting and resets the total_counts flow variable.
+ */
+
+/* IVC module has two tasks:
+ * maintain pressure in vein at ~0.1 psi -- careful not to pop it
+ * monitor amount of flow and send it to biogears
+ */
+float bleed_pressure = 0.125;
+float vein_psi;
+volatile int pressurization_quantum = 20; // ms
+
+//TODO old send_ivc_spi put a pressurization into the message but it was never read. Presumably it is supposed to be used? Note that it doesn't need to be sent to the tiny anymore.
+//TODO atomic or lock or something? this is modified from multiple threads
+bool ivc_waiting = 1;
+
+void
+bleed_task(void);
+void
+remote_task(void);
+
+struct host_remote remote;
 
 int spi_transfer(int fd, const unsigned char *tx_buf, unsigned char *rx_buf, __u32 buflen) {
     int ret;
@@ -77,14 +105,30 @@ int spi_transfer(int fd, const unsigned char *tx_buf, unsigned char *rx_buf, __u
 
 struct spi_state spi_state;
 
+//TODO rename
 void send_ivc_spi(unsigned char status)
 {
-  cout << "Sending IVC status " << status << endl;
-  unsigned char spi_send[8];
-  spi_send[0] = 1;
-  spi_send[1] = ivc_status = status;
-  memcpy(spi_send + 4, &operating_pressure, 4);
-  spi_proto_send_msg(&spi_state, spi_send, 8);
+  //TODO use operating_pressure to constrain control loop
+  //memcpy(spi_send + 4, &operating_pressure, 4);
+  
+  //no need to actually send anymore
+  switch (status) {
+  case IVC_STATUS_START:
+    //start task, should resume after a pause
+    ivc_waiting = 0;
+    break;
+  case IVC_STATUS_RESET:
+    //also reset flow
+    //total_pulses = 0; // TODO send message over spi to reset this
+    //TODO add flow sensors as a category
+  case IVC_STATUS_PAUSE:
+  case IVC_STATUS_STOP:
+  case IVC_STATUS_WAITING:
+  default:
+    //stop pressurizing but do not reset flow
+    ivc_waiting = 1;
+    break;
+  }
 }
 
 int frame = 0;
@@ -211,12 +255,8 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  int spi_fd = open(device, O_RDWR);
-  unsigned char recvbuf[TRANSFER_SIZE];
-  unsigned char sendbuf[TRANSFER_SIZE] = {};
-  struct spi_state *s = &spi_state;
-  spi_proto_initialize(s);
-  
+  std::thread remote_thread(remote_task);
+  std::thread bleed_thread(bleed_task);
   
   const char *nodeName = "AMM_IVC";
   std::string nodeString(nodeName);
@@ -252,6 +292,142 @@ int main(int argc, char *argv[]) {
           mgr->GetCapabilitiesAsString("mule1/module_capabilities/ivc_module_capabilities.xml")
           );
   
+  //TODO loop here
+  
+  while (1) {
+    if (send_status) {
+      cout << "[IVC] Setting status to " << current_status << endl;
+      send_status = false;
+      mgr->SetStatus(nodeString, current_status);
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
+  
+  
+  cout << "=== [IVC] Simulation stopped." << endl;
+  
+  return 0;
+  
+}
+
+//functions implemented for port
+void
+vTaskDelay(unsigned int ms)
+{
+  std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+  //TODO rename this function
+}
+
+void
+remote_solenoid_set(unsigned int ix, bool on)
+{
+  //TODO send message
+  //TODO fix up function and variable names here
+  bisem_wait(remote.solenoid[ix].sem);
+}
+
+uint32_t
+remote_read_adc(unsigned int ix)
+{
+  //TODO send message
+  bisem_wait(remote.adc[ix].sem);
+  return remote.adc[ix].last_read;
+}
+
+//TODO this should be extended to all types and it should 
+int gpio_A_7;
+void
+remote_set_gpio(int gpio, int on)
+{
+  //TODO
+}
+
+void
+bleed_task(void)
+{
+  uint8_t vein_sol = 7; //struct solenoid::solenoid &vein_sol = solenoids[7];
+  
+  //enable 24V rail
+  ///*TODO*/GPIO_SetPinsOutput(GPIOA, 1U<<7U);
+  remote_set_gpio(gpio_A_7, 1);
+  
+  
+  //module logic:
+  //wait for start message
+  //begin pressurizing
+  //when pressurized, stop pressurizing and send the "I'm sealed" message to SoM code
+  for (;;) {
+    //TODO for now pretend we have async/await
+    //wait for start message
+    //TODO use semaphore here?
+    while (ivc_waiting)
+      vTaskDelay(100);
+    
+    
+    uint32_t adcRead = remote_read_adc(0); //uint32_t adcRead = carrier_sensors[0].raw_pressure;
+    vein_psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
+    if (vein_psi < bleed_pressure) {
+      remote_solenoid_set(vein_sol, 1);
+      do {
+        //this is to support pausing.
+        if (ivc_waiting) {
+          remote_solenoid_set(vein_sol, 0);
+          //TODO use semaphore here?
+          while (ivc_waiting) vTaskDelay(50); //this is triggered elsewhere and not by weird k66 stuff
+          remote_solenoid_set(vein_sol, 1);
+        }
+        vTaskDelay(pressurization_quantum); //TODO modify to account for comms delay?
+        adcRead = remote_read_adc(0); //adcRead = carrier_sensors[0].raw_pressure;
+        vein_psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
+      } while(vein_psi < bleed_pressure);
+      remote_solenoid_set(vein_sol, 0);
+    }
+    
+    pressurized = 1;
+    ivc_waiting = 1;
+    vTaskDelay(50);
+  }
+}
+
+/*
+TODO flow processing
+{
+  float total_flow_new;
+  memcpy(&total_flow_new, &pack.msg[4], 4);
+  last_flow_change = total_flow_new - total_flow;
+  total_flow = total_flow_new;
+  PublishNodeData("IVC_TOTAL_BLOOD_LOSS", total_flow);
+}
+*/
+
+
+int
+ivc_chunk_handler(uint8_t *b, size_t len)
+{
+  remote_chunk_handler(remote, b, len);
+}
+
+void
+remote_handler(struct host_remote *r, struct spi_packet *p)
+{
+  spi_msg_chunks(p->msg, SPI_PAYLOAD_LEN, ivc_chunk_handler);
+}
+
+void
+ivc_remote(struct spi_packet *p)
+{
+  remote_handler(remote, p);
+}
+
+void
+remote_task(void)
+{
+  int spi_fd = open(device, O_RDWR);
+  unsigned char recvbuf[TRANSFER_SIZE];
+  unsigned char sendbuf[TRANSFER_SIZE] = {};
+  struct spi_state *s = &spi_state;
+  spi_proto_initialize(s);
+  
   int count = 0;
   bool closed = 0;
   while (!closed) {
@@ -263,30 +439,9 @@ int main(int argc, char *argv[]) {
     
     struct spi_packet pack;
     memcpy(&pack, recvbuf, TRANSFER_SIZE);
-    //IVC spi response format:
-    //[VALID|PRESSURIZED|NO|NO| F|LO|A|T|]
-    if (pack.msg[0]) {
-      pressurized = pack.msg[1];
-      float total_flow_new;
-      memcpy(&total_flow_new, &pack.msg[4], 4);
-      last_flow_change = total_flow_new - total_flow;
-      total_flow = total_flow_new;
-      PublishNodeData("IVC_TOTAL_BLOOD_LOSS", total_flow);
-    }
-    
-    if (send_status) {
-      cout << "[IVC] Setting status to " << current_status << endl;
-      send_status = false;
-      mgr->SetStatus(nodeString, current_status);
-    }
+    spi_proto_rcv_msg(s, &pack, ivc_remote);
     
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     ++count;
   }
-  
-  cout << "=== [IVC] Simulation stopped." << endl;
-  
-  return 0;
-  
 }
-
