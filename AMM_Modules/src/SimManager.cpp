@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+#include "AMM/BaseLogger.h"
+
 #include "AMM/SimulationManager.h"
 
 using namespace std;
@@ -88,7 +90,7 @@ int main(int argc, char *argv[]) {
 	int sampleRate = 50;
 	int daemonize = 0;
 	int autostart = 0;
-    cout << "=== [AMM - Simulation Manager] ===" << endl;		
+    LOG_INFO << "Simulation Manager starting";
 	
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -119,18 +121,18 @@ int main(int argc, char *argv[]) {
 	simManager.SetSampleRate(sampleRate);
 
     if (autostart == 1) {
-        cout << " == Auto-starting simulation" << endl;
+        LOG_INFO << "Auto-starting simulation";
         simManager.StartSimulation();
     }
 
     while (!closed) {
-        if (autostart != 1) {
+        if (daemonize != 1 && autostart != 1) {
             show_menu(&simManager);
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
     }
 
-    cout << "=== [SimManager] Exiting." << endl;
+    LOG_INFO << "Exiting.";
 
     return 0;
 }
