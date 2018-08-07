@@ -243,19 +243,20 @@ public:
 
             auto it = clientMap.begin();
             while (it != clientMap.end()) {
-                unsigned long cid = it->first;
-		std::vector<std::string> subV = subscribedTopics[cid];
-		
-                if (std::find(subV.begin(), subV.end(), n.nodepath()) != subV.end())
-                {
-                    LOG_INFO << " -- Send " << n.nodepath() << " data to client " << it->first;
-                    Client * c = Server::GetClientByIndex(it->first);
-                    if (c) {
-                        LOG_INFO << "Found client " << c->id;
-                        Server::SendToClient(c, messageOut.str());
-                    }
-                }
-                ++it;
+	      unsigned long cid = it->first;
+	      std::vector<std::string> subV = subscribedTopics[cid];
+
+	      if (std::find(subV.begin(), subV.end(), n.nodepath()) != subV.end() ||
+		  std::find(subV.begin(), subV.end(), "AMM_Node_Data") != subV.end()
+		  ) {
+		LOG_INFO << " -- Send " << n.nodepath() << " data to client " << it->first;
+		Client * c = Server::GetClientByIndex(it->first);
+		if (c) {
+		  LOG_INFO << "Found client " << c->id;
+		  Server::SendToClient(c, messageOut.str());
+		}
+	      }
+	      ++it;
             }
             /** Find out who subscribed to this and only target that *C **/
             // s->SendToAll(messageOut.str());
