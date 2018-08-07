@@ -64,7 +64,7 @@ Publisher *settings_publisher;
 
 DDS_Manager *mgr;
 
-std::vector <std::string> publishNodes = {
+std::vector<std::string> publishNodes = {
         "EXIT",
         "SIM_TIME",
         "Cardiovascular_HeartRate",
@@ -86,17 +86,16 @@ std::vector <std::string> publishNodes = {
         "Respiratory_RightLung_Volume"
 };
 
-std::map <std::string, std::map<std::string, double>> labNodes;
-std::map <std::string, std::map<std::string, std::string>> equipmentSettings;
-std::map<unsigned long int, std::string> clientMap;
+std::map<unsigned long, std::vector<std::string>> subscribedTopics;
+std::map<unsigned long, std::vector<std::string>> publishedTopics;
 
-bool findStringIC(const std::string &strHaystack, const std::string &strNeedle) {
-    auto it = std::search(
-            strHaystack.begin(), strHaystack.end(),
-            strNeedle.begin(), strNeedle.end(),
-            [](char ch1, char ch2) { return std::toupper(ch1) == std::toupper(ch2); }
-    );
-    return (it != strHaystack.end());
+std::map<std::string, std::map<std::string, double>> labNodes;
+std::map<std::string, std::map<std::string, std::string>> equipmentSettings;
+std::map<unsigned long, std::string> clientMap;
+
+void add_once(std::vector<std::string> &vec, const std::string &element) {
+    std::remove(vec.begin(), vec.end(), element);
+    vec.push_back(element);
 }
 
 std::string decode64(const std::string &val) {
@@ -110,7 +109,7 @@ std::string decode64(const std::string &val) {
 
 std::string encode64(const std::string &val) {
     using namespace boost::archive::iterators;
-    using It = base64_from_binary <transform_width<std::string::const_iterator, 6, 8>>;
+    using It = base64_from_binary<transform_width<std::string::const_iterator, 6, 8>>;
     auto tmp = std::string(It(std::begin(val)), It(std::end(val)));
     return tmp.append((3 - val.size() % 3) % 3, '=');
 }
@@ -241,8 +240,25 @@ public:
             std::ostringstream messageOut;
             messageOut << n.nodepath() << "=" << n.dbl() << "|";
             string stringOut = messageOut.str();
+
+            auto it = clientMap.begin();
+            while (it != clientMap.end()) {
+                unsigned long cid = it->first;
+                LOG_INFO << "Checking client id " << cid;
+                auto subV = subscribedTopics[cid];
+                if (std::find(subV.begin(), subV.end(), n.nodepath()) != subV.end())
+                {
+                    LOG_INFO << " -- Send " << n.nodepath() << " data to client " << it->first;
+                    Client * c = Server::GetClientByIndex(it->first);
+                    if (c) {
+                        LOG_INFO << "Found client " << c->id;
+                        // Server::SendToClient(c, messageOut.str());
+                    }
+                }
+                ++it;
+            }
             /** Find out who subscribed to this and only target that *C **/
-            s->SendToAll(messageOut.str());
+            // s->SendToAll(messageOut.str());
         }
     }
 
@@ -359,7 +375,7 @@ void *Server::HandleClient(void *args) {
         } else if (n < 0) {
             LOG_ERROR << "Error while receiving message from client: " << c->name;
         } else {
-            vector <string> strings;
+            vector<string> strings;
             boost::split(strings, buffer, boost::is_any_of("\n"));
 
             for (auto str : strings) {
@@ -448,6 +464,9 @@ void *Server::HandleClient(void *args) {
                                 capabilityVal
                         );
 
+                        subscribedTopics[c->id].clear();
+                        publishedTopics[c->id].clear();
+
                         tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
                         if (caps) {
                             for (tinyxml2::XMLNode *node = caps->FirstChildElement(
@@ -466,6 +485,33 @@ void *Server::HandleClient(void *args) {
                                     }
                                     PublishSettings(capabilityName);
                                 }
+
+                                tinyxml2::XMLNode *subs = node->FirstChildElement("subscribed_topics");
+                                if (subs) {
+                                    for (tinyxml2::XMLNode *sub = subs->FirstChildElement(
+                                            "topic"); sub; sub = sub->NextSibling()) {
+                                        tinyxml2::XMLElement *s = sub->ToElement();
+                                        std::string subTopicName = s->Attribute("name");
+
+                                        if (s->Attribute("nodepath")) {
+                                            subTopicName = s->Attribute("nodepath");
+                                        }
+                                        add_once(subscribedTopics[c->id], subTopicName);
+                                        LOG_TRACE << "[" << capabilityName << "] Subscribed to " << subTopicName;
+                                    }
+                                }
+
+                                // Store published topics for this capability
+                                tinyxml2::XMLNode *pubs = node->FirstChildElement("published_topics");
+                                if (pubs) {
+                                    for (tinyxml2::XMLNode *pub = pubs->FirstChildElement(
+                                            "topic"); pub; pub = pub->NextSibling()) {
+                                        tinyxml2::XMLElement *p = pub->ToElement();
+                                        std::string pubTopicName = p->Attribute("name");
+                                        add_once(publishedTopics[c->id], pubTopicName);
+                                        LOG_TRACE << "[" << capabilityName << "] Publishing to " << pubTopicName;
+                                    }
+                                }
                             }
                         }
                     } else if (str.substr(0, settingsPrefix.size()) == settingsPrefix) {
@@ -480,7 +526,6 @@ void *Server::HandleClient(void *args) {
                         XMLDocument doc(false);
                         doc.Parse(settingsVal.c_str());
                         tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
-                        /** @TODO: Change this when Logan removes the modules nesting **/
                         tinyxml2::XMLElement *module = root->FirstChildElement("module");
                         tinyxml2::XMLElement *caps = module->FirstChildElement("capabilities");
                         if (caps) {

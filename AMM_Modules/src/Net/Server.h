@@ -29,11 +29,13 @@ class Server {
 
     static void SendToAll(const std::string &message);
     static void SendToClient(Client *c, const std::string &message);
+    static Client * GetClientByIndex(unsigned long id);
 
   private:
     static void ListClients();
     static void SendToAll(char *message);
     static int FindClientIndex(Client *c);
+
 
 protected:
     bool m_runThread;
