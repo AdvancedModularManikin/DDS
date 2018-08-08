@@ -250,11 +250,11 @@ public:
             closed = true;
             return;
         }
-
+	
         // Publish values that are supposed to go out on every change
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {
             std::ostringstream messageOut;
-            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl();
+            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
             transmitQ.push(messageOut.str());
         }
     }
