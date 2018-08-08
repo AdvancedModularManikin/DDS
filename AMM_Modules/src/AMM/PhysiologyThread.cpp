@@ -111,6 +111,8 @@ namespace AMM {
         nodePathTable["BloodChemistry_BloodPH"] = &PhysiologyThread::GetBloodPH;
         nodePathTable["BloodChemistry_Arterial_CarbonDioxide_Pressure"] = &PhysiologyThread::GetArterialCarbonDioxidePressure;
         nodePathTable["BloodChemistry_Arterial_Oxygen_Pressure"] = &PhysiologyThread::GetArterialOxygenPressure;
+        nodePathTable["BloodChemistry_VenousOxygenPressure"] = &PhysiologyThread::GetVenousOxygenPressure;
+        nodePathTable["BloodChemistry_VenousCarbonDioxidePressure"] = &PhysiologyThread::GetVenousCarbonDioxidePressure;
 
         // Substances
         nodePathTable["Substance_Sodium"] = &PhysiologyThread::GetSodium;
@@ -436,6 +438,14 @@ namespace AMM {
 // Pa02 - Arterial Oxygen Pressure - mmHg
     double PhysiologyThread::GetArterialOxygenPressure() {
         return m_pe->GetBloodChemistrySystem()->GetArterialOxygenPressure(PressureUnit::mmHg);
+    }
+
+    double PhysiologyThread::GetVenousOxygenPressure() {
+        return m_pe->GetBloodChemistrySystem()->GetVenousOxygenPressure(PressureUnit::mmHg);
+    }
+
+    double PhysiologyThread::GetVenousCarbonDioxidePressure() {
+        return m_pe->GetBloodChemistrySystem()->GetVenousCarbonDioxidePressure(PressureUnit::mmHg);
     }
 
 // n/a - Bicarbonate Concentration - mg/L

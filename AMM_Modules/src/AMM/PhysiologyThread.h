@@ -188,6 +188,10 @@ namespace AMM {
 
         double GetArterialOxygenPressure();
 
+        double GetVenousOxygenPressure();
+
+        double GetVenousCarbonDioxidePressure();
+
         double GetBicarbonateConcentration();
 
         double GetBicarbonate();

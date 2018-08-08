@@ -66,28 +66,6 @@ Publisher *settings_publisher;
 
 DDS_Manager *mgr;
 
-std::vector<std::string> publishNodes = {
-        "EXIT",
-        "SIM_TIME",
-        "Cardiovascular_HeartRate",
-        "Cardiovascular_Arterial_Systolic_Pressure",
-        "Cardiovascular_Arterial_Diastolic_Pressure",
-        "Cardiovascular_Arterial_Mean_Pressure",
-        "Cardiovascular_CentralVenous_Mean_Pressure",
-        "MetabolicPanel_CarbonDioxide",
-        "BloodChemistry_Oxygen_Saturation",
-        "Respiratory_Respiration_Rate",
-        "Energy_Core_Temperature",
-        "Cardiovascular_Arterial_Pressure",
-        "Respiratory_CarbonDioxide_Exhaled",
-        "ECG",
-        "Respiratory_Tidal_Volume",
-        "Respiratory_LeftPleuralCavity_Volume",
-        "Respiratory_LeftLung_Volume",
-        "Respiratory_RightPleuralCavity_Volume",
-        "Respiratory_RightLung_Volume"
-};
-
 std::map<unsigned long, std::vector<std::string>> subscribedTopics;
 std::map<unsigned long, std::vector<std::string>> publishedTopics;
 
@@ -186,6 +164,8 @@ void InitializeLabNodes() {
     labNodes["VBG"]["MetabolicPanel_CarbonDioxide"] = 0.0f;
     labNodes["VBG"]["Substance_Bicarbonate"] = 0.0f;
     labNodes["VBG"]["Substance_BaseExcess"] = 0.0f;
+    labNodes["VBG"]["BloodChemistry_VenousCarbonDioxidePressure"] = 0.0f;
+    labNodes["VBG"]["BloodChemistry_VenousOxygenPressure"] = 0.0f;
 
     labNodes["BMP"]["Substance_Sodium"] = 0.0f;
     labNodes["BMP"]["MetabolicPanel_Potassium"] = 0.0f;
