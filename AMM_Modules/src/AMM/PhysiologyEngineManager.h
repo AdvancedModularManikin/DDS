@@ -70,6 +70,8 @@ namespace AMM {
 
         std::string get_random_string(size_t length);
 
+        void TestVentilator(const std::string &ventilatorSettings);
+
         void onNewNodeData(AMM::Physiology::Node n) override;
 
         void onNewTickData(AMM::Simulation::Tick ti) override;

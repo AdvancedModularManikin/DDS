@@ -21,54 +21,58 @@ static void show_usage(const std::string &name) {
 void show_menu(AMM::PhysiologyEngineManager *pe) {
     string action;
 
-    cout << endl;
-    cout << " [1]Status" << endl;
-    cout << " [2]Advance Time Tick" << endl;
-    cout << " [3]Start\t\t\tRun physiology engine with simulation-manager ticks" << endl;
-    cout << " [4]Stop\t\t\tStop running based on simulation-manager ticks" << endl;
-    cout << " [5]Publish data\t\tPublish all data, right now (running or not)" << endl;
-    cout << " [6]Quit" << endl;
-    cout << " >> ";
+    std::cout << std::endl;
+    std::cout << " [1]Status" << std::endl;
+    std::cout << " [2]Advance Time Tick" << std::endl;
+    std::cout << " [3]Start\t\t\tRun physiology engine with simulation-manager ticks" << std::endl;
+    std::cout << " [4]Stop\t\t\tStop running based on simulation-manager ticks" << std::endl;
+    std::cout << " [5]Publish data\t\tPublish all data, right now (running or not)" << std::endl;
+    std::cout << " [6]Test ventilator" << std::endl;
+    std::cout << " [7]Quit" << std::endl;
+    std::cout << " >> ";
     getline(cin, action);
     transform(action.begin(), action.end(), action.begin(), ::toupper);
 
     if (action == "1") {
         pe->Status();
         if (pe->isRunning()) {
-            cout << " == Running!  At tick count: ";
+            std::cout << " == Running!  At tick count: ";
         } else {
-            cout << " == Not currently running, paused at tick count: ";
+            std::cout << " == Not currently running, paused at tick count: ";
         }
-        cout << pe->GetTickCount() << endl;
+        std::cout << pe->GetTickCount() << std::endl;
     } else if (action == "2") {
-        cout << " == Advancing time one tick" << endl;
+        std::cout << " == Advancing time one tick" << std::endl;
         pe->AdvanceTimeTick();
     } else if (action == "3") {
         if (!pe->isRunning()) {
-            cout << " == Starting simulation based on ticks..." << endl;
+            std::cout << " == Starting simulation based on ticks..." << std::endl;
             pe->StartTickSimulation();
         } else {
-            cout << " == Already running" << endl;
+            std::cout << " == Already running" << std::endl;
         }
     } else if (action == "4") {
         if (pe->isRunning()) {
-            cout << " == Stopping simulation based on ticks..." << endl;
+            std::cout << " == Stopping simulation based on ticks..." << std::endl;
             pe->StopTickSimulation();
         } else {
-            cout << " == Not running" << endl;
+            std::cout << " == Not running" << std::endl;
         }
     } else if (action == "5") {
-        cout << " == Publishing all data" << endl;
+        std::cout << " == Publishing all data" << std::endl;
         pe->PublishData(true);
-        cout << " == Done publishing " << pe->GetNodePathCount() << " items." << endl;
+        std::cout << " == Done publishing " << pe->GetNodePathCount() << " items." << std::endl;
     } else if (action == "6") {
+        std::cout << "Testing ventilator settings";
+        std::string payload = "OxygenFraction=0.5\nPositiveEndExpiredPressure=0.5\nRespiratoryRate=50\nTidalVolume=0.5\nVentilatorPressure=0.1";
+        pe->TestVentilator(payload);
+    } else if (action == "7") {
         if (!pe->isRunning()) {
-            cout << " == Simulation not running, but shutting down anyway" << endl;
+            std::cout << " == Simulation not running, but shutting down anyway" << std::endl;
         }
         pe->StopSimulation();
         pe->Shutdown();
         closed = true;
-
     } else if (action == "LIST") {
         pe->PrintAvailableNodePaths();
     } else if (action == "PRINT") {

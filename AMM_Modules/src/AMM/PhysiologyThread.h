@@ -9,6 +9,7 @@
 // Boost dependencies
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
+#include <boost/algorithm/string.hpp>
 
 // BioGears core
 #include <biogears/cdm/CommonDataModel.h>
@@ -23,8 +24,10 @@
 #include <biogears/cdm/system/physiology/SECardiovascularSystem.h>
 #include <biogears/cdm/system/physiology/SEEnergySystem.h>
 #include <biogears/cdm/system/physiology/SERespiratorySystem.h>
+
 #include <biogears/cdm/substance/SESubstanceManager.h>
 #include <biogears/cdm/substance/SESubstance.h>
+
 #include <biogears/cdm/utils/SEEventHandler.h>
 #include <biogears/cdm/engine/PhysiologyEngineTrack.h>
 
@@ -46,6 +49,12 @@
 #include <biogears/cdm/patient/assessments/SECompleteBloodCount.h>
 
 #include <biogears/cdm/system/equipment/ElectroCardioGram/SEElectroCardioGram.h>
+
+#include <biogears/cdm/system/equipment/Anesthesia/SEAnesthesiaMachine.h>
+#include <biogears/cdm/system/equipment/Anesthesia/SEAnesthesiaMachineOxygenBottle.h>
+#include <biogears/cdm/system/equipment/Anesthesia/actions/SEAnesthesiaMachineConfiguration.h>
+#include <biogears/cdm/system/equipment/Anesthesia/actions/SEMaskLeak.h>
+#include <biogears/cdm/system/equipment/Anesthesia/actions/SEOxygenWallPortPressureLoss.h>
 
 #include <biogears/cdm/scenario/SEScenario.h>
 #include <biogears/cdm/scenario/SEScenarioExec.h>

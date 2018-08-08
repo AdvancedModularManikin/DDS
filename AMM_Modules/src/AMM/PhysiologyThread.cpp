@@ -3,6 +3,33 @@
 using namespace std;
 using namespace AMM::Physiology;
 
+std::vector<std::string> explode(const std::string &delimiter, const std::string &str) {
+    std::vector<std::string> arr;
+
+    int strleng = str.length();
+    int delleng = delimiter.length();
+    if (delleng == 0)
+        return arr;//no change
+
+    int i = 0;
+    int k = 0;
+    while (i < strleng) {
+        int j = 0;
+        while (i + j < strleng && j < delleng && str[i + j] == delimiter[j])
+            j++;
+        if (j == delleng)//found delimiter
+        {
+            arr.push_back(str.substr(k, i - k));
+            i += delleng;
+            k = i;
+        } else {
+            i++;
+        }
+    }
+    arr.push_back(str.substr(k, i - k));
+    return arr;
+};
+
 namespace AMM {
     std::vector<std::string> PhysiologyThread::highFrequencyNodes;
     std::map<std::string, double (PhysiologyThread::*)()> PhysiologyThread::nodePathTable;
@@ -505,23 +532,45 @@ namespace AMM {
     }
 
     void PhysiologyThread::SetVentilator(const std::string &ventilatorSettings) {
-        LOG_TRACE << "Ventilator initialized with settings: " << ventilatorSettings;
-        /*SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
-        SEAnesthesiaMachine& config = AMConfig.GetConfiguration();
+        vector<string> strings = explode("\n", ventilatorSettings);
+
+        SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
+        SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
+
         config.SetConnection(CDM::enumAnesthesiaMachineConnection::Mask);
-        config.GetInletFlow().SetValue(2.0, VolumePerTimeUnit::L_Per_min);
-        config.GetInspiratoryExpiratoryRatio().SetValue(.5);
-        config.GetOxygenFraction().SetValue(.5);
         config.SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
-        config.GetPositiveEndExpiredPressure().SetValue(0.0, PressureUnit::cmH2O);
-        config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Nitrogen);
-        config.GetReliefValvePressure().SetValue(20.0, PressureUnit::cmH2O);
-        config.GetRespiratoryRate().SetValue(12, FrequencyUnit::Per_min);
-        config.GetVentilatorPressure().SetValue(0.0, PressureUnit::cmH2O);
-        config.GetOxygenBottleOne().GetVolume().SetValue(660.0, VolumeUnit::L);
-        config.GetOxygenBottleTwo().GetVolume().SetValue(660.0, VolumeUnit::L);
-        // Process the action to propagate state into the engine
-        m_pe->ProcessAction(AMConfig);*/
+        /**
+           config.GetInletFlow().SetValue(2.0, VolumePerTimeUnit::L_Per_min);
+           config.GetInspiratoryExpiratoryRatio().SetValue(.5);
+           config.SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
+           config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Nitrogen);
+           config.GetReliefValvePressure().SetValue(20.0, PressureUnit::cmH2O);
+           config.GetVentilatorPressure().SetValue(0.0, PressureUnit::cmH2O);
+           config.GetOxygenBottleOne().GetVolume().SetValue(660.0, VolumeUnit::L);
+           config.GetOxygenBottleTwo().GetVolume().SetValue(660.0, VolumeUnit::L);
+           */
+
+
+        for (auto str : strings) {
+            vector<string> strs;
+            boost::split(strs, str, boost::is_any_of("="));
+            std::string kvp_k = strs[0];
+            double kvp_v = std::stod(strs[1]);
+            if (kvp_k == "OxygenFraction") {
+                config.GetOxygenFraction().SetValue(kvp_v);
+            } else if (kvp_k == "PositiveEndExpiredPressure") {
+                config.GetPositiveEndExpiredPressure().SetValue(kvp_v, PressureUnit::cmH2O);
+            } else if (kvp_k == "RespiratoryRate") {
+                config.GetRespiratoryRate().SetValue(kvp_v, FrequencyUnit::Per_min);
+            } else if (kvp_k == "TidalVolume") {
+
+            } else if (kvp_k == "VentilatorPressure") {
+                config.GetVentilatorPressure().SetValue(kvp_v, PressureUnit::cmH2O);
+            } else {
+                LOG_INFO << "Unknown ventilator setting: " << kvp_k << " = " << kvp_v;
+            }
+        }
+        m_pe->ProcessAction(AMConfig);
     }
 
     void PhysiologyThread::Status() {

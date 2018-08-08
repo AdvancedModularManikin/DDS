@@ -133,6 +133,8 @@ namespace AMM {
         node_publisher->write(&dataInstance);
     }
 
+
+
     void PhysiologyEngineManager::PublishData(bool force = false) {
         auto it = nodePathMap->begin();
         while (it != nodePathMap->end()) {
@@ -287,6 +289,10 @@ namespace AMM {
                 cout.flush();
             }
         }
+    }
+
+    void PhysiologyEngineManager::TestVentilator(const std::string &ventilatorSettings) {
+        bg->SetVentilator(ventilatorSettings);
     }
 
     void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i) {
