@@ -42,6 +42,8 @@ int bridgePort = 9015;
 int daemonize = 1;
 int discovery = 1;
 
+std::map<unsigned long, std::string> globalInboundBuffer;
+
 const string capabilityPrefix = "CAPABILITY=";
 const string settingsPrefix = "SETTINGS=";
 const string statusPrefix = "STATUS=";
@@ -92,6 +94,33 @@ std::map<unsigned long, std::vector<std::string>> publishedTopics;
 std::map<std::string, std::map<std::string, double>> labNodes;
 std::map<std::string, std::map<std::string, std::string>> equipmentSettings;
 std::map<unsigned long, std::string> clientMap;
+
+std::vector<std::string> explode(const std::string &delimiter, const std::string &str) {
+  std::vector<std::string> arr;
+
+  int strleng = str.length();
+  int delleng = delimiter.length();
+  if (delleng == 0)
+    return arr;//no change
+
+  int i = 0;
+  int k = 0;
+  while (i < strleng) {
+    int j = 0;
+    while (i + j < strleng && j < delleng && str[i + j] == delimiter[j])
+      j++;
+    if (j == delleng)//found delimiter
+      {
+	arr.push_back(str.substr(k, i - k));
+	i += delleng;
+	k = i;
+      } else {
+      i++;
+    }
+  }
+  arr.push_back(str.substr(k, i - k));
+  return arr;
+};
 
 void add_once(std::vector<std::string> &vec, const std::string &element) {
     std::remove(vec.begin(), vec.end(), element);
@@ -236,30 +265,27 @@ public:
         }
 
         // Publish values that are supposed to go out on every change
-        if (std::find(publishNodes.begin(), publishNodes.end(), n.nodepath()) != publishNodes.end()) {
-            std::ostringstream messageOut;
-            messageOut << n.nodepath() << "=" << n.dbl() << "|";
-            string stringOut = messageOut.str();
-
-            auto it = clientMap.begin();
-            while (it != clientMap.end()) {
-	      unsigned long cid = it->first;
-	      std::vector<std::string> subV = subscribedTopics[cid];
-
-	      if (std::find(subV.begin(), subV.end(), n.nodepath()) != subV.end() ||
-		  std::find(subV.begin(), subV.end(), "AMM_Node_Data") != subV.end()
-		  ) {
-		LOG_INFO << " -- Send " << n.nodepath() << " data to client " << it->first;
-		Client * c = Server::GetClientByIndex(it->first);
-		if (c) {
-		  LOG_INFO << "Found client " << c->id;
-		  Server::SendToClient(c, messageOut.str());
-		}
-	      }
-	      ++it;
-            }
-            /** Find out who subscribed to this and only target that *C **/
-            // s->SendToAll(messageOut.str());
+	std::ostringstream messageOut;
+	messageOut << n.nodepath() << "=" << n.dbl() << "|";
+	string stringOut = messageOut.str();
+	
+	auto it = clientMap.begin();
+	while (it != clientMap.end()) {
+	  unsigned long cid = it->first;
+	  std::vector<std::string> subV = subscribedTopics[cid];
+	  
+	  if (std::find(subV.begin(), subV.end(), n.nodepath()) != subV.end() ||
+	      std::find(subV.begin(), subV.end(), "AMM_Node_Data") != subV.end()
+	      ) {
+	    Client * c = Server::GetClientByIndex(cid);
+	    if (c) {
+	      Server::SendToClient(c, messageOut.str());
+	    }
+	  }
+	  ++it;
+	  
+	  /** Find out who subscribed to this and only target that *C **/
+	  // s->SendToAll(messageOut.str());
         }
     }
 
@@ -376,10 +402,15 @@ void *Server::HandleClient(void *args) {
         } else if (n < 0) {
             LOG_ERROR << "Error while receiving message from client: " << c->name;
         } else {
-            vector<string> strings;
-            boost::split(strings, buffer, boost::is_any_of("\n"));
-
-            for (auto str : strings) {
+	  std::string tempBuffer(buffer);
+	  globalInboundBuffer[c->id] += tempBuffer;
+	  if (!boost::algorithm::ends_with(globalInboundBuffer[c->id], "\n")) {
+	    continue;
+	  }
+	  vector<string> strings = explode("\n", globalInboundBuffer[c->id]);
+	  globalInboundBuffer[c->id].clear();
+	  	  
+	  for (auto str : strings) {
                 boost::trim_right(str);
                 if (!str.empty()) {
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
