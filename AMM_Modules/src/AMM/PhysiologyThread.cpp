@@ -126,7 +126,7 @@ namespace AMM {
         nodePathTable["Substance_Calcium_Concentration"] = &PhysiologyThread::GetCalciumConcentration;
         nodePathTable["Substance_Albumin_Concentration"] = &PhysiologyThread::GetAlbuminConcentration;
 
-        // nodePathTable["MetabolicPanel_Bilirubin"] = &PhysiologyThread::GetTotalBilirubin;
+        nodePathTable["MetabolicPanel_Bilirubin"] = &PhysiologyThread::GetTotalBilirubin;
         nodePathTable["MetabolicPanel_Protein"] = &PhysiologyThread::GetTotalProtein;
         nodePathTable["MetabolicPanel_CarbonDioxide"] = &PhysiologyThread::GetCO2;
         nodePathTable["MetabolicPanel_Potassium"] = &PhysiologyThread::GetPotassium;
@@ -392,10 +392,7 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetTotalBilirubin() {
-        SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
-        m_pe->GetPatientAssessment(metabolicPanel);
-        SEScalarMassPerVolume bilirubin = metabolicPanel.GetTotalBilirubin();
-        return bilirubin.GetValue(MassPerVolumeUnit::mg_Per_dL);
+        return m_pe->GetBloodChemistrySystem()->GetTotalBilirubin(MassPerVolumeUnit::mg_Per_dL);
     }
 
     double PhysiologyThread::GetTotalProtein() {
