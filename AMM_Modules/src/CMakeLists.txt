@@ -110,6 +110,7 @@ add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
     set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
     set(REST_ADAPTER_EXE amm_rest_adapter)
 
+if(Pistache_FOUND)
     add_executable(${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES})
     target_link_libraries(${REST_ADAPTER_EXE}
             fastrtps fastcdr
@@ -122,7 +123,7 @@ add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
             SQLite3::SQLite3
             amm::datamodel
             )
-
+endif()
 
 
 if (Biogears_FOUND)
