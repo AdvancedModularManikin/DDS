@@ -291,9 +291,7 @@ int main(int argc, char *argv[]) {
           "0.0.1",
           mgr->GetCapabilitiesAsString("mule1/module_capabilities/ivc_module_capabilities.xml")
           );
-  
-  //TODO loop here
-  
+
   while (1) {
     if (send_status) {
       cout << "[IVC] Setting status to " << current_status << endl;
@@ -312,24 +310,16 @@ int main(int argc, char *argv[]) {
 
 //functions implemented for port
 void
-vTaskDelay(unsigned int ms)
+delay_ms(unsigned int ms)
 {
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-  //TODO rename this function
-}
-
-void
-remote_solenoid_set(unsigned int ix, bool on)
-{
-  //TODO send message
-  //TODO fix up function and variable names here
-  bisem_wait(remote.solenoid[ix].sem);
 }
 
 uint32_t
 remote_read_adc(unsigned int ix)
 {
-  //TODO send message
+  uint8_t buf = {4, CHUNK_TYPE_ADC, ix, OP_GET};
+  send_chunk(buf, 4);
   bisem_wait(remote.adc[ix].sem);
   return remote.adc[ix].last_read;
 }
@@ -339,7 +329,11 @@ int gpio_A_7;
 void
 remote_set_gpio(int gpio, int on)
 {
-  //TODO
+  //TODO double check message format here
+  uint8_t buf = {5, CHUNK_TYPE_GPIO, gpio, OP_SET, on};
+  send_chunk(buf, 5);
+  bisem_wait(remote.gpio[gpio].sem);
+  return;
 }
 
 void
@@ -348,8 +342,7 @@ bleed_task(void)
   uint8_t vein_sol = 7; //struct solenoid::solenoid &vein_sol = solenoids[7];
   
   //enable 24V rail
-  ///*TODO*/GPIO_SetPinsOutput(GPIOA, 1U<<7U);
-  remote_set_gpio(gpio_A_7, 1);
+  remote_set_gpio(gpio_A_7, 1); //GPIO_SetPinsOutput(GPIOA, 1U<<7U);
   
   
   //module logic:
@@ -357,35 +350,34 @@ bleed_task(void)
   //begin pressurizing
   //when pressurized, stop pressurizing and send the "I'm sealed" message to SoM code
   for (;;) {
-    //TODO for now pretend we have async/await
     //wait for start message
     //TODO use semaphore here?
     while (ivc_waiting)
-      vTaskDelay(100);
+      delay_ms(100);
     
     
     uint32_t adcRead = remote_read_adc(0); //uint32_t adcRead = carrier_sensors[0].raw_pressure;
     vein_psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
     if (vein_psi < bleed_pressure) {
-      remote_solenoid_set(vein_sol, 1);
+      remote_gpio_set(vein_sol_gpio, 1); // TODO this is a solenoid, open might be 0?
       do {
         //this is to support pausing.
         if (ivc_waiting) {
-          remote_solenoid_set(vein_sol, 0);
+          remote_gpio_set(vein_sol_gpio, 0);
           //TODO use semaphore here?
-          while (ivc_waiting) vTaskDelay(50); //this is triggered elsewhere and not by weird k66 stuff
-          remote_solenoid_set(vein_sol, 1);
+          while (ivc_waiting) delay_ms(50); //this is triggered elsewhere and not by weird k66 stuff
+          remote_gpio_set(vein_sol_gpio, 1);
         }
-        vTaskDelay(pressurization_quantum); //TODO modify to account for comms delay?
+        delay_ms(pressurization_quantum); //TODO modify to account for comms delay?
         adcRead = remote_read_adc(0); //adcRead = carrier_sensors[0].raw_pressure;
         vein_psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
       } while(vein_psi < bleed_pressure);
-      remote_solenoid_set(vein_sol, 0);
+      remote_gpio_set(vein_sol_gpio, 0);
     }
     
     pressurized = 1;
     ivc_waiting = 1;
-    vTaskDelay(50);
+    delay_ms(50);
   }
 }
 
@@ -419,6 +411,32 @@ ivc_remote(struct spi_packet *p)
   remote_handler(remote, p);
 }
 
+//TODO convert to master
+int
+send_chunk(uint8_t *buf, size_t len)
+{
+	//find an open waiting_chunk in waiting_chunks and copy it in
+	for (int i = 0; i < NUM_WAIT_CHUNKS; i++) {
+		if (!wait_chunks[i].ready_to_pack) {
+			memcpy(wait_chunks[i].buf, buf, len);
+			wait_chunks[i].buf[0] = len; // just in case
+			wait_chunks[i].ready_to_pack = 1;
+			return 0;
+		}
+	}
+	return -1;
+}
+
+//TODO convert to master
+int
+prepare_slave_chunks(void)
+{
+	uint8_t buf[SPI_MSG_PAYLOAD_LEN];
+	int ret1 = chunk_packer(wait_chunks, NUM_WAIT_CHUNKS, buf, SPI_MSG_PAYLOAD_LEN);
+	int ret2 = slave_send_message(spi_proto::p, buf, SPI_MSG_PAYLOAD_LEN);
+	return ret1|ret2;
+}
+
 void
 remote_task(void)
 {
@@ -431,6 +449,7 @@ remote_task(void)
   int count = 0;
   bool closed = 0;
   while (!closed) {
+    prepare_master_chunks();
     int ret = spi_proto_prep_msg(s, sendbuf, TRANSFER_SIZE);
     //TODO currently no code sends the start command
     
