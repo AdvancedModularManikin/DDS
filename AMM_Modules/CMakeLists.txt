@@ -92,6 +92,20 @@ set(HEART_RATE_LED_EXE amm_heartrate_led)
 add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
 target_link_libraries(${HEART_RATE_LED_EXE} spi_proto)
 
+set(SYRINGE_MOCK_SOURCES src/SyringeMock.cpp)
+set(SYRINGE_MOCK_EXE ee_syringe_mock)
+add_executable(${SYRINGE_MOCK_EXE} ${SYRINGE_MOCK_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+target_link_libraries(${SYRINGE_MOCK_EXE} fastrtps fastcdr)
+set_target_properties(${SYRINGE_MOCK_EXE} PROPERTIES
+	CXX_STANDARD 14
+	CXX_STANDARD_REQUIRED ON
+	)
+
+set(SYRINGE_SOURCES src/Syringe.cpp)
+set(SYRINGE_EXE ee_syringe)
+add_executable(${SYRINGE_EXE} ${SYRINGE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+target_link_libraries(${SYRINGE_EXE} fastrtps fastcdr)
+
 set(FLUID_MANAGER_SOURCES src/FluidManager.cpp)
 set(FLUID_MANAGER_EXE amm_fluid_manager)
 add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})

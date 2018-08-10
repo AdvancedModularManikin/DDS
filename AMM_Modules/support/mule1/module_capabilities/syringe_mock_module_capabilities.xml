@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AMMModuleConfiguration>
+    <module name="mock_syringe" manufacturer="Entropic" model="mock_syringe" serial_number="0" module_version="0.0.1">
+        <versions>
+            <data name="amm_core_version" minimumVersion="0.0.1"/>
+            <data name="amm_specification_version" minimumVersion="0.0.1"/>
+        </versions>
+        <capabilities>
+            <capability name="mock_syringe">
+                <published_topics>
+                    <topic name="Syringe_InjectedAmount" /> 
+                </published_topics>
+            </capability>
+        </capabilities>
+    </module>
+</AMMModuleConfiguration>
