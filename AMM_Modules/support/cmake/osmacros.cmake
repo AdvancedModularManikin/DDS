@@ -14,24 +14,31 @@ endif()
 
 
 
-MACRO (DEFINE_FastRTPS_SOURCES idlfilename)
-  SET(outsources)
-  GET_FILENAME_COMPONENT(it ${idlfilename} ABSOLUTE)
-  GET_FILENAME_COMPONENT(nfile ${idlfilename} NAME_WE)
-  SET(outsources ${outsources} ${CMAKE_CURRENT_BINARY_DIR}/gen/${nfile}.cxx ${CMAKE_CURRENT_BINARY_DIR}/gen/${nfile}.h)
-  SET(outsources ${outsources} ${CMAKE_CURRENT_BINARY_DIR}/gen/${nfile}PubSubTypes.cxx ${CMAKE_CURRENT_BINARY_DIR}/gen/${nfile}PubSubTypes.h)
-ENDMACRO (DEFINE_FastRTPS_SOURCES)
+macro (DEFINE_FastRTPS_SOURCES idlfilename)
+  set(outsources)
+  get_filename_component(it ${idlfilename} ABSOLUTE)
+  get_filename_component(nfile ${idlfilename} NAME_WE)
+  set(outsources ${outsources} ${CMAKE_CURRENT_BINARY_DIR}/gen/${nfile}.cxx ${CMAKE_CURRENT_BINARY_DIR}/gen/${nfile}.h)
+  set(outsources ${outsources} ${CMAKE_CURRENT_BINARY_DIR}/gen/${nfile}PubSubTypes.cxx ${CMAKE_CURRENT_BINARY_DIR}/gen/${nfile}PubSubTypes.h)
+endmacro (DEFINE_FastRTPS_SOURCES)
 
-MACRO (FastRTPS_IDLGEN idlfilename)
-  GET_FILENAME_COMPONENT(it ${idlfilename} ABSOLUTE)
-  GET_FILENAME_COMPONENT(idlfilename ${idlfilename} NAME)
+if (NOT FASTRTP_GEN_EXECUTABLE)
+  find_program(FASTRTP_GEN_EXECUTABLE NAME fastrtpsgen
+    DOC "FastRTP TPS code generator"
+    PATH_SUFFIXES bin
+  )
+endif()
+
+macro (FastRTPS_IDLGEN idlfilename)
+  get_filename_component(it ${idlfilename} ABSOLUTE)
+  get_filename_component(idlfilename ${idlfilename} NAME)
   DEFINE_FastRTPS_SOURCES(${ARGV})
-  ADD_CUSTOM_COMMAND (
+  add_custom_command (
           OUTPUT ${outsources}
-          COMMAND fastrtpsgen
+          COMMAND ${FASTRTP_GEN_EXECUTABLE} 
           ARGS
           #-example x64Linux2.6gcc
           -replace -d gen ${idlfilename}
           DEPENDS ${it}
   )
-ENDMACRO (FastRTPS_IDLGEN)
+endmacro (FastRTPS_IDLGEN)

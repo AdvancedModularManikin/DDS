@@ -5,21 +5,10 @@ set(VERSION_TYPE "beta" CACHE STRING "version type" FORCE)
 site_name(VERSION_HOST) # read hostname to VERSION_HOST
 set(VERSION_HOST "${VERSION_HOST}" CACHE STRING "host of build" FORCE)
 
-IF (WIN32)
-    SET(ENV{BIOGEARS_HOME} "c:/tools/physiology/install")
-    SET(ENV{FASTRTPS_HOME} "C:/tools/fast-rtps")
-ELSE ()
-    SET(ENV{BIOGEARS_HOME} "/opt/biogears")
-    SET(ENV{FASTRTPS_HOME} "/usr/local")
-ENDIF ()
-
-
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(fastcdr_DIR "$ENV{FASTRTPS_HOME}/lib/fastcdr/cmake")
-set(fastrtps_DIR "$ENV{FASTRTPS_HOME}/lib/fastrtps/cmake")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/support/cmake ${fastcdr_DIR} ${fastrtps_DIR})
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/support/cmake )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/logs/)
@@ -60,6 +49,12 @@ else()
     add_compile_options(-std=c++14)
 endif()
 
+if(DEFINED ENV{BIOGEARS_HOME})
+  list(APPEND CMAKE_PREFIX_PATH $ENV{BIOGEARS_HOME})
+endif()
+if(DEFINED ENV{FASTRTPS_HOME})
+  list(APPEND CMAKE_PREFIX_PATH  $ENV{FASTRTPS_HOME})
+endif()
 
 find_package(fastrtps REQUIRED)
 find_package(fastcdr REQUIRED)
@@ -68,7 +63,7 @@ find_package(Boost 1.58 COMPONENTS filesystem iostreams system signals thread lo
 find_package(TinyXML2 REQUIRED)
 find_package(SQLite3 REQUIRED)
 
-find_package(BioGears)
+find_package(Biogears)
 find_package(RapidJSON)
 find_package(Pistache)
 
