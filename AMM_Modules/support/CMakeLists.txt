@@ -7,8 +7,7 @@ file(COPY ${PROJECT_SOURCE_DIR}/support/mule1 DESTINATION ${CMAKE_CURRENT_BINARY
 
 configure_file(${PROJECT_SOURCE_DIR}/support/amm_rtps.xml ${CMAKE_CURRENT_BINARY_DIR}/../bin COPYONLY)
 
-if (BioGears_FOUND)
-    set(BIOGEARS_RUNTIME $ENV{BIOGEARS_HOME}/library/runtime)
+if (Biogears_FOUND)
     file(COPY ${PROJECT_SOURCE_DIR}/support/Actions DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
     file(COPY ${PROJECT_SOURCE_DIR}/support/patients DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
     file(COPY ${PROJECT_SOURCE_DIR}/support/states DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/../bin/)
