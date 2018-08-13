@@ -68,7 +68,7 @@ find_package(RapidJSON)
 find_package(Pistache)
 
 # External resources/repositories are downloaded here
-add_subdirectory(support/external)
+# add_subdirectory(support/external)
 
 # Documentation build
 add_subdirectory(doc)
@@ -78,7 +78,7 @@ add_subdirectory(support)
 
 # Testing
 # enable_testing()
-add_subdirectory(test)
+# add_subdirectory(test)
 
 # Source code
 add_subdirectory(src)

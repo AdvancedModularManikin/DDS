@@ -213,7 +213,7 @@ target_link_libraries(${TCP_BRIDGE_EXE}
 #        )
 
 
-add_subdirectory(unittest)
+# add_subdirectory(unittest)
 
 if (MINGW)
     message(STATUS "MinGW detected")
