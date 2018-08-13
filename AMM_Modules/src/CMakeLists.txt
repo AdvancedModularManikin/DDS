@@ -103,7 +103,7 @@ add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
         amm::logger
         Threads::Threads
         ${TINYXML2_LIBRARIES}
-        SQLite3::SQLite3
+        sqlite3
         amm::datamodel
         )
 
@@ -120,7 +120,7 @@ if(Pistache_FOUND)
             ${TINYXML2_LIBRARIES}
             Boost::system Boost::filesystem Boost::iostreams
             Threads::Threads
-            SQLite3::SQLite3
+            sqlite3
             amm::datamodel
             )
 endif()
