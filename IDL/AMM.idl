@@ -36,6 +36,14 @@ module AMM
                 double severity;
             };
         };
+		
+		module Sepsis
+		{
+			struct SepsisData {
+				FMA_Location location;
+				double severity;
+			};
+		};
 
         struct Action {
             FMA_Location location;
