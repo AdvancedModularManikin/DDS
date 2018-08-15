@@ -57,6 +57,9 @@ namespace AMM {
         N2 = m_pe->GetSubstanceManager().GetSubstance("Nitrogen");
         O2 = m_pe->GetSubstanceManager().GetSubstance("Oxygen");
         CO = m_pe->GetSubstanceManager().GetSubstance("CarbonMonoxide");
+        potassium = m_pe->GetSubstanceManager().GetSubstance("Potassium");
+        chloride = m_pe->GetSubstanceManager().GetSubstance("Chloride");
+
     }
 
     void PhysiologyThread::PreloadCompartments() {
@@ -470,14 +473,14 @@ namespace AMM {
         SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarAmountPerVolume potassium = metabolicPanel.GetPotassium();
-        return potassium.GetValue(AmountPerVolumeUnit::ct_Per_uL);
+        return potassium.GetValue(AmountPerVolumeUnit::mmol_Per_L);
     }
 
     double PhysiologyThread::GetChloride() {
         SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarAmountPerVolume chloride = metabolicPanel.GetChloride();
-        return chloride.GetValue(AmountPerVolumeUnit::ct_Per_uL);
+        return chloride.GetValue(AmountPerVolumeUnit::mmol_Per_L);
     }
 
 // PLT - Platelet Count - ct/uL

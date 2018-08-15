@@ -245,6 +245,8 @@ namespace AMM {
         SESubstance *N2;
         SESubstance *O2;
         SESubstance *CO;
+        SESubstance *potassium;
+        SESubstance *chloride;
 
         const SEGasCompartment *carina;
         const SEGasCompartment *leftLung;
