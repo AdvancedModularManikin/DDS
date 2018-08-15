@@ -57,13 +57,12 @@ namespace AMM {
         N2 = m_pe->GetSubstanceManager().GetSubstance("Nitrogen");
         O2 = m_pe->GetSubstanceManager().GetSubstance("Oxygen");
         CO = m_pe->GetSubstanceManager().GetSubstance("CarbonMonoxide");
-    };
+    }
 
     void PhysiologyThread::PreloadCompartments() {
         carina = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Carina);
         leftLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::LeftLung);
         rightLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::RightLung);
-
     }
 
     void PhysiologyThread::PopulateNodePathTable() {
@@ -388,7 +387,7 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetAlbuminConcentration() {
-        return albumin->GetBloodConcentration(MassPerVolumeUnit::mg_Per_dL);
+        return albumin->GetBloodConcentration(MassPerVolumeUnit::g_Per_dL);
     }
 
     double PhysiologyThread::GetTotalBilirubin() {
@@ -399,7 +398,7 @@ namespace AMM {
         SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarMassPerVolume protein = metabolicPanel.GetTotalProtein();
-        return protein.GetValue(MassPerVolumeUnit::mg_Per_dL);
+        return protein.GetValue(MassPerVolumeUnit::g_Per_dL);
     }
 
 // RBC - White Blood Cell Count - ct/uL
@@ -544,57 +543,57 @@ namespace AMM {
         SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
         SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
 
-	/**
-	   LOG_TRACE << "Setting base values";
-	   config.SetConnection(CDM::enumAnesthesiaMachineConnection::Mask);
-	   config.GetInletFlow().SetValue(2.0, VolumePerTimeUnit::L_Per_min);
-	   config.GetInspiratoryExpiratoryRatio().SetValue(.5);
-	   config.SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
-	   config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Nitrogen);
-	   config.GetReliefValvePressure().SetValue(20.0, PressureUnit::cmH2O);
-	   config.GetVentilatorPressure().SetValue(0.0, PressureUnit::cmH2O);
-	   config.GetOxygenBottleOne().GetVolume().SetValue(660.0, VolumeUnit::L);
-	   config.GetOxygenBottleTwo().GetVolume().SetValue(660.0, VolumeUnit::L);
-	**/
-	
+        /**
+           LOG_TRACE << "Setting base values";
+           config.SetConnection(CDM::enumAnesthesiaMachineConnection::Mask);
+           config.GetInletFlow().SetValue(2.0, VolumePerTimeUnit::L_Per_min);
+           config.GetInspiratoryExpiratoryRatio().SetValue(.5);
+           config.SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
+           config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Nitrogen);
+           config.GetReliefValvePressure().SetValue(20.0, PressureUnit::cmH2O);
+           config.GetVentilatorPressure().SetValue(0.0, PressureUnit::cmH2O);
+           config.GetOxygenBottleOne().GetVolume().SetValue(660.0, VolumeUnit::L);
+           config.GetOxygenBottleTwo().GetVolume().SetValue(660.0, VolumeUnit::L);
+        **/
+
         for (auto str : strings) {
-	  vector<string> strs;
-	  boost::split(strs, str, boost::is_any_of("="));
-	  auto strs_size = strs.size();
-	  // Check if it's not a key value pair
-	  if (strs_size != 2) {
-	    continue;
-	  }
-	  std::string kvp_k = strs[0];
-	  double kvp_v = std::stod(strs[1]);
-	  try {
-	      if (kvp_k == "OxygenFraction") {
-                config.GetOxygenFraction().SetValue(kvp_v);
-	      } else if (kvp_k == "PositiveEndExpiredPressure") {
-                config.GetPositiveEndExpiredPressure().SetValue(kvp_v, PressureUnit::cmH2O);
-	      } else if (kvp_k == "RespiratoryRate") {
-                config.GetRespiratoryRate().SetValue(kvp_v, FrequencyUnit::Per_min);
-	      } else if (kvp_k == "InspiratoryExpiratoryRatio") {
-		config.GetInspiratoryExpiratoryRatio().SetValue(kvp_v);
-	      } else if (kvp_k == "TidalVolume") {
-		// empty
-	      } else if (kvp_k == "VentilatorPressure") {
-		config.GetVentilatorPressure().SetValue(kvp_v, PressureUnit::cmH2O);
-	      } else if (kvp_k == " ") {
-		// empty
-	      } else {
-                LOG_INFO << "Unknown ventilator setting: " << kvp_k << " = " << kvp_v;
-	      }
-	  } catch (exception &e) {
-	    LOG_ERROR << "Issue with setting " << e.what();
-	  }
+            vector<string> strs;
+            boost::split(strs, str, boost::is_any_of("="));
+            auto strs_size = strs.size();
+            // Check if it's not a key value pair
+            if (strs_size != 2) {
+                continue;
+            }
+            std::string kvp_k = strs[0];
+            double kvp_v = std::stod(strs[1]);
+            try {
+                if (kvp_k == "OxygenFraction") {
+                    config.GetOxygenFraction().SetValue(kvp_v);
+                } else if (kvp_k == "PositiveEndExpiredPressure") {
+                    config.GetPositiveEndExpiredPressure().SetValue(kvp_v, PressureUnit::cmH2O);
+                } else if (kvp_k == "RespiratoryRate") {
+                    config.GetRespiratoryRate().SetValue(kvp_v, FrequencyUnit::Per_min);
+                } else if (kvp_k == "InspiratoryExpiratoryRatio") {
+                    config.GetInspiratoryExpiratoryRatio().SetValue(kvp_v);
+                } else if (kvp_k == "TidalVolume") {
+                    // empty
+                } else if (kvp_k == "VentilatorPressure") {
+                    config.GetVentilatorPressure().SetValue(kvp_v, PressureUnit::cmH2O);
+                } else if (kvp_k == " ") {
+                    // empty
+                } else {
+                    LOG_INFO << "Unknown ventilator setting: " << kvp_k << " = " << kvp_v;
+                }
+            } catch (exception &e) {
+                LOG_ERROR << "Issue with setting " << e.what();
+            }
         }
-	
-	try {
-	  m_pe->ProcessAction(AMConfig);
-	} catch (exception &e) {
-	  LOG_ERROR << "Error processing ventilator action: " << e.what();
-	}
+
+        try {
+            m_pe->ProcessAction(AMConfig);
+        } catch (exception &e) {
+            LOG_ERROR << "Error processing ventilator action: " << e.what();
+        }
     }
 
     void PhysiologyThread::Status() {
