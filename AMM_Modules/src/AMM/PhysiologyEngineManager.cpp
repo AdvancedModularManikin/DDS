@@ -251,7 +251,7 @@ namespace AMM {
                 bg->SaveState(ss.str());
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
                 StopTickSimulation();
-                stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
+                // stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
                 StartTickSimulation();
             }
         } else {
