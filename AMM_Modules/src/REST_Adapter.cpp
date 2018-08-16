@@ -41,9 +41,10 @@
 
 #include <fastrtps/rtps/participant/RTPSParticipant.h>
 
+#include "AMM/BaseLogger.h"
+
 #include "AMM/DataTypes.h"
 #include "AMM/DDS_Manager.h"
-
 
 #include <pistache/http.h>
 #include <pistache/router.h>
@@ -89,11 +90,11 @@ std::string state_path = "./states/";
 std::string patient_path = "./patients/";
 std::string dataKey = "name";
 
-std::vector <std::string> actions;
+std::vector<std::string> actions;
 
 std::map<std::string, double> nodeDataStorage;
 
-std::map <std::string, std::string> statusStorage = {
+std::map<std::string, std::string> statusStorage = {
         {"STATUS",       "NOT RUNNING"},
         {"LAST_COMMAND", ""},
         {"TICK",         "0"},
@@ -146,7 +147,7 @@ class AMMListener : public ListenerInterface {
 
 
 void SendCommand(const std::string &command) {
-    cout << "=== [REST_Adapter] Sending a command:" << command << endl;
+    LOG_INFO << "Publishing a command:" << command;
     AMM::PatientAction::BioGears::Command cmdInstance;
     cmdInstance.message(command);
     command_publisher->write(&cmdInstance);
@@ -225,7 +226,7 @@ private:
 
     void getInstance(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
-        Writer <StringBuffer> writer(s);
+        Writer<StringBuffer> writer(s);
 
         std::ifstream t("mule1/current_scenario.txt");
         std::string scenario((std::istreambuf_iterator<char>(t)),
@@ -249,7 +250,7 @@ private:
 
 
         StringBuffer s;
-        Writer <StringBuffer> writer(s);
+        Writer<StringBuffer> writer(s);
 
         writer.StartArray();
         if (exists(state_path) && is_directory(state_path)) {
@@ -284,7 +285,7 @@ private:
             deleteFile << state_path << "/" << name;
             path deletePath(deleteFile.str().c_str());
             if (exists(deletePath) && is_regular_file(deletePath)) {
-                cout << "= [REST_Adapter] Deleting " << deletePath << endl;
+                LOG_INFO << "Deleting " << deletePath;
                 boost::filesystem::remove(deletePath);
                 response.send(Http::Code::Ok, "Deleted", MIME(Application, Json));
             } else {
@@ -297,7 +298,7 @@ private:
 
     void getPatients(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
-        Writer <StringBuffer> writer(s);
+        Writer<StringBuffer> writer(s);
 
         writer.StartArray();
         if (exists(patient_path) && is_directory(patient_path)) {
@@ -326,7 +327,7 @@ private:
 
     void getActions(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
-        Writer <StringBuffer> writer(s);
+        Writer<StringBuffer> writer(s);
 
         writer.StartArray();
         if (exists(action_path) && is_directory(action_path)) {
@@ -373,7 +374,7 @@ private:
         auto name = request.param(":name").as<std::string>();
         SendCommand(name);
         StringBuffer s;
-        Writer <StringBuffer> writer(s);
+        Writer<StringBuffer> writer(s);
         writer.StartObject();
         writer.Key("Sent command");
         writer.String(name.c_str());
@@ -385,21 +386,22 @@ private:
 
     void getModules(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
-        Writer <StringBuffer> writer(s);
+        Writer<StringBuffer> writer(s);
         writer.StartArray();
 
         db << "SELECT "
-                "module_capabilities.module_id AS module_id,"
-                "module_capabilities.module_name AS module_name,"
-                "module_capabilities.capabilities as capabilities,"
-                "module_status.capability as capability,"
-                "module_status.status as capability_status,"
-                "module_capabilities.manufacturer as manufacturer,"
-                "module_capabilities.model as model "
-                " FROM "
-                " module_capabilities "
-                " LEFT JOIN module_status ON module_capabilities.module_name = module_status.module_name;"
-           >> [&](string module_id, string module_name, string capabilities, string capability, string capability_status,
+              "module_capabilities.module_id AS module_id,"
+              "module_capabilities.module_name AS module_name,"
+              "module_capabilities.capabilities as capabilities,"
+              "module_status.capability as capability,"
+              "module_status.status as capability_status,"
+              "module_capabilities.manufacturer as manufacturer,"
+              "module_capabilities.model as model "
+              " FROM "
+              " module_capabilities "
+              " LEFT JOIN module_status ON module_capabilities.module_name = module_status.module_name;"
+           >> [&](string module_id, string module_name, string capabilities, string capability,
+                  string capability_status,
                   string manufacturer, string model) {
                writer.StartObject();
 
@@ -437,7 +439,7 @@ private:
 
     void getNodes(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
-        Writer <StringBuffer> writer(s);
+        Writer<StringBuffer> writer(s);
         writer.StartArray();
 
         auto nit = nodeDataStorage.begin();
@@ -470,7 +472,7 @@ private:
         auto it = nodeDataStorage.find(name);
         if (it != nodeDataStorage.end()) {
             StringBuffer s;
-            Writer <StringBuffer> writer(s);
+            Writer<StringBuffer> writer(s);
             writer.StartObject();
             writer.Key(it->first.c_str());
             writer.Double(it->second);
@@ -496,10 +498,10 @@ private:
     }
 
     typedef std::mutex Lock;
-    typedef std::lock_guard <Lock> Guard;
+    typedef std::lock_guard<Lock> Guard;
     Lock commandLock;
 
-    std::shared_ptr <Http::Endpoint> httpEndpoint;
+    std::shared_ptr<Http::Endpoint> httpEndpoint;
     Rest::Router router;
 };
 
@@ -507,10 +509,10 @@ private:
 void UdpDiscoveryThread() {
     if (discovery) {
         UdpDiscoveryServer udps(io_service, discoveryPort);
-        cout << "\tUDP Discovery listening on port " << discoveryPort << "\n" << endl;
+        LOG_INFO << "UDP Discovery listening on port " << discoveryPort;
         io_service.run();
     } else {
-        cout << "\tUDP discovery service not started due to command line option." << endl;
+        LOG_INFO << "UDP discovery service not started due to command line option.";
     }
 }
 
@@ -520,8 +522,6 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, char *argv[]) {
-    cout << "=== [AMM - REST Adapter] ===" << endl;
-
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -585,11 +585,9 @@ int main(int argc, char *argv[]) {
     Port port(static_cast<uint16_t>(portNumber));
     Address addr(Ipv4::any(), port);
     DDSEndpoint server(addr);
-    cout << "=== [REST_Adapter] Ready ..." << endl;
-    cout << "  = [REST_Adapter] Listening on *:" << portNumber << endl;
-    cout << "  = [REST_Adapter] Cores = " << hardware_concurrency() << endl;
-    cout << "  = [REST_Adapter] Using " << thr << " threads" << endl;
-    cout << "  = Type EXIT and hit enter to shutdown" << endl;
+    LOG_INFO << "REST_Adapter Listening on *:" << portNumber;
+    LOG_INFO << "\tCores =\t" << hardware_concurrency();
+    LOG_INFO << "\tThreads =\t" << thr;
     server.init(thr);
 
     m_runThread = true;
@@ -601,22 +599,18 @@ int main(int argc, char *argv[]) {
         transform(action.begin(), action.end(), action.begin(), ::toupper);
         if (action == "EXIT") {
             m_runThread = false;
-            cout << "=== [REST_Adapter] Shutting down." << endl;
+            LOG_INFO << "Shutting down.";
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
         cout.flush();
     }
 
     server.shutdown();
-    cout << "=== [REST_Adapter] Stopped REST listener." << endl;
+    LOG_INFO << "Stopped REST listener.";
 
     io_service.stop();
-
-
     udpD.join();
-
-
-    cout << "=== [REST_Adapter] Stopped UDP." << endl;
+    LOG_INFO << "Stopped UDP discovery.";
 
     return 0;
 }

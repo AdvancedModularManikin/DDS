@@ -546,17 +546,12 @@ namespace AMM {
         SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
         SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
 
-        /**
-           LOG_TRACE << "Setting base values";
-           config.GetOxygenBottleOne().GetVolume().SetValue(660.0, VolumeUnit::L);
-           config.GetOxygenBottleTwo().GetVolume().SetValue(660.0, VolumeUnit::L);
-        **/
-	config.GetInletFlow().SetValue(2.0, VolumePerTimeUnit::L_Per_min);
-	config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Nitrogen);
-	config.SetConnection(CDM::enumAnesthesiaMachineConnection::Mask);
-	config.SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
-	config.GetReliefValvePressure().SetValue(20.0, PressureUnit::cmH2O);
-	
+        config.GetInletFlow().SetValue(2.0, VolumePerTimeUnit::L_Per_min);
+        config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Nitrogen);
+        config.SetConnection(CDM::enumAnesthesiaMachineConnection::Mask);
+        config.SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
+        config.GetReliefValvePressure().SetValue(20.0, PressureUnit::cmH2O);
+
         for (auto str : strings) {
             vector<string> strs;
             boost::split(strs, str, boost::is_any_of("="));
@@ -573,7 +568,7 @@ namespace AMM {
                 } else if (kvp_k == "PositiveEndExpiredPressure") {
                     config.GetPositiveEndExpiredPressure().SetValue(kvp_v * 100, PressureUnit::cmH2O);
                 } else if (kvp_k == "RespiratoryRate") {
-		  config.GetRespiratoryRate().SetValue(kvp_v, FrequencyUnit::Per_min);
+                    config.GetRespiratoryRate().SetValue(kvp_v, FrequencyUnit::Per_min);
                 } else if (kvp_k == "InspiratoryExpiratoryRatio") {
                     config.GetInspiratoryExpiratoryRatio().SetValue(kvp_v);
                 } else if (kvp_k == "TidalVolume") {
@@ -591,7 +586,6 @@ namespace AMM {
         }
 
         try {
-	  LOG_INFO << "Processsing ventilator action with new configuration values";
             m_pe->ProcessAction(AMConfig);
         } catch (exception &e) {
             LOG_ERROR << "Error processing ventilator action: " << e.what();

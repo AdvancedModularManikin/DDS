@@ -92,7 +92,7 @@ namespace AMM {
 
     void PhysiologyEngineManager::TickLoop() {
         while (m_runThread) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+            std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
 
@@ -134,7 +134,6 @@ namespace AMM {
     }
 
 
-
     void PhysiologyEngineManager::PublishData(bool force = false) {
         auto it = nodePathMap->begin();
         while (it != nodePathMap->end()) {
@@ -165,9 +164,9 @@ namespace AMM {
 
         m_mutex.lock();
         bg->LoadState(stateFile.c_str(), startPosition);
+        nodePathMap = bg->GetNodePathTable();
         m_mutex.unlock();
 
-        nodePathMap = bg->GetNodePathTable();
         m_runThread = true;
         paused = false;
     }
@@ -179,7 +178,6 @@ namespace AMM {
             paused = false;
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
             m_mutex.unlock();
-            // m_thread.detach();
         }
     }
 
@@ -226,38 +224,38 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm) {
-        LOG_INFO << "We got a command: " << cm.message();
+        LOG_INFO << "Command received: " << cm.message();
         if (!cm.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = cm.message().substr(sysPrefix.size());
-            LOG_TRACE << "[PhysiologyManager] We received a SYSTEM action: " << value;
+            LOG_TRACE << "We received a SYSTEM action: " << value;
             if (value.compare("START_ENGINE") == 0 || value.compare("START_SIM") == 0) {
-                LOG_TRACE << "[PhysiologyManager] Started engine based on Tick Simulation";
+                LOG_TRACE << "Started engine based on Tick Simulation";
                 StartTickSimulation();
             } else if (value.compare("STOP_ENGINE") == 0) {
-                LOG_TRACE << "[PhysiologyManager] Stopped engine";
+                LOG_TRACE << "Stopped engine";
                 StopTickSimulation();
                 StopSimulation();
                 Shutdown();
             } else if (value.compare("PAUSE_ENGINE") == 0) {
-                LOG_TRACE << "[PhysiologyManager] Paused engine" << endl;
+                LOG_TRACE << "Paused engine" << endl;
                 StopTickSimulation();
             } else if (value.compare("RESET_SIM") == 0) {
-                LOG_TRACE << "[PhysiologyManager] Reset simulation, clearing engine data.";
+                LOG_TRACE << "Reset simulation, clearing engine data.";
                 StopTickSimulation();
                 StopSimulation();
             } else if (value.compare("SAVE_STATE") == 0) {
                 std::ostringstream ss;
                 ss << "./states/SavedState_" << get_filename_date() << "@" << (int) std::round(bg->GetSimulationTime())
                    << "s.xml";
-                LOG_TRACE << "[PhysiologyManager] Saved state file: " << ss.str();
+                LOG_TRACE << "Saved state file: " << ss.str();
                 bg->SaveState(ss.str());
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
                 StopTickSimulation();
-                // stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
+                stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
                 StartTickSimulation();
             }
         } else {
-            LOG_TRACE << "[PhysiologyManager] Command received: " << cm.message();
+            LOG_TRACE << "Command received: " << cm.message();
             bg->ExecuteCommand(cm.message());
         }
     }
@@ -275,11 +273,13 @@ namespace AMM {
                 }
 
                 // Did we get a frame out of order?  Just mark it with an X for now.
+                /**
                 if (ti.frame() <= lastFrame) {
-//                cout << "x";
+                    cout << "x";
                 } else {
-//                cout << ".";
-                }
+                    cout << ".";
+                }**/
+
                 lastFrame = static_cast<int>(ti.frame());
 
                 // Per-frame stuff happens here
