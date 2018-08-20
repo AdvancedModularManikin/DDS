@@ -11,11 +11,11 @@
 #include "AMM/DDS_Manager.h"
 extern "C" {
 #include "spi_proto/spi_proto.h"
-#include "binary_semaphore.h"
-#include "spi_remote.h"
-#include "spi_remote_host.h"
+#include "spi_proto/binary_semaphore.h"
+#include "spi_proto/spi_remote.h"
+#include "spi_proto/spi_remote_host.h"
 }
-#include "spi_proto_master.h"
+#include "spi_proto/spi_proto_master.h"
 
 
 using namespace std;
@@ -27,7 +27,7 @@ int daemonize = 1;
 const string loadScenarioPrefix = "LOAD_SCENARIO:";
 const string haltingString = "HALTING_ERROR";
 
-float operating_pressure;
+float operating_pressure = 5.0;
 bool have_pressure = 0;
 AMM::Capability::status_values current_status;
 
@@ -110,7 +110,7 @@ class FluidListener : public ListenerInterface {
 
                 // These should be sent when a status change is received via spi.
                 // We'll force them for now.
-                send_status = true;
+                //TODO confirm nothing else needs to happen //send_status = true;
                 current_status = OPERATIONAL;
             }
         }
@@ -122,9 +122,12 @@ static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << "\nOptions:\n"
          << "\t-h,--help\t\tShow this help message\n" << endl;
 }
+void air_reservoir_control_task(void);
 
 int main(int argc, char *argv[]) {
     host_remote_init(&remote);
+    std::thread remote_thread(remote_task);
+    std::thread air_tank_thread(air_reservoir_control_task);
     cout << "=== [FluidManager] Ready ..." << endl;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -177,16 +180,19 @@ int main(int argc, char *argv[]) {
     while (!closed) {
 
         //TODO move status somewhere else
+#if 0
         if (send_status) {
             cout << "[FluidManager] Setting status to " << current_status << endl;
             send_status = false;
             mgr->SetStatus(nodeString, current_status);
         }
+#endif
 
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
         ++count;
     }
-
+    remote_thread.join();
+    air_tank_thread.join();
     cout << "=== [FluidManager] Simulation stopped." << endl;
 
     return 0;
@@ -222,9 +228,9 @@ struct pid_ctl pid;
 
 uint32_t stall_val = 0x100;
 //PSI (atmospheric is 0)
-float operating_pressure = 5.0;
+//float operating_pressure = 5.0;
 
-volatile bool should_pid_run = true;
+bool should_pid_run = true;
 float ret;
 uint32_t val;
 void
@@ -233,14 +239,18 @@ air_reservoir_control_task(void)
   int solenoid_0 = 7, motor_dac = 0;
   remote_set_gpio(solenoid_0 + 0, 0); //solenoid::off(solenoids[0]);
   remote_set_gpio(solenoid_0 + 1, 1); //solenoid::on(solenoids[1]);
+  int motor_enable = 16;//GPIO_SetPinsOutput(GPIOB, 1U<<1U);
+  remote_set_gpio(motor_enable, 1);
 
   pid.p = 24;
   pid.i = 1.0/1024;
   pid.d = 1.0/16;
   pid.isum = 0;
 
+  uint16_t dacVal;
+  int rail_24V = 15; // TODO confirm
   remote_set_gpio(rail_24V, 1); //should_24v_be_on = 1;
-  should_motor_run = 1;
+  bool should_motor_run = 1;
 
   for (;;) {
     pid.target = operating_pressure;
@@ -250,6 +260,7 @@ air_reservoir_control_task(void)
       float hold_isum = pid.isum;
       uint32_t adcRead = remote_get_adc(0); //uint32_t adcRead = carrier_sensors[0].raw_pressure;
       float psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
+      printf("adc: %d\t\t psi: %f\n", adcRead, psi);
 
       ret = pi_supply(&pid, psi);
 

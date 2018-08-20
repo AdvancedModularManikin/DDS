@@ -9,11 +9,21 @@
 #include <thirdparty/tixml2cx.h>
 
 #include "AMM/DDS_Manager.h"
-extern "C" {
+
+//TODO centralize in a config file
+#define ADC_NUM 1
+#define GPIO_NUM 2
+#define DAC_NUM 2
+#define SOLENOID_NUM 0
+
 #include "spi_proto/spi_proto.h"
+extern "C" {
 #include "spi_proto/spi_proto_lib/spi_chunks.h"
+#include "spi_proto/spi_proto_lib/spi_chunk_defines.h"
+#include "spi_proto/binary_semaphore.h"
 #include "spi_proto/spi_remote.h"
 }
+#include "master_spi_proto.h"
 
 #include <sys/ioctl.h>
 #include <linux/types.h>
@@ -23,6 +33,7 @@ extern "C" {
 
 using namespace std;
 using namespace std::literals::string_literals;
+using namespace spi_proto;
 
 class IVCListener;
 
@@ -38,6 +49,12 @@ float operating_pressure;
 //variables that are received from the tiny
 bool pressurized = false;
 float total_flow = 0, last_flow_change = 0;
+
+//TODO move these to config - variables that define peripherals on the tiny or are needed for remote
+int vein_sol_gpio = 0;//TODO
+#define NUM_WAIT_CHUNKS 10
+struct waiting_chunk wait_chunks[NUM_WAIT_CHUNKS] = {0};
+void send_chunk(void*, int);
 
 #define IVC_STATUS_WAITING  0
 #define IVC_STATUS_START    1
@@ -318,21 +335,21 @@ delay_ms(unsigned int ms)
 uint32_t
 remote_read_adc(unsigned int ix)
 {
-  uint8_t buf = {4, CHUNK_TYPE_ADC, ix, OP_GET};
+  uint8_t buf[4] = {4, CHUNK_TYPE_ADC, ix, OP_GET};
   send_chunk(buf, 4);
-  bisem_wait(remote.adc[ix].sem);
+  bisem_wait(&remote.adc[ix].sem);
   return remote.adc[ix].last_read;
 }
 
 //TODO this should be extended to all types and it should 
 int gpio_A_7;
 void
-remote_set_gpio(int gpio, int on)
+remote_gpio_set(int gpio, int on)
 {
   //TODO double check message format here
-  uint8_t buf = {5, CHUNK_TYPE_GPIO, gpio, OP_SET, on};
+  uint8_t buf[5] = {5, CHUNK_TYPE_GPIO, gpio, OP_SET, on};
   send_chunk(buf, 5);
-  bisem_wait(remote.gpio[gpio].sem);
+  bisem_wait(&remote.gpio[gpio].sem);
   return;
 }
 
@@ -342,7 +359,7 @@ bleed_task(void)
   uint8_t vein_sol = 7; //struct solenoid::solenoid &vein_sol = solenoids[7];
   
   //enable 24V rail
-  remote_set_gpio(gpio_A_7, 1); //GPIO_SetPinsOutput(GPIOA, 1U<<7U);
+  remote_gpio_set(gpio_A_7, 1); //GPIO_SetPinsOutput(GPIOA, 1U<<7U);
   
   
   //module logic:
@@ -396,7 +413,7 @@ TODO flow processing
 int
 ivc_chunk_handler(uint8_t *b, size_t len)
 {
-  remote_chunk_handler(remote, b, len);
+  remote_chunk_handler(&remote, b, len);
 }
 
 void
@@ -408,7 +425,7 @@ remote_handler(struct host_remote *r, struct spi_packet *p)
 void
 ivc_remote(struct spi_packet *p)
 {
-  remote_handler(remote, p);
+  remote_handler(&remote, p);
 }
 
 //TODO convert to master
@@ -427,13 +444,20 @@ send_chunk(uint8_t *buf, size_t len)
 	return -1;
 }
 
-//TODO convert to master
+namespace spi_proto {
 int
-prepare_slave_chunks(void)
+master_send_message(struct master_spi_proto &p, unsigned char *buf, unsigned int len)
+{
+	return spi_proto_send_msg(&p.proto, buf, len);
+}
+}
+
+int
+prepare_master_chunks(void)
 {
 	uint8_t buf[SPI_MSG_PAYLOAD_LEN];
-	int ret1 = chunk_packer(wait_chunks, NUM_WAIT_CHUNKS, buf, SPI_MSG_PAYLOAD_LEN);
-	int ret2 = slave_send_message(spi_proto::p, buf, SPI_MSG_PAYLOAD_LEN);
+	int ret2, ret1 = chunk_packer(wait_chunks, NUM_WAIT_CHUNKS, buf, SPI_MSG_PAYLOAD_LEN);
+	if (ret1) ret2 = master_send_message(spi_proto::p, buf, SPI_MSG_PAYLOAD_LEN);
 	return ret1|ret2;
 }
 
