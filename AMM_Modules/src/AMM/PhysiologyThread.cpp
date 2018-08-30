@@ -59,7 +59,7 @@ namespace AMM {
         CO = m_pe->GetSubstanceManager().GetSubstance("CarbonMonoxide");
         potassium = m_pe->GetSubstanceManager().GetSubstance("Potassium");
         chloride = m_pe->GetSubstanceManager().GetSubstance("Chloride");
-
+        lactate = m_pe->GetSubstanceManager().GetSubstance("Lactate");
     }
 
     void PhysiologyThread::PreloadCompartments() {
@@ -127,6 +127,7 @@ namespace AMM {
         nodePathTable["Substance_Hemoglobin_Concentration"] = &PhysiologyThread::GetHemoglobinConcentration;
         nodePathTable["Substance_Calcium_Concentration"] = &PhysiologyThread::GetCalciumConcentration;
         nodePathTable["Substance_Albumin_Concentration"] = &PhysiologyThread::GetAlbuminConcentration;
+        nodePathTable["Substance_Lactate_Concentration"] = &PhysiologyThread::GetLactateConcentration;
 
         nodePathTable["MetabolicPanel_Bilirubin"] = &PhysiologyThread::GetTotalBilirubin;
         nodePathTable["MetabolicPanel_Protein"] = &PhysiologyThread::GetTotalProtein;
@@ -391,6 +392,10 @@ namespace AMM {
 
     double PhysiologyThread::GetAlbuminConcentration() {
         return albumin->GetBloodConcentration(MassPerVolumeUnit::g_Per_dL);
+    }
+
+    double PhysiologyThread::GetLactateConcentration() {
+        return lactate->GetBloodConcentration(MassPerVolumeUnit::g_Per_dL);
     }
 
     double PhysiologyThread::GetTotalBilirubin() {

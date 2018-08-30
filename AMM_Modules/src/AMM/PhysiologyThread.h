@@ -230,6 +230,8 @@ namespace AMM {
 
         double GetAlbuminConcentration();
 
+        double GetLactateConcentration();
+
         double GetTotalBilirubin();
 
         double GetTotalProtein();
@@ -247,6 +249,7 @@ namespace AMM {
         SESubstance *CO;
         SESubstance *potassium;
         SESubstance *chloride;
+        SESubstance *lactate;
 
         const SEGasCompartment *carina;
         const SEGasCompartment *leftLung;
