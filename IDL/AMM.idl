@@ -4,8 +4,45 @@ struct FMA_Location
     string description;
 };
 
-module AMM
-{
+struct UUID {
+    long long UUID_MSB;
+    long long UUID_LSB;
+};
+
+module AMM {
+	module Event {
+		struct Fragment {
+			@Key UUID id;
+			float timestamp;
+			FMA_Location location;
+			string learner_id;
+			string fragment_type;
+			string payload;
+		};
+		
+		struct FragmentAmendmentRequest {
+			UUID id;
+			@Key UUID fragment_id;			
+			float timestamp;			
+			string status;  // Requesting, Accepted, Denied
+			// The values that can be amended
+			FMA_Location location;
+			string learner_id;
+			string fragment_type;
+			string payload;
+			
+		};
+		
+		struct Record {
+			@Key UUID id;
+			float timestamp;
+			FMA_Location location;
+			string learner_id;
+			string record_type;
+			string payload;			
+		};
+	};
+	
     module Environment
     {
         struct Settings {
