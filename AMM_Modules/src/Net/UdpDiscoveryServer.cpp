@@ -1,6 +1,6 @@
 #include "UdpDiscoveryServer.h"
 
-
+using namespace std;
 
 void UdpDiscoveryServer::handle_receive_from(const boost::system::error_code &error,
                                         size_t bytes_recvd) {
