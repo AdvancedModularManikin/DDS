@@ -67,7 +67,9 @@ set(COMMAND_EXECUTOR_SOURCES CommandExecutor.cpp)
 set(COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 
-set(SPI_SOURCES spi/crc16.cpp spi/spi_proto.cpp spi/config.h spi/spi_proto.h)
+set(SPI_SOURCES spi_proto/crc16.c spi_proto/spi_proto_lib/spi_proto.c spi_proto/config.h spi_proto/spi_proto.h)
+#add_library(spi_proto ${SPI_PROTO_SOURCES})
+set(SPI_REMOTE_SOURCES spi_proto/spi_remote_host.c spi_proto/binary_semaphore.c spi_proto/spi_proto_master.cpp spi_proto/spi_proto_lib/spi_chunks.cpp)
 
 set(HEART_RATE_LED_SOURCES HeartRateLED.cpp)
 set(HEART_RATE_LED_EXE amm_heartrate_led)
@@ -75,11 +77,13 @@ add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${SPI_SOURCES})
 
 set(FLUID_MANAGER_SOURCES FluidManager.cpp)
 set(FLUID_MANAGER_EXE amm_fluid_manager)
-add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${SPI_SOURCES})
+add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
+target_include_directories(${FLUID_MANAGER_EXE} PUBLIC spi_proto)
 
 set(IVC_MODULE_SOURCES IVC.cpp)
 set(IVC_MODULE_EXE amm_ivc_module)
-add_executable(${IVC_MODULE_EXE} ${IVC_MODULE_SOURCES} ${SPI_SOURCES})
+add_executable(${IVC_MODULE_EXE} ${IVC_MODULE_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
+target_include_directories(${IVC_MODULE_EXE} PUBLIC spi_proto)
 
 set(SERIAL_BRIDGE_SOURCES Serial_Bridge.cpp AMM/SerialPort.cpp AMM/SerialPort.h)
 set(SERIAL_BRIDGE_EXE amm_serial_bridge)
@@ -93,19 +97,18 @@ set(LOGGER_SOURCES Logger.cpp)
 set(LOGGER_EXE amm_logger)
 add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
 
+set(MODULE_MANAGER_SOURCES ModuleManager.cpp AMM/ModuleManager.cpp)
+set(MODULE_MANAGER_EXE amm_module_manager)
+add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
 
-    set(MODULE_MANAGER_SOURCES ModuleManager.cpp AMM/ModuleManager.cpp)
-    set(MODULE_MANAGER_EXE amm_module_manager)
-    add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
-
-    target_link_libraries(${MODULE_MANAGER_EXE}
-        fastrtps fastcdr
-        amm::logger
-        Threads::Threads
-        ${TINYXML2_LIBRARIES}
-        sqlite3
-        amm::datamodel
-        )
+target_link_libraries(${MODULE_MANAGER_EXE}
+    fastrtps fastcdr
+    amm::logger
+    Threads::Threads
+    ${TINYXML2_LIBRARIES}
+    sqlite3
+    amm::datamodel
+    )
 
     set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
     set(REST_ADAPTER_EXE amm_rest_adapter)

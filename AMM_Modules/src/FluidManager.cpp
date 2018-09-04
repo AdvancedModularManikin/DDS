@@ -6,15 +6,16 @@
 
 #include "AMM/DDS_Manager.h"
 
-#include "spi/spi_proto.h"
-
-#include <sys/ioctl.h>
-#include <linux/types.h>
-#include <linux/spi/spidev.h>
-
 #include "tinyxml2.h"
 
-#include <fcntl.h>    /* For O_RDWR */
+extern "C" {
+#include "spi_proto/spi_proto.h"
+#include "spi_proto/binary_semaphore.h"
+#include "spi_proto/spi_remote.h"
+#include "spi_proto/spi_remote_host.h"
+}
+#include "spi_proto/spi_proto_master.h"
+
 
 using namespace std;
 using namespace std::literals::string_literals;
@@ -24,40 +25,14 @@ using namespace AMM;
 // Daemonize by default
 int daemonize = 1;
 
-
 const string loadScenarioPrefix = "LOAD_SCENARIO:";
 const string haltingString = "HALTING_ERROR";
 
-float operating_pressure;
+float operating_pressure = 15.0;
+float purge_pressure = 15.0;
 bool have_pressure = 0;
 bool send_status = false;
 AMM::Capability::status_values current_status;
-
-static const char *device = "/dev/spidev0.0";
-static uint8_t mode;
-static uint8_t bits = 8;
-static uint32_t speed = 1 << 23;
-static uint16_t delay;
-
-//TODO centralize
-#define TRANSFER_SIZE 36
-
-int spi_transfer(int fd, const unsigned char *tx_buf, unsigned char *rx_buf, __u32 buflen) {
-    int ret;
-    struct spi_ioc_transfer tr = {
-            tx_buf : (unsigned long) tx_buf,
-            rx_buf : (unsigned long) rx_buf,
-            len : TRANSFER_SIZE, speed_hz : speed,
-            delay_usecs : delay, bits_per_word : bits,
-    };
-
-    ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-    if (ret < 1)
-        perror("can't send spi message");
-    return ret;
-}
-
-struct spi_state spi_state;
 
 void ProcessConfig(const std::string configContent) {
 
@@ -97,9 +72,7 @@ void ProcessConfig(const std::string configContent) {
         if (!strcmp(entry5_1->ToElement()->Attribute("name"), "operating_pressure")) {
             operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
             have_pressure = 1;
-            unsigned char spi_send[8];
-            memcpy(spi_send + 4, &operating_pressure, 4);
-            spi_proto_send_msg(&spi_state, spi_send, 8);
+            //TODO used to send the pressure as a message here. Ensure it's getting where it needs to go in the local state
             break;
         }
         auto v = entry5->ToElement()->NextSibling();
@@ -140,7 +113,7 @@ class FluidListener : public ListenerInterface {
 
                 // These should be sent when a status change is received via spi.
                 // We'll force them for now.
-                send_status = true;
+                //TODO confirm nothing else needs to happen //send_status = true;
                 current_status = OPERATIONAL;
             }
         }
@@ -152,8 +125,12 @@ static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << "\nOptions:\n"
          << "\t-h,--help\t\tShow this help message\n" << endl;
 }
+void air_reservoir_control_task(void);
 
 int main(int argc, char *argv[]) {
+    host_remote_init(&remote);
+    std::thread remote_thread(remote_task);
+    std::thread air_tank_thread(air_reservoir_control_task);
     cout << "=== [FluidManager] Ready ..." << endl;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -166,12 +143,6 @@ int main(int argc, char *argv[]) {
             daemonize = 1;
         }
     }
-
-    int spi_fd = open(device, O_RDWR);
-    unsigned char recvbuf[TRANSFER_SIZE];
-    unsigned char sendbuf[TRANSFER_SIZE] = {};
-    struct spi_state *s = &spi_state;
-    spi_proto_initialize(s);
 
 
     const char *nodeName = "AMM_FluidManager";
@@ -208,30 +179,240 @@ int main(int argc, char *argv[]) {
             mgr->GetCapabilitiesAsString("mule1/module_capabilities/fluid_manager_capabilities.xml")
     );
 
-    int count = 0;
     bool closed = 0;
     while (!closed) {
-        int ret = spi_proto_prep_msg(s, sendbuf, TRANSFER_SIZE);
-
-        //do SPI communication
-        int spi_tr_res = spi_transfer(spi_fd, sendbuf, recvbuf, TRANSFER_SIZE);
-
-        struct spi_packet pack;
-        memcpy(&pack, recvbuf, TRANSFER_SIZE);
-
         if (send_status) {
             cout << "[FluidManager] Setting status to " << current_status << endl;
             send_status = false;
             mgr->SetStatus(mgr->module_id, nodeString, current_status);
         }
-
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        ++count;
     }
-
+    remote_thread.join();
+    air_tank_thread.join();
     cout << "=== [FluidManager] Simulation stopped." << endl;
 
     return 0;
-
 }
 
+//code from air_tank.cpp initially copied here
+struct pid_ctl {
+  float p;
+  float i;
+  float d;
+  float target;
+
+  float isum; // current value
+  float last;
+  float last_diff;
+};
+
+float
+pi_supply(struct pid_ctl *p, float reading)
+{
+  float diff = reading - p->last;
+  p->last = reading;
+  p->last_diff = diff;
+  float oset = p->target - reading;
+
+  p->isum += oset * p->i;
+
+  return p->isum + p->p*oset + p->d*diff;
+}
+
+struct pid_ctl pid;
+
+uint32_t stall_val = 0x100;
+//PSI (atmospheric is 0)
+//float operating_pressure = 5.0;
+
+bool should_pid_run = true;
+float ret;
+uint32_t val;
+void
+air_reservoir_control_task(void)
+{
+  int solenoid_0 = 7, motor_dac = 0;
+  int solenoid_A = solenoid_0 + 6;
+  int solenoid_B = solenoid_0 + 7;
+  int solenoid_C = solenoid_0 + 5;
+  int solenoid_AC = solenoid_0 + 0;
+  int solenoid_AD = solenoid_0 + 1;
+  remote_set_gpio(solenoid_B, 1); // TODO turn off to vent, another control output
+  remote_set_gpio(solenoid_A, 0); //solenoid A TODO to purge lines A off B on
+  remote_set_gpio(solenoid_C, 0);
+  int motor_enable = 16;//B1
+  remote_set_gpio(motor_enable, 1);
+  //in order to purge: Turn B off, Turn A on, Turn AC & AD on
+  //P1 pressure will slowly drop to atmospheric
+  //p4 pressure should stay above 1 bar until the lines are clear of liquid
+  //p1, p2 & p3 should remain close to each other until the reservoirs are empty
+  //when purging control loop should work off of Pressure4, but pressure1 otherwise
+#if 0
+  //temp. purge code. leave control loop where it is, need air to purge
+  remote_set_gpio(solenoid_AC, 1);
+  //remote_set_gpio(solenoid_AD, 1);
+  remote_set_gpio(solenoid_B, 0);
+  remote_set_gpio(solenoid_A, 1);
+#endif
+  //adcs
+  int P1 = 0, P2 = 1, P3 = 2, P4 = 3;
+
+  pid.p = 24;
+  pid.i = 1.0/1024;
+  pid.d = 1.0/16;
+  pid.isum = 0;
+
+  uint16_t dacVal;
+  int rail_24V = 15;
+  remote_set_gpio(rail_24V, 1); //should_24v_be_on = 1;
+  bool should_motor_run = 1;
+
+  state_startup:
+  remote_set_gpio(rail_24V, 1);
+  remote_set_gpio(motor_enable, 1);
+  remote_set_gpio(solenoid_B, 1);
+  remote_set_gpio(solenoid_A, 0);
+  remote_set_gpio(solenoid_C, 0);
+  int not_pressurized = 1;
+  puts("entering startup!");
+
+  //pressurize, when done goto enter_state_operational;
+  //TODO need to determine if pressure is really completed.
+  while(not_pressurized) {
+    pid.target = operating_pressure;
+    float hold_isum = pid.isum;
+    uint32_t adcRead = remote_get_adc(0);
+    float psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
+    ret = pi_supply(&pid, psi);
+
+    //convert back to 0-2^12 range for DAC
+    val = (uint32_t) (ret*1000.0);
+    should_motor_run = stall_val < val;
+    if (!should_motor_run) {
+      pid.isum = hold_isum;
+    }
+    dacVal = val > 0xfff ? 0xfff : val;
+    remote_set_dac(motor_dac, dacVal);
+
+    //float psiP2 = ((float)remote_get_adc(P2))*(3.0/10280.0*16.0) - 15.0/8.0;
+    //float psiP3 = ((float)remote_get_adc(P3))*(3.0/10280.0*16.0) - 15.0/8.0;
+    float psiP4 = ((float)remote_get_adc(P4))*(3.0/10280.0*16.0) - 15.0/8.0;
+    if(psiP4 > 4.9) {
+        puts("pressurization complete!");
+        current_status = OPERATIONAL;
+        send_status = true;
+        goto state_operational;
+    }
+  }
+
+  state_operational:
+  puts("entering operational state!");
+  remote_set_gpio(rail_24V, 1);
+  remote_set_gpio(motor_enable, 1);
+  remote_set_gpio(solenoid_B, 1);
+  remote_set_gpio(solenoid_A, 0);
+  remote_set_gpio(solenoid_C, 0);
+
+  int stay_operational = 1; //TODO change in response to DDS commands
+  while (stay_operational) {
+    pid.target = operating_pressure;
+    float hold_isum = pid.isum;
+    uint32_t adcRead = remote_get_adc(0);
+    float psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
+    ret = pi_supply(&pid, psi);
+
+    //convert back to 0-2^12 range for DAC
+    val = (uint32_t) (ret*1000.0);
+    should_motor_run = stall_val < val;
+    if (!should_motor_run) {
+      pid.isum = hold_isum;
+    }
+    dacVal = val > 0xfff ? 0xfff : val;
+    remote_set_dac(motor_dac, dacVal);
+    //TODO this thread waits on other threads in remote_ calls so it does not actually need this delay here
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    //TODO no predicate for leaving this, but leave in response to a message.
+    //TODO also leave after 20s for testing purposes
+    //goto state_purge;
+    printf("pressurizing psi to %f\n", psi);
+  }
+
+  state_purge:
+  //TODO purge does not quite complete, issues detecting if the lines are clear
+  //the five lines following purge both (although having both open causes an issue similar to blowing your nose)
+  remote_set_gpio(solenoid_C, 0);
+  remote_set_gpio(solenoid_A, 1);
+  remote_set_gpio(solenoid_B, 1);
+  //remote_set_gpio(solenoid_AD, 1);
+  //remote_set_gpio(solenoid_AC, 1);
+  //std::this_thread::sleep_for(std::chrono::milliseconds(60*1000));
+
+  //control loop off of P4, for AC then AD, a purge is done when P1 hits 0.01psi above atmo
+  const int purge_states = 2;
+  for (int purge_ix = 0; purge_ix < purge_states; purge_ix++) {
+    switch(purge_ix) {
+    case 0:
+      remote_set_gpio(solenoid_AC, 1);
+      remote_set_gpio(solenoid_AD, 0);
+      puts("Purging AC!");
+      break;
+    case 1:
+      remote_set_gpio(solenoid_AC, 0);
+      remote_set_gpio(solenoid_AD, 1);
+      puts("Purging AD!");
+      break;
+    default:
+      printf("unhandled case in purge_ix: %d\n", purge_ix);
+    }
+    bool purge_not_complete = 1;
+    while (purge_not_complete) {
+      pid.target = purge_pressure;
+      float hold_isum = pid.isum;
+      uint32_t adcRead = remote_get_adc(P3);
+      float psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
+      ret = pi_supply(&pid, psi);
+
+      //convert back to 0-2^12 range for DAC
+      val = (uint32_t) (ret*1000.0);
+      should_motor_run = stall_val < val;
+      if (!should_motor_run) {
+        pid.isum = hold_isum;
+      }
+      dacVal = val > 0xfff  ? 0xfff : val;
+      remote_set_dac(motor_dac, dacVal);
+
+      int adcP1 = remote_get_adc(P1);
+      int adcP2 = remote_get_adc(P2);
+      int adcP3 = remote_get_adc(P3);
+      int adcP4 = remote_get_adc(P4);
+      float psi1 = ((float)adcP1)*(3.0/10280.0*16.0) - 15.0/8.0;
+      float psi2 = ((float)adcP2)*(3.0/10280.0*16.0) - 15.0/8.0;
+      float psi3 = ((float)adcP3)*(3.0/10280.0*16.0) - 15.0/8.0;
+      float psi4 = ((float)adcP4)*(3.0/10280.0*16.0) - 15.0/8.0;
+      printf("psi1: %f\tpsi2: %f\tpsi3: %f\tpsi4: %f\n", psi1, psi2, psi3, psi4);
+      if (purge_ix == 0) {
+        purge_not_complete = psi2 > 0.22;
+      } else {
+        purge_not_complete = psi1 > 0.22;
+      }
+    }
+  }
+  remote_set_gpio(solenoid_AC, 0);
+  remote_set_gpio(solenoid_AD, 0);
+  goto state_error;
+
+  state_error:
+  //TODO turn off motor, close all solenoids, turn off 24V rail
+  remote_set_gpio(motor_enable, 0);
+  remote_set_gpio(rail_24V, 0);
+  for (int i = 0; i < SOLENOID_NUM;i++) remote_set_gpio(solenoid_0+i, 0);
+  current_status = HALTING_ERROR;
+  send_status = true;
+
+  while(1) {
+    puts("in error state!");
+    std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+  }
+}
