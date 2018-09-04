@@ -300,3 +300,6 @@ CTestTestfile.cmake
 
 # QT
 */qt-build/*
+
+#ctags
+src/tmtags*

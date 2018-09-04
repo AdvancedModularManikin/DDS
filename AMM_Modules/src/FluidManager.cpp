@@ -176,28 +176,20 @@ int main(int argc, char *argv[]) {
             mgr->GetCapabilitiesAsString("mule1/module_capabilities/fluid_manager_capabilities.xml")
     );
 
-    int count = 0;
     bool closed = 0;
     while (!closed) {
-
-        //TODO move status somewhere else
-#if 0
         if (send_status) {
             cout << "[FluidManager] Setting status to " << current_status << endl;
             send_status = false;
             mgr->SetStatus(nodeString, current_status);
         }
-#endif
-
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        ++count;
     }
     remote_thread.join();
     air_tank_thread.join();
     cout << "=== [FluidManager] Simulation stopped." << endl;
 
     return 0;
-
 }
 
 //code from air_tank.cpp initially copied here
@@ -269,22 +261,19 @@ air_reservoir_control_task(void)
   pid.isum = 0;
 
   uint16_t dacVal;
-  int rail_24V = 15; // TODO confirm
+  int rail_24V = 15;
   remote_set_gpio(rail_24V, 1); //should_24v_be_on = 1;
   bool should_motor_run = 1;
-  int times = 0; //loop counter to make sure operational lasts a little longer
-
-  enter_state_startup:
-  //TODO enable rail, motor
-  remote_set_gpio(rail_24V, 1);
-  remote_set_gpio(motor_enable, 1);
-  remote_set_gpio(solenoid_B, 1); 
-  remote_set_gpio(solenoid_A, 0);
-  remote_set_gpio(solenoid_C, 0);
-  int not_pressurized = 1; 
-  puts("entering startup!");
 
   state_startup:
+  remote_set_gpio(rail_24V, 1);
+  remote_set_gpio(motor_enable, 1);
+  remote_set_gpio(solenoid_B, 1);
+  remote_set_gpio(solenoid_A, 0);
+  remote_set_gpio(solenoid_C, 0);
+  int not_pressurized = 1;
+  puts("entering startup!");
+
   //pressurize, when done goto enter_state_operational;
   //TODO need to determine if pressure is really completed.
   while(not_pressurized) {
@@ -308,21 +297,20 @@ air_reservoir_control_task(void)
     float psiP4 = ((float)remote_get_adc(P4))*(3.0/10280.0*16.0) - 15.0/8.0;
     if(psiP4 > 4.9) {
         puts("pressurization complete!");
-        goto enter_state_operational;
+        current_status = OPERATIONAL;
+        send_status = true;
+        goto state_operational;
     }
   }
 
-  enter_state_operational:
-  //TODO set gpios for normal state
+  state_operational:
   puts("entering operational state!");
   remote_set_gpio(rail_24V, 1);
   remote_set_gpio(motor_enable, 1);
-  remote_set_gpio(solenoid_B, 1); 
+  remote_set_gpio(solenoid_B, 1);
   remote_set_gpio(solenoid_A, 0);
   remote_set_gpio(solenoid_C, 0);
-  
-  
-  state_operational:
+
   int stay_operational = 1; //TODO change in response to DDS commands
   while (stay_operational) {
     pid.target = operating_pressure;
@@ -344,11 +332,12 @@ air_reservoir_control_task(void)
 
     //TODO no predicate for leaving this, but leave in response to a message.
     //TODO also leave after 20s for testing purposes
-    //goto enter_state_purge;
+    //goto state_purge;
     printf("pressurizing psi to %f\n", psi);
   }
 
-  enter_state_purge:
+  state_purge:
+  //TODO purge does not quite complete, issues detecting if the lines are clear
   //the five lines following purge both (although having both open causes an issue similar to blowing your nose)
   remote_set_gpio(solenoid_C, 0);
   remote_set_gpio(solenoid_A, 1);
@@ -357,8 +346,7 @@ air_reservoir_control_task(void)
   //remote_set_gpio(solenoid_AC, 1);
   //std::this_thread::sleep_for(std::chrono::milliseconds(60*1000));
 
-  state_purge:
-  //TODO control loop off of P4, for AC then AD, a purge is done when P1 hits 0.01psi
+  //control loop off of P4, for AC then AD, a purge is done when P1 hits 0.01psi above atmo
   const int purge_states = 2;
   for (int purge_ix = 0; purge_ix < purge_states; purge_ix++) {
     switch(purge_ix) {
@@ -410,19 +398,18 @@ air_reservoir_control_task(void)
   }
   remote_set_gpio(solenoid_AC, 0);
   remote_set_gpio(solenoid_AD, 0);
-  goto enter_state_error;
+  goto state_error;
 
-  enter_state_error:
+  state_error:
   //TODO turn off motor, close all solenoids, turn off 24V rail
   remote_set_gpio(motor_enable, 0);
   remote_set_gpio(rail_24V, 0);
   for (int i = 0; i < SOLENOID_NUM;i++) remote_set_gpio(solenoid_0+i, 0);
-  state_error:
-  //TODO loop
+  current_status = HALTING_ERROR;
+  send_status = true;
+
   while(1) {
     puts("in error state!");
     std::this_thread::sleep_for(std::chrono::milliseconds(5000));
   }
-
-  //TODO don't need enter_ labels because each state has a structure [enter_state:, initialize, state:, while(...)] and the "while" suffices for state:
 }
