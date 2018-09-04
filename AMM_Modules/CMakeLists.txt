@@ -74,6 +74,8 @@ target_link_libraries(
 
 set(SPI_PROTO_SOURCES src/spi_proto/crc16.c src/spi_proto/spi_proto_lib/spi_proto.c src/spi_proto/config.h src/spi_proto/spi_proto.h)
 add_library(spi_proto ${SPI_PROTO_SOURCES})
+set(SPI_REMOTE_SOURCES src/spi_proto/spi_remote_host.c src/spi_proto/binary_semaphore.c src/spi_proto/spi_proto_master.cpp src/spi_proto/spi_proto_lib/spi_chunks.cpp)
+
 
 set(SIM_MANAGER_SOURCES src/SimManager.cpp src/AMM/SimulationManager.cpp)
 set(SIM_MANAGER_EXE amm_sim_manager)
@@ -94,7 +96,7 @@ target_link_libraries(${HEART_RATE_LED_EXE} spi_proto)
 
 set(FLUID_MANAGER_SOURCES src/FluidManager.cpp)
 set(FLUID_MANAGER_EXE amm_fluid_manager)
-add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES} src/spi_proto/spi_remote_host.c src/spi_proto/binary_semaphore.c src/spi_proto/spi_proto_master.cpp src/spi_proto/spi_proto_lib/spi_chunks.cpp)
+add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES} ${SPI_REMOTE_SOURCES})
 target_link_libraries(${FLUID_MANAGER_EXE} spi_proto)
 target_include_directories(${FLUID_MANAGER_EXE} PUBLIC src/spi_proto)
 set_target_properties(${FLUID_MANAGER_EXE} PROPERTIES
@@ -104,8 +106,9 @@ set_target_properties(${FLUID_MANAGER_EXE} PROPERTIES
 
 set(IVC_MODULE_SOURCES src/IVC.cpp)
 set(IVC_MODULE_EXE amm_ivc_module)
-add_executable(${IVC_MODULE_EXE} ${IVC_MODULE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+add_executable(${IVC_MODULE_EXE} ${IVC_MODULE_SOURCES} ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES} ${SPI_REMOTE_SOURCES})
 target_link_libraries(${IVC_MODULE_EXE} spi_proto)
+target_include_directories(${IVC_MODULE_EXE} PUBLIC src/spi_proto)
 set_target_properties(${IVC_MODULE_EXE} PROPERTIES
         CXX_STANDARD 14
         CXX_STANDARD_REQUIRED ON

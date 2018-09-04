@@ -23,7 +23,7 @@ extern "C" {
 #include "spi_proto/binary_semaphore.h"
 #include "spi_proto/spi_remote.h"
 }
-#include "master_spi_proto.h"
+#include "spi_proto/spi_proto_master.h"
 
 #include <sys/ioctl.h>
 #include <linux/types.h>
@@ -33,7 +33,6 @@ extern "C" {
 
 using namespace std;
 using namespace std::literals::string_literals;
-using namespace spi_proto;
 
 class IVCListener;
 
@@ -51,9 +50,7 @@ bool pressurized = false;
 float total_flow = 0, last_flow_change = 0;
 
 //TODO move these to config - variables that define peripherals on the tiny or are needed for remote
-int vein_sol_gpio = 0;//TODO
-#define NUM_WAIT_CHUNKS 10
-struct waiting_chunk wait_chunks[NUM_WAIT_CHUNKS] = {0};
+int vein_sol_gpio = 0;//TODO check which one it actually is
 void send_chunk(void*, int);
 
 #define IVC_STATUS_WAITING  0
@@ -100,27 +97,6 @@ bool ivc_waiting = 1;
 
 void
 bleed_task(void);
-void
-remote_task(void);
-
-struct host_remote remote;
-
-int spi_transfer(int fd, const unsigned char *tx_buf, unsigned char *rx_buf, __u32 buflen) {
-    int ret;
-    struct spi_ioc_transfer tr = {
-            tx_buf : (unsigned long) tx_buf,
-            rx_buf : (unsigned long) rx_buf,
-            len : TRANSFER_SIZE, speed_hz : speed,
-            delay_usecs : delay, bits_per_word : bits,
-    };
-
-    ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-    if (ret < 1)
-        perror("can't send spi message");
-    return ret;
-}
-
-struct spi_state spi_state;
 
 //TODO rename
 void send_ivc_spi(unsigned char status)
@@ -331,35 +307,14 @@ delay_ms(unsigned int ms)
 {
   std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
-
-uint32_t
-remote_read_adc(unsigned int ix)
-{
-  uint8_t buf[4] = {4, CHUNK_TYPE_ADC, ix, OP_GET};
-  send_chunk(buf, 4);
-  bisem_wait(&remote.adc[ix].sem);
-  return remote.adc[ix].last_read;
-}
-
-//TODO this should be extended to all types and it should 
-int gpio_A_7;
-void
-remote_gpio_set(int gpio, int on)
-{
-  //TODO double check message format here
-  uint8_t buf[5] = {5, CHUNK_TYPE_GPIO, gpio, OP_SET, on};
-  send_chunk(buf, 5);
-  bisem_wait(&remote.gpio[gpio].sem);
-  return;
-}
-
 void
 bleed_task(void)
 {
   uint8_t vein_sol = 7; //struct solenoid::solenoid &vein_sol = solenoids[7];
   
   //enable 24V rail
-  remote_gpio_set(gpio_A_7, 1); //GPIO_SetPinsOutput(GPIOA, 1U<<7U);
+  int rail_24V = 15;
+  remote_set_gpio(rail_24V, 1);
   
   
   //module logic:
@@ -373,23 +328,23 @@ bleed_task(void)
       delay_ms(100);
     
     
-    uint32_t adcRead = remote_read_adc(0); //uint32_t adcRead = carrier_sensors[0].raw_pressure;
+    uint32_t adcRead = remote_get_adc(0); //uint32_t adcRead = carrier_sensors[0].raw_pressure;
     vein_psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
     if (vein_psi < bleed_pressure) {
-      remote_gpio_set(vein_sol_gpio, 1); // TODO this is a solenoid, open might be 0?
+      remote_set_gpio(vein_sol_gpio, 1); // TODO this is a solenoid, open might be 0?
       do {
         //this is to support pausing.
         if (ivc_waiting) {
-          remote_gpio_set(vein_sol_gpio, 0);
+          remote_set_gpio(vein_sol_gpio, 0);
           //TODO use semaphore here?
           while (ivc_waiting) delay_ms(50); //this is triggered elsewhere and not by weird k66 stuff
-          remote_gpio_set(vein_sol_gpio, 1);
+          remote_set_gpio(vein_sol_gpio, 1);
         }
         delay_ms(pressurization_quantum); //TODO modify to account for comms delay?
-        adcRead = remote_read_adc(0); //adcRead = carrier_sensors[0].raw_pressure;
+        adcRead = remote_get_adc(0); //adcRead = carrier_sensors[0].raw_pressure;
         vein_psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
       } while(vein_psi < bleed_pressure);
-      remote_gpio_set(vein_sol_gpio, 0);
+      remote_set_gpio(vein_sol_gpio, 0);
     }
     
     pressurized = 1;
@@ -408,83 +363,3 @@ TODO flow processing
   PublishNodeData("IVC_TOTAL_BLOOD_LOSS", total_flow);
 }
 */
-
-
-int
-ivc_chunk_handler(uint8_t *b, size_t len)
-{
-  remote_chunk_handler(&remote, b, len);
-}
-
-void
-remote_handler(struct host_remote *r, struct spi_packet *p)
-{
-  spi_msg_chunks(p->msg, SPI_PAYLOAD_LEN, ivc_chunk_handler);
-}
-
-void
-ivc_remote(struct spi_packet *p)
-{
-  remote_handler(&remote, p);
-}
-
-//TODO convert to master
-int
-send_chunk(uint8_t *buf, size_t len)
-{
-	//find an open waiting_chunk in waiting_chunks and copy it in
-	for (int i = 0; i < NUM_WAIT_CHUNKS; i++) {
-		if (!wait_chunks[i].ready_to_pack) {
-			memcpy(wait_chunks[i].buf, buf, len);
-			wait_chunks[i].buf[0] = len; // just in case
-			wait_chunks[i].ready_to_pack = 1;
-			return 0;
-		}
-	}
-	return -1;
-}
-
-namespace spi_proto {
-int
-master_send_message(struct master_spi_proto &p, unsigned char *buf, unsigned int len)
-{
-	return spi_proto_send_msg(&p.proto, buf, len);
-}
-}
-
-int
-prepare_master_chunks(void)
-{
-	uint8_t buf[SPI_MSG_PAYLOAD_LEN];
-	int ret2, ret1 = chunk_packer(wait_chunks, NUM_WAIT_CHUNKS, buf, SPI_MSG_PAYLOAD_LEN);
-	if (ret1) ret2 = master_send_message(spi_proto::p, buf, SPI_MSG_PAYLOAD_LEN);
-	return ret1|ret2;
-}
-
-void
-remote_task(void)
-{
-  int spi_fd = open(device, O_RDWR);
-  unsigned char recvbuf[TRANSFER_SIZE];
-  unsigned char sendbuf[TRANSFER_SIZE] = {};
-  struct spi_state *s = &spi_state;
-  spi_proto_initialize(s);
-  
-  int count = 0;
-  bool closed = 0;
-  while (!closed) {
-    prepare_master_chunks();
-    int ret = spi_proto_prep_msg(s, sendbuf, TRANSFER_SIZE);
-    //TODO currently no code sends the start command
-    
-    //do SPI communication
-    int spi_tr_res = spi_transfer(spi_fd, sendbuf, recvbuf, TRANSFER_SIZE);
-    
-    struct spi_packet pack;
-    memcpy(&pack, recvbuf, TRANSFER_SIZE);
-    spi_proto_rcv_msg(s, &pack, ivc_remote);
-    
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    ++count;
-  }
-}

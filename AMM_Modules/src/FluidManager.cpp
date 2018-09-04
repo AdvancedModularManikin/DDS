@@ -27,7 +27,8 @@ int daemonize = 1;
 const string loadScenarioPrefix = "LOAD_SCENARIO:";
 const string haltingString = "HALTING_ERROR";
 
-float operating_pressure = 5.0;
+float operating_pressure = 15.0;
+float purge_pressure = 15.0;
 bool have_pressure = 0;
 AMM::Capability::status_values current_status;
 
@@ -320,6 +321,7 @@ air_reservoir_control_task(void)
   remote_set_gpio(solenoid_A, 0);
   remote_set_gpio(solenoid_C, 0);
   
+  
   state_operational:
   int stay_operational = 1; //TODO change in response to DDS commands
   while (stay_operational) {
@@ -342,7 +344,8 @@ air_reservoir_control_task(void)
 
     //TODO no predicate for leaving this, but leave in response to a message.
     //TODO also leave after 20s for testing purposes
-    goto enter_state_purge;
+    //goto enter_state_purge;
+    printf("pressurizing psi to %f\n", psi);
   }
 
   enter_state_purge:
@@ -374,9 +377,9 @@ air_reservoir_control_task(void)
     }
     bool purge_not_complete = 1;
     while (purge_not_complete) {
-      pid.target = operating_pressure;
+      pid.target = purge_pressure;
       float hold_isum = pid.isum;
-      uint32_t adcRead = remote_get_adc(P4);
+      uint32_t adcRead = remote_get_adc(P3);
       float psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
       ret = pi_supply(&pid, psi);
 
@@ -391,9 +394,13 @@ air_reservoir_control_task(void)
 
       int adcP1 = remote_get_adc(P1);
       int adcP2 = remote_get_adc(P2);
+      int adcP3 = remote_get_adc(P3);
+      int adcP4 = remote_get_adc(P4);
       float psi1 = ((float)adcP1)*(3.0/10280.0*16.0) - 15.0/8.0;
       float psi2 = ((float)adcP2)*(3.0/10280.0*16.0) - 15.0/8.0;
-      printf("psi1: %f\tpsi2: %f\n",psi1, psi2);
+      float psi3 = ((float)adcP3)*(3.0/10280.0*16.0) - 15.0/8.0;
+      float psi4 = ((float)adcP4)*(3.0/10280.0*16.0) - 15.0/8.0;
+      printf("psi1: %f\tpsi2: %f\tpsi3: %f\tpsi4: %f\n", psi1, psi2, psi3, psi4);
       if (purge_ix == 0) {
         purge_not_complete = psi2 > 0.22;
       } else {
