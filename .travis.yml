@@ -1,0 +1,12 @@
+language: cpp
+dist: trusty
+sudo: required
+
+install: pushd travis_scripts && fastrtps.sh && popd
+script: pushd travis_scripts && build.sh && popd
+
+addons:
+  apt:
+    packages:
+      - libboost-all-dev
+      - libtinyxml2-dev
