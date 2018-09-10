@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
+cd ../AMM_Modules
 git clone https://github.com/eProsima/Fast-RTPS
-pushd Fast-RTPS
-mkdir build && pushd build
+cd Fast-RTPS
+mkdir build && cd build
 cmake -DTHIRDPARTY=ON -DBUILD_JAVA=ON .. 
 make
-make install
-popd && popd
+sudo make install

@@ -2,7 +2,7 @@ language: cpp
 dist: trusty
 sudo: required
 
-install: travis_scripts/fastrtps.sh
+before_install: travis_scripts/fastrtps.sh
 script:
   - mkdir AMM_Modules/build && cd AMM_Modules/build 
   - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
