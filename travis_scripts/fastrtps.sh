@@ -4,5 +4,5 @@ git clone https://github.com/eProsima/Fast-RTPS
 cd Fast-RTPS
 mkdir build && cd build
 cmake -DTHIRDPARTY=ON -DBUILD_JAVA=ON .. 
-make
+sudo make
 sudo make install
