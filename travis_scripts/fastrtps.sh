@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-cd ../AMM_Modules
+cd AMM_Modules
 git clone --recursive https://github.com/eProsima/Fast-RTPS
 cd Fast-RTPS
 mkdir build && cd build
