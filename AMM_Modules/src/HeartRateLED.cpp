@@ -74,7 +74,7 @@ class HeartRateListener : public ListenerInterface {
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
         if (c.message() == tourniquet_action) {
             tourniquet = true;
         }

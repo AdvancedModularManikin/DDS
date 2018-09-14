@@ -114,7 +114,7 @@ namespace AMM {
 
 
 // Listener events
-    void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+    void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             LOG_INFO << "We received a SYSTEM action: " << value;

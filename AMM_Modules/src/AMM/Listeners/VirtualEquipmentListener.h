@@ -18,7 +18,7 @@ public:
 
     void onNewNodeData(AMM::Physiology::Node n);
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c);
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info);
 
     void onNewTickData(AMM::Simulation::Tick t);
 

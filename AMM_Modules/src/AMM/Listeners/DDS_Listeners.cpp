@@ -50,7 +50,7 @@ void DDS_Listeners::CommandSubListener::onNewDataMessage(Subscriber *sub) {
     if (sub->takeNextData(&cm, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewCommandData(cm);
+                upstream->onNewCommandData(cm, &m_info);
             }
             ++n_msg;
         }

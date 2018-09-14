@@ -41,6 +41,8 @@
 
 #include <fastrtps/rtps/participant/RTPSParticipant.h>
 
+#include <chrono>
+
 #include "AMM/BaseLogger.h"
 
 #include "AMM/DataTypes.h"
@@ -60,7 +62,9 @@
 
 #include <thirdparty/sqlite_modern_cpp.h>
 
+
 using namespace std;
+using namespace std::chrono;
 using namespace boost::filesystem;
 using namespace rapidjson;
 using namespace Pistache;
@@ -90,9 +94,16 @@ std::string state_path = "./states/";
 std::string patient_path = "./patients/";
 std::string dataKey = "name";
 
-std::vector<std::string> actions;
+struct logEntry {
+    GUID_t source;
+    int64_t tick;
+    std::chrono::milliseconds timestamp;
+    std::string data;
+};
 
 std::map<std::string, double> nodeDataStorage;
+std::vector<logEntry> eventLog;
+std::vector<std::string> actions;
 
 std::map<std::string, std::string> statusStorage = {
         {"STATUS",       "NOT RUNNING"},
@@ -119,7 +130,21 @@ class AMMListener : public ListenerInterface {
         statusStorage["TIME"] = to_string(t.time());
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
+        milliseconds timestamp = duration_cast<milliseconds>(
+                system_clock::now().time_since_epoch()
+        );
+        GUID_t changeGuid;
+        iHandle2GUID(changeGuid, info->iHandle);
+
+        logEntry newLogEntry{
+                changeGuid,
+                lastTick,
+                timestamp,
+                c.message()
+        };
+        eventLog.push_back(newLogEntry);
+
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
@@ -206,6 +231,8 @@ private:
         Routes::Get(router, "/command/:name", Routes::bind(&DDSEndpoint::issueCommand, this));
         Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
         Routes::Get(router, "/debug", Routes::bind(&DDSEndpoint::doDebug, this));
+
+        Routes::Get(router, "/events", Routes::bind(&DDSEndpoint::getEventLog, this));
 
         Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
 
@@ -437,6 +464,34 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
+    void getEventLog(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+
+        std::ostringstream entityIdstring;
+
+        auto eventit = eventLog.begin();
+        while (eventit != eventLog.end()) {
+            writer.StartObject();
+            writer.Key("source");
+            entityIdstring << (*eventit).source.entityId;
+            writer.String(entityIdstring.str().c_str());
+            writer.Key("tick");
+            writer.Double((*eventit).tick);
+            writer.Key("timestamp");
+            writer.Uint((*eventit).timestamp.count());
+            writer.Key("message");
+            writer.String((*eventit).data.c_str());
+            writer.EndObject();
+            ++eventit;
+        }
+
+        writer.EndArray();
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
     void getNodes(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
@@ -593,6 +648,19 @@ int main(int argc, char *argv[]) {
     m_runThread = true;
 
     server.start();
+
+    milliseconds timestamp = duration_cast<milliseconds>(
+            system_clock::now().time_since_epoch()
+    );
+
+    GUID_t testGUID;
+    logEntry newLogEntry{
+            testGUID,
+            0,
+            timestamp,
+            "THIS IS A TEST LOG ENTRY AT TICK 0"
+    };
+    eventLog.push_back(newLogEntry);
 
     while (m_runThread) {
         getline(cin, action);

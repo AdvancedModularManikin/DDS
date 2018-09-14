@@ -174,7 +174,7 @@ public:
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
         LOG_INFO << "[COMMAND]" << c.message();
     }
 

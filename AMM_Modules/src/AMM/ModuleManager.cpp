@@ -81,7 +81,7 @@ namespace AMM {
     }
 
 
-    void ModuleManager::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+    void ModuleManager::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             LOG_TRACE << "[ModuleManager][COMMAND] We received a SYSTEM action: " << value;

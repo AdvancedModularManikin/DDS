@@ -3,7 +3,7 @@
 using namespace sqlite;
 
 
-void CaptureListener::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+void CaptureListener::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
     LOG_TRACE << "[CAPTURE][COMMAND]" << c.message();
 }
 

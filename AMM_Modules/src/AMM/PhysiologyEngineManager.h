@@ -58,7 +58,7 @@ namespace AMM {
 
         void onNewNodeData(AMM::Physiology::Node n) override;
         void onNewTickData(AMM::Simulation::Tick ti) override;
-        void onNewCommandData(AMM::PatientAction::BioGears::Command cm) override;
+        void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) override;
         void onNewInstrumentData(AMM::InstrumentData i) override;
 
         std::map<std::string, double (AMM::PhysiologyThread::*)()> *nodePathMap;

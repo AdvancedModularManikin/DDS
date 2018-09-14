@@ -223,7 +223,7 @@ namespace AMM {
         // Placeholder to listen for higher-weighted node data
     }
 
-    void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm) {
+    void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {
         LOG_INFO << "Command received: " << cm.message();
         if (!cm.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = cm.message().substr(sysPrefix.size());

@@ -178,7 +178,7 @@ void ProcessConfig(const std::string configContent) {
 
 class IVCListener : public ListenerInterface {
   
-  void onNewCommandData(AMM::PatientAction::BioGears::Command c) override {
+  void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
     // We received configuration which we need to push via SPI
     if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
       std::string value = c.message().substr(sysPrefix.size());

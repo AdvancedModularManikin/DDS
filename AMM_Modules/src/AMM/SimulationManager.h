@@ -48,7 +48,7 @@ namespace AMM {
 
         void TickLoop();
 
-        void onNewCommandData(AMM::PatientAction::BioGears::Command c) override;
+        void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override;
 
         std::string currentScenario;
 

@@ -10,7 +10,7 @@ void VirtualEquipmentListener::onNewNodeData(AMM::Physiology::Node n) {
 
 }
 
-void VirtualEquipmentListener::onNewCommandData(AMM::PatientAction::BioGears::Command c) {
+void VirtualEquipmentListener::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
     cout << "[COMMAND]" << c.message() << endl;
 }
 

@@ -19,7 +19,7 @@ public:
 
     virtual void onNewTickData(AMM::Simulation::Tick ti) {};
 
-    virtual void onNewCommandData(AMM::PatientAction::BioGears::Command cm) {};
+    virtual void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t* info) {};
 
     virtual void onNewStatusData(AMM::Capability::Status st) {};
 
