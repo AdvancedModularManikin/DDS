@@ -469,13 +469,12 @@ private:
         Writer<StringBuffer> writer(s);
         writer.StartArray();
 
-        std::ostringstream entityIdstring;
-
         auto eventit = eventLog.begin();
         while (eventit != eventLog.end()) {
+            std::ostringstream entityIdstring;
+            entityIdstring << (*eventit).source.entityId;
             writer.StartObject();
             writer.Key("source");
-            entityIdstring << (*eventit).source.entityId;
             writer.String(entityIdstring.str().c_str());
             writer.Key("tick");
             writer.Double((*eventit).tick);
