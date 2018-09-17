@@ -1,0 +1,16 @@
+language: cpp
+dist: trusty
+sudo: required
+
+before_install:
+  - mkdir AMM_Modules/build && cd AMM_Modules/build
+  - ../../travis_scripts/fastrtps.sh
+script:
+  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+  - make
+
+addons:
+  apt:
+    packages:
+      - libboost-all-dev
+      - libtinyxml2-dev
