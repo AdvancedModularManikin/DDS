@@ -7,7 +7,7 @@ void CaptureListener::onNewCommandData(AMM::PatientAction::BioGears::Command c, 
     LOG_TRACE << "[CAPTURE][COMMAND]" << c.message();
 }
 
-void CaptureListener::onNewStatusData(AMM::Capability::Status st) {
+void CaptureListener::onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) {
     database db("amm.db");
     LOG_TRACE << "[CAPTURE][STATUS] Received a status message";
     ostringstream statusValue;
@@ -22,7 +22,7 @@ void CaptureListener::onNewStatusData(AMM::Capability::Status st) {
     }
 };
 
-void CaptureListener::onNewConfigData(AMM::Capability::Configuration cfg) {
+void CaptureListener::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
     database db("amm.db");
     LOG_TRACE << "[CAPTURE][CONFIG] Received a config message ";
     try {

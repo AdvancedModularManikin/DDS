@@ -74,9 +74,9 @@ namespace AMM {
         void SetStatus(AMM::Capability::Status statusInstance);
 
         /** Helpers for publishing common data types **/
-        void PublishPhysicalFinding(AMM::Display::PhysicalFinding findingInstance);
+        void PublishRenderModification(AMM::Render::Modification modInstance);
 
-        void PublishPhysiologyAction(AMM::Physiology::Action actionInstance);
+        void PublishPhysiologyModification(AMM::Physiology::Modification modInstance);
 
         void PublishPerformanceData(AMM::Performance::Assessment assessmentInstance);
 

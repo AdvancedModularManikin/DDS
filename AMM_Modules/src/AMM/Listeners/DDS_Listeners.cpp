@@ -28,7 +28,7 @@ void DDS_Listeners::NodeSubListener::onNewDataMessage(Subscriber *sub) {
     if (sub->takeNextData(&n, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewNodeData(n);
+                upstream->onNewNodeData(n, &m_info);
             }
             ++n_msg;
         }
@@ -72,7 +72,7 @@ void DDS_Listeners::TickSubListener::onNewDataMessage(Subscriber *sub) {
     if (sub->takeNextData(&ti, &m_info)) {
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewTickData(ti);
+                upstream->onNewTickData(ti, &m_info);
             }
             ++n_msg;
         }
@@ -94,7 +94,7 @@ void DDS_Listeners::StatusSubListener::onNewDataMessage(Subscriber *sub) {
         ++n_msg;
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewStatusData(st);
+                upstream->onNewStatusData(st, &m_info);
             }
         }
     }
@@ -116,7 +116,7 @@ void DDS_Listeners::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
         ++n_msg;
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewConfigData(cfg);
+                upstream->onNewConfigData(cfg, &m_info);
             }
 
         }
@@ -140,7 +140,7 @@ void DDS_Listeners::ScenarioSubListener::onNewDataMessage(Subscriber *sub) {
         ++n_msg;
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewScenarioData(sc);
+                upstream->onNewScenarioData(sc, &m_info);
             }
 
         }
@@ -165,7 +165,7 @@ void DDS_Listeners::EquipmentSubListener::onNewDataMessage(Subscriber *sub) {
         ++n_msg;
         if (m_info.sampleKind == ALIVE) {
             if (upstream != nullptr) {
-                upstream->onNewInstrumentData(i);
+                upstream->onNewInstrumentData(i, &m_info);
             }
         }
     }

@@ -219,7 +219,7 @@ namespace AMM {
 
 
 // Listener events
-    void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n) {
+    void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {
         // Placeholder to listen for higher-weighted node data
     }
 
@@ -260,7 +260,7 @@ namespace AMM {
         }
     }
 
-    void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti) {
+    void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {
         if (m_runThread) {
             if (ti.frame() == -1) {
                 StopTickSimulation();
@@ -295,7 +295,7 @@ namespace AMM {
         bg->SetVentilator(ventilatorSettings);
     }
 
-    void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i) {
+    void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i, SampleInfo_t *info) {
         LOG_TRACE << "Instrument data for " << i.instrument() << " received with payload: " << i.payload();
         std::string instrument(i.instrument());
         if (instrument == "ventilator") {

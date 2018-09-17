@@ -91,7 +91,7 @@ namespace AMM {
 
     }
 
-    void ModuleManager::onNewStatusData(AMM::Capability::Status st) {
+    void ModuleManager::onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info)  {
         ostringstream statusValue;
         statusValue << st.status_value();
         try {
@@ -106,7 +106,7 @@ namespace AMM {
         }
     }
 
-    void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg) {
+    void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
         try {
             database db("amm.db");
             db

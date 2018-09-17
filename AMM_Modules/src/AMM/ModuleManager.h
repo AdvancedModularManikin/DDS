@@ -48,9 +48,9 @@ namespace AMM {
 
         void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override;
 
-        void onNewStatusData(AMM::Capability::Status st) override;
+        void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) override;
 
-        void onNewConfigData(AMM::Capability::Configuration cfg) override;
+        void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override;
 
         std::string currentScenario;
 

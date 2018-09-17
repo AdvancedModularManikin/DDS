@@ -231,7 +231,7 @@ void sendConfigToAll(std::string scene) {
  */
 class TCPBridgeListener : public ListenerInterface {
 public:
-    void onNewNodeData(AMM::Physiology::Node n) override {
+    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t* info) override {
         if (n.nodepath() == "EXIT") {
             LOG_INFO << "Shutting down simulation based on shutdown node-data from physiology engine.";
             closed = true;

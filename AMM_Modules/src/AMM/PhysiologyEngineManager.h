@@ -56,10 +56,10 @@ namespace AMM {
 
         void TestVentilator(const std::string &ventilatorSettings);
 
-        void onNewNodeData(AMM::Physiology::Node n) override;
-        void onNewTickData(AMM::Simulation::Tick ti) override;
+        void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override;
+        void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) override;
         void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) override;
-        void onNewInstrumentData(AMM::InstrumentData i) override;
+        void onNewInstrumentData(AMM::InstrumentData i, SampleInfo_t *info) override;
 
         std::map<std::string, double (AMM::PhysiologyThread::*)()> *nodePathMap;
 

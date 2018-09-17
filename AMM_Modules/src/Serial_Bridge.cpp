@@ -244,7 +244,7 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
 class GenericSerialListener : public ListenerInterface {
 public:
 
-    void onNewNodeData(AMM::Physiology::Node n) override {
+    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         if (n.nodepath() == "EXIT") {
             LOG_INFO << "Shutting down simulation based on shutdown node-data from physiology engine.";
             closed = true;

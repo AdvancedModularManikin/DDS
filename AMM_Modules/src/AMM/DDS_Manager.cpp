@@ -191,11 +191,11 @@ namespace AMM {
         }
     }
 
-    void DDS_Manager::PublishPhysicalFinding(AMM::Display::PhysicalFinding findingInstance) {
+    void DDS_Manager::PublishRenderModification(AMM::Render::Modification modInstance) {
 
     }
 
-    void DDS_Manager::PublishPhysiologyAction(AMM::Physiology::Action actionInstance) {
+    void DDS_Manager::PublishPhysiologyModification(AMM::Physiology::Modification modInstance) {
 
     }
 
