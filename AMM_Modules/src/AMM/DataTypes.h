@@ -16,6 +16,7 @@ using namespace AMM::Performance;
 using namespace AMM::Resource::Requirement;
 using namespace AMM::Resource::Supply;
 using namespace AMM::Capability;
+using namespace AMM::Render;
 
 namespace AMM {
     class DataTypes {
@@ -55,6 +56,9 @@ namespace AMM {
         // AMM Instrument Data type
         static AMM::InstrumentDataPubSubType* getInstrumentDataType();
 
+        static AMM::Render::ModificationPubSubType* getRenderModType();
+        static AMM::Physiology::ModificationPubSubType* getPhysModType();
+
         // Topic names
         static std::string tickTopic;
 
@@ -80,6 +84,9 @@ namespace AMM {
         static std::string statusTopic;
         static std::string configurationTopic;
         static std::string scenarioTopic;
+
+        static std::string renderModTopic;
+        static std::string physModTopic;
 
         static std::string instrumentDataTopic;
     };

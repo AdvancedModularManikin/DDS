@@ -28,6 +28,9 @@ std::string AMM::DataTypes::scenarioTopic = "Scenario";
 
 std::string AMM::DataTypes::instrumentDataTopic = "InstrumentData";
 
+std::string AMM::DataTypes::renderModTopic = "RenderModification";
+std::string AMM::DataTypes::physModTopic = "PhysiologyModification";
+
 AMM::Simulation::TickPubSubType *AMM::DataTypes::getTickType() {
     return new TickPubSubType();
 }
@@ -110,4 +113,12 @@ AMM::Capability::ScenarioPubSubType *AMM::DataTypes::getScenarioType() {
 
 AMM::InstrumentDataPubSubType *AMM::DataTypes::getInstrumentDataType() {
     return new InstrumentDataPubSubType();
+};
+
+AMM::Render::ModificationPubSubType *AMM::DataTypes::getRenderModType() {
+  return new AMM::Render::ModificationPubSubType();
+};
+
+AMM::Physiology::ModificationPubSubType *AMM::DataTypes::getPhysModType() {
+  return new AMM::Physiology::ModificationPubSubType();
 };
