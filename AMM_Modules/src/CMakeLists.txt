@@ -36,7 +36,8 @@ endforeach (idl)
 set(DDS_MANAGER dds_manager)
 set(DDS_MANAGER_SOURCES AMM/DDS_Manager.cpp AMM/Listeners/DDS_Listeners.cpp AMM/Listeners/ListenerInterface.h)
 set(DDS_TYPE_SOURCES AMM/DataTypes.cpp AMM/DataTypes.h)
-add_library(amm_types SHARED ${DATAMODEL_SOURCES} ${DDS_MANAGER_SOURCES} ${DDS_TYPE_SOURCES})
+
+add_library(amm_types SHARED ${DATAMODEL_SOURCES} ${DDS_TYPE_SOURCES})
 add_library(amm::datamodel ALIAS amm_types)
 add_dependencies(amm_types  versionFileTouchForRebuild )
 target_link_libraries(

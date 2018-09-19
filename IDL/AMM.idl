@@ -82,8 +82,11 @@ module AMM {
 			};
 		};
 
-        struct Action {
+        struct Modification {
+			@Key UUID id;
             FMA_Location location;
+			string practitioner;
+			string type;
             string payload;
         };
 
@@ -104,15 +107,14 @@ module AMM {
         };
     };
 
-    module Display
+    module Render
     {
-        struct Generic {
-            string payload;
-        };
-
-        struct PhysicalFinding {
-            string payload;
+        struct Modification {			
+			@Key UUID id;
             FMA_Location location;
+			string practitioner;
+			string type;
+			string payload;
         };
     };
 
