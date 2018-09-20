@@ -60,6 +60,7 @@ namespace AMM {
         void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) override;
         void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) override;
         void onNewInstrumentData(AMM::InstrumentData i, SampleInfo_t *info) override;
+        void onNewPhysiologyModificationData(AMM::Physiology::Modification, SampleInfo_t *info) override;
 
         std::map<std::string, double (AMM::PhysiologyThread::*)()> *nodePathMap;
 
@@ -72,6 +73,7 @@ namespace AMM {
         Subscriber *tick_subscriber;
         Subscriber *command_subscriber;
         Subscriber *equipment_subscriber;
+        Subscriber *physmod_subscriber;
 
         std::mutex m_mutex;
         bool m_runThread;

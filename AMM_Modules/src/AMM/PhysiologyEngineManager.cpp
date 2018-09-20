@@ -23,6 +23,9 @@ namespace AMM {
         auto *equipment_sub_listener = new DDS_Listeners::EquipmentSubListener();
         equipment_sub_listener->SetUpstream(this);
 
+        auto *physmod_sub_listener = new DDS_Listeners::PhysiologyModificationListener();
+        physmod_sub_listener->SetUpstream(this);
+
         auto *pub_listener = new DDS_Listeners::PubListener();
 
         tick_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(),
@@ -32,6 +35,10 @@ namespace AMM {
         equipment_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::instrumentDataTopic,
                                                          AMM::DataTypes::getInstrumentDataType(),
                                                          equipment_sub_listener);
+
+        physmod_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::physModTopic,
+                                                         AMM::DataTypes::getPhysiologyModificationType(),
+                                                         physmod_sub_listener);
 
         node_publisher = mgr->InitializePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
                                                   pub_listener);
@@ -221,6 +228,11 @@ namespace AMM {
 // Listener events
     void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {
         // Placeholder to listen for higher-weighted node data
+    }
+
+    void PhysiologyEngineManager::onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) {
+        LOG_INFO << "Physiology modification received: " << pm.payload();
+        bg->ExecuteXMLCommand(pm.payload());
     }
 
     void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {

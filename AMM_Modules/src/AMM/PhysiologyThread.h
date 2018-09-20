@@ -10,6 +10,7 @@
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/filesystem.hpp>
 
 // BioGears core
 #include <biogears/cdm/CommonDataModel.h>
@@ -101,6 +102,8 @@ namespace AMM {
         bool SaveState(const std::string &stateFile);
 
         bool SaveState();
+
+        bool ExecuteXMLCommand(const std::string &cmd);
 
         bool ExecuteCommand(const std::string &cmd);
 
