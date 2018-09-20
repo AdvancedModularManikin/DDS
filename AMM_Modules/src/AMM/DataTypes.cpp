@@ -110,15 +110,18 @@ AMM::Capability::ScenarioPubSubType *AMM::DataTypes::getScenarioType() {
     return new ScenarioPubSubType();
 };
 
+AMM::Performance::AssessmentPubSubType *AMM::DataTypes::getPerformanceAssessmentDataType() {
+    return new AssessmentPubSubType();
+}
 
 AMM::InstrumentDataPubSubType *AMM::DataTypes::getInstrumentDataType() {
     return new InstrumentDataPubSubType();
 };
 
-AMM::Render::ModificationPubSubType *AMM::DataTypes::getRenderModType() {
+AMM::Render::ModificationPubSubType *AMM::DataTypes::getRenderModificationType() {
   return new AMM::Render::ModificationPubSubType();
 };
 
-AMM::Physiology::ModificationPubSubType *AMM::DataTypes::getPhysModType() {
+AMM::Physiology::ModificationPubSubType *AMM::DataTypes::getPhysiologyModificationType() {
   return new AMM::Physiology::ModificationPubSubType();
 };

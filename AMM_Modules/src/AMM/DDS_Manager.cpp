@@ -25,6 +25,18 @@ namespace AMM {
 
         auto *pub_listener = new DDS_Listeners::PubListener();
 
+        perfdata_publisher = InitializePublisher(AMM::DataTypes::performanceTopic,
+                                                AMM::DataTypes::getPerformanceAssessmentDataType(),
+                                                pub_listener);
+
+        physmod_publisher = InitializePublisher(AMM::DataTypes::physModTopic,
+                                                AMM::DataTypes::getPhysiologyModificationType(),
+                                                pub_listener);
+
+        render_publisher = InitializePublisher(AMM::DataTypes::renderModTopic,
+                                               AMM::DataTypes::getRenderModificationType(),
+                                               pub_listener);
+
         config_publisher = InitializePublisher(AMM::DataTypes::configurationTopic,
                                                AMM::DataTypes::getConfigurationType(),
                                                pub_listener);
@@ -76,6 +88,10 @@ namespace AMM {
 
         // AMM instrument data type
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getInstrumentDataType());
+
+        // AMM Modification data types
+        Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getPhysiologyModificationType());
+        Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getRenderModificationType());
 
     }
 
@@ -192,15 +208,15 @@ namespace AMM {
     }
 
     void DDS_Manager::PublishRenderModification(AMM::Render::Modification modInstance) {
-
+        render_publisher->write(&modInstance);
     }
 
     void DDS_Manager::PublishPhysiologyModification(AMM::Physiology::Modification modInstance) {
-
+        physmod_publisher->write(&modInstance);
     }
 
     void DDS_Manager::PublishPerformanceData(AMM::Performance::Assessment assessmentInstance) {
-
+        perfdata_publisher->write(&assessmentInstance);
     }
 
     std::string DDS_Manager::GetCapabilitiesAsString(const std::string &filename) {

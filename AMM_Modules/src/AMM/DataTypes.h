@@ -56,8 +56,9 @@ namespace AMM {
         // AMM Instrument Data type
         static AMM::InstrumentDataPubSubType* getInstrumentDataType();
 
-        static AMM::Render::ModificationPubSubType* getRenderModType();
-        static AMM::Physiology::ModificationPubSubType* getPhysModType();
+        static AMM::Performance::AssessmentPubSubType* getPerformanceAssessmentDataType();
+        static AMM::Render::ModificationPubSubType* getRenderModificationType();
+        static AMM::Physiology::ModificationPubSubType* getPhysiologyModificationType();
 
         // Topic names
         static std::string tickTopic;

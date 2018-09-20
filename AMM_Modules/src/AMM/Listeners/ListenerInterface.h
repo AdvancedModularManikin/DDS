@@ -31,7 +31,7 @@ public:
 
     virtual void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t* info) {};
 
-    virtual void onNewPhysiologyModification(AMM::Physiology::Modification pm, SampleInfo_t* info) {};
+    virtual void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t* info) {};
 
     std::string sysPrefix = "[SYS]";
     std::string actPrefix = "[ACT]";

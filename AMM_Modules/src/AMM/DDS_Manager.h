@@ -130,6 +130,9 @@ namespace AMM {
         Participant *mp_participant;
 
         Publisher *genPub;
+        Publisher *perfdata_publisher;
+        Publisher *physmod_publisher;
+        Publisher *render_publisher;
         Publisher *config_publisher;
         Publisher *status_publisher;
     };
