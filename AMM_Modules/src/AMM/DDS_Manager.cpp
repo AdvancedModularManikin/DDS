@@ -25,6 +25,9 @@ namespace AMM {
 
         auto *pub_listener = new DDS_Listeners::PubListener();
 
+        command_publisher = InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                     pub_listener);
+
         perfdata_publisher = InitializePublisher(AMM::DataTypes::performanceTopic,
                                                 AMM::DataTypes::getPerformanceAssessmentDataType(),
                                                 pub_listener);
@@ -208,6 +211,10 @@ namespace AMM {
         } catch (std::exception &e) {
             LOG_ERROR << "[DDS_Manager][status]" << e.what();
         }
+    }
+
+    void DDS_Manager::PublishCommand(AMM::PatientAction::BioGears::Command cmdInstance) {
+        command_publisher->write(&cmdInstance);
     }
 
     void DDS_Manager::PublishRenderModification(AMM::Render::Modification modInstance) {

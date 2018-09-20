@@ -74,6 +74,8 @@ namespace AMM {
         void SetStatus(AMM::Capability::Status statusInstance);
 
         /** Helpers for publishing common data types **/
+        void PublishCommand(AMM::PatientAction::BioGears::Command cmdInstance);
+
         void PublishRenderModification(AMM::Render::Modification modInstance);
 
         void PublishPhysiologyModification(AMM::Physiology::Modification modInstance);
@@ -130,6 +132,7 @@ namespace AMM {
         Participant *mp_participant;
 
         Publisher *genPub;
+        Publisher *command_publisher;
         Publisher *perfdata_publisher;
         Publisher *physmod_publisher;
         Publisher *render_publisher;
