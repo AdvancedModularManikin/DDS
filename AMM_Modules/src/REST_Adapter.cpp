@@ -296,6 +296,8 @@ private:
         Routes::Put(router, "/action/:name", Routes::bind(&DDSEndpoint::updateAction, this));
         Routes::Delete(router, "/action/:name", Routes::bind(&DDSEndpoint::deleteAction, this));
 
+        Routes::Post(router, "/execute", Routes::bind(&DDSEndpoint::executeCommand, this));
+
         Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
 
         Routes::Get(router, "/states", Routes::bind(&DDSEndpoint::getStates, this));
@@ -433,9 +435,15 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
-    void createAction(const Rest::Request &request, Http::ResponseWriter response) {
+    void executeCommand(const Rest::Request &request, Http::ResponseWriter response) {
         auto payload = request.param(":payload").as<std::string>();
         SendPhysiologyModification(payload);
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, "Command executed");
+    }
+
+    void createAction(const Rest::Request &request, Http::ResponseWriter response) {
+
     }
 
     void deleteAction(const Rest::Request &request, Http::ResponseWriter response) {
