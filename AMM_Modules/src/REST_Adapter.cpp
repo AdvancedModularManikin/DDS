@@ -94,11 +94,14 @@ std::string state_path = "./states/";
 std::string patient_path = "./patients/";
 std::string dataKey = "name";
 
+DDS_Manager *mgr;
+
 struct logEntry {
     GUID_t source;
-    int64_t tick;
+    std::string topic;
+    int64_t tick = 0;
     std::chrono::milliseconds timestamp;
-    std::string data;
+    std::string data = "";
 };
 
 std::map<std::string, double> nodeDataStorage;
@@ -115,7 +118,6 @@ std::map<std::string, std::string> statusStorage = {
 bool m_runThread = false;
 int64_t lastTick = 0;
 
-Publisher *command_publisher;
 Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
@@ -130,6 +132,49 @@ class AMMListener : public ListenerInterface {
         statusStorage["TIME"] = to_string(t.time());
     }
 
+    void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t* info) {};
+
+    void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t* info) {
+        milliseconds timestamp = duration_cast<milliseconds>(
+                system_clock::now().time_since_epoch()
+        );
+        GUID_t changeGuid;
+        iHandle2GUID(changeGuid, info->iHandle);
+
+        std::ostringstream logmessage;
+        logmessage << rm.payload();
+
+        logEntry newLogEntry{
+                changeGuid,
+                "AMM::Render::Modification",
+                lastTick,
+                timestamp,
+                logmessage.str()
+        };
+        eventLog.push_back(newLogEntry);
+
+    };
+
+    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t* info) {
+        milliseconds timestamp = duration_cast<milliseconds>(
+                system_clock::now().time_since_epoch()
+        );
+        GUID_t changeGuid;
+        iHandle2GUID(changeGuid, info->iHandle);
+
+        std::ostringstream logmessage;
+        logmessage << pm.payload();
+
+        logEntry newLogEntry{
+                changeGuid,
+                "AMM::Physiology::Modification",
+                lastTick,
+                timestamp,
+                logmessage.str()
+        };
+        eventLog.push_back(newLogEntry);
+    };
+
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
         milliseconds timestamp = duration_cast<milliseconds>(
                 system_clock::now().time_since_epoch()
@@ -139,6 +184,7 @@ class AMMListener : public ListenerInterface {
 
         logEntry newLogEntry{
                 changeGuid,
+                "AMM::Command",
                 lastTick,
                 timestamp,
                 c.message()
@@ -170,12 +216,18 @@ class AMMListener : public ListenerInterface {
 
 };
 
+void SendPhysiologyModification(const std::string &command) {
+    LOG_INFO << "Publishing a phys mod: " << command;
+    AMM::Physiology::Modification modInstance;
+    modInstance.payload(command);
+    mgr->PublishPhysiologyModification(modInstance);
+}
 
 void SendCommand(const std::string &command) {
     LOG_INFO << "Publishing a command:" << command;
     AMM::PatientAction::BioGears::Command cmdInstance;
     cmdInstance.message(command);
-    command_publisher->write(&cmdInstance);
+    mgr->PublishCommand(cmdInstance);
 }
 
 void printCookies(const Http::Request &req) {
@@ -382,7 +434,8 @@ private:
     }
 
     void createAction(const Rest::Request &request, Http::ResponseWriter response) {
-
+        auto payload = request.param(":payload").as<std::string>();
+        SendPhysiologyModification(payload);
     }
 
     void deleteAction(const Rest::Request &request, Http::ResponseWriter response) {
@@ -596,25 +649,27 @@ int main(int argc, char *argv[]) {
 
     const char *nodeName = "AMM_REST_Adapter";
     std::string nodeString(nodeName);
-    auto *mgr = new DDS_Manager(nodeName);
+    mgr = new DDS_Manager(nodeName);
     mp_participant = mgr->GetParticipant();
 
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
+    auto *physmod_sub_listener = new DDS_Listeners::PhysiologyModificationListener();
+    auto *rendermod_sub_listener = new DDS_Listeners::RenderModificationListener();
 
     AMMListener rl;
     node_sub_listener->SetUpstream(&rl);
     command_sub_listener->SetUpstream(&rl);
     tick_sub_listener->SetUpstream(&rl);
+    physmod_sub_listener->SetUpstream(&rl);
+    rendermod_sub_listener->SetUpstream(&rl);
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), tick_sub_listener);
-
-    auto *pub_listener = new DDS_Listeners::PubListener();
-    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                 pub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(), rendermod_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(), physmod_sub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
@@ -651,15 +706,6 @@ int main(int argc, char *argv[]) {
     milliseconds timestamp = duration_cast<milliseconds>(
             system_clock::now().time_since_epoch()
     );
-
-    GUID_t testGUID;
-    logEntry newLogEntry{
-            testGUID,
-            0,
-            timestamp,
-            "THIS IS A TEST LOG ENTRY AT TICK 0"
-    };
-    eventLog.push_back(newLogEntry);
 
     while (m_runThread) {
         getline(cin, action);
