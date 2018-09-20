@@ -171,6 +171,30 @@ void DDS_Listeners::PhysiologyModificationListener::onNewDataMessage(Subscriber 
 }
 
 
+void DDS_Listeners::RenderModificationListener::onSubscriptionMatched(Subscriber *sub,
+                                                                          MatchingInfo &info) {
+    if (info.status == MATCHED_MATCHING) {
+        n_matched++;
+    } else {
+        n_matched--;
+    }
+}
+
+
+void DDS_Listeners::RenderModificationListener::onNewDataMessage(Subscriber *sub) {
+    AMM::Render::Modification rm;
+
+    if (sub->takeNextData(&rm, &m_info)) {
+        ++n_msg;
+        if (m_info.sampleKind == ALIVE) {
+            if (upstream != nullptr) {
+                upstream->onNewRenderModificationData(rm, &m_info);
+            }
+        }
+    }
+}
+
+
 void DDS_Listeners::EquipmentSubListener::onSubscriptionMatched(Subscriber *sub,
                                                                MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
