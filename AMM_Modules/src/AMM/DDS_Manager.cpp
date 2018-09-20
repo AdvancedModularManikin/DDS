@@ -93,6 +93,9 @@ namespace AMM {
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getPhysiologyModificationType());
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getRenderModificationType());
 
+        // AMM performance assessment data
+        Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getPerformanceAssessmentDataType());
+
     }
 
     Publisher *DDS_Manager::InitializePublisher(const std::string &topicName, TopicDataType *topicType,
