@@ -123,7 +123,7 @@ boost::asio::io_service io_service;
 database db("amm.db");
 
 class AMMListener : public ListenerInterface {
-    void onNewTickData(AMM::Simulation::Tick t) {
+    void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t* info) {
         if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 && t.frame() > lastTick) {
             statusStorage["STATUS"] = "RUNNING";
         }
@@ -210,7 +210,7 @@ class AMMListener : public ListenerInterface {
         statusStorage["LAST_COMMAND"] = c.message();
     }
 
-    void onNewNodeData(AMM::Physiology::Node n) {
+    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t* info) {
         LOG_TRACE << "Got new node data for " << n.nodepath() << " = " << n.dbl();
         nodeDataStorage[n.nodepath()] = n.dbl();
     }
