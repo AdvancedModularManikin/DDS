@@ -122,6 +122,35 @@ Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
 
+char from_hex(char ch) {
+    return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
+}
+
+string url_decode(string text) {
+    char h;
+    ostringstream escaped;
+    escaped.fill('0');
+
+    for (auto i = text.begin(), n = text.end(); i != n; ++i) {
+        string::value_type c = (*i);
+
+        if (c == '%') {
+            if (i[1] && i[2]) {
+                h = from_hex(i[1]) << 4 | from_hex(i[2]);
+                escaped << h;
+                i += 2;
+            }
+        } else if (c == '+') {
+            escaped << ' ';
+        } else {
+            escaped << c;
+        }
+    }
+
+    return escaped.str();
+}
+
+
 class AMMListener : public ListenerInterface {
     void onNewTickData(AMM::Simulation::Tick t) {
         if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 && t.frame() > lastTick) {
@@ -218,8 +247,10 @@ class AMMListener : public ListenerInterface {
 
 void SendPhysiologyModification(const std::string &command) {
     LOG_INFO << "Publishing a phys mod: " << command;
+    std::string decodedCommand = url_decode(command);
+    LOG_INFO << "Decoded: " << decodedCommand;
     AMM::Physiology::Modification modInstance;
-    modInstance.payload(command);
+    modInstance.payload(decodedCommand);
     mgr->PublishPhysiologyModification(modInstance);
 }
 
@@ -296,7 +327,9 @@ private:
         Routes::Put(router, "/action/:name", Routes::bind(&DDSEndpoint::updateAction, this));
         Routes::Delete(router, "/action/:name", Routes::bind(&DDSEndpoint::deleteAction, this));
 
+        Routes::Get(router, "/execute/payload/:payload", Routes::bind(&DDSEndpoint::executeCommand, this));
         Routes::Post(router, "/execute", Routes::bind(&DDSEndpoint::executeCommand, this));
+        Routes::Options(router, "/execute", Routes::bind(&DDSEndpoint::createAction, this));
 
         Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
 
@@ -435,10 +468,15 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
+
     void executeCommand(const Rest::Request &request, Http::ResponseWriter response) {
+        auto body = request.body();
+        LOG_INFO << "Body is: " << body;
         auto payload = request.param(":payload").as<std::string>();
+        LOG_INFO << "Got a payload: " << payload;
         SendPhysiologyModification(payload);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        //response.headers().add<Http::Header::Accept>("*");
         response.send(Http::Code::Ok, "Command executed");
     }
 
