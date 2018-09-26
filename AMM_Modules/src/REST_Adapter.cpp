@@ -225,7 +225,6 @@ class AMMListener : public ListenerInterface {
     }
 
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t* info) {
-        LOG_TRACE << "Got new node data for " << n.nodepath() << " = " << n.dbl();
         nodeDataStorage[n.nodepath()] = n.dbl();
     }
 
