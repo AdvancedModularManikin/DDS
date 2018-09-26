@@ -101,7 +101,7 @@ struct logEntry {
     GUID_t source;
     std::string topic;
     int64_t tick = 0;
-    std::chrono::milliseconds timestamp;
+    int64_t timestamp;
     std::string data = "";
 };
 
@@ -147,9 +147,7 @@ class AMMListener : public ListenerInterface {
     void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t* info) {};
 
     void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t* info) {
-        milliseconds timestamp = duration_cast<milliseconds>(
-                system_clock::now().time_since_epoch()
-        );
+        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         GUID_t changeGuid;
         iHandle2GUID(changeGuid, info->iHandle);
 
@@ -168,9 +166,7 @@ class AMMListener : public ListenerInterface {
     };
 
     void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t* info) {
-        milliseconds timestamp = duration_cast<milliseconds>(
-                system_clock::now().time_since_epoch()
-        );
+        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         GUID_t changeGuid;
         iHandle2GUID(changeGuid, info->iHandle);
 
@@ -190,9 +186,7 @@ class AMMListener : public ListenerInterface {
     };
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
-        milliseconds timestamp = duration_cast<milliseconds>(
-                system_clock::now().time_since_epoch()
-        );
+        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
         GUID_t changeGuid;
         iHandle2GUID(changeGuid, info->iHandle);
 
@@ -617,7 +611,7 @@ private:
             writer.Key("tick");
             writer.Double((*eventit).tick);
             writer.Key("timestamp");
-            writer.Uint((*eventit).timestamp.count());
+            writer.Uint((*eventit).timestamp);
             writer.Key("topic");
             writer.String((*eventit).topic.c_str());
             writer.Key("message");
@@ -790,9 +784,7 @@ int main(int argc, char *argv[]) {
 
     server.start();
 
-    milliseconds timestamp = duration_cast<milliseconds>(
-            system_clock::now().time_since_epoch()
-    );
+    int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     while (m_runThread) {
         getline(cin, action);
