@@ -13,13 +13,13 @@ add_custom_target(versionFileTouchForRebuild
 
 set(BASE_LOGGER amm_base_logger)
 set(BASE_LOGGER_SOURCES AMM/BaseLogger.cpp)
-add_library(amm_base_logger SHARED ${BASE_LOGGER_SOURCES})
+add_library(amm_base_logger  SHARED ${BASE_LOGGER_SOURCES})
 add_library(amm::logger ALIAS amm_base_logger)
 
 target_link_libraries(
-        amm_base_logger
-        PUBLIC Threads::Threads
-        PUBLIC Boost::log
+  amm_base_logger 
+  PUBLIC Threads::Threads
+  PUBLIC Boost::log
 )
 
 set(idls AMM.idl)
@@ -38,21 +38,21 @@ set(DDS_MANAGER_SOURCES AMM/DDS_Manager.cpp AMM/Listeners/DDS_Listeners.cpp AMM/
 set(DDS_TYPE_SOURCES AMM/DataTypes.cpp AMM/DataTypes.h)
 add_library(amm_types SHARED ${DATAMODEL_SOURCES} ${DDS_TYPE_SOURCES} ${DDS_MANAGER_SOURCES})
 add_library(amm::datamodel ALIAS amm_types)
-add_dependencies(amm_types versionFileTouchForRebuild)
+add_dependencies(amm_types  versionFileTouchForRebuild )
 target_link_libraries(
         amm_types
         fastrtps fastcdr
         amm::logger
 )
-target_include_directories(amm_types PUBLIC
-        PUBLIC ${PROJECT_SOURCE_DIR}/src
-        PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/gen
-        )
+target_include_directories(amm_types PUBLIC 
+  PUBLIC ${PROJECT_SOURCE_DIR}/src
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/gen
+)
 
 set(SIM_MANAGER_SOURCES SimManager.cpp AMM/SimulationManager.cpp)
 set(SIM_MANAGER_EXE amm_sim_manager)
 add_executable(${SIM_MANAGER_EXE} ${SIM_MANAGER_SOURCES})
-add_dependencies(${SIM_MANAGER_EXE} versionFileTouchForRebuild)
+add_dependencies(${SIM_MANAGER_EXE} versionFileTouchForRebuild )
 install(TARGETS ${SIM_MANAGER_EXE}
         BUNDLE DESTINATION "."
         RUNTIME DESTINATION bin)
@@ -102,18 +102,18 @@ set(MODULE_MANAGER_EXE amm_module_manager)
 add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
 
 target_link_libraries(${MODULE_MANAGER_EXE}
-        fastrtps fastcdr
-        amm::logger
-        Threads::Threads
-        ${TINYXML2_LIBRARIES}
-        sqlite3
-        amm::datamodel
-        )
+    fastrtps fastcdr
+    amm::logger
+    Threads::Threads
+    ${TINYXML2_LIBRARIES}
+    SQLite3::SQLite3
+    amm::datamodel
+    )
 
 set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
 set(REST_ADAPTER_EXE amm_rest_adapter)
 
-if (Pistache_FOUND)
+if(Pistache_FOUND)
     add_executable(${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES})
     target_link_libraries(${REST_ADAPTER_EXE}
             fastrtps fastcdr
@@ -123,10 +123,10 @@ if (Pistache_FOUND)
             ${TINYXML2_LIBRARIES}
             Boost::system Boost::filesystem Boost::iostreams
             Threads::Threads
-            sqlite3
+            SQLite3::SQLite3
             amm::datamodel
             )
-endif ()
+endif()
 
 
 if (Biogears_FOUND)
