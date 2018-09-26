@@ -49,10 +49,12 @@
 #include "AMM/DDS_Manager.h"
 
 #include <pistache/http.h>
+#include <pistache/http_header.h>
 #include <pistache/router.h>
 #include <pistache/endpoint.h>
 
 #include "rapidjson/writer.h"
+#include "rapidjson/document.h"
 
 #include <Net/UdpDiscoveryServer.h>
 
@@ -61,7 +63,6 @@
 #include "tinyxml2.h"
 
 #include <thirdparty/sqlite_modern_cpp.h>
-
 
 using namespace std;
 using namespace std::chrono;
@@ -121,6 +122,7 @@ int64_t lastTick = 0;
 Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
+
 
 class AMMListener : public ListenerInterface {
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t* info) {
@@ -241,6 +243,7 @@ void printCookies(const Http::Request &req) {
     std::cout << "]" << std::endl;
 }
 
+
 namespace Generic {
 
     void handleReady(const Rest::Request &request, Http::ResponseWriter response) {
@@ -250,6 +253,8 @@ namespace Generic {
 }
 
 class DDSEndpoint {
+
+
 public:
 
     explicit DDSEndpoint(Address addr) :
@@ -258,7 +263,7 @@ public:
     }
 
     void init(int thr = 2) {
-        auto opts = Http::Endpoint::options().threads(thr).flags(Tcp::Options::InstallSignalHandler);
+        auto opts = Http::Endpoint::options().threads(thr).flags(Tcp::Options::InstallSignalHandler).maxPayload(65536);
         httpEndpoint->init(opts);
         setupRoutes();
 
@@ -299,7 +304,7 @@ private:
 
         Routes::Get(router, "/execute/payload/:payload", Routes::bind(&DDSEndpoint::executeCommand, this));
         Routes::Post(router, "/execute", Routes::bind(&DDSEndpoint::executeCommand, this));
-        Routes::Options(router, "/execute", Routes::bind(&DDSEndpoint::createAction, this));
+        Routes::Options(router, "/execute", Routes::bind(&DDSEndpoint::executeOptions, this));
 
         Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
 
@@ -440,15 +445,21 @@ private:
 
 
     void executeCommand(const Rest::Request &request, Http::ResponseWriter response) {
-        auto body = request.body();
-        LOG_INFO << "Body is: " << body;
-        auto payload = request.param(":payload").as<std::string>();
-        LOG_INFO << "Got a payload: " << payload;
+        Document document;
+        document.Parse(request.body().c_str());
+        std::string payload = document["payload"].GetString();
         SendPhysiologyModification(payload);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        //response.headers().add<Http::Header::Accept>("*");
+        response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
         response.send(Http::Code::Ok, "Command executed");
     }
+
+    void executeOptions(const Rest::Request &request, Http::ResponseWriter response) {
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
+        response.send(Pistache::Http::Code::Ok, "{\"message\":\"success\"}");
+    }
+
 
     void createAction(const Rest::Request &request, Http::ResponseWriter response) {
 
