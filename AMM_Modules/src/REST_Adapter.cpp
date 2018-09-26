@@ -123,6 +123,16 @@ Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
 
+std::string extractPhysiologyModificationName(const std::string& payload) {
+    XMLDocument doc(false);
+    doc.Parse(payload.c_str());
+    tinyxml2::XMLNode *root = doc.FirstChildElement("Scenario");
+    std::string modName = root->FirstChildElement("Name")->ToElement()->GetText();
+    std::string modDesc = root->FirstChildElement("Description")->ToElement()->GetText();
+    std::ostringstream fullModName;
+    fullModName << "[" << modName << "] " << modDesc;
+    return fullModName.str();
+}
 
 class AMMListener : public ListenerInterface {
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t* info) {
@@ -164,8 +174,10 @@ class AMMListener : public ListenerInterface {
         GUID_t changeGuid;
         iHandle2GUID(changeGuid, info->iHandle);
 
+        std::string physModName = extractPhysiologyModificationName(pm.payload());
+
         std::ostringstream logmessage;
-        logmessage << pm.payload();
+        logmessage << physModName;
 
         logEntry newLogEntry{
                 changeGuid,
@@ -220,12 +232,26 @@ class AMMListener : public ListenerInterface {
 };
 
 void SendPhysiologyModification(const std::string &command) {
-    LOG_INFO << "Publishing a phys mod: " << command;
+    std::string physModName = extractPhysiologyModificationName(command);
+    LOG_INFO << "Publishing a phys mod: " << physModName;
     AMM::Physiology::Modification modInstance;
     modInstance.payload(command);
     mgr->PublishPhysiologyModification(modInstance);
 }
 
+void SendRenderModification(const std::string &command) {
+    LOG_INFO << "Publishing a render mod: " << command;
+    AMM::Render::Modification modInstance;
+    modInstance.payload(command);
+    mgr->PublishRenderModification(modInstance);
+}
+
+void SendPerformanceAssessment(const std::string &command) {
+    LOG_INFO << "Publishing a phys mod: " << command;
+    AMM::Performance::Assessment assessInstance;
+    assessInstance.assessment_info(command);
+    mgr->PublishPerformanceData(assessInstance);
+}
 void SendCommand(const std::string &command) {
     LOG_INFO << "Publishing a command:" << command;
     AMM::PatientAction::BioGears::Command cmdInstance;
@@ -302,9 +328,13 @@ private:
         Routes::Put(router, "/action/:name", Routes::bind(&DDSEndpoint::updateAction, this));
         Routes::Delete(router, "/action/:name", Routes::bind(&DDSEndpoint::deleteAction, this));
 
-        Routes::Get(router, "/execute/payload/:payload", Routes::bind(&DDSEndpoint::executeCommand, this));
         Routes::Post(router, "/execute", Routes::bind(&DDSEndpoint::executeCommand, this));
         Routes::Options(router, "/execute", Routes::bind(&DDSEndpoint::executeOptions, this));
+
+        Routes::Post(router, "/topic/physiology_modification", Routes::bind(&DDSEndpoint::executePhysiologyModification, this));
+        Routes::Post(router, "/topic/render_modification", Routes::bind(&DDSEndpoint::executeRenderModification, this));
+        Routes::Post(router, "/topic/performance_assessment", Routes::bind(&DDSEndpoint::executePerformanceAssessment, this));
+        Routes::Options(router, "/topic/:mod_type", Routes::bind(&DDSEndpoint::executeOptions, this));
 
         Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
 
@@ -443,7 +473,6 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
-
     void executeCommand(const Rest::Request &request, Http::ResponseWriter response) {
         Document document;
         document.Parse(request.body().c_str());
@@ -452,6 +481,36 @@ private:
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
         response.send(Http::Code::Ok, "Command executed");
+    }
+
+    void executePhysiologyModification(const Rest::Request &request, Http::ResponseWriter response) {
+        Document document;
+        document.Parse(request.body().c_str());
+        std::string payload = document["payload"].GetString();
+        SendPhysiologyModification(payload);
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
+        response.send(Http::Code::Ok, "Physiology modification published");
+    }
+
+    void executeRenderModification(const Rest::Request &request, Http::ResponseWriter response) {
+        Document document;
+        document.Parse(request.body().c_str());
+        std::string payload = document["payload"].GetString();
+        SendRenderModification(payload);
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
+        response.send(Http::Code::Ok, "Render modification published");
+    }
+
+    void executePerformanceAssessment(const Rest::Request &request, Http::ResponseWriter response) {
+        Document document;
+        document.Parse(request.body().c_str());
+        std::string payload = document["payload"].GetString();
+        SendPerformanceAssessment(payload);
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
+        response.send(Http::Code::Ok, "Performance assessment published");
     }
 
     void executeOptions(const Rest::Request &request, Http::ResponseWriter response) {
