@@ -619,7 +619,7 @@ private:
             writer.Key("timestamp");
             writer.Uint((*eventit).timestamp.count());
             writer.Key("topic");
-            writer.String((*eventit).topic.c_str())
+            writer.String((*eventit).topic.c_str());
             writer.Key("message");
             writer.String((*eventit).data.c_str());
             writer.EndObject();
