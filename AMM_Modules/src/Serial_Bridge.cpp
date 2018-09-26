@@ -40,6 +40,7 @@ std::string globalInboundBuffer;
 std::string requestPrefix = "[REQUEST]";
 std::string reportPrefix = "[REPORT]";
 std::string actionPrefix = "[AMM_Command]";
+std::string genericTopicPrefix = "[";
 std::string xmlPrefix = "<?xml";
 
 std::vector<std::string> subscribedTopics;
@@ -233,6 +234,12 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
                     }
                 }
             }
+        } else if (!rsp.compare(0, genericTopicPrefix.size(), genericTopicPrefix)) {
+            unsigned first = rsp.find("[");
+            unsigned last = rsp.find("]");
+            std::string topic = rsp.substr (first,last-first);
+            std::string message = rsp.substr (last);
+            LOG_INFO << "Received a message for topic " << topic << " with a payload of: " << message;
         } else {
             if (!rsp.empty() && rsp != "\r") {
                 LOG_TRACE << "Unknown message: " << rsp;
@@ -250,7 +257,7 @@ public:
             closed = true;
             return;
         }
-	
+
         // Publish values that are supposed to go out on every change
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {
             std::ostringstream messageOut;
@@ -289,73 +296,74 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, char *argv[]) {
-  LOG_INFO << "Serial_Bridge starting up";
-  
-  for (int i = 1; i < argc; ++i) {
-    std::string arg = argv[i];
-    if ((arg == "-h") || (arg == "--help")) {
-      show_usage(argv[0]);
-      return 0;
+    LOG_INFO << "Serial_Bridge starting up";
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if ((arg == "-h") || (arg == "--help")) {
+            show_usage(argv[0]);
+            return 0;
+        }
+
+        if (arg == "-d") {
+            daemonize = 1;
+        }
     }
-    
-    if (arg == "-d") {
-      daemonize = 1;
+    std::string nodeString(nodeName);
+    mgr = new DDS_Manager(nodeName);
+
+    auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
+    auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
+    auto *pub_listener = new DDS_Listeners::PubListener();
+
+    GenericSerialListener al;
+    node_sub_listener->SetUpstream(&al);
+    command_sub_listener->SetUpstream(&al);
+
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+
+    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                 pub_listener);
+
+    // Set up serial
+    io_service io;
+    SerialPort serialPort(io, 115200, PORT_LINUX);
+    serialPort.DataRead.connect(&readHandler);
+    boost::thread t(boost::bind(&boost::asio::io_service::run, &io));
+
+    if (serialPort.Initialize()) {
+        LOG_ERROR << "Initialization failed!";
+        return 1;
     }
-  }
-  std::string nodeString(nodeName);
-  mgr = new DDS_Manager(nodeName);
-  
-  auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
-  auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
-  auto *pub_listener = new DDS_Listeners::PubListener();
-  
-  GenericSerialListener al;
-  node_sub_listener->SetUpstream(&al);
-  command_sub_listener->SetUpstream(&al);
-  
-  mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
-  mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-  
-  command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), pub_listener);
-  
-  // Set up serial
-  io_service io;
-  SerialPort serialPort(io, 115200, PORT_LINUX);
-  serialPort.DataRead.connect(&readHandler);
-  boost::thread t(boost::bind(&boost::asio::io_service::run, &io));
-  
-  if (serialPort.Initialize()) {
-    LOG_ERROR << "Initialization failed!";
-    return 1;
-  }
-  
-  // Publish bridge module configuration once we've set all our publishers and listeners
-  // This announces that we're available for configuration
-  mgr->PublishModuleConfiguration(
-				  mgr->module_id,
-				  nodeString,
-				  "Vcom3D",
-				  nodeName,
-				  "00001",
-				  "0.0.1",
-				  mgr->GetCapabilitiesAsString("mule1/module_capabilities/serial_bridge_capabilities.xml")
-				  );
-  
-  mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
-  
-  LOG_INFO << "Serial_Bridge ready";
-  
-  while (!closed) {
-    while (!transmitQ.empty()) {
-      serialPort.Write(transmitQ.front());
-      transmitQ.pop();
+
+    // Publish bridge module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            mgr->module_id,
+            nodeString,
+            "Vcom3D",
+            nodeName,
+            "00001",
+            "0.0.1",
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/serial_bridge_capabilities.xml")
+    );
+
+    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
+
+    LOG_INFO << "Serial_Bridge ready";
+
+    while (!closed) {
+        while (!transmitQ.empty()) {
+            serialPort.Write(transmitQ.front());
+            transmitQ.pop();
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        cout.flush();
     }
-    
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    cout.flush();
-  }
-  
-  LOG_INFO << "Serial_Bridge simulation stopped.";
-  return 0;
+
+    LOG_INFO << "Serial_Bridge simulation stopped.";
+    return 0;
 }
 
