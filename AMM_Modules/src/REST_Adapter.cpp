@@ -609,9 +609,9 @@ private:
             writer.Key("source");
             writer.String(entityIdstring.str().c_str());
             writer.Key("tick");
-            writer.Double((*eventit).tick);
+            writer.Uint64((*eventit).tick);
             writer.Key("timestamp");
-            writer.Uint((*eventit).timestamp);
+            writer.Uint64((*eventit).timestamp);
             writer.Key("topic");
             writer.String((*eventit).topic.c_str());
             writer.Key("message");
