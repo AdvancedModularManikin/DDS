@@ -148,8 +148,8 @@ class AMMListener : public ListenerInterface {
 
     void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t* info) {
         int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        GUID_t changeGuid;
-        iHandle2GUID(changeGuid, info->iHandle);
+        GUID_t changeGuid = info->sample_identity.writer_guid();
+        // iHandle2GUID(changeGuid, info->iHandle);
 
         std::ostringstream logmessage;
         logmessage << rm.payload();
@@ -167,8 +167,9 @@ class AMMListener : public ListenerInterface {
 
     void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t* info) {
         int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        GUID_t changeGuid;
-        iHandle2GUID(changeGuid, info->iHandle);
+        GUID_t changeGuid = info->sample_identity.writer_guid();
+        /** GUID_t changeGuid;
+        iHandle2GUID(changeGuid, info->iHandle); **/
 
         std::string physModName = extractPhysiologyModificationName(pm.payload());
 
@@ -187,8 +188,8 @@ class AMMListener : public ListenerInterface {
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
         int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        GUID_t changeGuid;
-        iHandle2GUID(changeGuid, info->iHandle);
+        GUID_t changeGuid = info->sample_identity.writer_guid();
+        // iHandle2GUID(changeGuid, info->iHandle);
 
         logEntry newLogEntry{
                 changeGuid,
