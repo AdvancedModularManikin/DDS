@@ -156,7 +156,7 @@ class AMMListener : public ListenerInterface {
         logmessage << rm.payload();
 
         logEntry newLogEntry{
-                module_guid,
+                module_guid.str(),
                 "AMM::Render::Modification",
                 lastTick,
                 timestamp,
@@ -178,7 +178,7 @@ class AMMListener : public ListenerInterface {
         logmessage << physModName;
 
         logEntry newLogEntry{
-                module_guid,
+                module_guid.str(),
                 "AMM::Physiology::Modification",
                 lastTick,
                 timestamp,
@@ -194,7 +194,7 @@ class AMMListener : public ListenerInterface {
         module_guid << changeGuid;
 
         logEntry newLogEntry{
-                module_guid,
+                module_guid.str(),
                 "AMM::Command",
                 lastTick,
                 timestamp,
@@ -696,11 +696,9 @@ private:
 
         auto eventit = eventLog.begin();
         while (eventit != eventLog.end()) {
-            std::ostringstream entityIdstring;
-            entityIdstring << (*eventit).source.entityId;
             writer.StartObject();
             writer.Key("source");
-            writer.String(entityIdstring.str().c_str());
+            writer.String((*eventit).source);
             writer.Key("tick");
             writer.Uint64((*eventit).tick);
             writer.Key("timestamp");
