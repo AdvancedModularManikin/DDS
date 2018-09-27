@@ -313,6 +313,8 @@ private:
         Routes::Get(router, "/events", Routes::bind(&DDSEndpoint::getEventLog, this));
 
         Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
+        Routes::Get(router, "/module/id/:id", Routes::bind(&DDSEndpoint::getModuleById, this));
+        Routes::Get(router, "/module/guid/:guid", Routes::bind(&DDSEndpoint::getModuleByGuid, this));
 
         Routes::Get(router, "/shutdown", Routes::bind(&DDSEndpoint::doShutdown, this));
 
@@ -544,13 +546,99 @@ private:
     }
 
 
-    void getModules(const Rest::Request &request, Http::ResponseWriter response) {
+    void getModuleById(const Rest::Request &request, Http::ResponseWriter response) {
+        auto id = request.param(":id").as<std::string>();
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        db << "SELECT "
+              "module_id AS module_id,"
+              "module_guid as module_guid,"
+              "module_name AS module_name,"
+              "capabilities as capabilities,"
+              "manufacturer as manufacturer,"
+              "model as model "
+              " FROM "
+              " module_capabilities "
+              " WHERE module_id = ?"
+           << id
+           >> [&](string module_id, string module_guid, string module_name, string capabilities, string manufacturer, string model) {
+               writer.StartObject();
+
+               writer.Key("Module_ID");
+               writer.String(module_id.c_str());
+
+               writer.Key("Module_GUID");
+               writer.String(module_guid.c_str());
+
+               writer.Key("Module_Name");
+               writer.String(module_name.c_str());
+
+               writer.Key("Manufacturer");
+               writer.String(manufacturer.c_str());
+
+               writer.Key("Model");
+               writer.String(model.c_str());
+
+               writer.Key("Module_Capabilities");
+               writer.String(capabilities.c_str());
+
+               writer.EndObject();
+           };
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+
+    }
+        void getModuleByGuid(const Rest::Request &request, Http::ResponseWriter response) {
+            auto guid = request.param(":guid").as<std::string>();
+            StringBuffer s;
+            Writer<StringBuffer> writer(s);
+            db << "SELECT "
+                  "module_id AS module_id,"
+                  "module_guid as module_guid,"
+                  "module_name AS module_name,"
+                  "capabilities as capabilities,"
+                  "manufacturer as manufacturer,"
+                  "model as model "
+                  " FROM "
+                  " module_capabilities "
+                  " WHERE module_guid = ?"
+               << guid
+               >> [&](string module_id, string module_guid, string module_name, string capabilities, string manufacturer, string model) {
+                   writer.StartObject();
+
+                   writer.Key("Module_ID");
+                   writer.String(module_id.c_str());
+
+                   writer.Key("Module_GUID");
+                   writer.String(module_guid.c_str());
+
+                   writer.Key("Module_Name");
+                   writer.String(module_name.c_str());
+
+                   writer.Key("Manufacturer");
+                   writer.String(manufacturer.c_str());
+
+                   writer.Key("Model");
+                   writer.String(model.c_str());
+
+                   writer.Key("Module_Capabilities");
+                   writer.String(capabilities.c_str());
+
+                   writer.EndObject();
+               };
+
+            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+            response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        }
+            void getModules(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();
 
         db << "SELECT "
               "module_capabilities.module_id AS module_id,"
+              "module_capabilities.module_guid as module_guid,"
               "module_capabilities.module_name AS module_name,"
               "module_capabilities.capabilities as capabilities,"
               "module_status.capability as capability,"
@@ -559,14 +647,17 @@ private:
               "module_capabilities.model as model "
               " FROM "
               " module_capabilities "
-              " LEFT JOIN module_status ON module_capabilities.module_name = module_status.module_name;"
-           >> [&](string module_id, string module_name, string capabilities, string capability,
+              " LEFT JOIN module_status ON module_capabilities.module_id = module_status.module_id;"
+           >> [&](string module_id, string module_guid, string module_name, string capabilities, string capability,
                   string capability_status,
                   string manufacturer, string model) {
                writer.StartObject();
 
                writer.Key("Module_ID");
                writer.String(module_id.c_str());
+
+               writer.Key("Module_GUID");
+               writer.String(module_guid.c_str());
 
                writer.Key("Module_Name");
                writer.String(module_name.c_str());
@@ -585,7 +676,6 @@ private:
 
                writer.Key("Status");
                writer.String(capability_status.c_str());
-
 
                writer.EndObject();
            };
