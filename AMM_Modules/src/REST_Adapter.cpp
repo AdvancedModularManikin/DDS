@@ -698,7 +698,7 @@ private:
         while (eventit != eventLog.end()) {
             writer.StartObject();
             writer.Key("source");
-            writer.String((*eventit).source);
+            writer.String((*eventit).source.c_str());
             writer.Key("tick");
             writer.Uint64((*eventit).tick);
             writer.Key("timestamp");
