@@ -7,16 +7,12 @@ using namespace sqlite;
 
 namespace AMM {
     ModuleManager::ModuleManager() {
-        auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
         auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
         auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
 
-        command_sub_listener->SetUpstream(this);
         status_sub_listener->SetUpstream(this);
         config_sub_listener->SetUpstream(this);
 
-        mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                  command_sub_listener);
         mgr->InitializeSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), status_sub_listener);
         mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
                                   config_sub_listener);
@@ -77,17 +73,6 @@ namespace AMM {
         }
 
         Cleanup();
-
-    }
-
-
-    void ModuleManager::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
-        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
-            std::string value = c.message().substr(sysPrefix.size());
-            LOG_TRACE << "[ModuleManager][COMMAND] We received a SYSTEM action: " << value;
-        } else {
-            LOG_TRACE << "[ModuleManager][COMMAND] Command received: " << c.message();
-        }
 
     }
 
