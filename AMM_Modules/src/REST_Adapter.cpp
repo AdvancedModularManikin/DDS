@@ -784,8 +784,6 @@ int main(int argc, char *argv[]) {
 
     server.start();
 
-    int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-
     while (m_runThread) {
         getline(cin, action);
         transform(action.begin(), action.end(), action.begin(), ::toupper);
