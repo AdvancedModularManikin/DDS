@@ -90,6 +90,7 @@ int main(int argc, char *argv[]) {
             cout << "[ModuleManager] Creating modules table..." << endl;
             db << "create table if not exists modules("
                   "module_id text,"
+                  "module_guid text,"
                   "module_name text,"
                   "timestamp text"
                   ");";
@@ -99,6 +100,7 @@ int main(int argc, char *argv[]) {
             db << "create table if not exists module_capabilities ("
                   "model text,"
                   "module_id text,"
+                  "module_guid text,"
                   "module_name text,"
                   "manufacturer text,"
                   "serial_number text,"
@@ -115,6 +117,7 @@ int main(int argc, char *argv[]) {
             cout << "[ModuleManager] Creating module status table..." << endl;
             db << "create table if not exists module_status ("
                   "module_id text,"
+                  "module_guid text,"
                   "module_name text,"
                   "capability text,"
                   "status text,"

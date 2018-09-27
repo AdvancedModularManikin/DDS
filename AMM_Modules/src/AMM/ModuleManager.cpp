@@ -79,10 +79,16 @@ namespace AMM {
     void ModuleManager::onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info)  {
         ostringstream statusValue;
         statusValue << st.status_value();
+
+        GUID_t changeGuid = info->sample_identity.writer_guid();
+        std::ostringstream module_guid;
+        module_guid << changeGuid;
+
         try {
             database db("amm.db");
-            db << "replace into module_status (module_id, module_name, capability, status) values (?,?,?,?);"
+            db << "replace into module_status (module_id, module_guid, module_name, capability, status) values (?,?,?,?,?);"
                << st.module_id()
+               << module_guid.str()
                << st.module_name()
                << st.capability()
                << statusValue.str();
@@ -92,11 +98,16 @@ namespace AMM {
     }
 
     void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
+        GUID_t changeGuid = info->sample_identity.writer_guid();
+        std::ostringstream module_guid;
+        module_guid << changeGuid;
+
         try {
             database db("amm.db");
             db
-                    << "replace into module_capabilities (module_id, module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?,?);"
+                    << "replace into module_capabilities (module_id, module_guid, module_name, manufacturer, model, serial_number, version, capabilities) values (?,?,?,?,?,?,?,?);"
                     << cfg.module_id()
+                    << module_guid.str()
                     << cfg.module_name()
                     << cfg.manufacturer()
                     << cfg.model()

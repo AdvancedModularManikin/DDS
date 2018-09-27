@@ -46,8 +46,6 @@ namespace AMM {
 
         void Cleanup();
 
-        void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override;
-
         void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) override;
 
         void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override;
