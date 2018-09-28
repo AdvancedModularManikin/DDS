@@ -509,7 +509,7 @@ void *Server::HandleClient(void *args) {
                                             subTopicName = s->Attribute("nodepath");
                                         }
                                         add_once(subscribedTopics[c->id], subTopicName);
-                                        LOG_TRACE << "[" << capabilityName << "] Subscribed to " << subTopicName;
+                                        LOG_TRACE << "[" << capabilityName << "][" << c->id << "] Subscribed to " << subTopicName;
                                     }
                                 }
 
@@ -521,7 +521,7 @@ void *Server::HandleClient(void *args) {
                                         tinyxml2::XMLElement *p = pub->ToElement();
                                         std::string pubTopicName = p->Attribute("name");
                                         add_once(publishedTopics[c->id], pubTopicName);
-                                        LOG_TRACE << "[" << capabilityName << "] Publishing to " << pubTopicName;
+                                        LOG_TRACE << "[" << capabilityName << "][" << c->id << "] Publishing to " << pubTopicName;
                                     }
                                 }
                             }
