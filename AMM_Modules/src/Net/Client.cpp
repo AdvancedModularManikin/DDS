@@ -15,7 +15,7 @@ void Client::SetClientType(std::string &clientType) {
     this->clientType = clientType;
 }
 
-void Client::SetId(unsigned long id) {
+void Client::SetId(std::string id) {
     this->id = id;
 }
 

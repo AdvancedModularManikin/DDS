@@ -29,7 +29,7 @@ class Server {
 
     static void SendToAll(const std::string &message);
     static void SendToClient(Client *c, const std::string &message);
-    static Client * GetClientByIndex(unsigned long id);
+    static Client * GetClientByIndex(std::string id);
 
   private:
     static void ListClients();

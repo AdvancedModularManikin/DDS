@@ -42,7 +42,7 @@ int bridgePort = 9015;
 int daemonize = 1;
 int discovery = 1;
 
-std::map<unsigned long, std::string> globalInboundBuffer;
+std::map<std::string, std::string> globalInboundBuffer;
 
 const string capabilityPrefix = "CAPABILITY=";
 const string settingsPrefix = "SETTINGS=";
@@ -66,38 +66,38 @@ Publisher *settings_publisher;
 
 DDS_Manager *mgr;
 
-std::map<unsigned long, std::vector<std::string>> subscribedTopics;
-std::map<unsigned long, std::vector<std::string>> publishedTopics;
+std::map<std::string, std::vector<std::string>> subscribedTopics;
+std::map<std::string, std::vector<std::string>> publishedTopics;
 
 std::map<std::string, std::map<std::string, double>> labNodes;
 std::map<std::string, std::map<std::string, std::string>> equipmentSettings;
-std::map<unsigned long, std::string> clientMap;
+std::map<std::string, std::string> clientMap;
 
 std::vector<std::string> explode(const std::string &delimiter, const std::string &str) {
-  std::vector<std::string> arr;
+    std::vector<std::string> arr;
 
-  int strleng = str.length();
-  int delleng = delimiter.length();
-  if (delleng == 0)
-    return arr;//no change
+    int strleng = str.length();
+    int delleng = delimiter.length();
+    if (delleng == 0)
+        return arr;//no change
 
-  int i = 0;
-  int k = 0;
-  while (i < strleng) {
-    int j = 0;
-    while (i + j < strleng && j < delleng && str[i + j] == delimiter[j])
-      j++;
-    if (j == delleng)//found delimiter
-      {
-	arr.push_back(str.substr(k, i - k));
-	i += delleng;
-	k = i;
-      } else {
-      i++;
+    int i = 0;
+    int k = 0;
+    while (i < strleng) {
+        int j = 0;
+        while (i + j < strleng && j < delleng && str[i + j] == delimiter[j])
+            j++;
+        if (j == delleng)//found delimiter
+        {
+            arr.push_back(str.substr(k, i - k));
+            i += delleng;
+            k = i;
+        } else {
+            i++;
+        }
     }
-  }
-  arr.push_back(str.substr(k, i - k));
-  return arr;
+    arr.push_back(str.substr(k, i - k));
+    return arr;
 };
 
 void add_once(std::vector<std::string> &vec, const std::string &element) {
@@ -231,7 +231,7 @@ void sendConfigToAll(std::string scene) {
  */
 class TCPBridgeListener : public ListenerInterface {
 public:
-    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t* info) override {
+    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         if (n.nodepath() == "EXIT") {
             LOG_INFO << "Shutting down simulation based on shutdown node-data from physiology engine.";
             closed = true;
@@ -245,27 +245,27 @@ public:
         }
 
         // Publish values that are supposed to go out on every change
-	std::ostringstream messageOut;
-	messageOut << n.nodepath() << "=" << n.dbl() << "|";
-	string stringOut = messageOut.str();
-	
-	auto it = clientMap.begin();
-	while (it != clientMap.end()) {
-	  unsigned long cid = it->first;
-	  std::vector<std::string> subV = subscribedTopics[cid];
-	  
-	  if (std::find(subV.begin(), subV.end(), n.nodepath()) != subV.end() ||
-	      std::find(subV.begin(), subV.end(), "AMM_Node_Data") != subV.end()
-	      ) {
-	    Client * c = Server::GetClientByIndex(cid);
-	    if (c) {
-	      Server::SendToClient(c, messageOut.str());
-	    }
-	  }
-	  ++it;
-	  
-	  /** Find out who subscribed to this and only target that *C **/
-	  // s->SendToAll(messageOut.str());
+        std::ostringstream messageOut;
+        messageOut << n.nodepath() << "=" << n.dbl() << "|";
+        string stringOut = messageOut.str();
+
+        auto it = clientMap.begin();
+        while (it != clientMap.end()) {
+            std::string cid = it->first;
+            std::vector<std::string> subV = subscribedTopics[cid];
+
+            if (std::find(subV.begin(), subV.end(), n.nodepath()) != subV.end() ||
+                std::find(subV.begin(), subV.end(), "AMM_Node_Data") != subV.end()
+                    ) {
+                Client *c = Server::GetClientByIndex(cid);
+                if (c) {
+                    Server::SendToClient(c, messageOut.str());
+                }
+            }
+            ++it;
+
+            /** Find out who subscribed to this and only target that *C **/
+            // s->SendToAll(messageOut.str());
         }
     }
 
@@ -349,8 +349,10 @@ void *Server::HandleClient(void *args) {
     int index;
     ssize_t n;
 
+    std::string uuid = mgr->GenerateID();
+
     ServerThread::LockMutex(c->name);
-    c->SetId(Server::clients.size());
+    c->SetId(uuid);
     string defaultName = "Client #" + c->id;
     c->SetName(defaultName);
 
@@ -382,15 +384,15 @@ void *Server::HandleClient(void *args) {
         } else if (n < 0) {
             LOG_ERROR << "Error while receiving message from client: " << c->name;
         } else {
-	  std::string tempBuffer(buffer);
-	  globalInboundBuffer[c->id] += tempBuffer;
-	  if (!boost::algorithm::ends_with(globalInboundBuffer[c->id], "\n")) {
-	    continue;
-	  }
-	  vector<string> strings = explode("\n", globalInboundBuffer[c->id]);
-	  globalInboundBuffer[c->id].clear();
-	  	  
-	  for (auto str : strings) {
+            std::string tempBuffer(buffer);
+            globalInboundBuffer[c->id] += tempBuffer;
+            if (!boost::algorithm::ends_with(globalInboundBuffer[c->id], "\n")) {
+                continue;
+            }
+            vector<string> strings = explode("\n", globalInboundBuffer[c->id]);
+            globalInboundBuffer[c->id].clear();
+
+            for (auto str : strings) {
                 boost::trim_right(str);
                 if (!str.empty()) {
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
@@ -399,15 +401,13 @@ void *Server::HandleClient(void *args) {
 
                         // Make the entry in our client UUID map
                         clientMap[c->id] = uuid;
-
-                        LOG_TRACE << "Setting client name to " << moduleName;
+                        
                         // Add the modules name to the static Client vector
                         ServerThread::LockMutex(c->name);
                         c->SetName(moduleName);
                         c->SetUUID(uuid);
                         ServerThread::UnlockMutex(c->name);
-                        LOG_INFO << "Client " << c->id << " module connected: " << moduleName << " (UUID assigned: "
-                                 << uuid << ")";
+                        LOG_INFO << "Client " << c->id << " module connected: " << moduleName;
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
                         // Registering for data
                         std::string registerVal = str.substr(registerPrefix.size());
@@ -509,7 +509,8 @@ void *Server::HandleClient(void *args) {
                                             subTopicName = s->Attribute("nodepath");
                                         }
                                         add_once(subscribedTopics[c->id], subTopicName);
-                                        LOG_TRACE << "[" << capabilityName << "][" << c->id << "] Subscribed to " << subTopicName;
+                                        LOG_TRACE << "[" << capabilityName << "][" << c->id << "] Subscribed to "
+                                                  << subTopicName;
                                     }
                                 }
 
@@ -521,7 +522,8 @@ void *Server::HandleClient(void *args) {
                                         tinyxml2::XMLElement *p = pub->ToElement();
                                         std::string pubTopicName = p->Attribute("name");
                                         add_once(publishedTopics[c->id], pubTopicName);
-                                        LOG_TRACE << "[" << capabilityName << "][" << c->id << "] Publishing to " << pubTopicName;
+                                        LOG_TRACE << "[" << capabilityName << "][" << c->id << "] Publishing to "
+                                                  << pubTopicName;
                                     }
                                 }
                             }
@@ -676,7 +678,10 @@ int main(int argc, const char *argv[]) {
 
     std::thread t1(UdpDiscoveryThread);
     s = new Server(bridgePort);
+    std::string action;
+
     s->AcceptAndDispatch();
+
 
     t1.join();
 

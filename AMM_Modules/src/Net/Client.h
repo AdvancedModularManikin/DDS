@@ -3,11 +3,11 @@
 
 #include "stdafx.h"
 
-#define MAX_NAME_LENGTH 20
+#define MAX_NAME_LENGTH 40
 
 class Client {
 public:
-    unsigned long id{};
+    std::string id;
     std::string name;
     std::string uuid;
     std::string clientType;
@@ -19,7 +19,7 @@ public:
 
     Client() {};
 
-    void SetId(unsigned long id);
+    void SetId(std::string id);
 
     void SetName(std::string &name);
 

@@ -83,9 +83,9 @@ void Server::SendToAll(char *message) {
 void Server::SendToClient(Client *c, const std::string &message) {
     ssize_t n;
     ServerThread::LockMutex("'SendToClient()'");
-    int id = Server::FindClientIndex(c);
+
     // cout << " Sending message to [" << c->name << "](" << c->id << "): " << message << endl;
-    n = send(Server::clients[id].sock, message.c_str(), strlen(message.c_str()), 0);
+    n = send(c->sock, message.c_str(), strlen(message.c_str()), 0);
     // cout << n << " bytes sent." << endl;
     ServerThread::UnlockMutex("'SendToClient()'");
 }
@@ -108,7 +108,7 @@ int Server::FindClientIndex(Client *c) {
     return -1;
 }
 
-Client * Server::GetClientByIndex(unsigned long id) {
+Client * Server::GetClientByIndex(std::string id) {
     for (size_t i = 0; i < clients.size(); i++) {
         if ((Server::clients[i].id) == id) return &Server::clients[i];
     }
