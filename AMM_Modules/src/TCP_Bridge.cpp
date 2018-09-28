@@ -253,7 +253,7 @@ public:
         while (it != clientMap.end()) {
             std::string cid = it->first;
             std::vector<std::string> subV = subscribedTopics[cid];
-
+	    
             if (std::find(subV.begin(), subV.end(), n.nodepath()) != subV.end() ||
                 std::find(subV.begin(), subV.end(), "AMM_Node_Data") != subV.end()
                     ) {
@@ -351,15 +351,15 @@ void *Server::HandleClient(void *args) {
 
     std::string uuid = mgr->GenerateID();
 
-    ServerThread::LockMutex(c->name);
+    ServerThread::LockMutex(uuid);
     c->SetId(uuid);
-    string defaultName = "Client #" + c->id;
+    string defaultName = "Client " + c->id;
     c->SetName(defaultName);
-
-    LOG_TRACE << "Adding client with id: " << c->id;
     Server::clients.push_back(*c);
-    ServerThread::UnlockMutex(c->name);
-
+    clientMap[c->id] = uuid;
+    LOG_TRACE << "Adding client with id: " << c->id;
+    ServerThread::UnlockMutex(uuid);
+   
     while (true) {
         memset(buffer, 0, sizeof buffer);
         n = recv(c->sock, buffer, sizeof buffer, 0);
@@ -369,17 +369,17 @@ void *Server::HandleClient(void *args) {
             LOG_INFO << c->name << " disconnected";
             close(c->sock);
 
-            // Remove from our client/UUID map
-            auto it = clientMap.find(c->id);
-            clientMap.erase(it);
-
             //Remove client in Static clients <vector>
-            ServerThread::LockMutex(c->name);
+            ServerThread::LockMutex(uuid);
             index = Server::FindClientIndex(c);
             LOG_TRACE << "Erasing user in position " << index << " whose name id is: "
                       << Server::clients[index].id;
             Server::clients.erase(Server::clients.begin() + index);
-            ServerThread::UnlockMutex(c->name);
+
+            // Remove from our client/UUID map
+            auto it = clientMap.find(c->id);
+            clientMap.erase(it);
+            ServerThread::UnlockMutex(uuid);
             break;
         } else if (n < 0) {
             LOG_ERROR << "Error while receiving message from client: " << c->name;
@@ -397,16 +397,11 @@ void *Server::HandleClient(void *args) {
                 if (!str.empty()) {
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
                         std::string moduleName = str.substr(modulePrefix.size());
-                        std::string uuid = mgr->GenerateID();
-
-                        // Make the entry in our client UUID map
-                        clientMap[c->id] = uuid;
                         
                         // Add the modules name to the static Client vector
-                        ServerThread::LockMutex(c->name);
+                        ServerThread::LockMutex(uuid);
                         c->SetName(moduleName);
-                        c->SetUUID(uuid);
-                        ServerThread::UnlockMutex(c->name);
+                        ServerThread::UnlockMutex(uuid);
                         LOG_INFO << "Client " << c->id << " module connected: " << moduleName;
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
                         // Registering for data
@@ -467,7 +462,7 @@ void *Server::HandleClient(void *args) {
                         std::string nodeModel(model);
 
                         mgr->PublishModuleConfiguration(
-                                c->uuid,
+                                uuid,
                                 nodeName,
                                 nodeManufacturer,
                                 nodeModel,
