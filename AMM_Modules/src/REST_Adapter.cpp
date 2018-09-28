@@ -123,7 +123,7 @@ Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
 
-std::string extractPhysiologyModificationName(const std::string& payload) {
+std::string extractPhysiologyModificationName(const std::string &payload) {
     XMLDocument doc(false);
     doc.Parse(payload.c_str());
     tinyxml2::XMLNode *root = doc.FirstChildElement("Scenario");
@@ -135,7 +135,7 @@ std::string extractPhysiologyModificationName(const std::string& payload) {
 }
 
 class AMMListener : public ListenerInterface {
-    void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t* info) {
+    void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) {
         if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 && t.frame() > lastTick) {
             statusStorage["STATUS"] = "RUNNING";
         }
@@ -144,10 +144,11 @@ class AMMListener : public ListenerInterface {
         statusStorage["TIME"] = to_string(t.time());
     }
 
-    void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t* info) {};
+    void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t *info) {};
 
-    void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t* info) {
-        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t *info) {
+        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
         GUID_t changeGuid = info->sample_identity.writer_guid();
         std::ostringstream module_guid;
         module_guid << changeGuid;
@@ -166,8 +167,9 @@ class AMMListener : public ListenerInterface {
 
     };
 
-    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t* info) {
-        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) {
+        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
         GUID_t changeGuid = info->sample_identity.writer_guid();
         std::ostringstream module_guid;
         module_guid << changeGuid;
@@ -188,7 +190,8 @@ class AMMListener : public ListenerInterface {
     };
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
-        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
         GUID_t changeGuid = info->sample_identity.writer_guid();
         std::ostringstream module_guid;
         module_guid << changeGuid;
@@ -221,7 +224,7 @@ class AMMListener : public ListenerInterface {
         statusStorage["LAST_COMMAND"] = c.message();
     }
 
-    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t* info) {
+    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {
         nodeDataStorage[n.nodepath()] = n.dbl();
     }
 
@@ -248,6 +251,7 @@ void SendPerformanceAssessment(const std::string &command) {
     assessInstance.assessment_info(command);
     mgr->PublishPerformanceData(assessInstance);
 }
+
 void SendCommand(const std::string &command) {
     LOG_INFO << "Publishing a command:" << command;
     AMM::PatientAction::BioGears::Command cmdInstance;
@@ -314,6 +318,8 @@ private:
 
         Routes::Get(router, "/events", Routes::bind(&DDSEndpoint::getEventLog, this));
 
+        Routes::Get(router, "/modules/count", Routes::bind(&DDSEndpoint::getModuleCount, this));
+        Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
         Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
         Routes::Get(router, "/module/id/:id", Routes::bind(&DDSEndpoint::getModuleById, this));
         Routes::Get(router, "/module/guid/:guid", Routes::bind(&DDSEndpoint::getModuleByGuid, this));
@@ -329,9 +335,11 @@ private:
         Routes::Post(router, "/execute", Routes::bind(&DDSEndpoint::executeCommand, this));
         Routes::Options(router, "/execute", Routes::bind(&DDSEndpoint::executeOptions, this));
 
-        Routes::Post(router, "/topic/physiology_modification", Routes::bind(&DDSEndpoint::executePhysiologyModification, this));
+        Routes::Post(router, "/topic/physiology_modification",
+                     Routes::bind(&DDSEndpoint::executePhysiologyModification, this));
         Routes::Post(router, "/topic/render_modification", Routes::bind(&DDSEndpoint::executeRenderModification, this));
-        Routes::Post(router, "/topic/performance_assessment", Routes::bind(&DDSEndpoint::executePerformanceAssessment, this));
+        Routes::Post(router, "/topic/performance_assessment",
+                     Routes::bind(&DDSEndpoint::executePerformanceAssessment, this));
         Routes::Options(router, "/topic/:mod_type", Routes::bind(&DDSEndpoint::executeOptions, this));
 
         Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
@@ -563,7 +571,8 @@ private:
               " module_capabilities "
               " WHERE module_id = ?"
            << id
-           >> [&](string module_id, string module_guid, string module_name, string capabilities, string manufacturer, string model) {
+           >> [&](string module_id, string module_guid, string module_name, string capabilities, string manufacturer,
+                  string model) {
                writer.StartObject();
 
                writer.Key("Module_ID");
@@ -591,49 +600,69 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
 
     }
-        void getModuleByGuid(const Rest::Request &request, Http::ResponseWriter response) {
-            auto guid = request.param(":guid").as<std::string>();
-            StringBuffer s;
-            Writer<StringBuffer> writer(s);
-            db << "SELECT "
-                  "module_id AS module_id,"
-                  "module_guid as module_guid,"
-                  "module_name AS module_name,"
-                  "capabilities as capabilities,"
-                  "manufacturer as manufacturer,"
-                  "model as model "
-                  " FROM "
-                  " module_capabilities "
-                  " WHERE module_guid = ?"
-               << guid
-               >> [&](string module_id, string module_guid, string module_name, string capabilities, string manufacturer, string model) {
-                   writer.StartObject();
 
-                   writer.Key("Module_ID");
-                   writer.String(module_id.c_str());
+    void getModuleByGuid(const Rest::Request &request, Http::ResponseWriter response) {
+        auto guid = request.param(":guid").as<std::string>();
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        db << "SELECT "
+              "module_id AS module_id,"
+              "module_guid as module_guid,"
+              "module_name AS module_name,"
+              "capabilities as capabilities,"
+              "manufacturer as manufacturer,"
+              "model as model "
+              " FROM "
+              " module_capabilities "
+              " WHERE module_guid = ?"
+           << guid
+           >> [&](string module_id, string module_guid, string module_name, string capabilities, string manufacturer,
+                  string model) {
+               writer.StartObject();
 
-                   writer.Key("Module_GUID");
-                   writer.String(module_guid.c_str());
+               writer.Key("Module_ID");
+               writer.String(module_id.c_str());
 
-                   writer.Key("Module_Name");
-                   writer.String(module_name.c_str());
+               writer.Key("Module_GUID");
+               writer.String(module_guid.c_str());
 
-                   writer.Key("Manufacturer");
-                   writer.String(manufacturer.c_str());
+               writer.Key("Module_Name");
+               writer.String(module_name.c_str());
 
-                   writer.Key("Model");
-                   writer.String(model.c_str());
+               writer.Key("Manufacturer");
+               writer.String(manufacturer.c_str());
 
-                   writer.Key("Module_Capabilities");
-                   writer.String(capabilities.c_str());
+               writer.Key("Model");
+               writer.String(model.c_str());
 
-                   writer.EndObject();
-               };
+               writer.Key("Module_Capabilities");
+               writer.String(capabilities.c_str());
 
-            response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-            response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-        }
-            void getModules(const Rest::Request &request, Http::ResponseWriter response) {
+               writer.EndObject();
+           };
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getModuleCount(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+
+        int count = 0;
+        db << "SELECT COUNT(DISTINCT module_id) FROM module_capabilities" >> count;
+        writer.StartObject();
+
+        writer.Key("module_count");
+        writer.Int(count);
+
+        writer.EndObject();
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getModules(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();
@@ -840,8 +869,10 @@ int main(int argc, char *argv[]) {
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), tick_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(), rendermod_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(), physmod_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(),
+                              rendermod_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(),
+                              physmod_sub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
