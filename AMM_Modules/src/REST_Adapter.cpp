@@ -230,25 +230,46 @@ class AMMListener : public ListenerInterface {
 
 };
 
-void SendPhysiologyModification(const std::string &command) {
-    std::string physModName = extractPhysiologyModificationName(command);
-    LOG_INFO << "Publishing a phys mod: " << physModName;
+void SendPhysiologyModification(const std::string &type, const std::string &location, const std::string &practitioner, const std::string &payload) {
+    std::string physModName = extractPhysiologyModificationName(payload);
+    LOG_DEBUG << "Publishing a phys mod: " << physModName;
     AMM::Physiology::Modification modInstance;
-    modInstance.payload(command);
+    modInstance.type(type);
+    //  modInstance.location.description(location);
+    modInstance.practitioner(practitioner);
+    modInstance.payload(payload);
     mgr->PublishPhysiologyModification(modInstance);
 }
 
-void SendRenderModification(const std::string &command) {
-    LOG_INFO << "Publishing a render mod: " << command;
+void SendPhysiologyModification(const std::string &payload) {
+    std::string physModName = extractPhysiologyModificationName(payload);
+    LOG_DEBUG << "Publishing a minimal phys mod: " << physModName;
+    AMM::Physiology::Modification modInstance;
+    modInstance.payload(payload);
+    mgr->PublishPhysiologyModification(modInstance);
+}
+
+void SendRenderModification(const std::string &type, const std::string &location, const std::string &practitioner, const std::string &payload) {
+    LOG_DEBUG << "Publishing a render mod: " << payload;
     AMM::Render::Modification modInstance;
-    modInstance.payload(command);
+    modInstance.type(type);
+    FMA_Location fma_location;
+    fma_location.description(location);
+    modInstance.location(fma_location);
+    modInstance.practitioner(practitioner);
+    modInstance.payload(payload);
     mgr->PublishRenderModification(modInstance);
 }
 
-void SendPerformanceAssessment(const std::string &command) {
-    LOG_INFO << "Publishing a phys mod: " << command;
+void SendPerformanceAssessment(const std::string &assessment_type, const std::string &location, const std::string &practitioner, const std::string &assessment_info, const std::string &step, const std::string &comment) {
+    LOG_INFO << "Publishing an assessment: " << assessment_type;
     AMM::Performance::Assessment assessInstance;
-    assessInstance.assessment_info(command);
+    assessInstance.assessment_type(assessment_type);
+    // location
+    assessInstance.learner_id(practitioner);
+    assessInstance.assessment_info(assessment_info);
+    assessInstance.step(step);
+    assessInstance.comment(comment);
     mgr->PublishPerformanceData(assessInstance);
 }
 
@@ -492,8 +513,11 @@ private:
     void executePhysiologyModification(const Rest::Request &request, Http::ResponseWriter response) {
         Document document;
         document.Parse(request.body().c_str());
+        std::string type = document["type"].GetString();
+        std::string location = document["location"].GetString();
+        std::string practitioner = document["practitioner"].GetString();
         std::string payload = document["payload"].GetString();
-        SendPhysiologyModification(payload);
+        SendPhysiologyModification(type,location,practitioner,payload);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
         response.send(Http::Code::Ok, "Physiology modification published");
@@ -502,8 +526,11 @@ private:
     void executeRenderModification(const Rest::Request &request, Http::ResponseWriter response) {
         Document document;
         document.Parse(request.body().c_str());
+        std::string type = document["type"].GetString();
+        std::string location = document["location"].GetString();
+        std::string practitioner = document["practitioner"].GetString();
         std::string payload = document["payload"].GetString();
-        SendRenderModification(payload);
+        SendRenderModification(type,location,practitioner,payload);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
         response.send(Http::Code::Ok, "Render modification published");
@@ -512,8 +539,13 @@ private:
     void executePerformanceAssessment(const Rest::Request &request, Http::ResponseWriter response) {
         Document document;
         document.Parse(request.body().c_str());
-        std::string payload = document["payload"].GetString();
-        SendPerformanceAssessment(payload);
+        std::string location = document["location"].GetString();
+        std::string practitioner = document["practitioner"].GetString();
+        std::string type = document["type"].GetString();
+        std::string info = document["info"].GetString();
+        std::string step = document["step"].GetString();
+        std::string comment = document["comment"].GetString();
+        SendPerformanceAssessment(type, location, practitioner, info, step, comment);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
         response.send(Http::Code::Ok, "Performance assessment published");

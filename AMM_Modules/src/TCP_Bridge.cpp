@@ -266,7 +266,7 @@ public:
     void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t* info) override {
         // Publish values that are supposed to go out on every change
         std::ostringstream messageOut;
-        messageOut << "[AMM_Physiology_Modification]" <<  "type=" << pm.type() << ";" <<  "location=" << pm.location().description() << ";" <<  "payload=" << pm.payload();
+        messageOut << "[AMM_Physiology_Modification]" <<  "type=" << pm.type() << ";" <<  "location=" << pm.location().description() << ";" <<  "learner_id=" << pm.practitioner() << ";" << "payload=" << pm.payload();
         string stringOut = messageOut.str();
 
         auto it = clientMap.begin();
@@ -289,7 +289,7 @@ public:
     void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t* info) override {
         // Publish values that are supposed to go out on every change
         std::ostringstream messageOut;
-        messageOut << "[AMM_Render_Modification]" <<  "type=" << rm.type() << ";" <<  "location=" << rm.location().description() << ";" <<  "payload=" << rm.payload();
+        messageOut << "[AMM_Render_Modification]" <<  "type=" << rm.type() << ";" <<  "location=" << rm.location().description() << ";" <<  "learner_id=" << rm.practitioner() << ";" << "payload=" << rm.payload();
         string stringOut = messageOut.str();
 
         auto it = clientMap.begin();
