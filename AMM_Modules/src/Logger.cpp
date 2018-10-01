@@ -241,6 +241,7 @@ public:
 
 
 int main(int argc, char *argv[]) {
+    using namespace AMM::Capability;
     cout << "=== [AMM - Logger] ===" << endl;
 
     string action;

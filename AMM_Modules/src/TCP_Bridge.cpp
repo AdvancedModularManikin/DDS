@@ -384,6 +384,7 @@ void PublishSettings(std::string const &equipmentType) {
 
 // Override client handler code from Net Server
 void *Server::HandleClient(void *args) {
+    using namespace AMM::Capability;
     auto *c = (Client *) args;
     char buffer[8192 - 25];
     int index;
@@ -645,11 +646,13 @@ void UdpDiscoveryThread() {
 }
 
 static void show_usage(const std::string &name) {
+    using namespace AMM::Capability;
     std::cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
               << std::endl;
 }
 
 int main(int argc, const char *argv[]) {
+    using namespace AMM::Capability;
     LOG_INFO << "=== [AMM - Network Bridge] ===";
 
     for (int i = 1; i < argc; ++i) {

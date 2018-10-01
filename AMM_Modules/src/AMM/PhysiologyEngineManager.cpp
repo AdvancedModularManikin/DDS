@@ -1,5 +1,11 @@
 #include "PhysiologyEngineManager.h"
 
+#include <fastcdr/Cdr.h>
+#include <fastcdr/FastBuffer.h>
+
+#include <biogears/cdm/patient/actions/SEPainStimulus.h>
+#include <biogears/cdm/patient/actions/SESepsis.h>
+
 #pragma GCC diagnostic ignored "-Wwrite-strings"
 
 #define MAX_DATE 18
@@ -9,6 +15,7 @@ using namespace std::chrono;
 
 namespace AMM {
     PhysiologyEngineManager::PhysiologyEngineManager() {
+        using namespace AMM::Capability;
         if (bg == nullptr) {
             LOG_ERROR << "BioGears thread did not load.";
         }
@@ -20,6 +27,9 @@ namespace AMM {
         auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
         command_sub_listener->SetUpstream(this);
 
+        auto *physiology_command_sub_listener = new DDS_Listeners::PhysiologyCommandSubListener();
+        physiology_command_sub_listener->SetUpstream(this);
+
         auto *equipment_sub_listener = new DDS_Listeners::EquipmentSubListener();
         equipment_sub_listener->SetUpstream(this);
 
@@ -30,8 +40,13 @@ namespace AMM {
 
         tick_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(),
                                                     tick_sub_listener);
+
         command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                        command_sub_listener);
+
+        physiology_command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::physiologyCommandTopic, AMM::DataTypes::getPhysiologyCommandType(),
+                                                       physiology_command_sub_listener);
+
         equipment_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::instrumentDataTopic,
                                                          AMM::DataTypes::getInstrumentDataType(),
                                                          equipment_sub_listener);
@@ -233,6 +248,67 @@ namespace AMM {
     void PhysiologyEngineManager::onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) {
         LOG_INFO << "Physiology modification received: " << pm.payload();
         bg->ExecuteXMLCommand(pm.payload());
+    }
+
+    void PhysiologyEngineManager::onNewCommandData(AMM::Physiology::Command cm, SampleInfo_t* info) {
+        using namespace biogears;
+        switch (cm.type()) {
+            case AMM::Physiology::CMD::PainCommand: {
+                LOG_TRACE << "AMM::Physiology::CMD::PainCommand";
+
+                AMM::Physiology::PainStimulus::Data command;
+                eprosima::fastcdr::FastBuffer buffer{ &cm.payload()[0], cm.payload().size()};
+                eprosima::fastcdr::Cdr cdr{buffer};   
+                cdr >> command;          
+                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine)
+                    { 
+                        //Create variables for scenario
+                        SEPainStimulus PainStimulus; //pain object
+                        PainStimulus.SetLocation(command.location().description());
+                        PainStimulus.GetSeverity().SetValue(command.severity());
+                        engine->ProcessAction(PainStimulus);
+                        return engine;
+                    }
+                );
+            }
+            break;
+            case AMM::Physiology::CMD::SepsisCommand: {
+                LOG_TRACE << "AMM::Physiology::CMD::SepsisCommand";
+                AMM::Physiology::Sepsis::Data command;
+                eprosima::fastcdr::FastBuffer buffer{ &cm.payload()[0], cm.payload().size()};
+                eprosima::fastcdr::Cdr cdr{buffer};
+                cdr >> command;
+                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine)
+                    { 
+                        //Create variables for scenario
+                        SESepsis sepsis; //pain object
+                        sepsis.BuildTissueResistorMap();
+                        auto tissueMap = sepsis.GetTissueResistorMap();
+                        switch (command.location()) {
+                            case AMM::Physiology::BoneTissue: sepsis.SetCompartment(tissueMap["BoneTissue"]);break;
+                            case AMM::Physiology::FatTissue:  sepsis.SetCompartment(tissueMap["FatTissue"]);break;
+                            case AMM::Physiology::GutTissue:  sepsis.SetCompartment(tissueMap["GutTissue"]);break;
+                            case AMM::Physiology::LeftKidneyTissue: sepsis.SetCompartment(tissueMap["LeftKidneyTissue"]); break;
+                            case AMM::Physiology::LeftLungTissue:   sepsis.SetCompartment(tissueMap["LeftLungTissue"]); break;
+                            case AMM::Physiology::LiverTissue:      sepsis.SetCompartment(tissueMap["LiverTissue"]); break;
+                            case AMM::Physiology::MuscleTissue:     sepsis.SetCompartment(tissueMap["MuscleTissue"]); break;
+                            case AMM::Physiology::MyocardiumTissue: sepsis.SetCompartment(tissueMap["MyocardiumTissue"]); break;
+                            case AMM::Physiology::RightKidneyTissue: sepsis.SetCompartment(tissueMap["RightKidneyTissu"]); break;
+                            case AMM::Physiology::RightLungTissue:  sepsis.SetCompartment(tissueMap["RightLungTissue"]); break;
+                            case AMM::Physiology::SkinTissue:       sepsis.SetCompartment(tissueMap["SkinTissue"]); break;
+                            case AMM::Physiology::SpleenTissue:     sepsis.SetCompartment(tissueMap["SpleenTissue"]); break;
+                        }
+                        sepsis.GetSeverity().SetValue(command.severity());
+                        engine->ProcessAction(sepsis);
+                        return engine;
+                    }
+                );
+            }
+            break;
+            default:
+                LOG_TRACE << "Unsupported CMD Type. Value sent was " << cm.type();
+            break;
+        };
     }
 
     void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {

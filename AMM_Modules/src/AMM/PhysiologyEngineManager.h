@@ -58,6 +58,7 @@ namespace AMM {
 
         void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override;
         void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) override;
+        void onNewCommandData(AMM::Physiology::Command cm, SampleInfo_t* info) override;
         void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) override;
         void onNewInstrumentData(AMM::InstrumentData i, SampleInfo_t *info) override;
         void onNewPhysiologyModificationData(AMM::Physiology::Modification, SampleInfo_t *info) override;
@@ -71,6 +72,7 @@ namespace AMM {
 
         Publisher *node_publisher;
         Subscriber *tick_subscriber;
+        Subscriber *physiology_command_subscriber;
         Subscriber *command_subscriber;
         Subscriber *equipment_subscriber;
         Subscriber *physmod_subscriber;

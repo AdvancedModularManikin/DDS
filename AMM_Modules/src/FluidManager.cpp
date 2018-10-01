@@ -95,6 +95,7 @@ class FluidListener : public ListenerInterface {
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
+    using namespace AMM::Capability;
         // We received configuration which we need to push via SPI
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
@@ -232,6 +233,7 @@ uint32_t val;
 void
 air_reservoir_control_task(void)
 {
+  using namespace AMM::Capability;
   int solenoid_0 = 7, motor_dac = 0;
   int solenoid_A = solenoid_0 + 6;
   int solenoid_B = solenoid_0 + 7;

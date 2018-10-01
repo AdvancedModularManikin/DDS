@@ -6,14 +6,12 @@
 #include <string>
 #include <iostream>
 
+#include <fastcdr/Cdr.h>
+
 #include "AMM/BaseLogger.h"
-
 #include "AMM/DataTypes.h"
-
 #include "AMM/DDS_Manager.h"
-
 #include "AMM/Listeners/DDS_Listeners.h"
-
 #include "AMM/Listeners/ListenerInterface.h"
 
 using namespace std;
@@ -43,6 +41,7 @@ namespace AMM {
         int GetTickCount();
 
         void SendCommand(const std::string &command);
+        void SendCommand(const AMM::Physiology::CMD type, eprosima::fastcdr::Cdr &data);
 
         void Cleanup();
 
@@ -65,6 +64,7 @@ namespace AMM {
         Subscriber *command_subscriber;
 
         Publisher *command_publisher;
+        Publisher *physiology_publisher;
         Publisher *tick_publisher;
 
         int tickCount = 0;

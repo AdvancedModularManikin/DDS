@@ -35,6 +35,28 @@ void DDS_Listeners::NodeSubListener::onNewDataMessage(Subscriber *sub) {
     }
 }
 
+void DDS_Listeners::PhysiologyCommandSubListener::onSubscriptionMatched(Subscriber *sub,
+                                                              MatchingInfo &info) {
+    if (info.status == MATCHED_MATCHING) {
+        n_matched++;
+    } else {
+        n_matched--;
+    }
+}
+
+void DDS_Listeners::PhysiologyCommandSubListener::onNewDataMessage(Subscriber *sub) {
+    AMM::Physiology::Command cm;
+
+    if (sub->takeNextData(&cm, &m_info)) {
+        if (m_info.sampleKind == ALIVE) {
+            if (upstream != nullptr) {
+                upstream->onNewCommandData(cm, &m_info);
+            }
+            ++n_msg;
+        }
+    }
+}
+
 void DDS_Listeners::CommandSubListener::onSubscriptionMatched(Subscriber *sub,
                                                               MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {

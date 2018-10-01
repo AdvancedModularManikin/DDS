@@ -5,7 +5,7 @@
 #include <ctime>
 #include <stdexcept>
 #include <sstream>
-
+#include <functional>
 // Boost dependencies
 #include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
@@ -66,30 +66,6 @@
 #include "AMM/BaseLogger.h"
 
 // Forward declare what we will use in our thread
-class SESubstance;
-
-class SEEnergySystem;
-
-class SEScenario;
-
-class SEAdvanceTime;
-
-class SEComprehensiveMetabolicPanel;
-
-class SEGasCompartment;
-
-class SECompleteBloodCount;
-
-class SEAnesthesiaMachineConfiguration;
-
-class SEAnesthesiaMachine;
-
-class SEHemorrhage;
-
-class SESubstanceCompoundInfusion;
-
-class PhysiologyEngine;
-
 namespace AMM {
     class PhysiologyThread {
     public:
@@ -106,6 +82,8 @@ namespace AMM {
         bool ExecuteXMLCommand(const std::string &cmd);
 
         bool ExecuteCommand(const std::string &cmd);
+
+        bool Execute( std::function<std::unique_ptr<biogears::PhysiologyEngine>(std::unique_ptr<biogears::PhysiologyEngine>&&)> func);
 
         void Shutdown();
 
@@ -138,127 +116,78 @@ namespace AMM {
         void PopulateNodePathTable();
 
         void PreloadSubstances();
-
         void PreloadCompartments();
 
         double GetShutdownMessage();
-
         double GetHeartRate();
-
         double GetBloodVolume();
-
         double GetArterialSystolicPressure();
-
         double GetArterialDiastolicPressure();
-
         double GetMeanArterialPressure();
-
         double GetArterialPressure();
-
         double GetMeanCentralVenousPressure();
-
         double GetEndTidalCarbonDioxideFraction();
-
         double GetOxygenSaturation();
-
         double GetRespirationRate();
-
         double GetCoreTemperature();
-
         double GetECGWaveform();
-
         double GetSodiumConcentration();
-
         double GetSodium();
-
         double GetGlucoseConcentration();
-
         double GetBUN();
-
         double GetCreatinineConcentration();
-
         double GetWhiteBloodCellCount();
-
         double GetRedBloodCellCount();
-
         double GetHemoglobinConcentration();
-
         double GetHematocrit();
-
         double GetBloodPH();
-
         double GetArterialCarbonDioxidePressure();
-
         double GetArterialOxygenPressure();
-
         double GetVenousOxygenPressure();
-
         double GetVenousCarbonDioxidePressure();
-
         double GetBicarbonateConcentration();
-
         double GetBicarbonate();
-
         double GetBaseExcess();
-
         double GetCO2();
-
         double GetPotassium();
-
         double GetChloride();
-
         double GetPlateletCount();
-
         double GetExhaledCO2();
-
         double GetTidalVolume();
-
         double GetTotalLungVolume();
-
         double GetLeftLungVolume();
-
         double GetRightLungVolume();
-
         double GetLeftPleuralCavityVolume();
-
         double GetRightPleuralCavityVolume();
-
         double GetLeftAlveoliBaselineCompliance();
-
         double GetRightAlveoliBaselineCompliance();
-
         double GetCardiacOutput();
-
         double GetCalciumConcentration();
-
         double GetAlbuminConcentration();
-
         double GetLactateConcentration();
-
         double GetTotalBilirubin();
-
         double GetTotalProtein();
 
-        SESubstance *sodium;
-        SESubstance *glucose;
-        SESubstance *creatinine;
-        SESubstance *calcium;
-        SESubstance *albumin;
-        SESubstance *hemoglobin;
-        SESubstance *bicarbonate;
-        SESubstance *CO2;
-        SESubstance *N2;
-        SESubstance *O2;
-        SESubstance *CO;
-        SESubstance *potassium;
-        SESubstance *chloride;
-        SESubstance *lactate;
+        biogears::SESubstance *sodium;
+        biogears::SESubstance *glucose;
+        biogears::SESubstance *creatinine;
+        biogears::SESubstance *calcium;
+        biogears::SESubstance *albumin;
+        biogears::SESubstance *hemoglobin;
+        biogears::SESubstance *bicarbonate;
+        biogears::SESubstance *CO2;
+        biogears::SESubstance *N2;
+        biogears::SESubstance *O2;
+        biogears::SESubstance *CO;
+        biogears::SESubstance *potassium;
+        biogears::SESubstance *chloride;
+        biogears::SESubstance *lactate;
 
-        const SEGasCompartment *carina;
-        const SEGasCompartment *leftLung;
-        const SEGasCompartment *rightLung;
+        const biogears::SEGasCompartment *carina;
+        const biogears::SEGasCompartment *leftLung;
+        const biogears::SEGasCompartment *rightLung;
 
-        Logger *GetLogger() {
+        biogears::Logger *GetLogger() {
             return m_pe->GetLogger();
         }
 
@@ -266,6 +195,6 @@ namespace AMM {
     protected:
         std::mutex m_mutex;
         bool m_runThread;
-        std::unique_ptr<PhysiologyEngine> m_pe;
+        std::unique_ptr<biogears::PhysiologyEngine> m_pe;
     };
 }

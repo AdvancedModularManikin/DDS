@@ -9,14 +9,6 @@
 #include <boost/assign/list_of.hpp>
 #include <map>
 
-using namespace AMM::Simulation;
-using namespace AMM::Physiology;
-using namespace AMM::PatientAction::BioGears;
-using namespace AMM::Performance;
-using namespace AMM::Resource::Requirement;
-using namespace AMM::Resource::Supply;
-using namespace AMM::Capability;
-using namespace AMM::Render;
 
 namespace AMM {
     class DataTypes {
@@ -27,6 +19,7 @@ namespace AMM {
         // AMM Physiology types
         static AMM::Physiology::NodePubSubType* getNodeType();
         static AMM::Physiology::HighFrequencyNodePubSubType* getHighFrequencyNodeType();
+        static AMM::Physiology::CommandPubSubType* getPhysiologyCommandType();
 
         // AMM Patient Action / Intervention types
         static AMM::PatientAction::BioGears::CommandPubSubType* getCommandType();
@@ -67,7 +60,7 @@ namespace AMM {
         static std::string highFrequencyNodeTopic;
 
         static std::string commandTopic;
-
+        static std::string physiologyCommandTopic;
         static std::string performanceTopic;
 
         static std::string airRequirementTopic;

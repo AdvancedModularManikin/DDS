@@ -30,6 +30,8 @@ namespace AMM {
 
         settings_publisher = InitializePublisher(AMM::DataTypes::instrumentDataTopic,
                                                       AMM::DataTypes::getInstrumentDataType(), pub_listener);
+        physiology_command_publisher = InitializePublisher(AMM::DataTypes::physiologyCommandTopic, AMM::DataTypes::getPhysiologyCommandType(),
+                                                pub_listener);
 
         perfdata_publisher = InitializePublisher(AMM::DataTypes::performanceTopic,
                                                 AMM::DataTypes::getPerformanceAssessmentDataType(),
@@ -67,6 +69,7 @@ namespace AMM {
 
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getNodeType());
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getHighFrequencyNodeType());
+        Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getPhysiologyCommandType());
 
         // AMM Patient Action / Intervention types
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getCommandType());

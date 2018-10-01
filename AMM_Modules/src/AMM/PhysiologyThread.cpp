@@ -2,6 +2,7 @@
 
 using namespace std;
 using namespace AMM::Physiology;
+using namespace biogears;
 
 std::vector<std::string> explode(const std::string &delimiter, const std::string &str) {
     std::vector<std::string> arr;
@@ -237,6 +238,11 @@ namespace AMM {
         return LoadScenarioFile(scenarioFile);
     }
 
+    bool PhysiologyThread::Execute( std::function<std::unique_ptr<biogears::PhysiologyEngine>(std::unique_ptr<biogears::PhysiologyEngine>&&)> func ) {
+        m_pe = func(std::move(m_pe));
+        return true;
+    }
+
     bool PhysiologyThread::ExecuteXMLCommand(const std::string &cmd) {
         boost::filesystem::path temp = boost::filesystem::unique_path();
         const std::string scenarioFile = temp.native();  // optional
@@ -250,7 +256,7 @@ namespace AMM {
 // This bypasses the standard BioGears ExecuteScenario method to avoid resetting the BioGears engine
     bool PhysiologyThread::LoadScenarioFile(const std::string &scenarioFile) {
         SEScenario sce(m_pe->GetSubstanceManager());
-        sce.LoadFile(scenarioFile);
+        sce.Load(scenarioFile);
 
         double dT_s = m_pe->GetTimeStep(TimeUnit::s);
         // double scenarioTime_s;

@@ -29,7 +29,6 @@
 #include "AMM/DataTypes.h"
 
 #include "AMM/Listeners/DDS_Listeners.h"
-#include "AMM/Listeners/ListenerInterface.h"
 
 #include "AMM/BaseLogger.h"
 
@@ -136,6 +135,7 @@ namespace AMM {
         Publisher *genPub;
         Publisher *command_publisher;
         Publisher *settings_publisher;
+        Publisher *physiology_command_publisher;
         Publisher *perfdata_publisher;
         Publisher *physmod_publisher;
         Publisher *render_publisher;

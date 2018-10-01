@@ -12,6 +12,7 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, char *argv[]) {
+    using namespace AMM::Capability;
     std::vector<std::string> node_paths;
 
     cout << "=== [AMM - Virtual Equipment] ===" << endl;

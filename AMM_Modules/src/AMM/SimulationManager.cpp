@@ -5,6 +5,7 @@ using namespace std::chrono;
 
 namespace AMM {
     SimulationManager::SimulationManager() {
+        using namespace AMM::Capability;
         auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
         command_sub_listener->SetUpstream(this);
         command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
@@ -15,6 +16,8 @@ namespace AMM {
                                                   pub_listener);
         command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                      pub_listener);
+        physiology_publisher = mgr->InitializePublisher(AMM::DataTypes::physiologyCommandTopic, AMM::DataTypes::getPhysiologyCommandType(),
+                                             pub_listener);
         m_runThread = false;
 
         currentScenario = mgr->GetScenario();
@@ -72,6 +75,36 @@ namespace AMM {
         command_publisher->write(&cmdInstance);
     }
 
+    void SimulationManager::SendCommand(const AMM::Physiology::CMD type, eprosima::fastcdr::Cdr &data){
+        using namespace AMM::Physiology;
+        switch (type) {
+            case Physiology::PainCommand:{
+                LOG_INFO << "PaintEvent type: " << type;
+                Physiology::Command command;
+                command.type(type);
+                auto vec = std::vector<char>(data.getSerializedDataLength());
+                memcpy(&vec[0],data.getBufferPointer(), data.getSerializedDataLength());
+                command.payload(vec);
+                physiology_publisher->write(&command);
+                
+            }
+            break;
+            case Physiology::SepsisCommand:{
+                LOG_INFO << "SepsisEvent type: " << type;
+                Physiology::Command command;
+                command.type(type);
+                auto vec = std::vector<char>(data.getSerializedDataLength());
+                memcpy(&vec[0],data.getBufferPointer(), data.getSerializedDataLength());
+                command.payload(vec);
+                physiology_publisher->write(&command);
+            }
+            break;
+            default: {
+                LOG_INFO << "Unsupported type: " << type;
+                break;
+            }
+        }
+    }
     void SimulationManager::TickLoop() {
         using frames = duration<int64_t, ratio<1, 50>>;
         auto nextFrame = system_clock::now();

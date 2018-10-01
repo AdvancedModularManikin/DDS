@@ -99,6 +99,7 @@ heartrate_led_callback(struct spi_packet *p) {
 }
 
 int main(int argc, char *argv[]) {
+    using namespace AMM::Capability;
     cout << "=== [HeartRateLED] Ready ..." << endl;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];

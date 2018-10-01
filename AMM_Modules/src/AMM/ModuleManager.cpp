@@ -7,6 +7,7 @@ using namespace sqlite;
 
 namespace AMM {
     ModuleManager::ModuleManager() {
+        using namespace AMM::Capability;
         auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
         auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
 
@@ -26,6 +27,7 @@ namespace AMM {
     }
 
     void ModuleManager::Start() {
+        using namespace AMM::Capability;
         std::string nodeString(nodeName);
         // Publish module configuration once we've set all our publishers and listeners
         // This announces that we're available for configuration
