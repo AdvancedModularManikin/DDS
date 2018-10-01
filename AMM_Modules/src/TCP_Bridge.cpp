@@ -266,7 +266,7 @@ public:
     void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t* info) override {
         // Publish values that are supposed to go out on every change
         std::ostringstream messageOut;
-        messageOut << pm.type() << "=" << pm.payload();
+        messageOut << "[AMM_Physiology_Modification]" <<  "type=" << pm.type() << ";" <<  "location=" << pm.location().description() << ";" <<  "payload=" << pm.payload();
         string stringOut = messageOut.str();
 
         auto it = clientMap.begin();
@@ -289,7 +289,7 @@ public:
     void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t* info) override {
         // Publish values that are supposed to go out on every change
         std::ostringstream messageOut;
-        messageOut << rm.type() << "=" << rm.payload();
+        messageOut << "[AMM_Render_Modification]" <<  "type=" << rm.type() << ";" <<  "location=" << rm.location().description() << ";" <<  "payload=" << rm.payload();
         string stringOut = messageOut.str();
 
         auto it = clientMap.begin();
@@ -540,8 +540,11 @@ void *Server::HandleClient(void *args) {
                                         tinyxml2::XMLElement *s = sub->ToElement();
                                         std::string subTopicName = s->Attribute("name");
 
+                                        // @TODO: Store subTopicName :: nodepath / type, adjust listeners
                                         if (s->Attribute("nodepath")) {
                                             subTopicName = s->Attribute("nodepath");
+                                        } else if (s->Attribute("type")) {
+                                            subTopicName = s->Attribute("type");
                                         }
                                         add_once(subscribedTopics[c->id], subTopicName);
                                         LOG_TRACE << "[" << capabilityName << "][" << c->id << "] Subscribed to "
