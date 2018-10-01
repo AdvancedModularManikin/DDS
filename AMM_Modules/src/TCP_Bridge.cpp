@@ -61,9 +61,6 @@ string encodedConfig = "";
 
 bool closed = false;
 
-Publisher *command_publisher;
-Publisher *settings_publisher;
-
 DDS_Manager *mgr;
 
 std::map<std::string, std::vector<std::string>> subscribedTopics;
@@ -263,9 +260,52 @@ public:
                 }
             }
             ++it;
+        }
+    }
 
-            /** Find out who subscribed to this and only target that *C **/
-            // s->SendToAll(messageOut.str());
+    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t* info) override {
+        // Publish values that are supposed to go out on every change
+        std::ostringstream messageOut;
+        messageOut << pm.type() << "=" << pm.payload();
+        string stringOut = messageOut.str();
+
+        auto it = clientMap.begin();
+        while (it != clientMap.end()) {
+            std::string cid = it->first;
+            std::vector<std::string> subV = subscribedTopics[cid];
+
+            if (std::find(subV.begin(), subV.end(), pm.type()) != subV.end() ||
+                std::find(subV.begin(), subV.end(), "AMM_Physiology_Modification") != subV.end()
+                    ) {
+                Client *c = Server::GetClientByIndex(cid);
+                if (c) {
+                    Server::SendToClient(c, stringOut);
+                }
+            }
+            ++it;
+        }
+    }
+
+    void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t* info) override {
+        // Publish values that are supposed to go out on every change
+        std::ostringstream messageOut;
+        messageOut << rm.type() << "=" << rm.payload();
+        string stringOut = messageOut.str();
+
+        auto it = clientMap.begin();
+        while (it != clientMap.end()) {
+            std::string cid = it->first;
+            std::vector<std::string> subV = subscribedTopics[cid];
+
+            if (std::find(subV.begin(), subV.end(), rm.type()) != subV.end() ||
+                std::find(subV.begin(), subV.end(), "AMM_Render_Modification") != subV.end()
+                    ) {
+                Client *c = Server::GetClientByIndex(cid);
+                if (c) {
+                    Server::SendToClient(c, stringOut);
+                }
+            }
+            ++it;
         }
     }
 
@@ -339,7 +379,7 @@ void PublishSettings(std::string const &equipmentType) {
     AMM::InstrumentData i;
     i.instrument(equipmentType);
     i.payload(payload.str());
-    settings_publisher->write(&i);
+    mgr->PublishInstrumentData(i);
 }
 
 // Override client handler code from Net Server
@@ -575,7 +615,7 @@ void *Server::HandleClient(void *args) {
                         LOG_INFO << "Client " << c->id << " posting action to AMM: " << action;
                         AMM::PatientAction::BioGears::Command cmdInstance;
                         cmdInstance.message(action);
-                        command_publisher->write(&cmdInstance);
+                        mgr->PublishCommand(cmdInstance);
                     } else if (str.substr(0, keepAlivePrefix.size()) == keepAlivePrefix) {
                         // keepalive, ignore it
                     } else {
@@ -605,7 +645,6 @@ static void show_usage(const std::string &name) {
     std::cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
               << std::endl;
 }
-
 
 int main(int argc, const char *argv[]) {
     LOG_INFO << "=== [AMM - Network Bridge] ===";
@@ -646,13 +685,6 @@ int main(int argc, const char *argv[]) {
                                                             node_sub_listener);
     Subscriber *command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic,
                                                                AMM::DataTypes::getCommandType(), command_sub_listener);
-
-    auto *pub_listener = new DDS_Listeners::PubListener();
-    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                 pub_listener);
-
-    settings_publisher = mgr->InitializePublisher(AMM::DataTypes::instrumentDataTopic,
-                                                  AMM::DataTypes::getInstrumentDataType(), pub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration

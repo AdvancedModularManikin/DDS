@@ -82,6 +82,8 @@ namespace AMM {
 
         void PublishPerformanceData(AMM::Performance::Assessment assessmentInstance);
 
+        void PublishInstrumentData(AMM::InstrumentData instrumentDataInstance);
+
         /**
          * Generic publisher initialization
          *
@@ -133,6 +135,7 @@ namespace AMM {
 
         Publisher *genPub;
         Publisher *command_publisher;
+        Publisher *settings_publisher;
         Publisher *perfdata_publisher;
         Publisher *physmod_publisher;
         Publisher *render_publisher;

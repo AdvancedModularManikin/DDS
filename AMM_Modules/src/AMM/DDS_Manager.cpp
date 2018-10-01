@@ -28,6 +28,9 @@ namespace AMM {
         command_publisher = InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                      pub_listener);
 
+        settings_publisher = InitializePublisher(AMM::DataTypes::instrumentDataTopic,
+                                                      AMM::DataTypes::getInstrumentDataType(), pub_listener);
+
         perfdata_publisher = InitializePublisher(AMM::DataTypes::performanceTopic,
                                                 AMM::DataTypes::getPerformanceAssessmentDataType(),
                                                 pub_listener);
@@ -223,6 +226,10 @@ namespace AMM {
 
     void DDS_Manager::PublishPhysiologyModification(AMM::Physiology::Modification modInstance) {
         physmod_publisher->write(&modInstance);
+    }
+
+    void DDS_Manager::PublishInstrumentData(AMM::InstrumentData instrumentDataInstance) {
+        settings_publisher->write(&instrumentDataInstance);
     }
 
     void DDS_Manager::PublishPerformanceData(AMM::Performance::Assessment assessmentInstance) {
