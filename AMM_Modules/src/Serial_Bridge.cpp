@@ -237,8 +237,8 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
         } else if (!rsp.compare(0, genericTopicPrefix.size(), genericTopicPrefix)) {
             unsigned first = rsp.find("[");
             unsigned last = rsp.find("]");
-            std::string topic = rsp.substr (first,last-first);
-            std::string message = rsp.substr (last);
+            std::string topic = rsp.substr(first, last - first);
+            std::string message = rsp.substr(last);
             LOG_INFO << "Received a message for topic " << topic << " with a payload of: " << message;
         } else {
             if (!rsp.empty() && rsp != "\r") {
@@ -264,6 +264,40 @@ public:
             messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
             transmitQ.push(messageOut.str());
         }
+    }
+
+    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) override {
+        // Publish values that are supposed to go out on every change
+        std::ostringstream messageOut;
+        messageOut << "[AMM_Physiology_Modification]" << "type=" << pm.type() << ";" << "location="
+                   << pm.location().description() << ";" << "learner_id=" << pm.practitioner() << ";" << "payload="
+                   << pm.payload();
+        string stringOut = messageOut.str();
+
+        if (std::find(subscribedTopics.begin(), subscribedTopics.end(), pm.type()) != subscribedTopics.end() ||
+            std::find(subscribedTopics.begin(), subscribedTopics.end(), "AMM_Physiology_Modification") !=
+            subscribedTopics.end()
+                ) {
+            transmitQ.push(messageOut.str());
+        }
+    }
+
+    void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t *info) override {
+        // Publish values that are supposed to go out on every change
+        std::ostringstream messageOut;
+        messageOut << "[AMM_Render_Modification]" << "type=" << rm.type() << ";" << "location="
+                   << rm.location().description() << ";" << "learner_id=" << rm.practitioner() << ";" << "payload="
+                   << rm.payload();
+        string stringOut = messageOut.str();
+
+
+        if (std::find(subscribedTopics.begin(), subscribedTopics.end(), rm.type()) != subscribedTopics.end() ||
+            std::find(subscribedTopics.begin(), subscribedTopics.end(), "AMM_Render_Modification") !=
+            subscribedTopics.end()
+                ) {
+            transmitQ.push(messageOut.str());
+        }
+
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
