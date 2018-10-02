@@ -135,7 +135,7 @@ std::string extractPhysiologyModificationName(const std::string &payload) {
 }
 
 class AMMListener : public ListenerInterface {
-    void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) {
+    void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) override {
         if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 && t.frame() > lastTick) {
             statusStorage["STATUS"] = "RUNNING";
         }
@@ -144,9 +144,9 @@ class AMMListener : public ListenerInterface {
         statusStorage["TIME"] = to_string(t.time());
     }
 
-    void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t *info) {};
+    void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t *info) override {};
 
-    void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t *info) {
+    void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t *info) override {
         int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
         GUID_t changeGuid = info->sample_identity.writer_guid();
@@ -154,7 +154,7 @@ class AMMListener : public ListenerInterface {
         module_guid << changeGuid;
 
         std::ostringstream logmessage;
-        logmessage << rm.payload();
+        logmessage << "[" << rm.type() << "]" << rm.payload();
 
         logEntry newLogEntry{
                 module_guid.str(),
@@ -167,7 +167,7 @@ class AMMListener : public ListenerInterface {
 
     };
 
-    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) {
+    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) override {
         int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
         GUID_t changeGuid = info->sample_identity.writer_guid();
@@ -189,7 +189,7 @@ class AMMListener : public ListenerInterface {
         eventLog.push_back(newLogEntry);
     };
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
         int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
         GUID_t changeGuid = info->sample_identity.writer_guid();
@@ -224,7 +224,7 @@ class AMMListener : public ListenerInterface {
         statusStorage["LAST_COMMAND"] = c.message();
     }
 
-    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {
+    void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         nodeDataStorage[n.nodepath()] = n.dbl();
     }
 
@@ -511,12 +511,21 @@ private:
     }
 
     void executePhysiologyModification(const Rest::Request &request, Http::ResponseWriter response) {
+        std::string type, location, practitioner, payload;
         Document document;
         document.Parse(request.body().c_str());
-        std::string type = document["type"].GetString();
-        std::string location = document["location"].GetString();
-        std::string practitioner = document["practitioner"].GetString();
-        std::string payload = document["payload"].GetString();
+        if (document.HasMember("type")) {
+            type = document["type"].GetString();
+        }
+        if (document.HasMember("location")) {
+            location = document["location"].GetString();
+        }
+        if (document.HasMember("practitioner")) {
+            practitioner = document["practitioner"].GetString();
+        }
+        if (document.HasMember("payload")) {
+            payload = document["payload"].GetString();
+        }
         SendPhysiologyModification(type,location,practitioner,payload);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
@@ -524,12 +533,21 @@ private:
     }
 
     void executeRenderModification(const Rest::Request &request, Http::ResponseWriter response) {
+        std::string type, location, practitioner, payload;
         Document document;
         document.Parse(request.body().c_str());
-        std::string type = document["type"].GetString();
-        std::string location = document["location"].GetString();
-        std::string practitioner = document["practitioner"].GetString();
-        std::string payload = document["payload"].GetString();
+        if (document.HasMember("type")) {
+            type = document["type"].GetString();
+        }
+        if (document.HasMember("location")) {
+            location = document["location"].GetString();
+        }
+        if (document.HasMember("practitioner")) {
+            practitioner = document["practitioner"].GetString();
+        }
+        if (document.HasMember("payload")) {
+            payload = document["payload"].GetString();
+        }
         SendRenderModification(type,location,practitioner,payload);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
@@ -537,14 +555,27 @@ private:
     }
 
     void executePerformanceAssessment(const Rest::Request &request, Http::ResponseWriter response) {
+        std::string type, location, practitioner, payload, info, step, comment;
         Document document;
         document.Parse(request.body().c_str());
-        std::string location = document["location"].GetString();
-        std::string practitioner = document["practitioner"].GetString();
-        std::string type = document["type"].GetString();
-        std::string info = document["info"].GetString();
-        std::string step = document["step"].GetString();
-        std::string comment = document["comment"].GetString();
+        if (document.HasMember("type")) {
+            type = document["type"].GetString();
+        }
+        if (document.HasMember("location")) {
+            location = document["location"].GetString();
+        }
+        if (document.HasMember("practitioner")) {
+            practitioner = document["practitioner"].GetString();
+        }
+        if (document.HasMember("info")) {
+            info = document["info"].GetString();
+        }
+        if (document.HasMember("step")) {
+            step = document["step"].GetString();
+        }
+        if (document.HasMember("comment")) {
+            comment = document["comment"].GetString();
+        }
         SendPerformanceAssessment(type, location, practitioner, info, step, comment);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
