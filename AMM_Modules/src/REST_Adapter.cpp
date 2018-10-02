@@ -231,8 +231,7 @@ class AMMListener : public ListenerInterface {
 };
 
 void SendPhysiologyModification(const std::string &type, const std::string &location, const std::string &practitioner, const std::string &payload) {
-    std::string physModName = extractPhysiologyModificationName(payload);
-    LOG_DEBUG << "Publishing a phys mod: " << physModName;
+    LOG_DEBUG << "Publishing a phys mod: " << type;
     AMM::Physiology::Modification modInstance;
     modInstance.type(type);
     //  modInstance.location.description(location);
@@ -250,7 +249,7 @@ void SendPhysiologyModification(const std::string &payload) {
 }
 
 void SendRenderModification(const std::string &type, const std::string &location, const std::string &practitioner, const std::string &payload) {
-    LOG_DEBUG << "Publishing a render mod: " << payload;
+    LOG_DEBUG << "Publishing a render mod: " << type;
     AMM::Render::Modification modInstance;
     modInstance.type(type);
     FMA_Location fma_location;
