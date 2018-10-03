@@ -100,7 +100,6 @@ add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
 set(MODULE_MANAGER_SOURCES ModuleManager.cpp AMM/ModuleManager.cpp)
 set(MODULE_MANAGER_EXE amm_module_manager)
 add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
-
 target_link_libraries(${MODULE_MANAGER_EXE}
         fastrtps fastcdr
         amm::logger
@@ -110,10 +109,9 @@ target_link_libraries(${MODULE_MANAGER_EXE}
         amm::datamodel
         )
 
-set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
-set(REST_ADAPTER_EXE amm_rest_adapter)
-
 if (Pistache_FOUND)
+    set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
+    set(REST_ADAPTER_EXE amm_rest_adapter)
     add_executable(${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES})
     target_link_libraries(${REST_ADAPTER_EXE}
             fastrtps fastcdr

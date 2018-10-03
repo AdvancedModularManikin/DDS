@@ -46,7 +46,6 @@ std::string xmlPrefix = "<?xml";
 std::vector<std::string> subscribedTopics;
 std::vector<std::string> publishedTopics;
 
-Publisher *command_publisher;
 std::queue<std::string> transmitQ;
 
 // Set up DDS
@@ -119,7 +118,7 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
             AMM::PatientAction::BioGears::Command cmdInstance;
             boost::trim_right(value);
             cmdInstance.message(value);
-            command_publisher->write(&cmdInstance);
+            mgr->PublishCommand(cmdInstance);
         } else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
             std::string value = rsp;
             LOG_INFO << "Received XML via serial";
@@ -348,17 +347,26 @@ int main(int argc, char *argv[]) {
 
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
-    auto *pub_listener = new DDS_Listeners::PubListener();
+    auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
+    auto *render_mod_listener = new DDS_Listeners::RenderModificationListener();
+    auto *phys_mod_listener = new DDS_Listeners::PhysiologyModificationListener();
 
     GenericSerialListener al;
     node_sub_listener->SetUpstream(&al);
     command_sub_listener->SetUpstream(&al);
+    config_sub_listener->SetUpstream(&al);
+    render_mod_listener->SetUpstream(&al);
+    phys_mod_listener->SetUpstream(&al);
 
-    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
+                              node_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic,                                                               AMM::DataTypes::getCommandType(), command_sub_listener);
 
-    command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                 pub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(),
+                              render_mod_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(),
+                              phys_mod_listener);
+
 
     // Set up serial
     io_service io;

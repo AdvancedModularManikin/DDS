@@ -250,7 +250,7 @@ public:
         while (it != clientMap.end()) {
             std::string cid = it->first;
             std::vector<std::string> subV = subscribedTopics[cid];
-	    
+
             if (std::find(subV.begin(), subV.end(), n.nodepath()) != subV.end() ||
                 std::find(subV.begin(), subV.end(), "AMM_Node_Data") != subV.end()
                     ) {
@@ -263,10 +263,12 @@ public:
         }
     }
 
-    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t* info) override {
+    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) override {
         // Publish values that are supposed to go out on every change
         std::ostringstream messageOut;
-        messageOut << "[AMM_Physiology_Modification]" <<  "type=" << pm.type() << ";" <<  "location=" << pm.location().description() << ";" <<  "learner_id=" << pm.practitioner() << ";" << "payload=" << pm.payload();
+        messageOut << "[AMM_Physiology_Modification]" << "type=" << pm.type() << ";" << "location="
+                   << pm.location().description() << ";" << "learner_id=" << pm.practitioner() << ";" << "payload="
+                   << pm.payload();
         string stringOut = messageOut.str();
 
         auto it = clientMap.begin();
@@ -286,20 +288,22 @@ public:
         }
     }
 
-    void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t* info) override {
+    void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t *info) override {
         // Publish values that are supposed to go out on every change
         std::ostringstream messageOut;
-        messageOut << "[AMM_Render_Modification]" <<  "type=" << rm.type() << ";" <<  "location=" << rm.location().description() << ";" <<  "learner_id=" << rm.practitioner() << ";" << "payload=" << rm.payload();
+        messageOut << "[AMM_Render_Modification]" << "type=" << rm.type() << ";" << "location="
+                   << rm.location().description() << ";" << "learner_id=" << rm.practitioner() << ";" << "payload="
+                   << rm.payload();
         string stringOut = messageOut.str();
 
-	LOG_TRACE << "Publishing a Render Mod: " << stringOut;
-	
+        LOG_TRACE << "Publishing a Render Mod: " << stringOut;
+
         auto it = clientMap.begin();
         while (it != clientMap.end()) {
             std::string cid = it->first;
             std::vector<std::string> subV = subscribedTopics[cid];
-	    LOG_TRACE << "Trying to find client " << cid;
-	    
+            LOG_TRACE << "Trying to find client " << cid;
+
             if (std::find(subV.begin(), subV.end(), rm.type()) != subV.end() ||
                 std::find(subV.begin(), subV.end(), "AMM_Render_Modification") != subV.end()
                     ) {
@@ -402,7 +406,7 @@ void *Server::HandleClient(void *args) {
     clientMap[c->id] = uuid;
     LOG_TRACE << "Adding client with id: " << c->id;
     ServerThread::UnlockMutex(uuid);
-   
+
     while (true) {
         memset(buffer, 0, sizeof buffer);
         n = recv(c->sock, buffer, sizeof buffer, 0);
@@ -440,7 +444,7 @@ void *Server::HandleClient(void *args) {
                 if (!str.empty()) {
                     if (str.substr(0, modulePrefix.size()) == modulePrefix) {
                         std::string moduleName = str.substr(modulePrefix.size());
-                        
+
                         // Add the modules name to the static Client vector
                         ServerThread::LockMutex(uuid);
                         c->SetName(moduleName);
@@ -499,18 +503,22 @@ void *Server::HandleClient(void *args) {
                         const char *name = module->Attribute("name");
                         const char *manufacturer = module->Attribute("manufacturer");
                         const char *model = module->Attribute("model");
+                        const char *serial = module->Attribute("serial_number");
+                        const char *module_version = module->Attribute("module_version");
 
                         std::string nodeName(name);
                         std::string nodeManufacturer(manufacturer);
                         std::string nodeModel(model);
+                        std::string serialNumber(serial);
+                        std::string moduleVersion(module_version);
 
                         mgr->PublishModuleConfiguration(
                                 uuid,
                                 nodeName,
                                 nodeManufacturer,
                                 nodeModel,
-                                "00001",
-                                "0.0.1",
+                                serialNumber,
+                                moduleVersion,
                                 capabilityVal
                         );
 
@@ -677,30 +685,28 @@ int main(int argc, const char *argv[]) {
     std::string nodeString(nodeName);
     mgr = new DDS_Manager(nodeName.c_str());
 
-
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
     auto *render_mod_listener = new DDS_Listeners::RenderModificationListener();
     auto *phys_mod_listener = new DDS_Listeners::PhysiologyModificationListener();
-    
+
     TCPBridgeListener tl;
     node_sub_listener->SetUpstream(&tl);
     command_sub_listener->SetUpstream(&tl);
     config_sub_listener->SetUpstream(&tl);
     render_mod_listener->SetUpstream(&tl);
     phys_mod_listener->SetUpstream(&tl);
-    
-    Subscriber *node_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
-                                                            node_sub_listener);
-    Subscriber *command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic,
-                                                               AMM::DataTypes::getCommandType(), command_sub_listener);
 
-    Subscriber *rendermod_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(),
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
+                              node_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+
+    mgr->InitializeSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(),
                               render_mod_listener);
-    Subscriber *physmod_subscriber =    mgr->InitializeSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(),
+    mgr->InitializeSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(),
                               phys_mod_listener);
-    
+
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
