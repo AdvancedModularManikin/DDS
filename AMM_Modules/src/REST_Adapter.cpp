@@ -123,17 +123,6 @@ Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
 
-std::string extractPhysiologyModificationName(const std::string &payload) {
-    XMLDocument doc(false);
-    doc.Parse(payload.c_str());
-    tinyxml2::XMLNode *root = doc.FirstChildElement("Scenario");
-    std::string modName = root->FirstChildElement("Name")->ToElement()->GetText();
-    std::string modDesc = root->FirstChildElement("Description")->ToElement()->GetText();
-    std::ostringstream fullModName;
-    fullModName << "[" << modName << "] " << modDesc;
-    return fullModName.str();
-}
-
 class AMMListener : public ListenerInterface {
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) override {
         if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 && t.frame() > lastTick) {
@@ -174,7 +163,7 @@ class AMMListener : public ListenerInterface {
         std::ostringstream module_guid;
         module_guid << changeGuid;
 
-        std::string physModName = extractPhysiologyModificationName(pm.payload());
+        std::string physModName = pm.type();
 
         std::ostringstream logmessage;
         logmessage << physModName;
@@ -236,14 +225,6 @@ void SendPhysiologyModification(const std::string &type, const std::string &loca
     modInstance.type(type);
     //  modInstance.location.description(location);
     modInstance.practitioner(practitioner);
-    modInstance.payload(payload);
-    mgr->PublishPhysiologyModification(modInstance);
-}
-
-void SendPhysiologyModification(const std::string &payload) {
-    std::string physModName = extractPhysiologyModificationName(payload);
-    LOG_DEBUG << "Publishing a minimal phys mod: " << physModName;
-    AMM::Physiology::Modification modInstance;
     modInstance.payload(payload);
     mgr->PublishPhysiologyModification(modInstance);
 }
@@ -503,7 +484,7 @@ private:
         Document document;
         document.Parse(request.body().c_str());
         std::string payload = document["payload"].GetString();
-        SendPhysiologyModification(payload);
+        SendPhysiologyModification(payload, "","","");
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
         response.send(Http::Code::Ok, "Command executed");
