@@ -231,8 +231,15 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) {
-        LOG_INFO << "Physiology modification received: " << pm.payload();
-        bg->ExecuteXMLCommand(pm.payload());
+        // If the payload is empty, use the type to execute an XML file
+        if (pm.payload() == "") {
+            LOG_INFO << "Old-style Physiology modification received: " << pm.type();
+            bg->ExecuteCommand(pm.type());
+        } else {
+            LOG_INFO << "Physiology modification received: " << pm.payload();
+            bg->ExecuteXMLCommand(pm.payload());
+        }
+
     }
 
     void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {
