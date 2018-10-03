@@ -67,13 +67,15 @@ set(COMMAND_EXECUTOR_SOURCES CommandExecutor.cpp)
 set(COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 
-set(SPI_SOURCES spi_proto/crc16.c spi_proto/spi_proto_lib/spi_proto.c spi_proto/config.h spi_proto/spi_proto.h)
+set(SPI_SOURCES spi_proto/src/crc16.c spi_proto/src/spi_proto.c spi_proto/src/config.h spi_proto/src/spi_proto.h)
 #add_library(spi_proto ${SPI_PROTO_SOURCES})
-set(SPI_REMOTE_SOURCES spi_proto/spi_remote_host.c spi_proto/binary_semaphore.c spi_proto/spi_proto_master.cpp spi_proto/spi_proto_lib/spi_chunks.cpp)
+set(SPI_REMOTE_SOURCES spi_proto/src/spi_remote_host.c spi_proto/src/binary_semaphore.c spi_proto/src/spi_proto_master.cpp spi_proto/src/spi_chunks.cpp spi_proto/src/spi_proto_master_datagram.cpp)
+set(SPI_DATAGRAM_SOURCES spi_proto/src/spi_proto_master_datagram.cpp)
 
 set(HEART_RATE_LED_SOURCES HeartRateLED.cpp)
 set(HEART_RATE_LED_EXE amm_heartrate_led)
-add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${SPI_SOURCES})
+add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${SPI_SOURCES} ${SPI_DATAGRAM_SOURCES})
+target_include_directories(${HEART_RATE_LED_EXE} PUBLIC spi_proto/src)
 
 set(FLUID_MANAGER_SOURCES FluidManager.cpp)
 set(FLUID_MANAGER_EXE amm_fluid_manager)
