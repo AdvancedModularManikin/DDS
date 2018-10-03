@@ -8,8 +8,9 @@
 #include <fcntl.h>    /* For O_RDWR */
 
 extern "C" {
-#include "spi_proto/spi_proto.h"
+#include "spi_proto.h"
 }
+#include "spi_proto_master_datagram.h"
 
 using namespace std;
 using namespace AMM;
@@ -129,12 +130,19 @@ int main(int argc, char *argv[]) {
 
 
     //TODO idler loop here
+    while(1) 
+	  std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     cout << "=== [HeartRateLED] Simulation stopped." << endl;
 
 
     return 0;
 
+}
+void
+delay_ms(unsigned int ms)
+{
+	  std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
 void heartrate_led_task(void)
@@ -144,7 +152,7 @@ void heartrate_led_task(void)
     while (!closed) {
         unsigned char spi_send[4];
         spi_send[0] = heartrate;
-        spi_proto_send_msg(&s, spi_send, 4);
+        spi_proto_send_msg(&spi_proto::p.proto, spi_send, 4);
         if (spi_recv_fresh) {
             //the received packed is spi_recv_msg.msg[0]
             spi_recv_fresh = false;
