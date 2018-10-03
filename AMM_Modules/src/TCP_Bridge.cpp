@@ -292,11 +292,14 @@ public:
         messageOut << "[AMM_Render_Modification]" <<  "type=" << rm.type() << ";" <<  "location=" << rm.location().description() << ";" <<  "learner_id=" << rm.practitioner() << ";" << "payload=" << rm.payload();
         string stringOut = messageOut.str();
 
+	LOG_TRACE << "Publishing a Render Mod: " << stringOut;
+	
         auto it = clientMap.begin();
         while (it != clientMap.end()) {
             std::string cid = it->first;
             std::vector<std::string> subV = subscribedTopics[cid];
-
+	    LOG_TRACE << "Trying to find client " << cid;
+	    
             if (std::find(subV.begin(), subV.end(), rm.type()) != subV.end() ||
                 std::find(subV.begin(), subV.end(), "AMM_Render_Modification") != subV.end()
                     ) {
@@ -678,17 +681,26 @@ int main(int argc, const char *argv[]) {
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
-
+    auto *render_mod_listener = new DDS_Listeners::RenderModificationListener();
+    auto *phys_mod_listener = new DDS_Listeners::PhysiologyModificationListener();
+    
     TCPBridgeListener tl;
     node_sub_listener->SetUpstream(&tl);
     command_sub_listener->SetUpstream(&tl);
     config_sub_listener->SetUpstream(&tl);
-
+    render_mod_listener->SetUpstream(&tl);
+    phys_mod_listener->SetUpstream(&tl);
+    
     Subscriber *node_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
                                                             node_sub_listener);
     Subscriber *command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic,
                                                                AMM::DataTypes::getCommandType(), command_sub_listener);
 
+    Subscriber *rendermod_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(),
+                              render_mod_listener);
+    Subscriber *physmod_subscriber =    mgr->InitializeSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(),
+                              phys_mod_listener);
+    
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
