@@ -1,5 +1,4 @@
 
-
 #include "AMM/DDS_Manager.h"
 
 #include <sys/ioctl.h>
@@ -11,9 +10,6 @@
 extern "C" {
 #include "spi_proto/spi_proto.h"
 }
-
-#define TRANSFER_SIZE 36
-#define SPI_TRANSFER_LEN TRANSFER_SIZE
 
 using namespace std;
 using namespace AMM;
@@ -28,24 +24,6 @@ float breathrate = 12.0;
 bool tourniquet = false;
 bool hemorrhage = false;
 bool closed = false;
-
-static const char *device = "/dev/spidev0.0";
-static uint8_t mode;
-static uint8_t bits = 8;
-static uint32_t speed = 1 << 23;
-static uint16_t delay;
-
-int spi_transfer(int fd, unsigned char *tx_buf, unsigned char *rx_buf, __u32 buflen) {
-    int ret;
-    struct spi_ioc_transfer tr = {tx_buf : (unsigned long) tx_buf, rx_buf : (unsigned long) rx_buf, len : buflen, speed_hz : speed,
-            delay_usecs : delay, bits_per_word : bits,};
-
-    ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr);
-    if (ret < 1)
-        perror("can't send spi message");
-    return ret;
-}
-
 
 class HeartRateListener : public ListenerInterface {
 
@@ -98,7 +76,12 @@ heartrate_led_callback(struct spi_packet *p) {
     spi_recv_fresh = true;
 }
 
+void heartrate_led_task(void);
+
 int main(int argc, char *argv[]) {
+    std::thread datagram_thread(datagram_task);
+    std::thread heart_rate_thread(heartrate_led_task);
+
     cout << "=== [HeartRateLED] Ready ..." << endl;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -111,12 +94,6 @@ int main(int argc, char *argv[]) {
             daemonize = 1;
         }
     }
-
-    int spi_fd = open(device, O_RDWR);
-    unsigned char recvbuf[TRANSFER_SIZE];
-    unsigned char sendbuf[TRANSFER_SIZE] = {};
-    struct spi_state s;
-    spi_proto_initialize(&s);
 
     const char *nodeName = "AMM_HeartRateLED";
     std::string nodeString(nodeName);
@@ -151,72 +128,7 @@ int main(int argc, char *argv[]) {
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
 
-    int count = 0;
-    while (!closed) {
-        //prepare SPI message
-        /*
-         heartrate = 60 (Example)
-         heartrate/60 = 1 = beats/second
-         seconds/ms = 1/1000
-         want ms/beat
-         beats/second*seconds/ms = beats/ms
-         1/beats/ms = ms/beat
-
-         answer = 1/(beats/min * min/sec * sec/ms)
-         answer = 1/(hr * (1/60) * 0.001)
-         */
-        //int spi_msg_full = 1.0/(heartrate * (1.0/60.0) * 0.001);
-        unsigned char spi_send[4];
-        spi_send[0] = heartrate;
-        spi_send[1] = breathrate;
-        spi_send[2] = static_cast<unsigned char>(tourniquet);
-        spi_send[3] = static_cast<unsigned char>(hemorrhage);
-        unsigned char spi_rcvd[4];
-        spi_proto_send_msg(&s, spi_send, 4);
-
-        //do SPI communication
-        //int spi_tr_res = spi_transfer(spi_fd, spi_send, spi_rcvd, 4);
-        //TODO send message
-        //TODO prep message
-        int ret = spi_proto_prep_msg(&s, sendbuf, SPI_TRANSFER_LEN);
-
-        //do transaction
-        spi_transfer(spi_fd, sendbuf, recvbuf, SPI_TRANSFER_LEN);
-        //printf("amt_read = %d\n", amt_read);
-
-        //process buffer into struct
-        struct spi_packet pack;
-        memcpy(&pack, recvbuf, SPI_TRANSFER_LEN);
-        //TODO maybe fixup the CRC byte order?
-
-        //process received message
-        spi_proto_rcv_msg(&s, &pack, heartrate_led_callback);
-
-        //std::cout << "spi_msg " << std::hex << std::setw(2)
-        //	<< std::setfill('0') << (unsigned int) spi_msg << std::endl;
-        //std::cout << "spi_rcvd " << std::hex << std::setw(2)
-        //	<< std::setfill('0') << (unsigned int) spi_rcvd << std::endl;
-        //send press messages based on received SPI
-        //the buttons send 1 when they are up and 0 when they are pressed
-        if (spi_recv_fresh) {
-            if (spi_recv_msg.msg[0] == 'A' && spi_recv_msg.msg[1] == 'C') {
-                //button 2 was pressed
-                //send hemorrhage action
-                char strspace[32];
-                memcpy(strspace, spi_recv_msg.msg, 32);
-                strspace[31] = 0;
-                char *act = strspace + 8;
-                cout << "=== [HeartRateLED] Sending a command:" << act << endl;
-                AMM::PatientAction::BioGears::Command cmdInstance;
-                cmdInstance.message(act);
-                command_publisher->write(&cmdInstance);
-            }
-            spi_recv_fresh = false;
-        }
-
-
-        ++count;
-    }
+    //TODO idler loop here
 
     cout << "=== [HeartRateLED] Simulation stopped." << endl;
 
@@ -225,3 +137,20 @@ int main(int argc, char *argv[]) {
 
 }
 
+void heartrate_led_task(void)
+{
+	//TODO install callback somehow -- heartrate_led_callback
+    int count = 0;
+    while (!closed) {
+        unsigned char spi_send[4];
+        spi_send[0] = heartrate;
+        spi_proto_send_msg(&s, spi_send, 4);
+        if (spi_recv_fresh) {
+            //the received packed is spi_recv_msg.msg[0]
+            spi_recv_fresh = false;
+        }
+
+        ++count;
+        delay_ms(100); // TODO make condition variables and wait on either spi_recv_fresh or receipt of any DDS message
+    }
+}
