@@ -71,13 +71,12 @@ static void show_usage(const std::string &name) {
 struct spi_packet spi_recv_msg;
 bool spi_recv_fresh = false;
 
-void (*spi_callback)(struct spi_packet *p) = heartrate_led_callback;
-
 void
 heartrate_led_callback(struct spi_packet *p) {
     memcpy(&spi_recv_msg, p, sizeof(struct spi_packet));
     spi_recv_fresh = true;
 }
+void (*spi_callback)(struct spi_packet *p) = heartrate_led_callback;
 
 void heartrate_led_task(void);
 
