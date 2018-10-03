@@ -156,6 +156,9 @@ void heartrate_led_task(void)
         spi_proto_send_msg(&spi_proto::p.proto, spi_send, 4);
         if (spi_recv_fresh) {
             //the received packed is spi_recv_msg.msg[0]
+            printf("RECV\t");
+            for (int i = 0; i < 16; i++) printf("%02x ", spi_recv_msg.msg[i]);
+            puts("");
             spi_recv_fresh = false;
         }
 
