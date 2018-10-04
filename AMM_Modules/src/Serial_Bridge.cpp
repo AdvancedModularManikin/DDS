@@ -185,7 +185,7 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
                                     subTopicName = s->Attribute("nodepath");
                                 }
                                 add_once(subscribedTopics, subTopicName);
-                                LOG_TRACE << "[" << capabilityName << "] Subscribed to " << subTopicName;
+                                LOG_TRACE << "[" << capabilityName << "][SUBSCRIBE]" << subTopicName;
                             }
                         }
 
@@ -197,7 +197,7 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
                                 tinyxml2::XMLElement *p = pub->ToElement();
                                 std::string pubTopicName = p->Attribute("name");
                                 add_once(publishedTopics, pubTopicName);
-                                LOG_TRACE << "[" << capabilityName << "] Publishing to " << pubTopicName;
+                                LOG_TRACE << "[" << capabilityName << "][PUBLISH]"  << pubTopicName;
                             }
                         }
                     }
@@ -239,24 +239,20 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
             std::string topic, message, modType, modLocation, modPayload;
             unsigned first = rsp.find("[");
             unsigned last = rsp.find("]");
-            topic = rsp.substr(first, last - first);
-            message = rsp.substr(last);
+            topic = rsp.substr(first + 1, last - first - 1);
+            message = rsp.substr(last + 1);
             LOG_INFO << "Received a message for topic " << topic << " with a payload of: " << message;
-
-
-
-            // std::map<std::string, std::string> kvp = deserializeKeyValue(message);
 
             list<string> tokenList;
             split(tokenList,message,is_any_of(";"),token_compress_on);
             map<string, string> kvp;
 
             BOOST_FOREACH(string token, tokenList) {
-                size_t sep_pos = token.find_first_of(": ");
+                size_t sep_pos = token.find_first_of("=");
                 string key = token.substr(0,sep_pos);
-                string value = (sep_pos == string::npos ? "" : token.substr(sep_pos+2,string::npos));
+                string value = (sep_pos == string::npos ? "" : token.substr(sep_pos+1,string::npos));
                 kvp[key] = value;
-//                 cout << "[" << key << "] => [" << kvMap[key] << "]" << endl;
+                LOG_TRACE << "\t" << key << " => " << kvp[key];
             }
 
             auto type = kvp.find("type");
