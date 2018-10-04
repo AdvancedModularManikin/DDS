@@ -554,6 +554,123 @@ namespace AMM {
         return m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min);
     }
 
+    void PhysiologyThread::SetIVPump(const std::string &pumpSettings) {
+        std::string type, concentration, rate, dose, substance, bagVolume;
+        vector<string> strings = explode("\n", pumpSettings);
+
+        for (auto str : strings) {
+            vector<string> strs;
+            boost::split(strs, str, boost::is_any_of("="));
+            auto strs_size = strs.size();
+            // Check if it's not a key value pair
+            if (strs_size != 2) {
+                continue;
+            }
+            std::string kvp_k = strs[0];
+            // all settings for the pump are strings
+            std::string kvp_v = strs[1];
+
+            try {
+                if (kvp_k == "type") {
+                    type = kvp_v;
+                } else if (kvp_k == "substance") {
+                    substance = kvp_v;
+                } else if (kvp_k == "concentration") {
+                    concentration = kvp_v;
+                } else if (kvp_k == "rate") {
+                    rate = kvp_v;
+                } else if (kvp_k == "dose") {
+                    dose = kvp_v;
+                } else if (kvp_k == "bagVolume") {
+                    bagVolume = kvp_v;
+                } else {
+                    LOG_INFO << "Unknown pump setting: " << kvp_k << " = " << kvp_v;
+                }
+            } catch (exception &e) {
+                LOG_ERROR << "Issue with setting " << e.what();
+            }
+        }
+
+        const SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
+
+        try {
+            if (type == "infusion") {
+                std::string concentrationsMass, concentrationsVol, rateUnit, massUnit, volUnit;
+                double rateVal, massVal, volVal, conVal;
+
+                vector<string> concentrations = explode("/", concentration);
+                concentrationsMass = concentrations[0];
+                concentrationsVol = concentrations[1];
+
+                vector<string> conmass = explode(" ", concentrationsMass);
+                massVal =std::stod(conmass[0]);
+                massUnit = conmass[1];
+                vector<string> convol = explode(" ", concentrationsVol);
+                volVal = std::stod(convol[0]);
+                volUnit = convol[1];
+                conVal = massVal / volVal;
+
+                vector<string> rateb = explode(" ", rate);
+                rateVal =  std::stod(rateb[0]);
+                rateUnit = rateb[1];
+
+                SESubstanceInfusion infuse(*subs);
+                // @TODO: Figure out the unit
+                LOG_TRACE << "Infusing with concentration of " << conVal << " " << massUnit << "/" << volUnit;
+                if (massUnit == "mg" && volUnit == "mL") {
+                    infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                } else {
+                    infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                }
+                // @TODO: Figure out the unit
+                if (rateUnit == "mL/hr") {
+                    LOG_TRACE << "Infusing at " << rateVal << " mL per hour";
+                    infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_hr);
+                } else {
+                    LOG_TRACE << "Infusing at " << rateVal << " mL per min";
+                    infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_min);
+                }
+                m_pe->ProcessAction(infuse);
+            } else if (type == "bolus") {
+                std::string concentrationsMass, concentrationsVol, massUnit, volUnit, doseUnit;
+                double massVal, volVal, conVal, doseVal;
+                vector<string> concentrations = explode("/", concentration);
+                concentrationsMass = concentrations[0];
+                concentrationsVol = concentrations[1];
+
+                vector<string> conmass = explode(" ", concentrationsMass);
+                massVal =std::stod(conmass[0]);
+                massUnit = conmass[1];
+                vector<string> convol = explode(" ", concentrationsVol);
+                volVal = std::stod(convol[0]);
+                volUnit = convol[1];
+                conVal = massVal / volVal;
+
+                vector<string> doseb = explode(" ", dose);
+                doseVal =  std::stod(doseb[0]);
+                doseUnit = doseb[1];
+
+                SESubstanceBolus bolus(*subs);
+                LOG_TRACE << "Bolus with concentration of " << conVal << " " << massUnit << "/" << volUnit;
+                if (massUnit == "mg" && volUnit == "mL") {
+                    bolus.GetConcentration().SetValue(conVal,MassPerVolumeUnit::mg_Per_mL);
+                } else {
+                    bolus.GetConcentration().SetValue(conVal,MassPerVolumeUnit::ug_Per_mL);
+                }
+                LOG_TRACE << "Bolus with a dose of  " << doseVal << doseUnit;
+                if (doseUnit == "mL") {
+                    bolus.GetDose().SetValue(doseVal, VolumeUnit::mL);
+                } else {
+                    bolus.GetDose().SetValue(doseVal, VolumeUnit::uL);
+                }
+                bolus.SetAdminRoute(CDM::enumBolusAdministration::Intravenous);
+                m_pe->ProcessAction(bolus);
+            }
+        } catch (exception &e) {
+            LOG_ERROR << "Error processing ventilator action: " << e.what();
+        }
+    }
+
     void PhysiologyThread::SetVentilator(const std::string &ventilatorSettings) {
         vector<string> strings = explode("\n", ventilatorSettings);
 
@@ -575,6 +692,7 @@ namespace AMM {
                 continue;
             }
             std::string kvp_k = strs[0];
+            // all settings for the ventilator are floats
             double kvp_v = std::stod(strs[1]);
             try {
                 if (kvp_k == "OxygenFraction") {

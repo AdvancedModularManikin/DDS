@@ -55,6 +55,7 @@ namespace AMM {
         std::string get_random_string(size_t length);
 
         void TestVentilator(const std::string &ventilatorSettings);
+        void TestPump(const std::string &pumpSettings);
 
         void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override;
         void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) override;

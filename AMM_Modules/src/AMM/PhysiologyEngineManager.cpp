@@ -314,11 +314,20 @@ namespace AMM {
         bg->SetVentilator(ventilatorSettings);
     }
 
+    void PhysiologyEngineManager::TestPump(const std::string &pumpSettings) {
+        bg->SetIVPump(pumpSettings);
+    }
+
     void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i, SampleInfo_t *info) {
         LOG_TRACE << "Instrument data for " << i.instrument() << " received with payload: " << i.payload();
         std::string instrument(i.instrument());
         if (instrument == "ventilator") {
             bg->SetVentilator(i.payload());
         }
+
+        if (instrument == "ivpump") {
+            bg->SetIVPump(i.payload());
+        }
+
     }
 }
