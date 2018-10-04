@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include <boost/algorithm/string.hpp>
+#include <boost/foreach.hpp>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/thread.hpp>
@@ -24,6 +25,7 @@
 
 using namespace std;
 using namespace ::boost::asio;
+using namespace boost;
 using namespace tinyxml2;
 using namespace AMM;
 
@@ -234,11 +236,57 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
                 }
             }
         } else if (!rsp.compare(0, genericTopicPrefix.size(), genericTopicPrefix)) {
+            std::string topic, message, modType, modLocation, modPayload;
             unsigned first = rsp.find("[");
             unsigned last = rsp.find("]");
-            std::string topic = rsp.substr(first, last - first);
-            std::string message = rsp.substr(last);
+            topic = rsp.substr(first, last - first);
+            message = rsp.substr(last);
             LOG_INFO << "Received a message for topic " << topic << " with a payload of: " << message;
+
+
+
+            // std::map<std::string, std::string> kvp = deserializeKeyValue(message);
+
+            list<string> tokenList;
+            split(tokenList,message,is_any_of(";"),token_compress_on);
+            map<string, string> kvp;
+
+            BOOST_FOREACH(string token, tokenList) {
+                size_t sep_pos = token.find_first_of(": ");
+                string key = token.substr(0,sep_pos);
+                string value = (sep_pos == string::npos ? "" : token.substr(sep_pos+2,string::npos));
+                kvp[key] = value;
+//                 cout << "[" << key << "] => [" << kvMap[key] << "]" << endl;
+            }
+
+            auto type = kvp.find("type");
+            if(type != kvp.end()) {
+                modType = type->second;
+            }
+
+            auto location = kvp.find("location");
+            if(location != kvp.end()) {
+                modLocation = type->second;
+            }
+
+            auto payload= kvp.find("payload");
+            if(payload != kvp.end()) {
+                modPayload = type->second;
+            }
+
+            if (topic == "AMM_Render_Modification") {
+                AMM::Render::Modification renderMod;
+                renderMod.type(modType);
+                renderMod.payload(modPayload);
+                mgr->PublishRenderModification(renderMod);
+            } else if (topic == "AMM_Physiology_Modification") {
+                AMM::Physiology::Modification physMod;
+                physMod.type(modType);
+                physMod.payload(modPayload);
+                mgr->PublishPhysiologyModification(physMod);
+            } else {
+                LOG_TRACE << "Unknown topic: " << topic;
+            }
         } else {
             if (!rsp.empty() && rsp != "\r") {
                 LOG_TRACE << "Unknown message: " << rsp;
