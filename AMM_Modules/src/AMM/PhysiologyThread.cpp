@@ -3,8 +3,8 @@
 using namespace std;
 using namespace AMM::Physiology;
 
-std::vector<std::string> explode(const std::string &delimiter, const std::string &str) {
-    std::vector<std::string> arr;
+std::vector <std::string> explode(const std::string &delimiter, const std::string &str) {
+    std::vector <std::string> arr;
 
     int strleng = str.length();
     int delleng = delimiter.length();
@@ -31,7 +31,7 @@ std::vector<std::string> explode(const std::string &delimiter, const std::string
 };
 
 namespace AMM {
-    std::vector<std::string> PhysiologyThread::highFrequencyNodes;
+    std::vector <std::string> PhysiologyThread::highFrequencyNodes;
     std::map<std::string, double (PhysiologyThread::*)()> PhysiologyThread::nodePathTable;
 
     PhysiologyThread::PhysiologyThread(const std::string &logFile) {
@@ -556,10 +556,10 @@ namespace AMM {
 
     void PhysiologyThread::SetIVPump(const std::string &pumpSettings) {
         std::string type, concentration, rate, dose, substance, bagVolume;
-        vector<string> strings = explode("\n", pumpSettings);
+        vector <string> strings = explode("\n", pumpSettings);
 
         for (auto str : strings) {
-            vector<string> strs;
+            vector <string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair
@@ -581,6 +581,8 @@ namespace AMM {
                     rate = kvp_v;
                 } else if (kvp_k == "dose") {
                     dose = kvp_v;
+                } else if (kvp_k == "amount") {
+                    dose = kvp_v;
                 } else if (kvp_k == "bagVolume") {
                     bagVolume = kvp_v;
                 } else {
@@ -598,20 +600,20 @@ namespace AMM {
                 std::string concentrationsMass, concentrationsVol, rateUnit, massUnit, volUnit;
                 double rateVal, massVal, volVal, conVal;
 
-                vector<string> concentrations = explode("/", concentration);
+                vector <string> concentrations = explode("/", concentration);
                 concentrationsMass = concentrations[0];
                 concentrationsVol = concentrations[1];
 
-                vector<string> conmass = explode(" ", concentrationsMass);
-                massVal =std::stod(conmass[0]);
+                vector <string> conmass = explode(" ", concentrationsMass);
+                massVal = std::stod(conmass[0]);
                 massUnit = conmass[1];
-                vector<string> convol = explode(" ", concentrationsVol);
+                vector <string> convol = explode(" ", concentrationsVol);
                 volVal = std::stod(convol[0]);
                 volUnit = convol[1];
                 conVal = massVal / volVal;
 
-                vector<string> rateb = explode(" ", rate);
-                rateVal =  std::stod(rateb[0]);
+                vector <string> rateb = explode(" ", rate);
+                rateVal = std::stod(rateb[0]);
                 rateUnit = rateb[1];
 
                 SESubstanceInfusion infuse(*subs);
@@ -634,28 +636,28 @@ namespace AMM {
             } else if (type == "bolus") {
                 std::string concentrationsMass, concentrationsVol, massUnit, volUnit, doseUnit;
                 double massVal, volVal, conVal, doseVal;
-                vector<string> concentrations = explode("/", concentration);
+                vector <string> concentrations = explode("/", concentration);
                 concentrationsMass = concentrations[0];
                 concentrationsVol = concentrations[1];
 
-                vector<string> conmass = explode(" ", concentrationsMass);
-                massVal =std::stod(conmass[0]);
+                vector <string> conmass = explode(" ", concentrationsMass);
+                massVal = std::stod(conmass[0]);
                 massUnit = conmass[1];
-                vector<string> convol = explode(" ", concentrationsVol);
+                vector <string> convol = explode(" ", concentrationsVol);
                 volVal = std::stod(convol[0]);
                 volUnit = convol[1];
                 conVal = massVal / volVal;
 
-                vector<string> doseb = explode(" ", dose);
-                doseVal =  std::stod(doseb[0]);
+                vector <string> doseb = explode(" ", dose);
+                doseVal = std::stod(doseb[0]);
                 doseUnit = doseb[1];
 
                 SESubstanceBolus bolus(*subs);
                 LOG_TRACE << "Bolus with concentration of " << conVal << " " << massUnit << "/" << volUnit;
                 if (massUnit == "mg" && volUnit == "mL") {
-                    bolus.GetConcentration().SetValue(conVal,MassPerVolumeUnit::mg_Per_mL);
+                    bolus.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
                 } else {
-                    bolus.GetConcentration().SetValue(conVal,MassPerVolumeUnit::ug_Per_mL);
+                    bolus.GetConcentration().SetValue(conVal, MassPerVolumeUnit::ug_Per_mL);
                 }
                 LOG_TRACE << "Bolus with a dose of  " << doseVal << doseUnit;
                 if (doseUnit == "mL") {
@@ -672,7 +674,7 @@ namespace AMM {
     }
 
     void PhysiologyThread::SetVentilator(const std::string &ventilatorSettings) {
-        vector<string> strings = explode("\n", ventilatorSettings);
+        vector <string> strings = explode("\n", ventilatorSettings);
 
         SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
         SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
@@ -684,7 +686,7 @@ namespace AMM {
         config.GetReliefValvePressure().SetValue(20.0, PressureUnit::cmH2O);
 
         for (auto str : strings) {
-            vector<string> strs;
+            vector <string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair
