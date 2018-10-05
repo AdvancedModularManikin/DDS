@@ -25,7 +25,7 @@ namespace AMM {
         virtual ~PhysiologyEngineManager() override = default;
 
         AMM::PhysiologyThread *bg = new PhysiologyThread("logs/biogears.log");
-
+        std::string stateFile;
         void SetLogging(bool logging_enabled);
         void StartSimulation();
         void StopSimulation();
@@ -55,6 +55,7 @@ namespace AMM {
         std::string get_random_string(size_t length);
 
         void TestVentilator(const std::string &ventilatorSettings);
+        void TestPump(const std::string &pumpSettings);
 
         void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override;
         void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) override;

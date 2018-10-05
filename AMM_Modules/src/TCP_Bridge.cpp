@@ -271,6 +271,8 @@ public:
                    << pm.payload();
         string stringOut = messageOut.str();
 
+        LOG_TRACE << "Received a phys mod: " << stringOut;
+
         auto it = clientMap.begin();
         while (it != clientMap.end()) {
             std::string cid = it->first;
@@ -296,7 +298,7 @@ public:
                    << rm.payload();
         string stringOut = messageOut.str();
 
-        LOG_TRACE << "Publishing a Render Mod: " << stringOut;
+        LOG_TRACE << "Received a render mod: " << stringOut;
 
         auto it = clientMap.begin();
         while (it != clientMap.end()) {
@@ -558,8 +560,7 @@ void *Server::HandleClient(void *args) {
                                             subTopicName = s->Attribute("type");
                                         }
                                         add_once(subscribedTopics[c->id], subTopicName);
-                                        LOG_TRACE << "[" << capabilityName << "][" << c->id << "] Subscribed to "
-                                                  << subTopicName;
+                                        LOG_TRACE << "[" << capabilityName << "][" << c->id << "][SUBSCRIBE]" << subTopicName;
                                     }
                                 }
 
@@ -571,8 +572,7 @@ void *Server::HandleClient(void *args) {
                                         tinyxml2::XMLElement *p = pub->ToElement();
                                         std::string pubTopicName = p->Attribute("name");
                                         add_once(publishedTopics[c->id], pubTopicName);
-                                        LOG_TRACE << "[" << capabilityName << "][" << c->id << "] Publishing to "
-                                                  << pubTopicName;
+                                        LOG_TRACE << "[" << capabilityName << "][" << c->id << "][PUBLISH]"  << pubTopicName;
                                     }
                                 }
                             }

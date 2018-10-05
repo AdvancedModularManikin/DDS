@@ -28,7 +28,7 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
     std::cout << " [3]Start\t\t\tRun physiology engine with simulation-manager ticks" << std::endl;
     std::cout << " [4]Stop\t\t\tStop running based on simulation-manager ticks" << std::endl;
     std::cout << " [5]Publish data\t\tPublish all data, right now (running or not)" << std::endl;
-    std::cout << " [6]Test ventilator" << std::endl;
+    std::cout << " [6]Test pump" << std::endl;
     std::cout << " [7]Quit" << std::endl;
     std::cout << " >> ";
     getline(cin, action);
@@ -64,9 +64,9 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
         pe->PublishData(true);
         std::cout << " == Done publishing " << pe->GetNodePathCount() << " items." << std::endl;
     } else if (action == "6") {
-        std::cout << "Testing ventilator settings";
-        std::string payload = "OxygenFraction=0.5\nPositiveEndExpiredPressure=0.5\nRespiratoryRate=50\nTidalVolume=0.5\nVentilatorPressure=0.1";
-        pe->TestVentilator(payload);
+        std::cout << "Testing pump settings";
+        std::string payload = "bagVolume=250 mL\nrate=46.26 mL/hr\nconcentration=200 mg/20 mL\nsubstance=Propofol\ntype=infusion";
+        pe->TestPump(payload);
     } else if (action == "7") {
         if (!pe->isRunning()) {
             std::cout << " == Simulation not running, but shutting down anyway" << std::endl;
