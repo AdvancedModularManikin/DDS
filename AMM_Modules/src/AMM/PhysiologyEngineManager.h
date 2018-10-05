@@ -25,7 +25,7 @@ namespace AMM {
         virtual ~PhysiologyEngineManager() override = default;
 
         AMM::PhysiologyThread *bg = new PhysiologyThread("logs/biogears.log");
-
+        std::string stateFile;
         void SetLogging(bool logging_enabled);
         void StartSimulation();
         void StopSimulation();

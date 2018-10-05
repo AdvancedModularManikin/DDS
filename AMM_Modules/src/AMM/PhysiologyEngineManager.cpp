@@ -12,6 +12,7 @@ namespace AMM {
         if (bg == nullptr) {
             LOG_ERROR << "BioGears thread did not load.";
         }
+        stateFile = "./states/StandardMale@0s.xml";
 
 
         auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
@@ -162,7 +163,6 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::StartTickSimulation() {
-        std::string stateFile = "./states/StandardMale@0s.xml";
         std::size_t pos = stateFile.find("@");
         std::string state2 = stateFile.substr(pos);
         std::size_t pos2 = state2.find("s");
@@ -270,7 +270,7 @@ namespace AMM {
                 bg->SaveState(ss.str());
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
                 StopTickSimulation();
-                // stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
+                stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
                 StartTickSimulation();
             }
         } else {
