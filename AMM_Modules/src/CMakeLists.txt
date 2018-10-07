@@ -69,7 +69,7 @@ add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 
 set(SPI_SOURCES spi_proto/src/crc16.c spi_proto/src/spi_proto.c spi_proto/src/config.h spi_proto/src/spi_proto.h)
 #add_library(spi_proto ${SPI_PROTO_SOURCES})
-set(SPI_REMOTE_SOURCES spi_proto/src/spi_remote_host.c spi_proto/src/binary_semaphore.c spi_proto/src/spi_proto_master.cpp spi_proto/src/spi_chunks.cpp spi_proto/src/spi_proto_master_datagram.cpp)
+set(SPI_REMOTE_SOURCES spi_proto/src/spi_remote_host.c spi_proto/src/binary_semaphore.c spi_proto/src/spi_proto_master.cpp spi_proto/src/spi_chunks.cpp)
 set(SPI_DATAGRAM_SOURCES spi_proto/src/spi_proto_master_datagram.cpp)
 
 set(HEART_RATE_LED_SOURCES HeartRateLED.cpp)
@@ -80,12 +80,12 @@ target_include_directories(${HEART_RATE_LED_EXE} PUBLIC spi_proto/src)
 set(FLUID_MANAGER_SOURCES FluidManager.cpp)
 set(FLUID_MANAGER_EXE amm_fluid_manager)
 add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
-target_include_directories(${FLUID_MANAGER_EXE} PUBLIC spi_proto)
+target_include_directories(${FLUID_MANAGER_EXE} PUBLIC spi_proto/src)
 
 set(IVC_MODULE_SOURCES IVC.cpp)
 set(IVC_MODULE_EXE amm_ivc_module)
 add_executable(${IVC_MODULE_EXE} ${IVC_MODULE_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
-target_include_directories(${IVC_MODULE_EXE} PUBLIC spi_proto)
+target_include_directories(${IVC_MODULE_EXE} PUBLIC spi_proto/src)
 
 set(SERIAL_BRIDGE_SOURCES Serial_Bridge.cpp AMM/SerialPort.cpp AMM/SerialPort.h)
 set(SERIAL_BRIDGE_EXE amm_serial_bridge)

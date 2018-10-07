@@ -9,12 +9,12 @@
 #include "tinyxml2.h"
 
 extern "C" {
-#include "spi_proto/spi_proto.h"
-#include "spi_proto/binary_semaphore.h"
-#include "spi_proto/spi_remote.h"
-#include "spi_proto/spi_remote_host.h"
+#include "spi_proto.h"
+#include "binary_semaphore.h"
+#include "spi_remote.h"
+#include "spi_remote_host.h"
 }
-#include "spi_proto/spi_proto_master.h"
+#include "spi_proto_master.h"
 
 
 using namespace std;

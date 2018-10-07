@@ -6,14 +6,14 @@
 
 #include "AMM/DDS_Manager.h"
 
-#include "spi_proto/spi_proto.h"
+#include "spi_proto.h"
 extern "C" {
-#include "spi_proto/spi_proto_lib/spi_chunks.h"
-#include "spi_proto/spi_proto_lib/spi_chunk_defines.h"
-#include "spi_proto/binary_semaphore.h"
-#include "spi_proto/spi_remote.h"
+#include "spi_chunks.h"
+#include "spi_chunk_defines.h"
+#include "binary_semaphore.h"
+#include "spi_remote.h"
 }
-#include "spi_proto/spi_proto_master.h"
+#include "spi_proto_master.h"
 
 #include "tinyxml2.h"
 
