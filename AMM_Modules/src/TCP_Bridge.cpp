@@ -377,13 +377,11 @@ void DispatchRequest(Client *c, std::string const &request) {
 void PublishSettings(std::string const &equipmentType) {
     std::ostringstream payload;
     LOG_INFO << "Publishing equipment " << equipmentType << " settings";
-    for (auto &outer_map_pair : equipmentSettings) {
-        LOG_TRACE << outer_map_pair.first << " settings contains: ";
-        for (auto &inner_map_pair : outer_map_pair.second) {
+        for (auto &inner_map_pair : equipmentSettings[equipmentType]) {
             payload << inner_map_pair.first << "=" << inner_map_pair.second << std::endl;
             LOG_TRACE << "\t" << inner_map_pair.first << ": " << inner_map_pair.second;
         }
-    }
+
 
     AMM::InstrumentData i;
     i.instrument(equipmentType);
