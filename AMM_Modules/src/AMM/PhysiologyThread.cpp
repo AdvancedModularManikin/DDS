@@ -596,13 +596,14 @@ namespace AMM {
 
         LOG_TRACE << "Done breaking out KVPs";
 
-        const SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
 
         try {
             if (type == "infusion") {
+                SESubstanceCompound* subs = m_pe->GetSubstanceManager().GetCompound(substance);
+
                 std::string concentrationsMass, concentrationsVol, rateUnit, massUnit, volUnit;
                 double rateVal, massVal, volVal, conVal;
-                SESubstanceInfusion infuse(*subs);
+                SESubstanceCompoundInfusion infuse(*subs);
 
                 if (substance == "Saline") {
                     vector<string> bagvol = explode(" ", bagVolume);
@@ -610,9 +611,9 @@ namespace AMM {
                     volUnit = bagvol[1];
                     LOG_TRACE << "Setting bag volume to " << volVal << " / " << volUnit;
                     if (volUnit == "mL") {
-                        //infuse.GetGetBagVolume().SetValue(volVal, VolumeUnit::mL);
+                        infuse.GetBagVolume().SetValue(volVal, VolumeUnit::mL);
                     } else {
-                        //infuse.GetBagVolume().SetValue(volVal, VolumeUnit::L);
+                        infuse.GetBagVolume().SetValue(volVal, VolumeUnit::L);
                     }
                 } else {
                     vector<string> concentrations = explode("/", concentration);
@@ -629,9 +630,9 @@ namespace AMM {
 
                     LOG_TRACE << "Infusing with concentration of " << conVal << " " << massUnit << "/" << volUnit;
                     if (massUnit == "mg" && volUnit == "mL") {
-                        infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                      //  infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
                     } else {
-                        infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                      //  infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
                     }
                 }
 
@@ -648,6 +649,8 @@ namespace AMM {
                 }
                 m_pe->ProcessAction(infuse);
             } else if (type == "bolus") {
+                const SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
+
                 std::string concentrationsMass, concentrationsVol, massUnit, volUnit, doseUnit;
                 double massVal, volVal, conVal, doseVal;
                 vector <string> concentrations = explode("/", concentration);
