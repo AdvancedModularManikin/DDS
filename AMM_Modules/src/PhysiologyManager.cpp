@@ -65,7 +65,8 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
         std::cout << " == Done publishing " << pe->GetNodePathCount() << " items." << std::endl;
     } else if (action == "6") {
         std::cout << "Testing pump settings";
-        std::string payload = "bagVolume=250 mL\nrate=46.26 mL/hr\nconcentration=200 mg/20 mL\nsubstance=Propofol\ntype=infusion";
+        // std::string payload = "bagVolume=250 mL\nrate=46.26 mL/hr\nconcentration=200 mg/20 mL\nsubstance=Propofol\ntype=infusion";
+        std::string payload ="bagVolume=1000 mL\nrate=100 mL/hr\nsubstance=Saline\ntype=infusion";
         pe->TestPump(payload);
     } else if (action == "7") {
         if (!pe->isRunning()) {

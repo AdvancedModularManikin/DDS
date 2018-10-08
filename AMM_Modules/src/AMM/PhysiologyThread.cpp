@@ -555,6 +555,7 @@ namespace AMM {
     }
 
     void PhysiologyThread::SetIVPump(const std::string &pumpSettings) {
+        LOG_TRACE << "Got pump settings: " << pumpSettings;
         std::string type, concentration, rate, dose, substance, bagVolume;
         vector <string> strings = explode("\n", pumpSettings);
 
@@ -593,38 +594,51 @@ namespace AMM {
             }
         }
 
+        LOG_TRACE << "Done breaking out KVPs";
+
         const SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
 
         try {
             if (type == "infusion") {
                 std::string concentrationsMass, concentrationsVol, rateUnit, massUnit, volUnit;
                 double rateVal, massVal, volVal, conVal;
+                SESubstanceInfusion infuse(*subs);
 
-                vector <string> concentrations = explode("/", concentration);
-                concentrationsMass = concentrations[0];
-                concentrationsVol = concentrations[1];
+                if (substance == "Saline") {
+                    vector<string> bagvol = explode(" ", bagVolume);
+                    volVal = std::stod(bagvol[0]);
+                    volUnit = bagvol[1];
+                    LOG_TRACE << "Setting bag volume to " << volVal << " / " << volUnit;
+                    if (volUnit == "mL") {
+                        //infuse.GetGetBagVolume().SetValue(volVal, VolumeUnit::mL);
+                    } else {
+                        //infuse.GetBagVolume().SetValue(volVal, VolumeUnit::L);
+                    }
+                } else {
+                    vector<string> concentrations = explode("/", concentration);
+                    concentrationsMass = concentrations[0];
+                    concentrationsVol = concentrations[1];
 
-                vector <string> conmass = explode(" ", concentrationsMass);
-                massVal = std::stod(conmass[0]);
-                massUnit = conmass[1];
-                vector <string> convol = explode(" ", concentrationsVol);
-                volVal = std::stod(convol[0]);
-                volUnit = convol[1];
-                conVal = massVal / volVal;
+                    vector<string> conmass = explode(" ", concentrationsMass);
+                    massVal = std::stod(conmass[0]);
+                    massUnit = conmass[1];
+                    vector<string> convol = explode(" ", concentrationsVol);
+                    volVal = std::stod(convol[0]);
+                    volUnit = convol[1];
+                    conVal = massVal / volVal;
+
+                    LOG_TRACE << "Infusing with concentration of " << conVal << " " << massUnit << "/" << volUnit;
+                    if (massUnit == "mg" && volUnit == "mL") {
+                        infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                    } else {
+                        infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                    }
+                }
 
                 vector <string> rateb = explode(" ", rate);
                 rateVal = std::stod(rateb[0]);
                 rateUnit = rateb[1];
 
-                SESubstanceInfusion infuse(*subs);
-                // @TODO: Figure out the unit
-                LOG_TRACE << "Infusing with concentration of " << conVal << " " << massUnit << "/" << volUnit;
-                if (massUnit == "mg" && volUnit == "mL") {
-                    infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
-                } else {
-                    infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
-                }
-                // @TODO: Figure out the unit
                 if (rateUnit == "mL/hr") {
                     LOG_TRACE << "Infusing at " << rateVal << " mL per hour";
                     infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_hr);
@@ -669,7 +683,7 @@ namespace AMM {
                 m_pe->ProcessAction(bolus);
             }
         } catch (exception &e) {
-            LOG_ERROR << "Error processing ventilator action: " << e.what();
+            LOG_ERROR << "Error processing ivpump action: " << e.what();
         }
     }
 
