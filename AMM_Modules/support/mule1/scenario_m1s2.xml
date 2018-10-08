@@ -17,6 +17,7 @@
           <data name="sound_alarm" value="true" />
         </configuration_data>
       </capability>
+      <capability name="ivarm_module" />
       <capability name="detect_button_press">
         <configuration_data>
           <data name="button_message" value="O2" />

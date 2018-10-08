@@ -12,6 +12,7 @@
           <data name="scene" value="poi_gurney" />
         </configuration_data>
       </capability>
+      <capability name="ivarm_module" />
       <capability name="monitor_level">
         <configuration_data>
           <data name="sound_alarm" value="false" />
