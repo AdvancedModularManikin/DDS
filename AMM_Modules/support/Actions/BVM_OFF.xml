@@ -6,6 +6,11 @@
 		<PatientFile>StandardMale.xml</PatientFile>
 	</InitialParameters>	           	  
 	<!-- REMOVE_ET_TUBE -->  
+	<Action xsi:type="IntubationData" Type="Off"/>    
 	<!-- Turn off ventilator -->   
-	<Action xsi:type="IntubationData" Type="Off"/>    	
+	<Action xsi:type="AnesthesiaMachineConfigurationData">
+      <Configuration>
+        <Connection>Off</Connection>
+      </Configuration>
+	</Action>	  
 </Scenario>
