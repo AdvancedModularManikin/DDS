@@ -231,8 +231,9 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) {
-        // If the payload is empty, use the type to execute an XML file
-        if (pm.payload() == "") {
+        // If the payload is empty, use the type to execute an XML file.
+        // Otherwise, the payload is considered to be XML to execute.
+        if (pm.payload().empty()) {
             LOG_INFO << "Old-style Physiology modification received: " << pm.type();
             bg->ExecuteCommand(pm.type());
         } else {

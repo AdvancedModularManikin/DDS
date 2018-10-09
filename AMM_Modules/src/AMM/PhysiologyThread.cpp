@@ -238,15 +238,21 @@ namespace AMM {
     }
 
     bool PhysiologyThread::ExecuteXMLCommand(const std::string &cmd) {
-        boost::filesystem::path temp = boost::filesystem::unique_path();
-        const std::string scenarioFile = temp.native();  // optional
-        std::ofstream out(scenarioFile);
+        /** boost::filesystem::path temp = boost::filesystem::unique_path();
+          const std::string scenarioFile = temp.native();  // optional
+          auto scenarioPath = boost::filesystem::temp_directory_path();
+          std::ostringstream fullname;
+          fullname << scenarioPath << scenarioFile;
+          std::string tempName = fullname.str(); **/
+        std::string tempName  = std::tmpnam(nullptr);
+        std::ofstream out(tempName);
         out << cmd;
         out.close();
-        return LoadScenarioFile(scenarioFile);
+        return LoadScenarioFile(tempName);
     }
 
-// Load a scenario from an XML file, apply conditions and iterate through the actions
+
+    // Load a scenario from an XML file, apply conditions and iterate through the actions
 // This bypasses the standard BioGears ExecuteScenario method to avoid resetting the BioGears engine
     bool PhysiologyThread::LoadScenarioFile(const std::string &scenarioFile) {
         SEScenario sce(m_pe->GetSubstanceManager());
