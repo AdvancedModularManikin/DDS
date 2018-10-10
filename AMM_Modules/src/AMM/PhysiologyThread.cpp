@@ -289,7 +289,12 @@ namespace AMM {
 
     void PhysiologyThread::AdvanceTimeTick() {
         m_mutex.lock();
-        m_pe->AdvanceModelTime();
+        try {
+            m_pe->AdvanceModelTime();
+        } catch (exception &e) {
+                LOG_ERROR << "Error advancing time: " << e.what();
+            }
+
         if (logging_enabled) {
             m_pe->GetEngineTrack()->TrackData(m_pe->GetSimulationTime(TimeUnit::s));
         }
