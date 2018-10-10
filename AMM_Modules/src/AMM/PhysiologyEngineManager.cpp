@@ -169,11 +169,12 @@ namespace AMM {
         std::string state3 = state2.substr(1, pos2 - 1);
         double startPosition = atof(state3.c_str());
 
-        m_mutex.lock();
-        bg->LoadState(stateFile.c_str(), startPosition);
-        nodePathMap = bg->GetNodePathTable();
-        m_mutex.unlock();
-
+        if (!paused) {
+            m_mutex.lock();
+            bg->LoadState(stateFile.c_str(), startPosition);
+            nodePathMap = bg->GetNodePathTable();
+            m_mutex.unlock();
+        }
         m_runThread = true;
         paused = false;
     }
@@ -256,9 +257,10 @@ namespace AMM {
                 StopTickSimulation();
                 StopSimulation();
                 Shutdown();
-            } else if (value.compare("PAUSE_ENGINE") == 0) {
+            } else if (value.compare("PAUSE_ENGINE") == 0 || value.compare("PAUSE_SIM") == 0) {
                 LOG_TRACE << "Paused engine" << endl;
                 StopTickSimulation();
+                paused = true;
             } else if (value.compare("RESET_SIM") == 0) {
                 LOG_TRACE << "Reset simulation, clearing engine data.";
                 StopTickSimulation();
