@@ -321,7 +321,6 @@ private:
 
         Routes::Get(router, "/modules/count", Routes::bind(&DDSEndpoint::getModuleCount, this));
         Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
-        Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
         Routes::Get(router, "/module/id/:id", Routes::bind(&DDSEndpoint::getModuleById, this));
         Routes::Get(router, "/module/guid/:guid", Routes::bind(&DDSEndpoint::getModuleByGuid, this));
 
