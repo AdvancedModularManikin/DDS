@@ -114,6 +114,7 @@ class FluidListener : public ListenerInterface {
                 // These should be sent when a status change is received via spi.
                 // We'll force them for now.
                 //TODO confirm nothing else needs to happen //send_status = true;
+                have_pressure = true;
                 current_status = OPERATIONAL;
             }
         }
@@ -274,6 +275,9 @@ air_reservoir_control_task(void)
   remote_set_gpio(solenoid_B, 1);
   remote_set_gpio(solenoid_A, 0);
   remote_set_gpio(solenoid_C, 0);
+  while (!have_pressure) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
   int not_pressurized = 1;
   puts("entering startup!");
 
