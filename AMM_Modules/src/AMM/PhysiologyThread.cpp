@@ -637,9 +637,9 @@ namespace AMM {
 
                     LOG_TRACE << "Infusing with concentration of " << conVal << " " << massUnit << "/" << volUnit;
                     if (massUnit == "mg" && volUnit == "mL") {
-                      //  infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                      infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
                     } else {
-                      //  infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                      infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
                     }
                 }
 
