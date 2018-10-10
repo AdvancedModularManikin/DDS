@@ -66,8 +66,13 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
     } else if (action == "6") {
         std::cout << "Testing pump settings";
         // std::string payload = "bagVolume=250 mL\nrate=46.26 mL/hr\nconcentration=200 mg/20 mL\nsubstance=Propofol\ntype=infusion";
-        std::string payload ="bagVolume=1000 mL\nrate=100 mL/hr\nsubstance=Saline\ntype=infusion";
+        std::string payload = "bagVolume=1000 mL\nrate=100 mL/hr\nsubstance=Saline\ntype=infusion";
         pe->TestPump(payload);
+    } else if (action == "8") {
+
+        std::cout << "Testing pain settings";
+        std::string payload = "location=arm\nseverity=0.5";
+        pe->TestPain(payload);
     } else if (action == "7") {
         if (!pe->isRunning()) {
             std::cout << " == Simulation not running, but shutting down anyway" << std::endl;

@@ -38,8 +38,8 @@ namespace AMM {
                                                          equipment_sub_listener);
 
         physmod_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::physModTopic,
-                                                         AMM::DataTypes::getPhysiologyModificationType(),
-                                                         physmod_sub_listener);
+                                                       AMM::DataTypes::getPhysiologyModificationType(),
+                                                       physmod_sub_listener);
 
         node_publisher = mgr->InitializePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
                                                   pub_listener);
@@ -231,15 +231,21 @@ namespace AMM {
         // Placeholder to listen for higher-weighted node data
     }
 
-    void PhysiologyEngineManager::onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) {
+    void
+    PhysiologyEngineManager::onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) {
         // If the payload is empty, use the type to execute an XML file.
         // Otherwise, the payload is considered to be XML to execute.
         if (pm.payload().empty()) {
             LOG_INFO << "Old-style Physiology modification received: " << pm.type();
             bg->ExecuteCommand(pm.type());
         } else {
-            LOG_INFO << "Physiology modification received: " << pm.payload();
-            bg->ExecuteXMLCommand(pm.payload());
+            if (pm.type() == "pain") {
+                LOG_INFO << "Pain payload received: " << pm.payload();
+                bg->SetPain(pm.payload());
+            } else {
+                LOG_INFO << "Physiology modification received: " << pm.payload();
+                bg->ExecuteXMLCommand(pm.payload());
+            }
         }
 
     }
@@ -311,6 +317,10 @@ namespace AMM {
                 cout.flush();
             }
         }
+    }
+
+    void PhysiologyEngineManager::TestPain(const std::string &painSettings) {
+        bg->SetPain(painSettings);
     }
 
     void PhysiologyEngineManager::TestVentilator(const std::string &ventilatorSettings) {

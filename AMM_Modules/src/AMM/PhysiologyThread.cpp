@@ -3,8 +3,8 @@
 using namespace std;
 using namespace AMM::Physiology;
 
-std::vector <std::string> explode(const std::string &delimiter, const std::string &str) {
-    std::vector <std::string> arr;
+std::vector<std::string> explode(const std::string &delimiter, const std::string &str) {
+    std::vector<std::string> arr;
 
     int strleng = str.length();
     int delleng = delimiter.length();
@@ -31,7 +31,7 @@ std::vector <std::string> explode(const std::string &delimiter, const std::strin
 };
 
 namespace AMM {
-    std::vector <std::string> PhysiologyThread::highFrequencyNodes;
+    std::vector<std::string> PhysiologyThread::highFrequencyNodes;
     std::map<std::string, double (PhysiologyThread::*)()> PhysiologyThread::nodePathTable;
 
     PhysiologyThread::PhysiologyThread(const std::string &logFile) {
@@ -244,7 +244,7 @@ namespace AMM {
           std::ostringstream fullname;
           fullname << scenarioPath << scenarioFile;
           std::string tempName = fullname.str(); **/
-        std::string tempName  = std::tmpnam(nullptr);
+        std::string tempName = std::tmpnam(nullptr);
         std::ofstream out(tempName);
         out << cmd;
         out.close();
@@ -563,10 +563,10 @@ namespace AMM {
     void PhysiologyThread::SetIVPump(const std::string &pumpSettings) {
         LOG_TRACE << "Got pump settings: " << pumpSettings;
         std::string type, concentration, rate, dose, substance, bagVolume;
-        vector <string> strings = explode("\n", pumpSettings);
+        vector<string> strings = explode("\n", pumpSettings);
 
         for (auto str : strings) {
-            vector <string> strs;
+            vector<string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair
@@ -609,7 +609,7 @@ namespace AMM {
                 double rateVal, massVal, volVal, conVal;
 
                 if (substance == "Saline") {
-                    SESubstanceCompound* subs = m_pe->GetSubstanceManager().GetCompound(substance);
+                    SESubstanceCompound *subs = m_pe->GetSubstanceManager().GetCompound(substance);
                     SESubstanceCompoundInfusion infuse(*subs);
                     vector<string> bagvol = explode(" ", bagVolume);
                     volVal = std::stod(bagvol[0]);
@@ -621,7 +621,7 @@ namespace AMM {
                         infuse.GetBagVolume().SetValue(volVal, VolumeUnit::L);
                     }
 
-                    vector <string> rateb = explode(" ", rate);
+                    vector<string> rateb = explode(" ", rate);
                     rateVal = std::stod(rateb[0]);
                     rateUnit = rateb[1];
 
@@ -634,7 +634,7 @@ namespace AMM {
                     }
                     m_pe->ProcessAction(infuse);
                 } else {
-                    SESubstance* subs = m_pe->GetSubstanceManager().GetSubstance(substance);
+                    SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
                     SESubstanceInfusion infuse(*subs);
                     vector<string> concentrations = explode("/", concentration);
                     concentrationsMass = concentrations[0];
@@ -650,12 +650,12 @@ namespace AMM {
 
                     LOG_TRACE << "Infusing with concentration of " << conVal << " " << massUnit << "/" << volUnit;
                     if (massUnit == "mg" && volUnit == "mL") {
-                      infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                        infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
                     } else {
-                      infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                        infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
                     }
 
-                    vector <string> rateb = explode(" ", rate);
+                    vector<string> rateb = explode(" ", rate);
                     rateVal = std::stod(rateb[0]);
                     rateUnit = rateb[1];
 
@@ -673,19 +673,19 @@ namespace AMM {
 
                 std::string concentrationsMass, concentrationsVol, massUnit, volUnit, doseUnit;
                 double massVal, volVal, conVal, doseVal;
-                vector <string> concentrations = explode("/", concentration);
+                vector<string> concentrations = explode("/", concentration);
                 concentrationsMass = concentrations[0];
                 concentrationsVol = concentrations[1];
 
-                vector <string> conmass = explode(" ", concentrationsMass);
+                vector<string> conmass = explode(" ", concentrationsMass);
                 massVal = std::stod(conmass[0]);
                 massUnit = conmass[1];
-                vector <string> convol = explode(" ", concentrationsVol);
+                vector<string> convol = explode(" ", concentrationsVol);
                 volVal = std::stod(convol[0]);
                 volUnit = convol[1];
                 conVal = massVal / volVal;
 
-                vector <string> doseb = explode(" ", dose);
+                vector<string> doseb = explode(" ", dose);
                 doseVal = std::stod(doseb[0]);
                 doseUnit = doseb[1];
 
@@ -710,8 +710,47 @@ namespace AMM {
         }
     }
 
+    void PhysiologyThread::SetPain(const std::string &painSettings) {
+        vector<string> strings = explode("\n", painSettings);
+
+        std::string location; //location of pain stimulus, examples "Arm", "Leg"
+        double severity; //severity (scale 0-1)
+
+        for (auto str : strings) {
+            vector<string> strs;
+            boost::split(strs, str, boost::is_any_of("="));
+            auto strs_size = strs.size();
+            // Check if it's not a key value pair
+            if (strs_size != 2) {
+                continue;
+            }
+            std::string kvp_k = strs[0];
+            // all settings for the ventilator are floats
+            try {
+                if (kvp_k == "location") {
+                    location = strs[1];
+                } else if (kvp_k == "severity") {
+                    severity = std::stod(strs[1]);
+                } else {
+                    LOG_INFO << "Unknown pain setting: " << kvp_k << " = " << strs[1];
+                }
+            } catch (exception &e) {
+                LOG_ERROR << "Issue with setting " << e.what();
+            }
+            //set up the configuration of the pain stimulus
+        }
+        SEPainStimulus PainStimulus; //pain object
+        PainStimulus.SetLocation(location);
+        PainStimulus.GetSeverity().SetValue(severity);
+        try {
+            m_pe->ProcessAction(PainStimulus);
+        } catch (exception &e) {
+            LOG_ERROR << "Error processing pain action: " << e.what();
+        }
+    }
+
     void PhysiologyThread::SetVentilator(const std::string &ventilatorSettings) {
-        vector <string> strings = explode("\n", ventilatorSettings);
+        vector<string> strings = explode("\n", ventilatorSettings);
 
         SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
         SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
@@ -723,7 +762,7 @@ namespace AMM {
         config.GetReliefValvePressure().SetValue(20.0, PressureUnit::cmH2O);
 
         for (auto str : strings) {
-            vector <string> strs;
+            vector<string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair

@@ -60,7 +60,7 @@
 #include <biogears/cdm/patient/actions/SESubstanceInfusion.h>
 #include <biogears/cdm/patient/actions/SESubstanceCompoundInfusion.h>
 #include <biogears/cdm/substance/SESubstanceCompound.h>
-
+#include <biogears/cdm/patient/actions/SEPainStimulus.h>
 #include <biogears/cdm/system/physiology/SEDrugSystem.h>
 #include <biogears/cdm/system/physiology/SEEnergySystem.h>
 
@@ -139,6 +139,8 @@ namespace AMM {
         void SetVentilator(const std::string &ventilatorSettings);
 
         void SetIVPump(const std::string &pumpSettings);
+
+        void SetPain(const std::string &painSettings);
 
         void Status();
 
