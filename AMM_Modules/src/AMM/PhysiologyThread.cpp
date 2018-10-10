@@ -88,7 +88,7 @@ namespace AMM {
         nodePathTable["Cardiovascular_CentralVenous_Mean_Pressure"] = &PhysiologyThread::GetMeanCentralVenousPressure;
         nodePathTable["Cardiovascular_CardiacOutput"] = &PhysiologyThread::GetCardiacOutput;
 
-        // Respiratory System
+        //  Respiratory System
         nodePathTable["Respiratory_Respiration_Rate"] = &PhysiologyThread::GetRespirationRate;
         nodePathTable["Respiration_EndTidalCarbonDioxide"] = &PhysiologyThread::GetEndTidalCarbonDioxideFraction;
         nodePathTable["Respiratory_Tidal_Volume"] = &PhysiologyThread::GetTidalVolume;
@@ -103,6 +103,9 @@ namespace AMM {
 
         // Energy system
         nodePathTable["Energy_Core_Temperature"] = &PhysiologyThread::GetCoreTemperature;
+
+        // Nervous
+        nodePathTable["Nervous_GetPainVisualAnalogueScale"] = &PhysiologyThread::GetPainVisualAnalogueScale;
 
         // Blood chemistry system
         nodePathTable["BloodChemistry_WhiteBloodCell_Count"] = &PhysiologyThread::GetWhiteBloodCellCount;
@@ -293,6 +296,10 @@ namespace AMM {
             m_pe->AdvanceModelTime();
         } catch (exception &e) {
                 LOG_ERROR << "Error advancing time: " << e.what();
+           // const boost::stacktrace::stacktrace* st = boost::get_error_info<traced>(e);
+            //if (st) {
+             //   std::cerr << *st << '\n';
+            //}
             }
 
         if (logging_enabled) {
@@ -423,7 +430,7 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetTotalProtein() {
-        SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
+        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarMassPerVolume protein = metabolicPanel.GetTotalProtein();
         return protein.GetValue(MassPerVolumeUnit::g_Per_dL);
@@ -488,21 +495,21 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetCO2() {
-        SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
+        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarAmountPerVolume CO2 = metabolicPanel.GetCO2();
         return CO2.GetValue(AmountPerVolumeUnit::mmol_Per_L);
     }
 
     double PhysiologyThread::GetPotassium() {
-        SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
+        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarAmountPerVolume potassium = metabolicPanel.GetPotassium();
         return potassium.GetValue(AmountPerVolumeUnit::mmol_Per_L);
     }
 
     double PhysiologyThread::GetChloride() {
-        SEComprehensiveMetabolicPanel metabolicPanel(GetLogger());
+        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
         SEScalarAmountPerVolume chloride = metabolicPanel.GetChloride();
         return chloride.GetValue(AmountPerVolumeUnit::mmol_Per_L);
@@ -510,7 +517,7 @@ namespace AMM {
 
 // PLT - Platelet Count - ct/uL
     double PhysiologyThread::GetPlateletCount() {
-        SECompleteBloodCount CBC(GetLogger());
+        SECompleteBloodCount CBC(m_pe->GetLogger());
         m_pe->GetPatientAssessment(CBC);
         SEScalarAmountPerVolume plateletCount = CBC.GetPlateletCount();
         return plateletCount.GetValue(AmountPerVolumeUnit::ct_Per_uL) / 1000;
@@ -563,6 +570,10 @@ namespace AMM {
 
     double PhysiologyThread::GetCardiacOutput() {
         return m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min);
+    }
+
+    double PhysiologyThread::GetPainVisualAnalogueScale() {
+        return m_pe->GetNervousSystem()->GetPainVisualAnalogueScale();
     }
 
     void PhysiologyThread::SetIVPump(const std::string &pumpSettings) {
@@ -808,37 +819,37 @@ namespace AMM {
     }
 
     void PhysiologyThread::Status() {
-        GetLogger()->Info("");
-        GetLogger()->Info(
+        m_pe->GetLogger()->Info("");
+        m_pe->GetLogger()->Info(
                 std::stringstream() << "Simulation Time : " << m_pe->GetSimulationTime(TimeUnit::s) << "s");
-        GetLogger()->Info(
+        m_pe->GetLogger()->Info(
                 std::stringstream() << "Cardiac Output : "
                                     << m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min)
                                     << VolumePerTimeUnit::mL_Per_min);
-        GetLogger()->Info(
+        m_pe->GetLogger()->Info(
                 std::stringstream() << "Blood Volume : "
                                     << m_pe->GetCardiovascularSystem()->GetBloodVolume(VolumeUnit::mL)
                                     << VolumeUnit::mL);
-        GetLogger()->Info(
+        m_pe->GetLogger()->Info(
                 std::stringstream() << "Mean Arterial Pressure : "
                                     << m_pe->GetCardiovascularSystem()->GetMeanArterialPressure(PressureUnit::mmHg)
                                     << PressureUnit::mmHg);
-        GetLogger()->Info(
+        m_pe->GetLogger()->Info(
                 std::stringstream() << "Systolic Pressure : "
                                     << m_pe->GetCardiovascularSystem()->GetSystolicArterialPressure(PressureUnit::mmHg)
                                     << PressureUnit::mmHg);
-        GetLogger()->Info(
+        m_pe->GetLogger()->Info(
                 std::stringstream() << "Diastolic Pressure : "
                                     << m_pe->GetCardiovascularSystem()->GetDiastolicArterialPressure(PressureUnit::mmHg)
                                     << PressureUnit::mmHg);
-        GetLogger()->Info(
+        m_pe->GetLogger()->Info(
                 std::stringstream() << "Heart Rate : "
                                     << m_pe->GetCardiovascularSystem()->GetHeartRate(FrequencyUnit::Per_min)
                                     << "bpm");
-        GetLogger()->Info(
+        m_pe->GetLogger()->Info(
                 std::stringstream() << "Respiration Rate : "
                                     << m_pe->GetRespiratorySystem()->GetRespirationRate(FrequencyUnit::Per_min)
                                     << "bpm");
-        GetLogger()->Info("");
+        m_pe->GetLogger()->Info("");
     }
 }

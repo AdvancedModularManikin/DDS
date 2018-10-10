@@ -26,6 +26,17 @@
 #include <biogears/cdm/system/physiology/SEEnergySystem.h>
 #include <biogears/cdm/system/physiology/SERespiratorySystem.h>
 
+#include <biogears/cdm/compartment/SECompartmentManager.h>
+#include <biogears/cdm/engine/PhysiologyEngineTrack.h>
+#include <biogears/cdm/patient/actions/SEPainStimulus.h>
+#include <biogears/cdm/patient/actions/SESubstanceBolus.h>
+
+#include <biogears/cdm/substance/SESubstanceManager.h>
+#include <biogears/cdm/system/physiology/SEBloodChemistrySystem.h>
+#include <biogears/cdm/system/physiology/SECardiovascularSystem.h>
+#include <biogears/cdm/system/physiology/SEDrugSystem.h>
+#include <biogears/cdm/system/physiology/SENervousSystem.h>
+
 #include <biogears/cdm/substance/SESubstanceManager.h>
 #include <biogears/cdm/substance/SESubstance.h>
 
@@ -80,10 +91,17 @@
 
 #include "AMM/BaseLogger.h"
 
+// #include <boost/stacktrace.hpp>
+#include <boost/exception/all.hpp>
+
+// typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
+
 // Forward declare what we will use in our thread
 class SESubstance;
 
 class SEEnergySystem;
+
+class SEPainStimulus;
 
 class SEScenario;
 
@@ -258,6 +276,8 @@ namespace AMM {
 
         double GetTotalProtein();
 
+        double GetPainVisualAnalogueScale();
+
         SESubstance *sodium;
         SESubstance *glucose;
         SESubstance *creatinine;
@@ -276,10 +296,6 @@ namespace AMM {
         const SEGasCompartment *carina;
         const SEGasCompartment *leftLung;
         const SEGasCompartment *rightLung;
-
-        Logger *GetLogger() {
-            return m_pe->GetLogger();
-        }
 
 
     protected:
