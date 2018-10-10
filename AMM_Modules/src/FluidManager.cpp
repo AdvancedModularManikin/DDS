@@ -114,7 +114,6 @@ class FluidListener : public ListenerInterface {
                 // These should be sent when a status change is received via spi.
                 // We'll force them for now.
                 //TODO confirm nothing else needs to happen //send_status = true;
-                have_pressure = true;
                 current_status = OPERATIONAL;
             }
         }
@@ -234,11 +233,11 @@ void
 air_reservoir_control_task(void)
 {
   int solenoid_0 = 7, motor_dac = 0;
-  int solenoid_A = solenoid_0 + 6;
-  int solenoid_B = solenoid_0 + 7;
+  int solenoid_A = solenoid_0 + 0;
+  int solenoid_B = solenoid_0 + 1;
   int solenoid_C = solenoid_0 + 5;
-  int solenoid_AC = solenoid_0 + 0;
-  int solenoid_AD = solenoid_0 + 1;
+  int solenoid_AC = solenoid_0 + 6;
+  int solenoid_AD = solenoid_0 + 7;
   remote_set_gpio(solenoid_B, 1); // TODO turn off to vent, another control output
   remote_set_gpio(solenoid_A, 0); //solenoid A TODO to purge lines A off B on
   remote_set_gpio(solenoid_C, 0);
@@ -340,7 +339,7 @@ air_reservoir_control_task(void)
     //TODO no predicate for leaving this, but leave in response to a message.
     //TODO also leave after 20s for testing purposes
     //goto state_purge;
-    printf("pressurizing psi to %f\n", psi);
+    //printf("pressurizing psi to %f\n", psi);
   }
 
   state_purge:
