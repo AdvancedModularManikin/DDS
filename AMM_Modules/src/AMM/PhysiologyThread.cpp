@@ -605,13 +605,12 @@ namespace AMM {
 
         try {
             if (type == "infusion") {
-                SESubstanceCompound* subs = m_pe->GetSubstanceManager().GetCompound(substance);
-
                 std::string concentrationsMass, concentrationsVol, rateUnit, massUnit, volUnit;
                 double rateVal, massVal, volVal, conVal;
-                SESubstanceCompoundInfusion infuse(*subs);
 
                 if (substance == "Saline") {
+                    SESubstanceCompound* subs = m_pe->GetSubstanceManager().GetCompound(substance);
+                    SESubstanceCompoundInfusion infuse(*subs);
                     vector<string> bagvol = explode(" ", bagVolume);
                     volVal = std::stod(bagvol[0]);
                     volUnit = bagvol[1];
@@ -622,6 +621,8 @@ namespace AMM {
                         infuse.GetBagVolume().SetValue(volVal, VolumeUnit::L);
                     }
                 } else {
+                    SESubstance* subs = m_pe->GetSubstanceManager().GetSubstance(substance);
+                    SESubstanceInfusion infuse(*subs);
                     vector<string> concentrations = explode("/", concentration);
                     concentrationsMass = concentrations[0];
                     concentrationsVol = concentrations[1];

@@ -149,7 +149,7 @@ namespace AMM {
             // All other nodes are published every % 10 tick
             if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) !=
                  bg->highFrequencyNodes.end())
-                || (lastFrame % 10) == 0 || force) {
+                || (lastFrame % 11) == 0 || force) {
                 if (it->first != "EXIT") {
                     try {
                         WriteNodeData(it->first);
