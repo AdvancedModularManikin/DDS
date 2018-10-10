@@ -620,6 +620,19 @@ namespace AMM {
                     } else {
                         infuse.GetBagVolume().SetValue(volVal, VolumeUnit::L);
                     }
+
+                    vector <string> rateb = explode(" ", rate);
+                    rateVal = std::stod(rateb[0]);
+                    rateUnit = rateb[1];
+
+                    if (rateUnit == "mL/hr") {
+                        LOG_TRACE << "Infusing at " << rateVal << " mL per hour";
+                        infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_hr);
+                    } else {
+                        LOG_TRACE << "Infusing at " << rateVal << " mL per min";
+                        infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_min);
+                    }
+                    m_pe->ProcessAction(infuse);
                 } else {
                     SESubstance* subs = m_pe->GetSubstanceManager().GetSubstance(substance);
                     SESubstanceInfusion infuse(*subs);
@@ -641,20 +654,20 @@ namespace AMM {
                     } else {
                       infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
                     }
-                }
 
-                vector <string> rateb = explode(" ", rate);
-                rateVal = std::stod(rateb[0]);
-                rateUnit = rateb[1];
+                    vector <string> rateb = explode(" ", rate);
+                    rateVal = std::stod(rateb[0]);
+                    rateUnit = rateb[1];
 
-                if (rateUnit == "mL/hr") {
-                    LOG_TRACE << "Infusing at " << rateVal << " mL per hour";
-                    infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_hr);
-                } else {
-                    LOG_TRACE << "Infusing at " << rateVal << " mL per min";
-                    infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_min);
+                    if (rateUnit == "mL/hr") {
+                        LOG_TRACE << "Infusing at " << rateVal << " mL per hour";
+                        infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_hr);
+                    } else {
+                        LOG_TRACE << "Infusing at " << rateVal << " mL per min";
+                        infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_min);
+                    }
+                    m_pe->ProcessAction(infuse);
                 }
-                m_pe->ProcessAction(infuse);
             } else if (type == "bolus") {
                 const SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
 
