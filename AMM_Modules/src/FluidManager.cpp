@@ -302,7 +302,7 @@ air_reservoir_control_task(void)
     //float psiP2 = ((float)remote_get_adc(P2))*(3.0/10280.0*16.0) - 15.0/8.0;
     //float psiP3 = ((float)remote_get_adc(P3))*(3.0/10280.0*16.0) - 15.0/8.0;
     float psiP4 = ((float)remote_get_adc(P4))*(3.0/10280.0*16.0) - 15.0/8.0;
-    if(psiP4 > 4.9) {
+    if(psiP4 > (operating_pressure - 0.1)) {
         puts("pressurization complete!");
         current_status = OPERATIONAL;
         send_status = true;
