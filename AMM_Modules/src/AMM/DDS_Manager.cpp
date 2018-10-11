@@ -121,7 +121,6 @@ namespace AMM {
         wparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
         wparam.qos.m_durability.kind = TRANSIENT_LOCAL_DURABILITY_QOS;
         wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
-        wparam.topic.historyQos.depth = 50;
         Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
         return gen_publisher;
     }
@@ -151,7 +150,6 @@ namespace AMM {
         rparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
         rparam.qos.m_durability.kind = TRANSIENT_LOCAL_DURABILITY_QOS;
         rparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
-        rparam.topic.historyQos.depth = 50;
         Subscriber *gen_subscriber = Domain::createSubscriber(mp_participant, rparam, sub_listener);
         return gen_subscriber;
     }
