@@ -31,13 +31,13 @@ namespace AMM {
 
         tick_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(),
                                                     tick_sub_listener);
-        command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+        command_subscriber = mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                        command_sub_listener);
-        equipment_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::instrumentDataTopic,
+        equipment_subscriber = mgr->InitializeReliableSubscriber(AMM::DataTypes::instrumentDataTopic,
                                                          AMM::DataTypes::getInstrumentDataType(),
                                                          equipment_sub_listener);
 
-        physmod_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::physModTopic,
+        physmod_subscriber = mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic,
                                                        AMM::DataTypes::getPhysiologyModificationType(),
                                                        physmod_sub_listener);
 

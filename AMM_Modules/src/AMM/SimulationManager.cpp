@@ -7,7 +7,7 @@ namespace AMM {
     SimulationManager::SimulationManager() {
         auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
         command_sub_listener->SetUpstream(this);
-        command_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+        command_subscriber = mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                        command_sub_listener);
 
         auto *pub_listener = new DDS_Listeners::PubListener();
