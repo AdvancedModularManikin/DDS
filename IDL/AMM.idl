@@ -83,7 +83,7 @@ module AMM {
 		};
 
         struct Modification {
-			@Key UUID id;
+			UUID id;
             FMA_Location location;
 			string practitioner;
 			string type;
@@ -110,7 +110,7 @@ module AMM {
     module Render
     {
         struct Modification {			
-			@Key UUID id;
+			UUID id;
             FMA_Location location;
 			string practitioner;
 			string type;
@@ -223,7 +223,7 @@ module AMM {
         };
 
         struct Configuration {
-            @Key string module_id;
+            string module_id;
             string module_name;
             string manufacturer;
             string model;
@@ -238,9 +238,9 @@ module AMM {
         };
 
         struct Status {
-            @Key string module_id;
+            string module_id;
             string module_name;
-            @Key string capability;
+            string capability;
             status_values status_value;
             sequence<string> message;
         };
