@@ -84,6 +84,7 @@ namespace AMM {
         std::ostringstream module_guid;
         module_guid << changeGuid;
 
+        LOG_TRACE << "[" << st.module_id() << "][" << st.module_name() << "]" << st.capability() << " = " << statusValue.str();
         try {
             database db("amm.db");
             db << "replace into module_status (module_id, module_guid, module_name, capability, status) values (?,?,?,?,?);"
@@ -101,6 +102,8 @@ namespace AMM {
         GUID_t changeGuid = info->sample_identity.writer_guid();
         std::ostringstream module_guid;
         module_guid << changeGuid;
+
+        LOG_TRACE << "[" << cfg.module_id() << "][" << cfg.module_name() << "] sent capabilities";
 
         try {
             database db("amm.db");
