@@ -103,7 +103,7 @@ namespace AMM {
         std::ostringstream module_guid;
         module_guid << changeGuid;
 
-        LOG_TRACE << "[" << cfg.module_id() << "][" << cfg.module_name() << "] sent capabilities";
+        LOG_TRACE << "[" << cfg.module_id() << "][" << cfg.module_name() << "] sent capabilities: " << cfg.capabilities();
 
         try {
             database db("amm.db");
