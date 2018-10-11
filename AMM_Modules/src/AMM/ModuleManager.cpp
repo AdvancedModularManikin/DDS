@@ -84,7 +84,7 @@ namespace AMM {
         std::ostringstream module_guid;
         module_guid << changeGuid;
 
-        LOG_TRACE << "[" << st.module_id() << "][" << st.module_name() << "]" << st.capability() << " = " << statusValue.str();
+        LOG_TRACE << "[" << st.module_id() << "][" << st.module_name() << "][" << st.capability() << "] Status = " << statusValue.str();
         try {
             database db("amm.db");
             db << "replace into module_status (module_id, module_guid, module_name, capability, status) values (?,?,?,?,?);"
