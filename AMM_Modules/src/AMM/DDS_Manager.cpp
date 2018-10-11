@@ -43,11 +43,11 @@ namespace AMM {
                                                AMM::DataTypes::getRenderModificationType(),
                                                pub_listener);
 
-        config_publisher = InitializePublisher(AMM::DataTypes::configurationTopic,
+        config_publisher = InitializeReliablePublisher(AMM::DataTypes::configurationTopic,
                                                AMM::DataTypes::getConfigurationType(),
                                                pub_listener);
 
-        status_publisher = InitializePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
+        status_publisher = InitializeReliablePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
                                                pub_listener);
 
         module_id = GenerateID();
@@ -113,6 +113,19 @@ namespace AMM {
         return gen_publisher;
     }
 
+  Publisher *DDS_Manager::InitializeReliablePublisher(const std::string &topicName, TopicDataType *topicType,
+                                                PublisherListener *pub_listener) {
+        PublisherAttributes wparam;
+        wparam.topic.topicDataType = topicType->getName();
+        wparam.topic.topicName = topicName;
+	wparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
+	wparam.qos.m_durability.kind = TRANSIENT_LOCAL_DURABILITY_QOS;
+	wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
+	wparam.topic.historyQos.depth =  50;
+        Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
+        return gen_publisher;
+    }
+
     Subscriber *DDS_Manager::InitializeSubscriber(const std::string &topicName, TopicDataType *topicType,
                                                   SubscriberListener *sub_listener,
                                                   TopicKind_t topicKind
@@ -121,6 +134,20 @@ namespace AMM {
         rparam.topic.topicDataType = topicType->getName();
         rparam.topic.topicName = topicName;
         rparam.topic.topicKind = topicKind;
+
+        Subscriber *gen_subscriber = Domain::createSubscriber(mp_participant, rparam, sub_listener);
+        return gen_subscriber;
+    }
+
+      Subscriber *DDS_Manager::InitializeReliableSubscriber(const std::string &topicName, TopicDataType *topicType,
+                                                  SubscriberListener *sub_listener,
+                                                  TopicKind_t topicKind
+    ) {
+        SubscriberAttributes rparam;
+        rparam.topic.topicDataType = topicType->getName();
+        rparam.topic.topicName = topicName;
+        rparam.topic.topicKind = topicKind;
+	rparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
         Subscriber *gen_subscriber = Domain::createSubscriber(mp_participant, rparam, sub_listener);
         return gen_subscriber;
     }
@@ -160,6 +187,7 @@ namespace AMM {
 
     void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
         try {
+	  LOG_TRACE << "Publishing config for " << configInstance.module_name();
             config_publisher->write(&configInstance);
         } catch (std::exception &e) {
             LOG_ERROR << "[DDS_Manager][config]" << e.what();
@@ -210,6 +238,7 @@ namespace AMM {
 
     void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
         try {
+	  	  LOG_TRACE << "Publishing status for " << statusInstance.module_name();
             status_publisher->write(&statusInstance);
         } catch (std::exception &e) {
             LOG_ERROR << "[DDS_Manager][status]" << e.what();

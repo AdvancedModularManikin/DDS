@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
         if (autostart != 1) {
             show_menu(&modManager);
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(250));
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
     cout << "=== [ModuleManager] Exiting." << endl;
