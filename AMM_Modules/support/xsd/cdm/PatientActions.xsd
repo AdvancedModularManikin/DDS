@@ -240,9 +240,10 @@ specific language governing permissions and limitations under the License.
 	<xs:complexType name="ExerciseData">
 		<xs:complexContent>
 			<xs:extension base="PatientActionData">
-				<xs:sequence>
-					<xs:element name="Intensity" type="Scalar0To1Data" minOccurs="1" maxOccurs="1"/><!--<< @brief Fractional representation of the maximum patient exertion -->
-				</xs:sequence>               
+				<xs:choice minOccurs = "1" maxOccurs="1" >
+					<xs:element name="Intensity" type="Scalar0To1Data"/><!--<< @brief Fractional representation of the maximum patient exertion -->
+					<xs:element name="DesiredWorkRate" type="ScalarData"/><!--<< @brief Desired achieved work rate up to the maximum patient exertion -->
+				</xs:choice>               
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -269,7 +270,7 @@ specific language governing permissions and limitations under the License.
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
-
+	
 	<!-- @brief -->
 	<xs:simpleType name="enumIntubationType">
 		<xs:restriction base="xs:string">
@@ -357,19 +358,19 @@ specific language governing permissions and limitations under the License.
 		</xs:complexContent>
 	</xs:complexType>		
 
-	<!-- @brief Various methods of substance administration. -->
+	<!-- @brief Various methods of substance administration. Currently unsupported methods are commented out.-->
 	<xs:simpleType name="enumBolusAdministration">
 		<xs:restriction base="xs:string">			
-			<xs:enumeration value="Epidural"/><!-- @brief Injection into a epidural space -->
-			<xs:enumeration value="Intraosseous"/><!-- @brief Injection into the bone marrow -->
+			<!--<xs:enumeration value="Epidural"/>--> <!-- @brief Injection into a epidural space -->
+			<!--<xs:enumeration value="Intraosseous"/>--> <!-- @brief Injection into the bone marrow -->
 			<xs:enumeration value="Intraarterial"/><!-- @brief Injection into an artery -->
-			<xs:enumeration value="Intracardiac"/><!-- @brief Injection into the heart -->
-			<xs:enumeration value="Intracerebral"/><!-- @brief Injection into the brain -->
-			<xs:enumeration value="Intracerebroventricular"/><!-- @brief Injection into the cerebral ventricles -->		
-			<xs:enumeration value="Intradermal"/><!-- @brief Injection into the skin -->
+			<!--<xs:enumeration value="Intracardiac"/>--> <!-- @brief Injection into the heart -->
+			<!--<xs:enumeration value="Intracerebral"/>--> <!-- @brief Injection into the brain -->
+			<!--<xs:enumeration value="Intracerebroventricular"/>--> <!-- @brief Injection into the cerebral ventricles -->		
+			<!--<xs:enumeration value="Intradermal"/>--> <!-- @brief Injection into the skin -->
 			<xs:enumeration value="Intramuscular"/><!-- @brief Injection into the muscle -->			
 			<xs:enumeration value="Intravenous"/><!-- @brief Injection into a vein -->					
-			<xs:enumeration value="Subcutaneous"/><!-- @brief Injection under the skin -->			
+			<!--<xs:enumeration value="Subcutaneous"/>--> <!-- @brief Injection under the skin -->			
 		</xs:restriction>
 	</xs:simpleType>
 	
@@ -432,6 +433,19 @@ specific language governing permissions and limitations under the License.
 	<xs:complexType name="UrinateData">
 		<xs:complexContent>
 			<xs:extension base="PatientActionData"/><!--<< @brief -->
+		</xs:complexContent>
+	</xs:complexType>
+	
+
+	<!-- @brief Override a patient parameter. -->
+	<xs:complexType name="OverrideData">
+		<xs:complexContent>
+			<xs:extension base="PatientActionData">
+				<xs:sequence>
+					<xs:element name="MeanArterialPressureOverride" type="ScalarPressureData" minOccurs="0" maxOccurs="1"/><!--<< @brief Pressure produced. -->                 					
+				</xs:sequence>  
+				<xs:attribute name="State" type="enumOnOff" use="required"/><!--<< @brief Is the adminstering is on or not. -->
+			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
 	

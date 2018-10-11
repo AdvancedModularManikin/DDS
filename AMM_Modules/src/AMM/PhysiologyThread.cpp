@@ -2,6 +2,7 @@
 
 using namespace std;
 using namespace AMM::Physiology;
+using namespace biogears;
 
 std::vector<std::string> explode(const std::string &delimiter, const std::string &str) {
     std::vector<std::string> arr;
@@ -259,7 +260,7 @@ namespace AMM {
 // This bypasses the standard BioGears ExecuteScenario method to avoid resetting the BioGears engine
     bool PhysiologyThread::LoadScenarioFile(const std::string &scenarioFile) {
         SEScenario sce(m_pe->GetSubstanceManager());
-        sce.LoadFile(scenarioFile);
+        sce.Load(scenarioFile);
 
         double dT_s = m_pe->GetTimeStep(TimeUnit::s);
         // double scenarioTime_s;
@@ -458,7 +459,7 @@ namespace AMM {
 
 // pH - Blood pH - unitless
     double PhysiologyThread::GetBloodPH() {
-        return m_pe->GetBloodChemistrySystem()->GetBloodPH();
+        return m_pe->GetBloodChemistrySystem()->GetVenousBloodPH();
     }
 
 // PaCO2 - Arterial Carbon Dioxide Pressure - mmHg

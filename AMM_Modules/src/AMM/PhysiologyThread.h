@@ -96,6 +96,7 @@
 
 // typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
 
+namespace biogears{
 // Forward declare what we will use in our thread
 class SESubstance;
 
@@ -122,6 +123,7 @@ class SEHemorrhage;
 class SESubstanceCompoundInfusion;
 
 class PhysiologyEngine;
+}
 
 namespace AMM {
     class PhysiologyThread {
@@ -278,29 +280,29 @@ namespace AMM {
 
         double GetPainVisualAnalogueScale();
 
-        SESubstance *sodium;
-        SESubstance *glucose;
-        SESubstance *creatinine;
-        SESubstance *calcium;
-        SESubstance *albumin;
-        SESubstance *hemoglobin;
-        SESubstance *bicarbonate;
-        SESubstance *CO2;
-        SESubstance *N2;
-        SESubstance *O2;
-        SESubstance *CO;
-        SESubstance *potassium;
-        SESubstance *chloride;
-        SESubstance *lactate;
+	biogears::SESubstance *sodium;
+        biogears::SESubstance *glucose;
+        biogears::SESubstance *creatinine;
+        biogears::SESubstance *calcium;
+        biogears::SESubstance *albumin;
+        biogears::SESubstance *hemoglobin;
+        biogears::SESubstance *bicarbonate;
+        biogears::SESubstance *CO2;
+        biogears::SESubstance *N2;
+        biogears::SESubstance *O2;
+        biogears::SESubstance *CO;
+        biogears::SESubstance *potassium;
+        biogears::SESubstance *chloride;
+        biogears::SESubstance *lactate;
 
-        const SEGasCompartment *carina;
-        const SEGasCompartment *leftLung;
-        const SEGasCompartment *rightLung;
+        const biogears::SEGasCompartment *carina;
+        const biogears::SEGasCompartment *leftLung;
+        const biogears::SEGasCompartment *rightLung;
 
 
     protected:
         std::mutex m_mutex;
         bool m_runThread;
-        std::unique_ptr<PhysiologyEngine> m_pe;
+        std::unique_ptr<biogears::PhysiologyEngine> m_pe;
     };
 }
