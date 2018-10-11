@@ -118,7 +118,6 @@ namespace AMM {
         PublisherAttributes wparam;
         wparam.topic.topicDataType = topicType->getName();
         wparam.topic.topicName = topicName;
-        wparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
         wparam.qos.m_durability.kind = TRANSIENT_LOCAL_DURABILITY_QOS;
         wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
         Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
@@ -147,7 +146,6 @@ namespace AMM {
         rparam.topic.topicName = topicName;
         rparam.topic.topicKind = topicKind;
         rparam.historyMemoryPolicy = DYNAMIC_RESERVE_MEMORY_MODE;
-        rparam.topic.historyQos.kind = KEEP_LAST_HISTORY_QOS;
         rparam.qos.m_durability.kind = TRANSIENT_LOCAL_DURABILITY_QOS;
         rparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
         Subscriber *gen_subscriber = Domain::createSubscriber(mp_participant, rparam, sub_listener);
