@@ -233,11 +233,11 @@ void
 air_reservoir_control_task(void)
 {
   int solenoid_0 = 7, motor_dac = 0;
-  int solenoid_A = solenoid_0 + 6;
-  int solenoid_B = solenoid_0 + 7;
+  int solenoid_A = solenoid_0 + 0;
+  int solenoid_B = solenoid_0 + 1;
   int solenoid_C = solenoid_0 + 5;
-  int solenoid_AC = solenoid_0 + 0;
-  int solenoid_AD = solenoid_0 + 1;
+  int solenoid_AC = solenoid_0 + 6;
+  int solenoid_AD = solenoid_0 + 7;
   remote_set_gpio(solenoid_B, 1); // TODO turn off to vent, another control output
   remote_set_gpio(solenoid_A, 0); //solenoid A TODO to purge lines A off B on
   remote_set_gpio(solenoid_C, 0);
@@ -274,6 +274,9 @@ air_reservoir_control_task(void)
   remote_set_gpio(solenoid_B, 1);
   remote_set_gpio(solenoid_A, 0);
   remote_set_gpio(solenoid_C, 0);
+  while (!have_pressure) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  }
   int not_pressurized = 1;
   puts("entering startup!");
 
@@ -298,7 +301,7 @@ air_reservoir_control_task(void)
     //float psiP2 = ((float)remote_get_adc(P2))*(3.0/10280.0*16.0) - 15.0/8.0;
     //float psiP3 = ((float)remote_get_adc(P3))*(3.0/10280.0*16.0) - 15.0/8.0;
     float psiP4 = ((float)remote_get_adc(P4))*(3.0/10280.0*16.0) - 15.0/8.0;
-    if(psiP4 > 4.9) {
+    if(psiP4 > (operating_pressure - 0.1)) {
         puts("pressurization complete!");
         current_status = OPERATIONAL;
         send_status = true;
@@ -336,7 +339,7 @@ air_reservoir_control_task(void)
     //TODO no predicate for leaving this, but leave in response to a message.
     //TODO also leave after 20s for testing purposes
     //goto state_purge;
-    printf("pressurizing psi to %f\n", psi);
+    //printf("pressurizing psi to %f\n", psi);
   }
 
   state_purge:
