@@ -77,6 +77,11 @@ set(HEART_RATE_LED_EXE amm_heartrate_led)
 add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${SPI_SOURCES} ${SPI_DATAGRAM_SOURCES})
 target_include_directories(${HEART_RATE_LED_EXE} PUBLIC spi_proto/src)
 
+set(CHEST_RISE_SOURCES ChestRise.cpp)
+set(CHEST_RISE_EXE amm_chestrise)
+add_executable(${CHEST_RISE_EXE} ${CHEST_RISE_SOURCES} ${SPI_SOURCES} ${SPI_DATAGRAM_SOURCES})
+target_include_directories(${CHEST_RISE_EXE} PUBLIC spi_proto/src)
+
 set(FLUID_MANAGER_SOURCES FluidManager.cpp)
 set(FLUID_MANAGER_EXE amm_fluid_manager)
 add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
@@ -169,6 +174,12 @@ target_link_libraries(${COMMAND_EXECUTOR_EXE}
         )
 
 target_link_libraries(${HEART_RATE_LED_EXE}
+        fastrtps fastcdr
+        amm::logger
+        amm::datamodel
+        )
+
+target_link_libraries(${CHEST_RISE_EXE}
         fastrtps fastcdr
         amm::logger
         amm::datamodel
