@@ -153,7 +153,7 @@ int main(int argc, char *argv[]) {
             "00001", // versions
             "0.0.1", // versions
             // This is currently a bad example; I'm not sure where this file is supposed to live
-            mgr->GetCapabilitiesAsString("mule2/module_capabilities/chest_rise_capabilities.xml")
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/chest_rise_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received
