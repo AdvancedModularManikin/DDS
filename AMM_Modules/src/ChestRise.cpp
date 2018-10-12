@@ -54,11 +54,11 @@ class ChestRiseListener : public ListenerInterface {
                 // TODO: Stuff
             } else if (value.compare("STOP_SIM") == 0) {
                 // FIXME: This is a crude hack for the mule2 demo
-                LOG_TRACE << "Stopping breathing"
+                LOG_TRACE << "Stopping breathing";
                 breathrate = 0;
             } else if (value.compare("PAUSE_SIM") == 0) {
                 // FIXME: This is a crude hack for the mule2 demo
-                LOG_TRACE << "Pausing breathing"
+                LOG_TRACE << "Pausing breathing";
                 breathrate = 0;
             } else if (value.compare("RESET_SIM") == 0) {
                 // FIXME: This is a crude hack for the mule2 demo
