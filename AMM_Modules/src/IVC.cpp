@@ -6,15 +6,11 @@
 
 #include "AMM/DDS_Manager.h"
 
-#include "spi_proto.h"
+// Standard includes for SPI datagram library.
 extern "C" {
-#include "spi_chunks.h"
-#include "spi_chunk_defines.h"
-#include "binary_semaphore.h"
-#include "spi_remote.h"
+#include "spi_proto.h"
 }
-#include "spi_proto_master.h"
-
+#include "spi_proto_master_datagram.h"
 #include "tinyxml2.h"
 
 using namespace std;
@@ -250,14 +246,14 @@ int main(int argc, char *argv[]) {
   
   auto *pub_listener = new DDS_Listeners::PubListener();
   
-  mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-  mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
+  mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+  mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
     config_sub_listener);
   
-  command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic,
+  command_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::commandTopic,
     AMM::DataTypes::getCommandType(), pub_listener);
   
-  node_publisher = mgr->InitializePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), pub_listener);
+  node_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), pub_listener);
   
   // Publish module configuration once we've set all our publishers and listeners
   // This announces that we're available for configuration
@@ -314,7 +310,7 @@ bleed_task(void)
       delay_ms(100);
     
     
-    uint32_t adcRead = remote_get_adc(0); //uint32_t adcRead = carrier_sensors[0].raw_pressure;
+    uint32_t adcRead = remote_get_adc(3); //uint32_t adcRead = carrier_sensors[0].raw_pressure;
     vein_psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
     if (vein_psi < bleed_pressure) {
       remote_set_gpio(vein_sol_gpio, 1); // TODO this is a solenoid, open might be 0?
