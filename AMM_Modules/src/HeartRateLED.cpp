@@ -105,12 +105,12 @@ void heartrate_led_task(void)
 
         if (spi_recv_fresh) {   // If there's new SPI data, do something
             // The received data is spi_recv_msg.msg[0]
-
+            /*
             // Do something with the data. In this case, print it
             printf("RECV\t");
             for (int i = 0; i < 16; i++) printf("%02x ", spi_recv_msg.msg[i]);
             puts("");
-
+            */
             // Mark the data as handled
             spi_recv_fresh = false;
         }
