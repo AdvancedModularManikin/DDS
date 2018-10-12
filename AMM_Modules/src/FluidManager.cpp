@@ -158,11 +158,11 @@ int main(int argc, char *argv[]) {
 
     auto *pub_listener = new DDS_Listeners::PubListener();
 
-    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
                               config_sub_listener);
 
-    Publisher *command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic,
+    Publisher *command_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::commandTopic,
                                                             AMM::DataTypes::getCommandType(), pub_listener);
 
 
