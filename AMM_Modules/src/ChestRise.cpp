@@ -34,10 +34,12 @@ class ChestRiseListener : public ListenerInterface {
 // START_SIM, STOP_SIM, PAUSE_SIM, RESET_SIM
         // FIXME: This is a crude hack for the mule2 demo
         if (n.nodepath() == "STOP_SIM") {
+            LOG_TRACE << "Stopping breathing";
             breathrate = 0;
         }
 
         if (n.nodepath() == "PAUSE_SIM") {
+            LOG_TRACE << "Pausing breathing";
             breathrate = 0;
         }
 
