@@ -57,6 +57,7 @@ class ChestRiseListener : public ListenerInterface {
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
+                LOG_TRACE << "Starting breathing";
                 status = CHEST_RISE_STAUTS_START;
             } else if (value.compare("STOP_SIM") == 0) {
                 LOG_TRACE << "Stopping breathing";
