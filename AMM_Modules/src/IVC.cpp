@@ -6,11 +6,14 @@
 
 #include "AMM/DDS_Manager.h"
 
-// Standard includes for SPI datagram library.
 extern "C" {
 #include "spi_proto.h"
+#include "binary_semaphore.h"
+#include "spi_remote.h"
+#include "spi_remote_host.h"
 }
-#include "spi_proto_master_datagram.h"
+#include "spi_proto_master.h"
+
 #include "tinyxml2.h"
 
 using namespace std;
