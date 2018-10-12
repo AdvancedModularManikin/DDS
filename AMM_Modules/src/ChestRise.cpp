@@ -27,9 +27,18 @@ class ChestRiseListener : public ListenerInterface {
 
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         bool print = false;
-        if (n.nodepath() == "EXIT") {
-            closed = true;
-            return;
+//        if (n.nodepath() == "EXIT") {
+//            closed = true;
+//            return;
+//        }
+// START_SIM, STOP_SIM, PAUSE_SIM, RESET_SIM
+        // FIXME: This is a crude hack for the mule2 demo
+        if (n.nodepath() == "STOP_SIM") {
+            breathrate = 0;
+        }
+
+        if (n.nodepath() == "PAUSE_SIM") {
+            breathrate = 0;
         }
 
         if (n.nodepath() == "Respiratory_Respiration_Rate") {
