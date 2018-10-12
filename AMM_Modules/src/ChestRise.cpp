@@ -20,6 +20,12 @@ using namespace AMM;
 int daemonize = 1;
 
 float breathrate = 12.0;
+#define CHEST_RISE_STAUTS_WAITING  0
+#define CHEST_RISE_STAUTS_START    1
+#define CHEST_RISE_STAUTS_PAUSE    2
+#define CHEST_RISE_STAUTS_STOP     3
+#define CHEST_RISE_STAUTS_RESET    4
+int status = CHEST_RISE_STAUTS_WAITING;
 bool closed = false;
 
 // Class to handle DDS communication
@@ -51,18 +57,16 @@ class ChestRiseListener : public ListenerInterface {
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
-                // TODO: Stuff
+                status = CHEST_RISE_STAUTS_START;
             } else if (value.compare("STOP_SIM") == 0) {
-                // FIXME: This is a crude hack for the mule2 demo
                 LOG_TRACE << "Stopping breathing";
-                breathrate = 0;
+                status = CHEST_RISE_STAUTS_STOP;
             } else if (value.compare("PAUSE_SIM") == 0) {
-                // FIXME: This is a crude hack for the mule2 demo
                 LOG_TRACE << "Pausing breathing";
-                breathrate = 0;
+                status = CHEST_RISE_STAUTS_PAUSE;
             } else if (value.compare("RESET_SIM") == 0) {
-                // FIXME: This is a crude hack for the mule2 demo
-                breathrate = 0;
+                LOG_TRACE << "Resetting";
+                status = CHEST_RISE_STAUTS_RESET;
             }
         }
     }
@@ -100,7 +104,7 @@ void chest_rise_task(void)
 
         // Sending data via SPI
         unsigned char spi_send_buffer[4];   // SPI library needs a buffer of this type to hold the data it sends
-        spi_send_buffer[0] = 1; // go
+        spi_send_buffer[0] = status;
         spi_send_buffer[1] = static_cast<int>(breathrate);     // Assign data to buffer
         spi_proto_send_msg(
                 &spi_proto::p.proto /* boilerplate */,
