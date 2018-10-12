@@ -31,18 +31,6 @@ class ChestRiseListener : public ListenerInterface {
 //            closed = true;
 //            return;
 //        }
-// START_SIM, STOP_SIM, PAUSE_SIM, RESET_SIM
-        // FIXME: This is a crude hack for the mule2 demo
-        if (n.nodepath() == "STOP_SIM") {
-            LOG_TRACE << "Stopping breathing";
-            breathrate = 0;
-        }
-
-        if (n.nodepath() == "PAUSE_SIM") {
-            LOG_TRACE << "Pausing breathing";
-            breathrate = 0;
-        }
-
         if (n.nodepath() == "Respiratory_Respiration_Rate") {
             breathrate = static_cast<float>(n.dbl());
             print = true;
@@ -57,7 +45,17 @@ class ChestRiseListener : public ListenerInterface {
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
-	    //TODO exit, stop on appropriate actions
+        // START_SIM, STOP_SIM, PAUSE_SIM, RESET_SIM
+        // FIXME: This is a crude hack for the mule2 demo
+        if (c.message() == "STOP_SIM") {
+            LOG_TRACE << "Stopping breathing";
+            breathrate = 0;
+        }
+
+        if (c.message() == "PAUSE_SIM") {
+            LOG_TRACE << "Pausing breathing";
+            breathrate = 0;
+        }
     }
 };
 
