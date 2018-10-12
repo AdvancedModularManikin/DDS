@@ -45,16 +45,23 @@ class ChestRiseListener : public ListenerInterface {
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
-        // START_SIM, STOP_SIM, PAUSE_SIM, RESET_SIM
-        // FIXME: This is a crude hack for the mule2 demo
-        if (c.message() == "STOP_SIM") {
-            LOG_TRACE << "Stopping breathing";
-            breathrate = 0;
-        }
 
-        if (c.message() == "PAUSE_SIM") {
-            LOG_TRACE << "Pausing breathing";
-            breathrate = 0;
+        std::string sysPrefix = "[SYS]";
+
+        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+            std::string value = c.message().substr(sysPrefix.size());
+            if (value.compare("START_SIM") == 0) {
+                // TODO: Stuff
+            } else if (value.compare("STOP_SIM") == 0) {
+                // FIXME: This is a crude hack for the mule2 demo
+                breathrate = 0;
+            } else if (value.compare("PAUSE_SIM") == 0) {
+                // FIXME: This is a crude hack for the mule2 demo
+                breathrate = 0;
+            } else if (value.compare("RESET_SIM") == 0) {
+                // FIXME: This is a crude hack for the mule2 demo
+                breathrate = 0;
+            }
         }
     }
 };
