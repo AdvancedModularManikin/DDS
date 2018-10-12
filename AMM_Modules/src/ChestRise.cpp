@@ -83,7 +83,7 @@ void chest_rise_task(void)
         // Sending data via SPI
         unsigned char spi_send_buffer[4];   // SPI library needs a buffer of this type to hold the data it sends
         spi_send_buffer[0] = 1; // go
-        spi_send_buffer[1] = static_cast<int>breathrate;     // Assign data to buffer
+        spi_send_buffer[1] = static_cast<int>(breathrate);     // Assign data to buffer
         spi_proto_send_msg(
                 &spi_proto::p.proto /* boilerplate */,
                 spi_send_buffer /* buffer containing data to send */,
