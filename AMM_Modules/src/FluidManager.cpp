@@ -131,6 +131,7 @@ int main(int argc, char *argv[]) {
     host_remote_init(&remote);
     std::thread remote_thread(remote_task);
     std::thread air_tank_thread(air_reservoir_control_task);
+
     cout << "=== [FluidManager] Ready ..." << endl;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -143,7 +144,6 @@ int main(int argc, char *argv[]) {
             daemonize = 1;
         }
     }
-
 
     const char *nodeName = "AMM_FluidManager";
     std::string nodeString(nodeName);

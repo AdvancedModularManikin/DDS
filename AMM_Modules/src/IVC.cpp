@@ -221,6 +221,9 @@ static void show_usage(const std::string &name) {
 
 int main(int argc, char *argv[]) {
   host_remote_init(&remote);
+  std::thread remote_thread(remote_task);
+  std::thread remote_thread(bleed_task);
+
   cout << "=== [IVC_Module] Ready ..." << endl;
   for (int i = 1; i < argc; ++i) {
     std::string arg = argv[i];
@@ -233,10 +236,7 @@ int main(int argc, char *argv[]) {
       daemonize = 1;
     }
   }
-  
-  std::thread remote_thread(remote_task);
-  std::thread bleed_thread(bleed_task);
-  
+
   const char *nodeName = "AMM_IVC";
   std::string nodeString(nodeName);
   auto *mgr = new DDS_Manager(nodeName);
