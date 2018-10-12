@@ -25,30 +25,30 @@ namespace AMM {
 
         auto *pub_listener = new DDS_Listeners::PubListener();
 
-        command_publisher = InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                     pub_listener);
-
-        settings_publisher = InitializePublisher(AMM::DataTypes::instrumentDataTopic,
-                                                      AMM::DataTypes::getInstrumentDataType(), pub_listener);
-
-        perfdata_publisher = InitializePublisher(AMM::DataTypes::performanceTopic,
-                                                AMM::DataTypes::getPerformanceAssessmentDataType(),
+        command_publisher = InitializeReliablePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                                 pub_listener);
 
-        physmod_publisher = InitializePublisher(AMM::DataTypes::physModTopic,
+        settings_publisher = InitializeReliablePublisher(AMM::DataTypes::instrumentDataTopic,
+                                                 AMM::DataTypes::getInstrumentDataType(), pub_listener);
+
+        perfdata_publisher = InitializeReliablePublisher(AMM::DataTypes::performanceTopic,
+                                                 AMM::DataTypes::getPerformanceAssessmentDataType(),
+                                                 pub_listener);
+
+        physmod_publisher = InitializeReliablePublisher(AMM::DataTypes::physModTopic,
                                                 AMM::DataTypes::getPhysiologyModificationType(),
                                                 pub_listener);
 
-        render_publisher = InitializePublisher(AMM::DataTypes::renderModTopic,
+        render_publisher = InitializeReliablePublisher(AMM::DataTypes::renderModTopic,
                                                AMM::DataTypes::getRenderModificationType(),
                                                pub_listener);
 
-        config_publisher = InitializePublisher(AMM::DataTypes::configurationTopic,
-                                               AMM::DataTypes::getConfigurationType(),
-                                               pub_listener);
+        config_publisher = InitializeReliablePublisher(AMM::DataTypes::configurationTopic,
+                                                       AMM::DataTypes::getConfigurationType(),
+                                                       pub_listener);
 
-        status_publisher = InitializePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
-                                               pub_listener);
+        status_publisher = InitializeReliablePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
+                                                       pub_listener);
 
         module_id = GenerateID();
     }
@@ -113,6 +113,16 @@ namespace AMM {
         return gen_publisher;
     }
 
+    Publisher *DDS_Manager::InitializeReliablePublisher(const std::string &topicName, TopicDataType *topicType,
+                                                        PublisherListener *pub_listener) {
+        PublisherAttributes wparam;
+        wparam.topic.topicDataType = topicType->getName();
+        wparam.topic.topicName = topicName;
+        wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
+        Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
+        return gen_publisher;
+    }
+
     Subscriber *DDS_Manager::InitializeSubscriber(const std::string &topicName, TopicDataType *topicType,
                                                   SubscriberListener *sub_listener,
                                                   TopicKind_t topicKind
@@ -121,6 +131,21 @@ namespace AMM {
         rparam.topic.topicDataType = topicType->getName();
         rparam.topic.topicName = topicName;
         rparam.topic.topicKind = topicKind;
+
+        Subscriber *gen_subscriber = Domain::createSubscriber(mp_participant, rparam, sub_listener);
+        return gen_subscriber;
+    }
+
+    Subscriber *DDS_Manager::InitializeReliableSubscriber(const std::string &topicName, TopicDataType *topicType,
+                                                          SubscriberListener *sub_listener,
+                                                          TopicKind_t topicKind
+    ) {
+        SubscriberAttributes rparam;
+        rparam.topic.topicDataType = topicType->getName();
+        rparam.topic.topicName = topicName;
+        rparam.topic.topicKind = topicKind;
+        rparam.historyMemoryPolicy = DYNAMIC_RESERVE_MEMORY_MODE;
+        rparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
         Subscriber *gen_subscriber = Domain::createSubscriber(mp_participant, rparam, sub_listener);
         return gen_subscriber;
     }
@@ -160,6 +185,7 @@ namespace AMM {
 
     void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
         try {
+            LOG_TRACE << "Publishing config for " << configInstance.module_name();
             config_publisher->write(&configInstance);
         } catch (std::exception &e) {
             LOG_ERROR << "[DDS_Manager][config]" << e.what();
@@ -177,7 +203,7 @@ namespace AMM {
 
     void DDS_Manager::SetStatus(const std::string &local_module_id, const std::string &module_name,
                                 AMM::Capability::status_values status,
-                                const std::vector <std::string> &message) {
+                                const std::vector<std::string> &message) {
         AMM::Capability::Status statusInstance;
         statusInstance.module_id(local_module_id);
         statusInstance.status_value(status);
@@ -198,7 +224,7 @@ namespace AMM {
 
     void DDS_Manager::SetStatus(const std::string &local_module_id, const std::string &module_name,
                                 const std::string &capability, AMM::Capability::status_values status,
-                                const std::vector <std::string> &message) {
+                                const std::vector<std::string> &message) {
         AMM::Capability::Status statusInstance;
         statusInstance.module_id(local_module_id);
         statusInstance.status_value(status);
@@ -210,6 +236,7 @@ namespace AMM {
 
     void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
         try {
+            LOG_TRACE << "Publishing status for " << statusInstance.module_name();
             status_publisher->write(&statusInstance);
         } catch (std::exception &e) {
             LOG_ERROR << "[DDS_Manager][status]" << e.what();

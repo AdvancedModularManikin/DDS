@@ -84,6 +84,13 @@ namespace AMM {
 
         void PublishInstrumentData(AMM::InstrumentData instrumentDataInstance);
 
+
+
+	Publisher *InitializeReliablePublisher(const std::string &topicName, TopicDataType *topicType,
+					       PublisherListener *pub_listener);
+
+
+	
         /**
          * Generic publisher initialization
          *
@@ -110,6 +117,12 @@ namespace AMM {
                                          SubscriberListener *sub_listener,
                                          TopicKind_t topicKind = NO_KEY);
 
+
+	Subscriber *InitializeReliableSubscriber(const std::string &topicName, TopicDataType *topicType,
+						 SubscriberListener *sub_listener,
+						 TopicKind_t topicKind = NO_KEY);
+
+	
         void RegisterTypes();
 
         Participant *GetParticipant();

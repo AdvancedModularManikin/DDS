@@ -404,11 +404,11 @@ int main(int argc, char *argv[]) {
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
                               node_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic,                                                               AMM::DataTypes::getCommandType(), command_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic,                                                               AMM::DataTypes::getCommandType(), command_sub_listener);
 
-    mgr->InitializeSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(),
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(),
                               render_mod_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(),
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(),
                               phys_mod_listener);
 
 

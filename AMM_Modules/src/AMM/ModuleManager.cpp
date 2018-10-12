@@ -13,8 +13,8 @@ namespace AMM {
         status_sub_listener->SetUpstream(this);
         config_sub_listener->SetUpstream(this);
 
-        mgr->InitializeSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), status_sub_listener);
-        mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
+        mgr->InitializeReliableSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), status_sub_listener);
+        mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
                                   config_sub_listener);
 
         currentScenario = mgr->GetScenario();
@@ -43,17 +43,17 @@ namespace AMM {
 
         if (!m_runThread) {
             m_runThread = true;
-            m_thread = std::thread(&ModuleManager::RunLoop, this);
+	    //            m_thread = std::thread(&ModuleManager::RunLoop, this);
 
         }
     }
 
     void ModuleManager::RunLoop() {
         while (m_runThread) {
-            m_mutex.lock();
-            std::this_thread::sleep_for(std::chrono::milliseconds(200));
-            // do work
-            m_mutex.unlock();
+	  //            m_mutex.lock();
+	  //	  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	  // do work
+	  //            m_mutex.unlock();
         }
     }
 
@@ -69,7 +69,7 @@ namespace AMM {
         if (m_runThread) {
             m_runThread = false;
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
-            m_thread.join();
+	    //            m_thread.join();
         }
 
         Cleanup();
@@ -80,11 +80,15 @@ namespace AMM {
         ostringstream statusValue;
         statusValue << st.status_value();
 
-        GUID_t changeGuid = info->sample_identity.writer_guid();
+
+        LOG_TRACE << "[" << st.module_id() << "][" << st.module_name() << "][" << st.capability() << "] Status = " << statusValue.str();
+
+	        GUID_t changeGuid = info->sample_identity.writer_guid();
         std::ostringstream module_guid;
         module_guid << changeGuid;
 
-        try {
+
+	try {
             database db("amm.db");
             db << "replace into module_status (module_id, module_guid, module_name, capability, status) values (?,?,?,?,?);"
                << st.module_id()
@@ -98,10 +102,14 @@ namespace AMM {
     }
 
     void ModuleManager::onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) {
+
+        LOG_TRACE << "[" << cfg.module_id() << "][" << cfg.module_name() << "] sent capabilities";
+
         GUID_t changeGuid = info->sample_identity.writer_guid();
         std::ostringstream module_guid;
         module_guid << changeGuid;
 
+	
         try {
             database db("amm.db");
             db

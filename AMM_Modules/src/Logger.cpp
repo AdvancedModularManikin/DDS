@@ -262,7 +262,7 @@ int main(int argc, char *argv[]) {
 
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     command_sub_listener->SetUpstream(&commandL);
-    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
