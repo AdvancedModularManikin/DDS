@@ -220,6 +220,7 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, char *argv[]) {
+  host_remote_init(&remote);
   cout << "=== [IVC_Module] Ready ..." << endl;
   for (int i = 1; i < argc; ++i) {
     std::string arg = argv[i];
