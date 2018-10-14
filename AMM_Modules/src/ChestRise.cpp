@@ -20,12 +20,12 @@ using namespace AMM;
 int daemonize = 1;
 
 float breathrate = 12.0;
-#define CHEST_RISE_STAUTS_WAITING  0
-#define CHEST_RISE_STAUTS_START    1
-#define CHEST_RISE_STAUTS_PAUSE    2
-#define CHEST_RISE_STAUTS_STOP     3
-#define CHEST_RISE_STAUTS_RESET    4
-int status = CHEST_RISE_STAUTS_WAITING;
+#define SIMULATION_STATUS_WAITING  0
+#define SIMULATION_STATUS_START    1
+#define SIMULATION_STATUS_PAUSE    2
+#define SIMULATION_STATUS_STOP     3
+#define SIMULATION_STATUS_RESET    4
+int status = SIMULATION_STATUS_WAITING;
 bool closed = false;
 
 // Class to handle DDS communication
@@ -58,16 +58,16 @@ class ChestRiseListener : public ListenerInterface {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
                 LOG_TRACE << "Starting breathing";
-                status = CHEST_RISE_STAUTS_START;
+                status = SIMULATION_STATUS_START;
             } else if (value.compare("STOP_SIM") == 0) {
                 LOG_TRACE << "Stopping breathing";
-                status = CHEST_RISE_STAUTS_STOP;
+                status = SIMULATION_STATUS_STOP;
             } else if (value.compare("PAUSE_SIM") == 0) {
                 LOG_TRACE << "Pausing breathing";
-                status = CHEST_RISE_STAUTS_PAUSE;
+                status = SIMULATION_STATUS_PAUSE;
             } else if (value.compare("RESET_SIM") == 0) {
                 LOG_TRACE << "Resetting";
-                status = CHEST_RISE_STAUTS_RESET;
+                status = SIMULATION_STATUS_RESET;
             }
         }
     }
