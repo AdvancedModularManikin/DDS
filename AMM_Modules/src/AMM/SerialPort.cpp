@@ -109,6 +109,7 @@ namespace AMM {
         if (error)
             std::cout << "ERROR:" << error.message() << std::endl;
 
+        m_serialPort.cancel();
         m_serialPort.close();
     }
 }

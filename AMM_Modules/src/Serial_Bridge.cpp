@@ -452,6 +452,9 @@ int main(int argc, char *argv[]) {
         cout.flush();
     }
 
+    io.stop();
+    io.reset();
+
     LOG_INFO << "Serial_Bridge simulation stopped.";
     return 0;
 }
