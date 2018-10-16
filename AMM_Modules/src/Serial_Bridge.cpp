@@ -182,8 +182,10 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
                                 std::string subTopicName = s->Attribute("name");
 
                                 if (s->Attribute("nodepath")) {
-                                    subTopicName = s->Attribute("nodepath");
-                                }
+				  subTopicName = s->Attribute("nodepath");
+                                } else if (s->Attribute("type")) {
+				  subTopicName = s->Attribute("type");
+				}
                                 add_once(subscribedTopics, subTopicName);
                                 LOG_TRACE << "[" << capabilityName << "][SUBSCRIBE]" << subTopicName;
                             }
@@ -314,7 +316,7 @@ public:
         std::ostringstream messageOut;
         messageOut << "[AMM_Physiology_Modification]" << "type=" << pm.type() << ";" << "location="
                    << pm.location().description() << ";" << "learner_id=" << pm.practitioner() << ";" << "payload="
-                   << pm.payload();
+                   << pm.payload() << std::endl;
         string stringOut = messageOut.str();
 
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), pm.type()) != subscribedTopics.end() ||
@@ -330,10 +332,11 @@ public:
         std::ostringstream messageOut;
         messageOut << "[AMM_Render_Modification]" << "type=" << rm.type() << ";" << "location="
                    << rm.location().description() << ";" << "learner_id=" << rm.practitioner() << ";" << "payload="
-                   << rm.payload();
+                   << rm.payload() << std::endl;
         string stringOut = messageOut.str();
 
-
+	LOG_TRACE << "Render modification being sent: " << stringOut;
+	
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), rm.type()) != subscribedTopics.end() ||
             std::find(subscribedTopics.begin(), subscribedTopics.end(), "AMM_Render_Modification") !=
             subscribedTopics.end()
