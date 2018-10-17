@@ -19,6 +19,7 @@
 x64/
 x86/
 bld/
+build_*/
 [Bb]in/
 [Oo]bj/
 [Ll]og/
@@ -306,3 +307,4 @@ support/external/Catch/tmp
 
 #ctags
 src/tmtags*
+
