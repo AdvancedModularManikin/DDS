@@ -1,5 +1,6 @@
 #include "AMM/SerialPort.h"
-
+#include <chrono>
+#include <thread>
 #include <boost/exception/all.hpp>
 #include <iostream>
 
@@ -12,20 +13,63 @@ namespace AMM {
               m_bytesTransferred(0) {
         boost::asio::serial_port::baud_rate baudRate(baud);
         m_serialPort.set_option(baudRate);
+	//	m_serialPort.set_option(boost::asio::serial_port::parity(boost::asio::serial_port::parity::even));
+	//	m_serialPort.set_option(boost::asio::serial_port::character_size(boost::asio::serial_port::character_size(8)));
+	//	m_serialPort.set_option(boost::asio::serial_port::stop_bits(boost::asio::serial_port::stop_bits::one));
+	//	m_serialPort.set_option(boost::asio::serial_port::flow_control(boost::asio::serial_port::flow_control::hardware)); 
+	
+	fd = m_serialPort.native_handle();
+	/**	LOG_TRACE << "Setting RTS and DTR to FALSE";
+	setRTS(false);
+	setDTR(false);
+	std::this_thread::sleep_for(std::chrono::milliseconds(1000)); **/
+	LOG_TRACE << "Setting RTS and DTR to TRUE"; 
+	setRTS(true);
+	setDTR(true);
+	//	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
 /*SerialPort::~SerialPort()
 = default;*/
 
+  void SerialPort::setRTS(bool enabled) {
+    int data = TIOCM_RTS;
+    if (!enabled)
+      ioctl(fd, TIOCMBIC, &data);
+    else
+      ioctl(fd, TIOCMBIS, &data);
+  }
+
+  void SerialPort::setDTR(bool enabled)   {
+    
+    int data = TIOCM_DTR;
+    if (!enabled)
+      ioctl(fd, TIOCMBIC, &data);        // Clears the DTR pin
+    else
+      ioctl(fd, TIOCMBIS, &data);        // Sets the DTR pin
+  }
+  
+  
     int SerialPort::Initialize() {
         if (m_bInitialized) {
             return -1;
         }
-        if (!m_serialPort.is_open()) {
+        if (!m_serialPort.is_open()) {	  
             return -1;
         }
 
+	//	LOG_TRACE << "Setting RTS to false";
+	//		setRTS(false);
+	//		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	//	LOG_TRACE << "Setting RTS to true";
+	//	setRTS(true);
+	//		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	//	setDTR(true);
+	
+	LOG_TRACE << "Connecting to serial port ";
+	
         m_bInitialized = true;
+	this->Write("\n");
         this->BeginRead_();
         return 0;
     }
