@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.5.1)
 
-project(AMM_Modules VERSION 0.2.1)
+project(AMM_Modules VERSION 0.2.2)
 set(VERSION_TYPE "beta" CACHE STRING "version type" FORCE)
+set(PROJECT_VERSION_MAJOR, 0)
+set(PROJECT_VERSION_MINOR, 2)
+set(PROJECT_VERSION_PATCH@, 2)
 site_name(VERSION_HOST) # read hostname to VERSION_HOST
 set(VERSION_HOST "${VERSION_HOST}" CACHE STRING "host of build" FORCE)
 
