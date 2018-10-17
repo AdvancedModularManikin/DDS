@@ -107,6 +107,7 @@ struct logEntry {
 
 std::map<std::string, double> nodeDataStorage;
 std::vector<logEntry> eventLog;
+std::mutex eventLog_mutex;
 std::vector<std::string> actions;
 
 std::map<std::string, std::string> statusStorage = {
@@ -152,7 +153,9 @@ class AMMListener : public ListenerInterface {
                 timestamp,
                 logmessage.str()
         };
+        eventLog_mutex.lock();
         eventLog.push_back(newLogEntry);
+        eventLog_mutex.unlock();
 
     };
 
@@ -175,7 +178,9 @@ class AMMListener : public ListenerInterface {
                 timestamp,
                 logmessage.str()
         };
+        eventLog_mutex.lock();
         eventLog.push_back(newLogEntry);
+        eventLog_mutex.unlock();
     };
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
@@ -192,7 +197,9 @@ class AMMListener : public ListenerInterface {
                 timestamp,
                 c.message()
         };
+        eventLog_mutex.lock();
         eventLog.push_back(newLogEntry);
+        eventLog_mutex.unlock();
 
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
