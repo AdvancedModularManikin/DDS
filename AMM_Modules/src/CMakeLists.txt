@@ -218,15 +218,6 @@ target_link_libraries(${TCP_BRIDGE_EXE}
         amm::datamodel
         )
 
-
-#add_executable(amm_info amm_info.cpp )
-#target_link_libraries(amm_info
-#        fastrtps
-#        fastcdr
-#        amm::datamodel
-#        )
-
-
 # add_subdirectory(unittest)
 
 if (MINGW)
