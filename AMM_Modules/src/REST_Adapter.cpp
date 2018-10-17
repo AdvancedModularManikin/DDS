@@ -106,9 +106,6 @@ struct logEntry {
 };
 
 std::map<std::string, double> nodeDataStorage;
-std::vector<logEntry> eventLog;
-std::mutex eventLog_mutex;
-std::vector<std::string> actions;
 
 std::map<std::string, std::string> statusStorage = {
         {"STATUS",       "NOT RUNNING"},
@@ -123,6 +120,19 @@ int64_t lastTick = 0;
 Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
+
+void writeLogEntry(logEntry newLogEntry) {
+    try {
+        db << "insert into events (source, topic, tick, timestamp, data) values (?,?,?,?,?);"
+           << newLogEntry.source
+           << newLogEntry.topic
+           << newLogEntry.tick
+           << newLogEntry.timestamp
+           << newLogEntry.data;
+    } catch (exception &e) {
+        LOG_ERROR << "[EVENTLOG]" << e.what();
+    }
+}
 
 class AMMListener : public ListenerInterface {
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) override {
@@ -153,10 +163,7 @@ class AMMListener : public ListenerInterface {
                 timestamp,
                 logmessage.str()
         };
-        eventLog_mutex.lock();
-        eventLog.push_back(newLogEntry);
-        eventLog_mutex.unlock();
-
+        writeLogEntry(newLogEntry);
     };
 
     void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) override {
@@ -178,9 +185,7 @@ class AMMListener : public ListenerInterface {
                 timestamp,
                 logmessage.str()
         };
-        eventLog_mutex.lock();
-        eventLog.push_back(newLogEntry);
-        eventLog_mutex.unlock();
+        writeLogEntry(newLogEntry);
     };
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
@@ -197,9 +202,7 @@ class AMMListener : public ListenerInterface {
                 timestamp,
                 c.message()
         };
-        eventLog_mutex.lock();
-        eventLog.push_back(newLogEntry);
-        eventLog_mutex.unlock();
+        writeLogEntry(newLogEntry);
 
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
@@ -325,6 +328,7 @@ private:
         Routes::Get(router, "/debug", Routes::bind(&DDSEndpoint::doDebug, this));
 
         Routes::Get(router, "/events", Routes::bind(&DDSEndpoint::getEventLog, this));
+        Routes::Delete(router, "/events", Routes::bind(&DDSEndpoint::clearEventLog, this));
 
         Routes::Get(router, "/modules/count", Routes::bind(&DDSEndpoint::getModuleCount, this));
         Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
@@ -419,12 +423,12 @@ private:
             if (exists(deletePath) && is_regular_file(deletePath)) {
                 LOG_INFO << "Deleting " << deletePath;
                 boost::filesystem::remove(deletePath);
-                response.send(Http::Code::Ok, "Deleted", MIME(Application, Json));
+                response.send(Pistache::Http::Code::Ok, "Deleted", MIME(Application, Json));
             } else {
-                response.send(Http::Code::Forbidden, "Unable to delete state file", MIME(Application, Json));
+                response.send(Pistache::Http::Code::Forbidden, "Unable to delete state file", MIME(Application, Json));
             }
         } else {
-            response.send(Http::Code::Forbidden, "Can not delete default state file", MIME(Application, Json));
+            response.send(Pistache::Http::Code::Forbidden, "Can not delete default state file", MIME(Application, Json));
         }
     }
 
@@ -454,7 +458,7 @@ private:
         writer.EndArray();
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        response.send(Pistache::Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
     void getActions(const Rest::Request &request, Http::ResponseWriter response) {
@@ -483,7 +487,7 @@ private:
         writer.EndArray();
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        response.send(Pistache::Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
     void executeCommand(const Rest::Request &request, Http::ResponseWriter response) {
@@ -493,7 +497,7 @@ private:
         SendPhysiologyModification(payload, "","","");
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
-        response.send(Http::Code::Ok, "Command executed");
+        response.send(Pistache::Http::Code::Ok, "{\"message\":\"Command executed\"}");
     }
 
     void executePhysiologyModification(const Rest::Request &request, Http::ResponseWriter response) {
@@ -515,7 +519,7 @@ private:
         SendPhysiologyModification(type,location,practitioner,payload);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
-        response.send(Http::Code::Ok, "Physiology modification published");
+        response.send(Pistache::Http::Code::Ok, "{\"message\":\"Physiology modification published\"}");
     }
 
     void executeRenderModification(const Rest::Request &request, Http::ResponseWriter response) {
@@ -537,7 +541,7 @@ private:
         SendRenderModification(type,location,practitioner,payload);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
-        response.send(Http::Code::Ok, "Render modification published");
+        response.send(Pistache::Http::Code::Ok, "{\"message\":\"Render modification published\"}");
     }
 
     void executePerformanceAssessment(const Rest::Request &request, Http::ResponseWriter response) {
@@ -565,7 +569,7 @@ private:
         SendPerformanceAssessment(type, location, practitioner, info, step, comment);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
-        response.send(Http::Code::Ok, "Performance assessment published");
+        response.send(Pistache::Http::Code::Ok, "{\"message\":\"Performance assessment published\"}");
     }
 
     void executeOptions(const Rest::Request &request, Http::ResponseWriter response) {
@@ -767,27 +771,47 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
+    void clearEventLog(const Rest::Request &request, Http::ResponseWriter response) {
+        try {
+            db << "delete from events;";
+        } catch (exception &e) {
+            LOG_ERROR << "[EVENTLOG]" << e.what();
+        }
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
+        response.send(Pistache::Http::Code::Ok, "{\"message\":\"Event log cleared\"}");
+    }
+
     void getEventLog(const Rest::Request &request, Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();
 
-        auto eventit = eventLog.begin();
-        while (eventit != eventLog.end()) {
+        db << "SELECT "
+              "source,"
+              "topic,"
+              "tick,"
+              "timestamp,"
+              "data "
+              " FROM "
+              " events;"
+           >> [&](string source, string topic, int64_t tick, int64_t timestamp, string data) {
+
             writer.StartObject();
             writer.Key("source");
-            writer.String((*eventit).source.c_str());
+            writer.String(source.c_str());
             writer.Key("tick");
-            writer.Uint64((*eventit).tick);
+            writer.Uint64(tick);
             writer.Key("timestamp");
-            writer.Uint64((*eventit).timestamp);
+            writer.Uint64(timestamp);
             writer.Key("topic");
-            writer.String((*eventit).topic.c_str());
+            writer.String(topic.c_str());
             writer.Key("message");
-            writer.String((*eventit).data.c_str());
+            writer.String(data.c_str());
             writer.EndObject();
-            ++eventit;
-        }
+        };
+
 
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");

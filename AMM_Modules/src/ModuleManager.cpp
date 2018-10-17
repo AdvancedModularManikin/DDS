@@ -74,6 +74,7 @@ int main(int argc, char *argv[]) {
         try {
             sqlite_config config;
             database db("amm.db", config);
+            db << "delete from events;";
             db << "delete from modules;";
             db << "delete from module_capabilities;";
             db << "delete from module_status;";
@@ -86,6 +87,18 @@ int main(int argc, char *argv[]) {
         try {
             sqlite_config config;
             database db("amm.db", config);
+
+            cout << "[ModuleManager] Creating event log table..." << endl;
+            db << "create table if not exists events("
+                  "source text,"
+                  "event_guid text,"
+                  "topic text,"
+                  "tick bigint,"
+                  "timestamp bigint,"
+                  "data text"
+                  ");";
+            db << "delete from events;";
+
 
             cout << "[ModuleManager] Creating modules table..." << endl;
             db << "create table if not exists modules("
