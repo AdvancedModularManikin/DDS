@@ -110,6 +110,7 @@ else()
   set(Xerces-c_LIBRARY_DEBUG   Xerces-c_LIBRARY_DEBUG-NOTFOUND   )
 endif()
 
+  set(Xerces-c_CPPFLAGS "-DXERCES_STATIC_LIBRARY")
 
 # handle the QUIETLY and REQUIRED arguments and set Xerces-c_FOUND to TRUE if
 # all listed variables are TRUE
@@ -131,7 +132,7 @@ if(Xerces-c_FOUND)
     INTERFACE_INCLUDE_DIRECTORIES
     ${Xerces-c_INCLUDE_DIR}
     )
-   target_compile_definitions(Xerces::xerces INTERFACE ${Xerces-c_CPPFLAGS})
+#   target_compile_definitions(Xerces::xerces INTERFACE ${Xerces-c_CPPFLAGS})
   
 
 

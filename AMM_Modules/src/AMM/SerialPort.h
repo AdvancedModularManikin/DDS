@@ -7,6 +7,8 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/array.hpp>
 
+#include "AMM/BaseLogger.h"
+
 #include <vector>
 #include <deque>
 
@@ -45,13 +47,14 @@ namespace AMM {
         void EndWrite_(boost::system::error_code const &error, size_t bytes_transferred);
 
         void DoClose_(boost::system::error_code const &error);
-
+	void setRTS(bool enabled);
+	void setDTR(bool enabled);
         bool m_bInitialized;
         boost::asio::io_service &m_rIoService;
         boost::asio::serial_port m_serialPort;
         boost::array<char, k_readBufferSize> m_rdBuf;
         std::deque <SharedBufferPtr_t> m_wrBuf;
-
+	int fd;
         uint32_t m_bytesTransferred;
     };
 
