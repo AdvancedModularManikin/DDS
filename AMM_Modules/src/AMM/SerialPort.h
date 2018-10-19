@@ -25,7 +25,7 @@ namespace AMM {
                 uint32_t baud,
                 std::string const &device);
 
-        //~SerialPort() override = default;
+        ~SerialPort();
 
         int Initialize();
 

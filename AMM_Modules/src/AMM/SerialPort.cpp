@@ -13,24 +13,11 @@ namespace AMM {
               m_bytesTransferred(0) {
         boost::asio::serial_port::baud_rate baudRate(baud);
         m_serialPort.set_option(baudRate);
-	//	m_serialPort.set_option(boost::asio::serial_port::parity(boost::asio::serial_port::parity::even));
-	//	m_serialPort.set_option(boost::asio::serial_port::character_size(boost::asio::serial_port::character_size(8)));
-	//	m_serialPort.set_option(boost::asio::serial_port::stop_bits(boost::asio::serial_port::stop_bits::one));
-	//	m_serialPort.set_option(boost::asio::serial_port::flow_control(boost::asio::serial_port::flow_control::hardware)); 
-	
-	fd = m_serialPort.native_handle();
-	/**	LOG_TRACE << "Setting RTS and DTR to FALSE";
-	setRTS(false);
-	setDTR(false);
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000)); **/
-	LOG_TRACE << "Setting RTS and DTR to TRUE"; 
-	setRTS(true);
-	setDTR(true);
-	//	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 
-/*SerialPort::~SerialPort()
-= default;*/
+  SerialPort::~SerialPort() {
+    m_serialPort.close();
+  }
 
   void SerialPort::setRTS(bool enabled) {
     int data = TIOCM_RTS;
@@ -58,18 +45,10 @@ namespace AMM {
             return -1;
         }
 
-	//	LOG_TRACE << "Setting RTS to false";
-	//		setRTS(false);
-	//		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-	//	LOG_TRACE << "Setting RTS to true";
-	//	setRTS(true);
-	//		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-	//	setDTR(true);
-	
 	LOG_TRACE << "Connecting to serial port ";
 	
         m_bInitialized = true;
-	this->Write("\n");
+
         this->BeginRead_();
         return 0;
     }
