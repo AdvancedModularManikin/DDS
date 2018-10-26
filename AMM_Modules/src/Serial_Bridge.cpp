@@ -103,6 +103,7 @@ void sendConfigInfo(std::string scene) {
 };
 
 void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer, std::size_t bytesTransferred) {
+    using namespace AMM::Capability;
     std::copy(buffer.begin(), buffer.begin() + bytesTransferred, std::back_inserter(globalInboundBuffer));
     if (!boost::algorithm::ends_with(globalInboundBuffer, "\n")) {
         return;
@@ -376,6 +377,7 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, char *argv[]) {
+    using namespace AMM::Capability;
     LOG_INFO << "Serial_Bridge starting up";
 
     for (int i = 1; i < argc; ++i) {

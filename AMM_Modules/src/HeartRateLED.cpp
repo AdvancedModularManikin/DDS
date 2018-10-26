@@ -15,6 +15,7 @@ extern "C" {
 
 using namespace std;
 using namespace AMM;
+using namespace AMM::Capability;
 
 // Daemonize by default
 int daemonize = 1;

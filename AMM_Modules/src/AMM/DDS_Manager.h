@@ -29,7 +29,6 @@
 #include "AMM/DataTypes.h"
 
 #include "AMM/Listeners/DDS_Listeners.h"
-#include "AMM/Listeners/ListenerInterface.h"
 
 #include "AMM/BaseLogger.h"
 
@@ -90,7 +89,7 @@ namespace AMM {
 					       PublisherListener *pub_listener);
 
 
-	
+
         /**
          * Generic publisher initialization
          *
@@ -122,7 +121,7 @@ namespace AMM {
 						 SubscriberListener *sub_listener,
 						 TopicKind_t topicKind = NO_KEY);
 
-	
+
         void RegisterTypes();
 
         Participant *GetParticipant();
@@ -149,6 +148,7 @@ namespace AMM {
         Publisher *genPub;
         Publisher *command_publisher;
         Publisher *settings_publisher;
+        Publisher *physiology_command_publisher;
         Publisher *perfdata_publisher;
         Publisher *physmod_publisher;
         Publisher *render_publisher;

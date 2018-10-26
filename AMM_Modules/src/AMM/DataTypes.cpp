@@ -6,7 +6,8 @@ std::string AMM::DataTypes::tickTopic = "Tick";
 std::string AMM::DataTypes::nodeTopic = "Data";
 std::string AMM::DataTypes::highFrequencyNodeTopic = "HighFrequency_Data";
 
-std::string AMM::DataTypes::commandTopic = "Command";
+std::string AMM::DataTypes::commandTopic = "AMM::PatientAction::BioGears::Command";
+std::string AMM::DataTypes::physiologyCommandTopic = "AMM::Physiology::Command";
 
 std::string AMM::DataTypes::performanceTopic = "Performance";
 
@@ -32,27 +33,28 @@ std::string AMM::DataTypes::renderModTopic = "RenderModification";
 std::string AMM::DataTypes::physModTopic = "PhysiologyModification";
 
 AMM::Simulation::TickPubSubType *AMM::DataTypes::getTickType() {
-    return new TickPubSubType();
+    return new AMM::Simulation::TickPubSubType();
 }
 
 AMM::Physiology::NodePubSubType *AMM::DataTypes::getNodeType() {
-    return new NodePubSubType();
+    return new AMM::Physiology::NodePubSubType ();
 }
 
 AMM::Physiology::HighFrequencyNodePubSubType *AMM::DataTypes::getHighFrequencyNodeType() {
-    return new HighFrequencyNodePubSubType();
+    return new AMM::Physiology::HighFrequencyNodePubSubType();
+};
+AMM::Physiology::CommandPubSubType *AMM::DataTypes::getPhysiologyCommandType() {
+    return new AMM::Physiology::CommandPubSubType();
 };
 
-
 // AMM Patient Action / Intervention types
-CommandPubSubType *AMM::DataTypes::getCommandType() {
-    return new CommandPubSubType();
+AMM::PatientAction::BioGears::CommandPubSubType *AMM::DataTypes::getCommandType() {
+    return new AMM::PatientAction::BioGears::CommandPubSubType();
 }
-
 
 // AMM Performance types
 AMM::Performance::StatementPubSubType *AMM::DataTypes::getxAPIStatementType() {
-    return new StatementPubSubType();
+    return new AMM::Performance::StatementPubSubType();
 };
 
 // AMM Resource Requirements types
@@ -99,23 +101,24 @@ AMM::Resource::Supply::PowerPubSubType *AMM::DataTypes::getPowerSupplyType() {
 
 // AMM Capability types
 AMM::Capability::ConfigurationPubSubType *AMM::DataTypes::getConfigurationType() {
-    return new ConfigurationPubSubType();
+    return new AMM::Capability::ConfigurationPubSubType();
 };
 
 AMM::Capability::StatusPubSubType *AMM::DataTypes::getStatusType() {
-    return new StatusPubSubType();
+    return new AMM::Capability::StatusPubSubType();
 };
 
 AMM::Capability::ScenarioPubSubType *AMM::DataTypes::getScenarioType() {
-    return new ScenarioPubSubType();
+    return new AMM::Capability::ScenarioPubSubType();
 };
 
 AMM::Performance::AssessmentPubSubType *AMM::DataTypes::getPerformanceAssessmentDataType() {
-    return new AssessmentPubSubType();
+    return new 
+AMM::Performance::AssessmentPubSubType();
 }
 
 AMM::InstrumentDataPubSubType *AMM::DataTypes::getInstrumentDataType() {
-    return new InstrumentDataPubSubType();
+    return new AMM::InstrumentDataPubSubType();
 };
 
 AMM::Render::ModificationPubSubType *AMM::DataTypes::getRenderModificationType() {

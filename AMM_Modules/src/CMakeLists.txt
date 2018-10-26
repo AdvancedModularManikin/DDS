@@ -13,13 +13,13 @@ add_custom_target(versionFileTouchForRebuild
 
 set(BASE_LOGGER amm_base_logger)
 set(BASE_LOGGER_SOURCES AMM/BaseLogger.cpp)
-add_library(amm_base_logger SHARED ${BASE_LOGGER_SOURCES})
+add_library(amm_base_logger  SHARED ${BASE_LOGGER_SOURCES})
 add_library(amm::logger ALIAS amm_base_logger)
 
 target_link_libraries(
-        amm_base_logger
-        PUBLIC Threads::Threads
-        PUBLIC Boost::log
+  amm_base_logger
+  PUBLIC Threads::Threads
+  PUBLIC Boost::log
 )
 
 set(idls AMM.idl)
@@ -38,21 +38,21 @@ set(DDS_MANAGER_SOURCES AMM/DDS_Manager.cpp AMM/Listeners/DDS_Listeners.cpp AMM/
 set(DDS_TYPE_SOURCES AMM/DataTypes.cpp AMM/DataTypes.h)
 add_library(amm_types SHARED ${DATAMODEL_SOURCES} ${DDS_TYPE_SOURCES} ${DDS_MANAGER_SOURCES})
 add_library(amm::datamodel ALIAS amm_types)
-add_dependencies(amm_types versionFileTouchForRebuild)
+add_dependencies(amm_types  versionFileTouchForRebuild )
 target_link_libraries(
         amm_types
         fastrtps fastcdr
         amm::logger
 )
 target_include_directories(amm_types PUBLIC
-        PUBLIC ${PROJECT_SOURCE_DIR}/src
-        PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/gen
-        )
+  PUBLIC ${PROJECT_SOURCE_DIR}/src
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/gen
+)
 
 set(SIM_MANAGER_SOURCES SimManager.cpp AMM/SimulationManager.cpp)
 set(SIM_MANAGER_EXE amm_sim_manager)
 add_executable(${SIM_MANAGER_EXE} ${SIM_MANAGER_SOURCES})
-add_dependencies(${SIM_MANAGER_EXE} versionFileTouchForRebuild)
+add_dependencies(${SIM_MANAGER_EXE} versionFileTouchForRebuild )
 install(TARGETS ${SIM_MANAGER_EXE}
         BUNDLE DESTINATION "."
         RUNTIME DESTINATION bin)
@@ -116,9 +116,10 @@ target_link_libraries(${MODULE_MANAGER_EXE}
         amm::datamodel
         )
 
-if (Pistache_FOUND)
-    set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
-    set(REST_ADAPTER_EXE amm_rest_adapter)
+set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
+set(REST_ADAPTER_EXE amm_rest_adapter)
+
+if(Pistache_FOUND)
     add_executable(${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES})
     target_link_libraries(${REST_ADAPTER_EXE}
             fastrtps fastcdr
@@ -138,6 +139,7 @@ if (Biogears_FOUND)
     set(PHYSIOLOGY_MANAGER_SOURCES PhysiologyManager.cpp AMM/PhysiologyEngineManager.cpp AMM/PhysiologyThread.cpp)
     set(PHYSIOLOGY_MANAGER_EXE amm_physiology_manager)
     add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES})
+    add_dependencies(${PHYSIOLOGY_MANAGER_EXE} stage_biogears_schema stage_biogears_data)
     target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
             fastrtps fastcdr
             amm::logger

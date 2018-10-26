@@ -96,35 +96,8 @@
 
 // typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
 
-namespace biogears{
+
 // Forward declare what we will use in our thread
-class SESubstance;
-
-class SEEnergySystem;
-
-class SEPainStimulus;
-
-class SEScenario;
-
-class SEAdvanceTime;
-
-class SEComprehensiveMetabolicPanel;
-
-class SEGasCompartment;
-
-class SECompleteBloodCount;
-
-class SEAnesthesiaMachineConfiguration;
-
-class SEAnesthesiaMachine;
-
-class SEHemorrhage;
-
-class SESubstanceCompoundInfusion;
-
-class PhysiologyEngine;
-}
-
 namespace AMM {
     class PhysiologyThread {
     public:
@@ -141,6 +114,9 @@ namespace AMM {
         bool ExecuteXMLCommand(const std::string &cmd);
 
         bool ExecuteCommand(const std::string &cmd);
+
+        bool Execute(std::function<std::unique_ptr<biogears::PhysiologyEngine>(
+                std::unique_ptr<biogears::PhysiologyEngine> &&)> func);
 
         void Shutdown();
 
@@ -280,7 +256,7 @@ namespace AMM {
 
         double GetPainVisualAnalogueScale();
 
-	biogears::SESubstance *sodium;
+        biogears::SESubstance *sodium;
         biogears::SESubstance *glucose;
         biogears::SESubstance *creatinine;
         biogears::SESubstance *calcium;

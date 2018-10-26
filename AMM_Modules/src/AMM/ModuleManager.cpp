@@ -7,14 +7,15 @@ using namespace sqlite;
 
 namespace AMM {
     ModuleManager::ModuleManager() {
+        using namespace AMM::Capability;
         auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
         auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
 
         status_sub_listener->SetUpstream(this);
         config_sub_listener->SetUpstream(this);
 
-        mgr->InitializeReliableSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), status_sub_listener);
-        mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
+        mgr->InitializeSubscriber(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(), status_sub_listener);
+        mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
                                   config_sub_listener);
 
         currentScenario = mgr->GetScenario();
@@ -26,6 +27,7 @@ namespace AMM {
     }
 
     void ModuleManager::Start() {
+        using namespace AMM::Capability;
         std::string nodeString(nodeName);
         // Publish module configuration once we've set all our publishers and listeners
         // This announces that we're available for configuration
@@ -109,7 +111,7 @@ namespace AMM {
         std::ostringstream module_guid;
         module_guid << changeGuid;
 
-	
+
         try {
             database db("amm.db");
             db

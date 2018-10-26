@@ -67,6 +67,7 @@ find_package(TinyXML2 REQUIRED)
 find_package(SQLite3 REQUIRED)
 
 find_package(Biogears)
+message(STATUS "Biogears=${Biogears_FOUND}")
 find_package(RapidJSON)
 find_package(Pistache)
 
