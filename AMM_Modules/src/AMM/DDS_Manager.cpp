@@ -25,30 +25,32 @@ namespace AMM {
 
         auto *pub_listener = new DDS_Listeners::PubListener();
 
-        command_publisher = InitializeReliablePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+        command_publisher = InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                                                     pub_listener);
+
+        settings_publisher = InitializePublisher(AMM::DataTypes::instrumentDataTopic,
+                                                      AMM::DataTypes::getInstrumentDataType(), pub_listener);
+        physiology_command_publisher = InitializePublisher(AMM::DataTypes::physiologyCommandTopic, AMM::DataTypes::getPhysiologyCommandType(),
                                                 pub_listener);
 
-        settings_publisher = InitializeReliablePublisher(AMM::DataTypes::instrumentDataTopic,
-                                                 AMM::DataTypes::getInstrumentDataType(), pub_listener);
+        perfdata_publisher = InitializePublisher(AMM::DataTypes::performanceTopic,
+                                                AMM::DataTypes::getPerformanceAssessmentDataType(),
+                                                pub_listener);
 
-        perfdata_publisher = InitializeReliablePublisher(AMM::DataTypes::performanceTopic,
-                                                 AMM::DataTypes::getPerformanceAssessmentDataType(),
-                                                 pub_listener);
-
-        physmod_publisher = InitializeReliablePublisher(AMM::DataTypes::physModTopic,
+        physmod_publisher = InitializePublisher(AMM::DataTypes::physModTopic,
                                                 AMM::DataTypes::getPhysiologyModificationType(),
                                                 pub_listener);
 
-        render_publisher = InitializeReliablePublisher(AMM::DataTypes::renderModTopic,
+        render_publisher = InitializePublisher(AMM::DataTypes::renderModTopic,
                                                AMM::DataTypes::getRenderModificationType(),
                                                pub_listener);
 
-        config_publisher = InitializeReliablePublisher(AMM::DataTypes::configurationTopic,
-                                                       AMM::DataTypes::getConfigurationType(),
-                                                       pub_listener);
+        config_publisher = InitializePublisher(AMM::DataTypes::configurationTopic,
+                                               AMM::DataTypes::getConfigurationType(),
+                                               pub_listener);
 
-        status_publisher = InitializeReliablePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
-                                                       pub_listener);
+        status_publisher = InitializePublisher(AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
+                                               pub_listener);
 
         module_id = GenerateID();
     }
@@ -67,6 +69,7 @@ namespace AMM {
 
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getNodeType());
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getHighFrequencyNodeType());
+        Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getPhysiologyCommandType());
 
         // AMM Patient Action / Intervention types
         Domain::registerType(mp_participant, (TopicDataType *) AMM::DataTypes::getCommandType());
@@ -224,7 +227,7 @@ namespace AMM {
 
     void DDS_Manager::SetStatus(const std::string &local_module_id, const std::string &module_name,
                                 const std::string &capability, AMM::Capability::status_values status,
-                                const std::vector<std::string> &message) {
+                                const std::vector <std::string> &message) {
         AMM::Capability::Status statusInstance;
         statusInstance.module_id(local_module_id);
         statusInstance.status_value(status);

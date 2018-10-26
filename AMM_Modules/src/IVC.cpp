@@ -20,6 +20,7 @@ using namespace std;
 using namespace std::literals::string_literals;
 using namespace tinyxml2;
 using namespace AMM;
+using namespace AMM::Capability;
 
 // Daemonize by default
 int daemonize = 1;

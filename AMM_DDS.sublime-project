@@ -1,0 +1,14 @@
+{
+	"folders":
+	[
+		{
+			"path": "IDL"
+		},
+		{
+			"path": "AMM_Modules"
+		},
+		{
+			"path": "build-linux-gcc4.9/src/gen"
+		}
+	]
+}

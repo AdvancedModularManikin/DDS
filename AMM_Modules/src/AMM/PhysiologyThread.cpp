@@ -243,6 +243,11 @@ namespace AMM {
         return LoadScenarioFile(scenarioFile);
     }
 
+    bool PhysiologyThread::Execute( std::function<std::unique_ptr<biogears::PhysiologyEngine>(std::unique_ptr<biogears::PhysiologyEngine>&&)> func ) {
+        m_pe = func(std::move(m_pe));
+        return true;
+    }
+
     bool PhysiologyThread::ExecuteXMLCommand(const std::string &cmd) {
         /** boost::filesystem::path temp = boost::filesystem::unique_path();
           const std::string scenarioFile = temp.native();  // optional

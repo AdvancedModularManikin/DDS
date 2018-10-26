@@ -25,7 +25,7 @@ namespace AMM {
 
         virtual ~PhysiologyEngineManager() override = default;
 
-        AMM::PhysiologyThread *bg = new PhysiologyThread("logs/biogears.log");
+        PhysiologyThread *bg = new PhysiologyThread("logs/biogears.log");
         std::string stateFile;
 
         void SetLogging(bool logging_enabled);
@@ -77,22 +77,20 @@ namespace AMM {
 
         void TestPain(const std::string &painSettings);
 
-        void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override;
+        void onNewNodeData(Physiology::Node n, SampleInfo_t *info) override;
 
-        void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) override;
+        void onNewTickData(Simulation::Tick ti, SampleInfo_t *info) override;
+        void onNewCommandData(Physiology::Command cm, SampleInfo_t* info) override;
+        void onNewCommandData(PatientAction::BioGears::Command cm, SampleInfo_t *info) override;
+        void onNewInstrumentData(InstrumentData i, SampleInfo_t *info) override;
+        void onNewPhysiologyModificationData(Physiology::Modification, SampleInfo_t *info) override;
 
-        void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) override;
-
-        void onNewInstrumentData(AMM::InstrumentData i, SampleInfo_t *info) override;
-
-        void onNewPhysiologyModificationData(AMM::Physiology::Modification, SampleInfo_t *info) override;
-
-        std::map<std::string, double (AMM::PhysiologyThread::*)()> *nodePathMap;
+        std::map<std::string, double (PhysiologyThread::*)()> *nodePathMap;
 
     protected:
         const char *nodeName = "AMM_PhysiologyEngine";
 
-        AMM::DDS_Manager *mgr = new AMM::DDS_Manager(nodeName);
+        DDS_Manager *mgr = new DDS_Manager(nodeName);
 
         Publisher *node_publisher;
         Subscriber *tick_subscriber;

@@ -21,6 +21,8 @@ public:
 
     virtual void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t* info) {};
 
+    virtual void onNewCommandData(AMM::Physiology::Command cm, SampleInfo_t* info) {};
+
     virtual void onNewStatusData(AMM::Capability::Status st, SampleInfo_t* info) {};
 
     virtual void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t* info) {};
