@@ -1,16 +1,44 @@
 language: cpp
 dist: trusty
 sudo: required
+os: linux
 
+matrix:
+  include:
+    - env: COMPILER=g++-6 BUILD=Debug STANDARD=14
+      compiler: gcc
+      addons:
+        apt:
+          update: true
+          sources:
+            - sourceline: 'ppa:mhier/libboost-latest'
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+            - boost1.67
+    - env: COMPILER=g++-6 BUILD=Release STANDARD=14
+      compiler: gcc
+      addons:
+        apt:
+          update: true
+          sources:
+            - sourceline: 'ppa:mhier/libboost-latest'
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+            - boost1.67
+            
 before_install:
   - mkdir AMM_Modules/build && cd AMM_Modules/build
   - ../../travis_scripts/fastrtps.sh
+  
 script:
   - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
   - make
 
 addons:
   apt:
-    packages:
-      - libboost-all-dev
+    packages:      
       - libtinyxml2-dev
+      - openjdk-8-jdk-headless
+      - gradle      
