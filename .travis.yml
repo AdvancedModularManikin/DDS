@@ -18,9 +18,9 @@ matrix:
             - boost1.67
             
 before_install:
-  - sudo pip install cmake
   - mkdir AMM_Modules/build && cd AMM_Modules/build
   - ../../travis_scripts/fastrtps.sh
+  - ../../travis_scripts/cmake.sh
   
 script:
   - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
@@ -32,3 +32,8 @@ addons:
       - libtinyxml2-dev
       - openjdk-8-jdk-headless
       - gradle      
+      - libtinyxml2-dev
+      - sqlite3
+      - libsqlite3-dev
+      - libcurl4-openssl-dev
+ 
