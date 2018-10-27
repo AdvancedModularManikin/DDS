@@ -1,3 +1,4 @@
+
 #include <algorithm>
 
 #include <boost/algorithm/string.hpp>
@@ -5,9 +6,11 @@
 #include "AMM/DDS_Manager.h"
 
 extern "C" {
+#include "spi_proto.h"
+#include "binary_semaphore.h"
+#include "spi_remote.h"
 #include "spi_remote_host.h"
 }
-
 #include "spi_proto_master.h"
 
 #include "tinyxml2.h"
@@ -241,16 +244,14 @@ int main(int argc, char *argv[]) {
 
     auto *pub_listener = new DDS_Listeners::PubListener();
 
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                      command_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
                                       config_sub_listener);
 
     Publisher *command_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::commandTopic,
                                                                     AMM::DataTypes::getCommandType(), pub_listener);
 
-    Publisher *node_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::nodeTopic,
-                                                                 AMM::DataTypes::getNodeType(),
+    Publisher *node_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
                                                                  pub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners

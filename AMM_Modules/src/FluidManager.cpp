@@ -1,4 +1,5 @@
 
+
 #include <algorithm>
 
 #include <boost/algorithm/string.hpp>
@@ -8,9 +9,11 @@
 #include "tinyxml2.h"
 
 extern "C" {
+#include "spi_proto.h"
+#include "binary_semaphore.h"
+#include "spi_remote.h"
 #include "spi_remote_host.h"
 }
-
 #include "spi_proto_master.h"
 
 
@@ -123,7 +126,6 @@ static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << "\nOptions:\n"
          << "\t-h,--help\t\tShow this help message\n" << endl;
 }
-
 void air_reservoir_control_task(void);
 
 int main(int argc, char *argv[]) {
@@ -157,8 +159,7 @@ int main(int argc, char *argv[]) {
 
     auto *pub_listener = new DDS_Listeners::PubListener();
 
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                      command_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
                                       config_sub_listener);
 
@@ -208,7 +209,8 @@ struct pid_ctl {
 };
 
 float
-pi_supply(struct pid_ctl *p, float reading) {
+pi_supply(struct pid_ctl *p, float reading)
+{
     float diff = reading - p->last;
     p->last = reading;
     p->last_diff = diff;
@@ -216,7 +218,7 @@ pi_supply(struct pid_ctl *p, float reading) {
 
     p->isum += oset * p->i;
 
-    return p->isum + p->p * oset + p->d * diff;
+    return p->isum + p->p*oset + p->d*diff;
 }
 
 struct pid_ctl pid;
@@ -228,9 +230,9 @@ uint32_t stall_val = 0x100;
 bool should_pid_run = true;
 float ret;
 uint32_t val;
-
 void
-air_reservoir_control_task(void) {
+air_reservoir_control_task(void)
+{
     int solenoid_0 = 7, motor_dac = 0;
     int solenoid_A = solenoid_0 + 0;
     int solenoid_B = solenoid_0 + 1;
@@ -258,8 +260,8 @@ air_reservoir_control_task(void) {
     int P1 = 0, P2 = 1, P3 = 2, P4 = 3;
 
     pid.p = 24;
-    pid.i = 1.0 / 1024;
-    pid.d = 1.0 / 16;
+    pid.i = 1.0/1024;
+    pid.d = 1.0/16;
     pid.isum = 0;
 
     uint16_t dacVal;
@@ -281,15 +283,15 @@ air_reservoir_control_task(void) {
 
     //pressurize, when done goto enter_state_operational;
     //TODO need to determine if pressure is really completed.
-    while (not_pressurized) {
+    while(not_pressurized) {
         pid.target = operating_pressure;
         float hold_isum = pid.isum;
         uint32_t adcRead = remote_get_adc(0);
-        float psi = ((float) adcRead) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+        float psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
         ret = pi_supply(&pid, psi);
 
         //convert back to 0-2^12 range for DAC
-        val = (uint32_t) (ret * 1000.0);
+        val = (uint32_t) (ret*1000.0);
         should_motor_run = stall_val < val;
         if (!should_motor_run) {
             pid.isum = hold_isum;
@@ -299,8 +301,8 @@ air_reservoir_control_task(void) {
 
         //float psiP2 = ((float)remote_get_adc(P2))*(3.0/10280.0*16.0) - 15.0/8.0;
         //float psiP3 = ((float)remote_get_adc(P3))*(3.0/10280.0*16.0) - 15.0/8.0;
-        float psiP4 = ((float) remote_get_adc(P4)) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
-        if (psiP4 > (operating_pressure - 0.1)) {
+        float psiP4 = ((float)remote_get_adc(P4))*(3.0/10280.0*16.0) - 15.0/8.0;
+        if(psiP4 > (operating_pressure - 0.1)) {
             puts("pressurization complete!");
             current_status = OPERATIONAL;
             send_status = true;
@@ -321,11 +323,11 @@ air_reservoir_control_task(void) {
         pid.target = operating_pressure;
         float hold_isum = pid.isum;
         uint32_t adcRead = remote_get_adc(0);
-        float psi = ((float) adcRead) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+        float psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
         ret = pi_supply(&pid, psi);
 
         //convert back to 0-2^12 range for DAC
-        val = (uint32_t) (ret * 1000.0);
+        val = (uint32_t) (ret*1000.0);
         should_motor_run = stall_val < val;
         if (!should_motor_run) {
             pid.isum = hold_isum;
@@ -354,7 +356,7 @@ air_reservoir_control_task(void) {
     //control loop off of P4, for AC then AD, a purge is done when P1 hits 0.01psi above atmo
     const int purge_states = 2;
     for (int purge_ix = 0; purge_ix < purge_states; purge_ix++) {
-        switch (purge_ix) {
+        switch(purge_ix) {
             case 0:
                 remote_set_gpio(solenoid_AC, 1);
                 remote_set_gpio(solenoid_AD, 0);
@@ -373,26 +375,26 @@ air_reservoir_control_task(void) {
             pid.target = purge_pressure;
             float hold_isum = pid.isum;
             uint32_t adcRead = remote_get_adc(P3);
-            float psi = ((float) adcRead) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+            float psi = ((float)adcRead)*(3.0/10280.0*16.0) - 15.0/8.0;
             ret = pi_supply(&pid, psi);
 
             //convert back to 0-2^12 range for DAC
-            val = (uint32_t) (ret * 1000.0);
+            val = (uint32_t) (ret*1000.0);
             should_motor_run = stall_val < val;
             if (!should_motor_run) {
                 pid.isum = hold_isum;
             }
-            dacVal = val > 0xfff ? 0xfff : val;
+            dacVal = val > 0xfff  ? 0xfff : val;
             remote_set_dac(motor_dac, dacVal);
 
             int adcP1 = remote_get_adc(P1);
             int adcP2 = remote_get_adc(P2);
             int adcP3 = remote_get_adc(P3);
             int adcP4 = remote_get_adc(P4);
-            float psi1 = ((float) adcP1) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
-            float psi2 = ((float) adcP2) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
-            float psi3 = ((float) adcP3) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
-            float psi4 = ((float) adcP4) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+            float psi1 = ((float)adcP1)*(3.0/10280.0*16.0) - 15.0/8.0;
+            float psi2 = ((float)adcP2)*(3.0/10280.0*16.0) - 15.0/8.0;
+            float psi3 = ((float)adcP3)*(3.0/10280.0*16.0) - 15.0/8.0;
+            float psi4 = ((float)adcP4)*(3.0/10280.0*16.0) - 15.0/8.0;
             printf("psi1: %f\tpsi2: %f\tpsi3: %f\tpsi4: %f\n", psi1, psi2, psi3, psi4);
             if (purge_ix == 0) {
                 purge_not_complete = psi2 > 0.22;
@@ -409,11 +411,11 @@ air_reservoir_control_task(void) {
     //TODO turn off motor, close all solenoids, turn off 24V rail
     remote_set_gpio(motor_enable, 0);
     remote_set_gpio(rail_24V, 0);
-    for (int i = 0; i < SOLENOID_NUM; i++) remote_set_gpio(solenoid_0 + i, 0);
+    for (int i = 0; i < SOLENOID_NUM;i++) remote_set_gpio(solenoid_0+i, 0);
     current_status = HALTING_ERROR;
     send_status = true;
 
-    while (1) {
+    while(1) {
         puts("in error state!");
         std::this_thread::sleep_for(std::chrono::milliseconds(5000));
     }
