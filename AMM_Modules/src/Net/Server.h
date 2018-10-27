@@ -7,35 +7,40 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
-#include "ServerThread.h"
 #include "Client.h"
+#include "ServerThread.h"
 
 using namespace std;
 
 class Server {
 
-  private:
+private:
     static vector<Client> clients;
     int serverSock;
     struct sockaddr_in serverAddr, clientAddr;
 
-  public:
+public:
     explicit Server(int port);
+
     void AcceptAndDispatch();
-    static void * HandleClient(void *args);
+
+    static void *HandleClient(void *args);
 
     static void SendToAll(const std::string &message);
+
     static void SendToClient(Client *c, const std::string &message);
-    static Client * GetClientByIndex(std::string id);
 
-  private:
+    static Client *GetClientByIndex(std::string id);
+
+private:
     static void ListClients();
-    static void SendToAll(char *message);
-    static int FindClientIndex(Client *c);
 
+    static void SendToAll(char *message);
+
+    static int FindClientIndex(Client *c);
 
 protected:
     bool m_runThread;

@@ -2,8 +2,8 @@
 
 using namespace std;
 
-void DDS_Listeners::DefaultSubListener::onSubscriptionMatched(Subscriber *sub,
-                                                              MatchingInfo &info) {
+void DDS_Listeners::DefaultSubListener::onSubscriptionMatched(
+        Subscriber *sub, MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
         n_matched++;
     } else {
@@ -11,8 +11,7 @@ void DDS_Listeners::DefaultSubListener::onSubscriptionMatched(Subscriber *sub,
     }
 }
 
-void DDS_Listeners::DefaultSubListener::onNewDataMessage(Subscriber *sub) {
-}
+void DDS_Listeners::DefaultSubListener::onNewDataMessage(Subscriber *sub) {}
 
 void DDS_Listeners::NodeSubListener::onSubscriptionMatched(Subscriber *sub,
                                                            MatchingInfo &info) {
@@ -35,8 +34,8 @@ void DDS_Listeners::NodeSubListener::onNewDataMessage(Subscriber *sub) {
     }
 }
 
-void DDS_Listeners::PhysiologyCommandSubListener::onSubscriptionMatched(Subscriber *sub,
-                                                              MatchingInfo &info) {
+void DDS_Listeners::PhysiologyCommandSubListener::onSubscriptionMatched(
+        Subscriber *sub, MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
         n_matched++;
     } else {
@@ -44,7 +43,8 @@ void DDS_Listeners::PhysiologyCommandSubListener::onSubscriptionMatched(Subscrib
     }
 }
 
-void DDS_Listeners::PhysiologyCommandSubListener::onNewDataMessage(Subscriber *sub) {
+void DDS_Listeners::PhysiologyCommandSubListener::onNewDataMessage(
+        Subscriber *sub) {
     AMM::Physiology::Command cm;
 
     if (sub->takeNextData(&cm, &m_info)) {
@@ -57,8 +57,8 @@ void DDS_Listeners::PhysiologyCommandSubListener::onNewDataMessage(Subscriber *s
     }
 }
 
-void DDS_Listeners::CommandSubListener::onSubscriptionMatched(Subscriber *sub,
-                                                              MatchingInfo &info) {
+void DDS_Listeners::CommandSubListener::onSubscriptionMatched(
+        Subscriber *sub, MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
         n_matched++;
     } else {
@@ -101,8 +101,8 @@ void DDS_Listeners::TickSubListener::onNewDataMessage(Subscriber *sub) {
     }
 }
 
-void DDS_Listeners::StatusSubListener::onSubscriptionMatched(Subscriber *sub,
-                                                             MatchingInfo &info) {
+void DDS_Listeners::StatusSubListener::onSubscriptionMatched(
+        Subscriber *sub, MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
         n_matched++;
     } else {
@@ -123,8 +123,8 @@ void DDS_Listeners::StatusSubListener::onNewDataMessage(Subscriber *sub) {
     }
 }
 
-void DDS_Listeners::ConfigSubListener::onSubscriptionMatched(Subscriber *sub,
-                                                             MatchingInfo &info) {
+void DDS_Listeners::ConfigSubListener::onSubscriptionMatched(
+        Subscriber *sub, MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
         n_matched++;
     } else {
@@ -141,20 +141,18 @@ void DDS_Listeners::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
             if (upstream != nullptr) {
                 upstream->onNewConfigData(cfg, &m_info);
             }
-
         }
     }
 }
 
-void DDS_Listeners::ScenarioSubListener::onSubscriptionMatched(Subscriber *sub,
-                                                             MatchingInfo &info) {
+void DDS_Listeners::ScenarioSubListener::onSubscriptionMatched(
+        Subscriber *sub, MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
         n_matched++;
     } else {
         n_matched--;
     }
 }
-
 
 void DDS_Listeners::ScenarioSubListener::onNewDataMessage(Subscriber *sub) {
     AMM::Capability::Scenario sc;
@@ -165,13 +163,12 @@ void DDS_Listeners::ScenarioSubListener::onNewDataMessage(Subscriber *sub) {
             if (upstream != nullptr) {
                 upstream->onNewScenarioData(sc, &m_info);
             }
-
         }
     }
 }
 
-void DDS_Listeners::PhysiologyModificationListener::onSubscriptionMatched(Subscriber *sub,
-                                                                MatchingInfo &info) {
+void DDS_Listeners::PhysiologyModificationListener::onSubscriptionMatched(
+        Subscriber *sub, MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
         n_matched++;
     } else {
@@ -179,8 +176,8 @@ void DDS_Listeners::PhysiologyModificationListener::onSubscriptionMatched(Subscr
     }
 }
 
-
-void DDS_Listeners::PhysiologyModificationListener::onNewDataMessage(Subscriber *sub) {
+void DDS_Listeners::PhysiologyModificationListener::onNewDataMessage(
+        Subscriber *sub) {
     AMM::Physiology::Modification pm;
 
     if (sub->takeNextData(&pm, &m_info)) {
@@ -193,9 +190,8 @@ void DDS_Listeners::PhysiologyModificationListener::onNewDataMessage(Subscriber 
     }
 }
 
-
-void DDS_Listeners::RenderModificationListener::onSubscriptionMatched(Subscriber *sub,
-                                                                          MatchingInfo &info) {
+void DDS_Listeners::RenderModificationListener::onSubscriptionMatched(
+        Subscriber *sub, MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
         n_matched++;
     } else {
@@ -203,8 +199,8 @@ void DDS_Listeners::RenderModificationListener::onSubscriptionMatched(Subscriber
     }
 }
 
-
-void DDS_Listeners::RenderModificationListener::onNewDataMessage(Subscriber *sub) {
+void DDS_Listeners::RenderModificationListener::onNewDataMessage(
+        Subscriber *sub) {
     AMM::Render::Modification rm;
 
     if (sub->takeNextData(&rm, &m_info)) {
@@ -217,16 +213,14 @@ void DDS_Listeners::RenderModificationListener::onNewDataMessage(Subscriber *sub
     }
 }
 
-
-void DDS_Listeners::EquipmentSubListener::onSubscriptionMatched(Subscriber *sub,
-                                                               MatchingInfo &info) {
+void DDS_Listeners::EquipmentSubListener::onSubscriptionMatched(
+        Subscriber *sub, MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
         n_matched++;
     } else {
         n_matched--;
     }
 }
-
 
 void DDS_Listeners::EquipmentSubListener::onNewDataMessage(Subscriber *sub) {
     AMM::InstrumentData i;
@@ -249,7 +243,3 @@ void DDS_Listeners::PubListener::onPublicationMatched(Publisher *pub,
         n_matched--;
     }
 }
-
-
-
-

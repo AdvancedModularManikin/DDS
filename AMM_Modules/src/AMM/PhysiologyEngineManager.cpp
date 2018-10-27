@@ -1,17 +1,19 @@
 #include "PhysiologyEngineManager.h"
 
-#include <fastcdr/Cdr.h>
-#include <fastcdr/FastBuffer.h>
+std::string get_filename_date(void) {
+    time_t now;
+    char the_date[18];
 
-#include <biogears/cdm/patient/actions/SEPainStimulus.h>
-#include <biogears/cdm/patient/actions/SESepsis.h>
+    the_date[0] = '\0';
 
-#pragma GCC diagnostic ignored "-Wwrite-strings"
+    now = time(NULL);
 
-#define MAX_DATE 18
+    if (now != -1) {
+        strftime(the_date, 18, "%Y%m%d_%H%M%S", gmtime(&now));
+    }
 
-using namespace std;
-using namespace std::chrono;
+    return std::string(the_date);
+}
 
 namespace AMM {
     PhysiologyEngineManager::PhysiologyEngineManager() {
@@ -22,92 +24,60 @@ namespace AMM {
         }
         stateFile = "./states/StandardMale@0s.xml";
 
-
         auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
         tick_sub_listener->SetUpstream(this);
 
         auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
         command_sub_listener->SetUpstream(this);
 
-        auto *physiology_command_sub_listener = new DDS_Listeners::PhysiologyCommandSubListener();
+        auto *physiology_command_sub_listener =
+                new DDS_Listeners::PhysiologyCommandSubListener();
         physiology_command_sub_listener->SetUpstream(this);
 
         auto *equipment_sub_listener = new DDS_Listeners::EquipmentSubListener();
         equipment_sub_listener->SetUpstream(this);
 
-        auto *physmod_sub_listener = new DDS_Listeners::PhysiologyModificationListener();
+        auto *physmod_sub_listener =
+                new DDS_Listeners::PhysiologyModificationListener();
         physmod_sub_listener->SetUpstream(this);
 
         auto *pub_listener = new DDS_Listeners::PubListener();
 
-        tick_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(),
+        tick_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::tickTopic,
+                                                    AMM::DataTypes::getTickType(),
                                                     tick_sub_listener);
-        command_subscriber = mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                       command_sub_listener);
-        equipment_subscriber = mgr->InitializeReliableSubscriber(AMM::DataTypes::instrumentDataTopic,
-                                                         AMM::DataTypes::getInstrumentDataType(),
-                                                         equipment_sub_listener);
+        command_subscriber = mgr->InitializeReliableSubscriber(
+                AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                command_sub_listener);
+        equipment_subscriber = mgr->InitializeReliableSubscriber(
+                AMM::DataTypes::instrumentDataTopic,
+                AMM::DataTypes::getInstrumentDataType(), equipment_sub_listener);
 
-        physmod_subscriber = mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic,
-                                                       AMM::DataTypes::getPhysiologyModificationType(),
-                                                       physmod_sub_listener);
+        physmod_subscriber = mgr->InitializeReliableSubscriber(
+                AMM::DataTypes::physModTopic,
+                AMM::DataTypes::getPhysiologyModificationType(), physmod_sub_listener);
 
-        node_publisher = mgr->InitializePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
-                                                  pub_listener);
+        node_publisher = mgr->InitializePublisher(
+                AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), pub_listener);
 
         std::string nodeString(nodeName);
 
-        // Publish module configuration once we've set all our publishers and listeners
+        // Publish module configuration once we've set all our publishers and
+        // listeners
         // This announces that we're available for configuration
         mgr->PublishModuleConfiguration(
-                mgr->module_id,
-                nodeString,
-                "Vcom3D",
-                "PhysiologyEngine",
-                "00001",
+                mgr->module_id, nodeString, "Vcom3D", "PhysiologyEngine", "00001",
                 "0.0.1",
-                mgr->GetCapabilitiesAsString("mule1/module_capabilities/physiology_engine_capabilities.xml")
-        );
+                mgr->GetCapabilitiesAsString(
+                        "mule1/module_capabilities/physiology_engine_capabilities.xml"));
 
         // Normally this would be set AFTER configuration is received
         mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
         m_runThread = false;
-
     }
 
-    std::string PhysiologyEngineManager::get_random_string(size_t length) {
-        auto randchar = []() -> char {
-            const char charset[] =
-                    "0123456789"
-                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    "abcdefghijklmnopqrstuvwxyz";
-            const size_t max_index = (sizeof(charset) - 1);
-            return charset[rand() % max_index];
-        };
-        std::string str(length, 0);
-        std::generate_n(str.begin(), length, randchar);
-        return str;
-    }
-
-    std::string PhysiologyEngineManager::get_filename_date(void) {
-        time_t now;
-        char the_date[MAX_DATE];
-
-        the_date[0] = '\0';
-
-        now = time(NULL);
-
-        if (now != -1) {
-            strftime(the_date, MAX_DATE, "%Y%m%d_%H%M%S", gmtime(&now));
-        }
-
-        return std::string(the_date);
-    }
-
-    bool PhysiologyEngineManager::isRunning() {
-        return m_runThread;
-    }
+    bool PhysiologyEngineManager::isRunning() { return m_runThread; }
 
     void PhysiologyEngineManager::TickLoop() {
         while (m_runThread) {
@@ -115,16 +85,14 @@ namespace AMM {
         }
     }
 
-    void PhysiologyEngineManager::SendShutdown() {
-        return WriteNodeData("EXIT");
-    }
+    void PhysiologyEngineManager::SendShutdown() { return WriteNodeData("EXIT"); }
 
     void PhysiologyEngineManager::PrintAvailableNodePaths() {
         nodePathMap = bg->GetNodePathTable();
         auto it = nodePathMap->begin();
         while (it != nodePathMap->end()) {
             std::string word = it->first;
-            cout << word << endl;
+            std::cout << word << std::endl;
             ++it;
         }
     }
@@ -135,7 +103,7 @@ namespace AMM {
         while (it != nodePathMap->end()) {
             std::string node = it->first;
             double dbl = bg->GetNodePath(node);
-            cout << node << "\t\t\t" << dbl << endl;
+            std::cout << node << "\t\t\t" << dbl << std::endl;
             ++it;
         }
     }
@@ -144,7 +112,7 @@ namespace AMM {
         return static_cast<int>(nodePathMap->size());
     }
 
-    void PhysiologyEngineManager::WriteNodeData(string node) {
+    void PhysiologyEngineManager::WriteNodeData(std::string node) {
         AMM::Physiology::Node dataInstance;
         dataInstance.nodepath(node);
         dataInstance.dbl(bg->GetNodePath(node));
@@ -152,20 +120,20 @@ namespace AMM {
         node_publisher->write(&dataInstance);
     }
 
-
     void PhysiologyEngineManager::PublishData(bool force = false) {
         auto it = nodePathMap->begin();
         while (it != nodePathMap->end()) {
             // High-frequency nodes are published every tick
             // All other nodes are published every % 10 tick
-            if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) !=
-                 bg->highFrequencyNodes.end())
-                || (lastFrame % 11) == 0 || force) {
+            if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(),
+                           it->first) != bg->highFrequencyNodes.end()) ||
+                (lastFrame % 11) == 0 || force) {
                 if (it->first != "EXIT") {
                     try {
                         WriteNodeData(it->first);
-                    } catch (exception &e) {
-                        LOG_ERROR << "Unable to write node data  " << it->first << ": " << e.what();
+                    } catch (std::exception &e) {
+                        LOG_ERROR << "Unable to write node data  " << it->first << ": "
+                                  << e.what();
                     }
                 }
             }
@@ -200,31 +168,20 @@ namespace AMM {
         }
     }
 
-    void PhysiologyEngineManager::StartSimulation() {
-        bg->StartSimulation();
-    }
+    void PhysiologyEngineManager::StartSimulation() { bg->StartSimulation(); }
 
-    void PhysiologyEngineManager::StopSimulation() {
-        bg->StopSimulation();
-    }
+    void PhysiologyEngineManager::StopSimulation() { bg->StopSimulation(); }
 
-    void PhysiologyEngineManager::AdvanceTimeTick() {
-        bg->AdvanceTimeTick();
-    }
+    void PhysiologyEngineManager::AdvanceTimeTick() { bg->AdvanceTimeTick(); }
 
     void PhysiologyEngineManager::SetLogging(bool logging_enabled) {
         logging_enabled = logging_enabled;
         bg->logging_enabled = logging_enabled;
     }
 
-    int PhysiologyEngineManager::GetTickCount() {
-        return lastFrame;
-    }
+    int PhysiologyEngineManager::GetTickCount() { return lastFrame; }
 
-    void PhysiologyEngineManager::Status() {
-        bg->Status();
-    }
-
+    void PhysiologyEngineManager::Status() { bg->Status(); }
 
     void PhysiologyEngineManager::Shutdown() {
         LOG_TRACE << "[PhysiologyManager] Sending -1 values to all topics.";
@@ -236,14 +193,14 @@ namespace AMM {
         LOG_TRACE << "[PhysiologyManager][DDS] Shutting down DDS Connections.";
     }
 
-
 // Listener events
-    void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {
+    void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n,
+                                                SampleInfo_t *info) {
         // Placeholder to listen for higher-weighted node data
     }
 
-    void
-    PhysiologyEngineManager::onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) {
+    void PhysiologyEngineManager::onNewPhysiologyModificationData(
+            AMM::Physiology::Modification pm, SampleInfo_t *info) {
         // If the payload is empty, use the type to execute an XML file.
         // Otherwise, the payload is considered to be XML to execute.
         if (pm.payload().empty()) {
@@ -258,71 +215,92 @@ namespace AMM {
                 bg->ExecuteXMLCommand(pm.payload());
             }
         }
-
     }
 
-    void PhysiologyEngineManager::onNewCommandData(AMM::Physiology::Command cm, SampleInfo_t* info) {
+    void PhysiologyEngineManager::onNewCommandData(AMM::Physiology::Command cm,
+                                                   SampleInfo_t *info) {
         using namespace biogears;
         switch (cm.type()) {
             case AMM::Physiology::CMD::PainCommand: {
                 LOG_TRACE << "AMM::Physiology::CMD::PainCommand";
 
                 AMM::Physiology::PainStimulus::Data command;
-                eprosima::fastcdr::FastBuffer buffer{ &cm.payload()[0], cm.payload().size()};
+                eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine)
-                    {
-                        //Create variables for scenario
-                        SEPainStimulus PainStimulus; //pain object
-                        PainStimulus.SetLocation(command.location().description());
-                        PainStimulus.GetSeverity().SetValue(command.severity());
-                        engine->ProcessAction(PainStimulus);
-                        return engine;
-                    }
-                );
+                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
+                    // Create variables for scenario
+                    SEPainStimulus PainStimulus; // pain object
+                    PainStimulus.SetLocation(command.location().description());
+                    PainStimulus.GetSeverity().SetValue(command.severity());
+                    engine->ProcessAction(PainStimulus);
+                    return engine;
+                });
             }
-            break;
+                break;
             case AMM::Physiology::CMD::SepsisCommand: {
                 LOG_TRACE << "AMM::Physiology::CMD::SepsisCommand";
                 AMM::Physiology::Sepsis::Data command;
-                eprosima::fastcdr::FastBuffer buffer{ &cm.payload()[0], cm.payload().size()};
+                eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine)
-                    {
-                        //Create variables for scenario
-                        SESepsis sepsis; //pain object
-                        sepsis.BuildTissueResistorMap();
-                        auto tissueMap = sepsis.GetTissueResistorMap();
-                        switch (command.location()) {
-                            case AMM::Physiology::BoneTissue: sepsis.SetCompartment(tissueMap["BoneTissue"]);break;
-                            case AMM::Physiology::FatTissue:  sepsis.SetCompartment(tissueMap["FatTissue"]);break;
-                            case AMM::Physiology::GutTissue:  sepsis.SetCompartment(tissueMap["GutTissue"]);break;
-                            case AMM::Physiology::LeftKidneyTissue: sepsis.SetCompartment(tissueMap["LeftKidneyTissue"]); break;
-                            case AMM::Physiology::LeftLungTissue:   sepsis.SetCompartment(tissueMap["LeftLungTissue"]); break;
-                            case AMM::Physiology::LiverTissue:      sepsis.SetCompartment(tissueMap["LiverTissue"]); break;
-                            case AMM::Physiology::MuscleTissue:     sepsis.SetCompartment(tissueMap["MuscleTissue"]); break;
-                            case AMM::Physiology::MyocardiumTissue: sepsis.SetCompartment(tissueMap["MyocardiumTissue"]); break;
-                            case AMM::Physiology::RightKidneyTissue: sepsis.SetCompartment(tissueMap["RightKidneyTissu"]); break;
-                            case AMM::Physiology::RightLungTissue:  sepsis.SetCompartment(tissueMap["RightLungTissue"]); break;
-                            case AMM::Physiology::SkinTissue:       sepsis.SetCompartment(tissueMap["SkinTissue"]); break;
-                            case AMM::Physiology::SpleenTissue:     sepsis.SetCompartment(tissueMap["SpleenTissue"]); break;
-                        }
-                        sepsis.GetSeverity().SetValue(command.severity());
-                        engine->ProcessAction(sepsis);
-                        return engine;
+                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
+                    // Create variables for scenario
+                    SESepsis sepsis; // pain object
+                    sepsis.BuildTissueResistorMap();
+                    auto tissueMap = sepsis.GetTissueResistorMap();
+                    switch (command.location()) {
+                        case AMM::Physiology::BoneTissue:
+                            sepsis.SetCompartment(tissueMap["BoneTissue"]);
+                            break;
+                        case AMM::Physiology::FatTissue:
+                            sepsis.SetCompartment(tissueMap["FatTissue"]);
+                            break;
+                        case AMM::Physiology::GutTissue:
+                            sepsis.SetCompartment(tissueMap["GutTissue"]);
+                            break;
+                        case AMM::Physiology::LeftKidneyTissue:
+                            sepsis.SetCompartment(tissueMap["LeftKidneyTissue"]);
+                            break;
+                        case AMM::Physiology::LeftLungTissue:
+                            sepsis.SetCompartment(tissueMap["LeftLungTissue"]);
+                            break;
+                        case AMM::Physiology::LiverTissue:
+                            sepsis.SetCompartment(tissueMap["LiverTissue"]);
+                            break;
+                        case AMM::Physiology::MuscleTissue:
+                            sepsis.SetCompartment(tissueMap["MuscleTissue"]);
+                            break;
+                        case AMM::Physiology::MyocardiumTissue:
+                            sepsis.SetCompartment(tissueMap["MyocardiumTissue"]);
+                            break;
+                        case AMM::Physiology::RightKidneyTissue:
+                            sepsis.SetCompartment(tissueMap["RightKidneyTissu"]);
+                            break;
+                        case AMM::Physiology::RightLungTissue:
+                            sepsis.SetCompartment(tissueMap["RightLungTissue"]);
+                            break;
+                        case AMM::Physiology::SkinTissue:
+                            sepsis.SetCompartment(tissueMap["SkinTissue"]);
+                            break;
+                        case AMM::Physiology::SpleenTissue:
+                            sepsis.SetCompartment(tissueMap["SpleenTissue"]);
+                            break;
                     }
-                );
+                    sepsis.GetSeverity().SetValue(command.severity());
+                    engine->ProcessAction(sepsis);
+                    return engine;
+                });
             }
-            break;
+                break;
             default:
                 LOG_TRACE << "Unsupported CMD Type. Value sent was " << cm.type();
-            break;
+                break;
         };
     }
 
-    void PhysiologyEngineManager::onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {
+    void PhysiologyEngineManager::onNewCommandData(
+            AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {
         LOG_INFO << "Command received: " << cm.message();
         if (!cm.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = cm.message().substr(sysPrefix.size());
@@ -335,8 +313,9 @@ namespace AMM {
                 StopTickSimulation();
                 StopSimulation();
                 Shutdown();
-            } else if (value.compare("PAUSE_ENGINE") == 0 || value.compare("PAUSE_SIM") == 0) {
-                LOG_TRACE << "Paused engine" << endl;
+            } else if (value.compare("PAUSE_ENGINE") == 0 ||
+                       value.compare("PAUSE_SIM") == 0) {
+                LOG_TRACE << "Paused engine";
                 StopTickSimulation();
                 paused = true;
             } else if (value.compare("RESET_SIM") == 0) {
@@ -345,8 +324,8 @@ namespace AMM {
                 StopSimulation();
             } else if (value.compare("SAVE_STATE") == 0) {
                 std::ostringstream ss;
-                ss << "./states/SavedState_" << get_filename_date() << "@" << (int) std::round(bg->GetSimulationTime())
-                   << "s.xml";
+                ss << "./states/SavedState_" << get_filename_date() << "@"
+                   << (int) std::round(bg->GetSimulationTime()) << "s.xml";
                 LOG_TRACE << "Saved state file: " << ss.str();
                 bg->SaveState(ss.str());
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
@@ -360,7 +339,8 @@ namespace AMM {
         }
     }
 
-    void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {
+    void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti,
+                                                SampleInfo_t *info) {
         if (m_runThread) {
             if (ti.frame() == -1) {
                 StopTickSimulation();
@@ -386,7 +366,7 @@ namespace AMM {
                 AdvanceTimeTick();
                 PublishData(false);
             } else {
-                cout.flush();
+                std::cout.flush();
             }
         }
     }
@@ -395,7 +375,8 @@ namespace AMM {
         bg->SetPain(painSettings);
     }
 
-    void PhysiologyEngineManager::TestVentilator(const std::string &ventilatorSettings) {
+    void PhysiologyEngineManager::TestVentilator(
+            const std::string &ventilatorSettings) {
         bg->SetVentilator(ventilatorSettings);
     }
 
@@ -403,8 +384,10 @@ namespace AMM {
         bg->SetIVPump(pumpSettings);
     }
 
-    void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i, SampleInfo_t *info) {
-        LOG_TRACE << "Instrument data for " << i.instrument() << " received with payload: " << i.payload();
+    void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i,
+                                                      SampleInfo_t *info) {
+        LOG_TRACE << "Instrument data for " << i.instrument()
+                  << " received with payload: " << i.payload();
         std::string instrument(i.instrument());
         if (instrument == "ventilator") {
             bg->SetVentilator(i.payload());
@@ -413,6 +396,5 @@ namespace AMM {
         if (instrument == "ivpump") {
             bg->SetIVPump(i.payload());
         }
-
     }
 }

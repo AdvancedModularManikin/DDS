@@ -1,20 +1,24 @@
 #pragma once
 
-#include "AMM/DDS_Manager.h"
-
-#include "AMM/Listeners/DDS_Listeners.h"
-
-#include "AMM/Listeners/ListenerInterface.h"
-
-#include "AMM/PhysiologyThread.h"
-
-#include "AMM/BaseLogger.h"
-
 #include <chrono>
 #include <time.h>
 
 #include <mutex>
 #include <thread>
+
+#include "AMM/DDS_Manager.h"
+
+#include "AMM/Listeners/DDS_Listeners.h"
+
+#include "AMM/PhysiologyThread.h"
+
+#include "AMM/BaseLogger.h"
+
+#include <fastcdr/Cdr.h>
+#include <fastcdr/FastBuffer.h>
+
+#include <biogears/cdm/patient/actions/SEPainStimulus.h>
+#include <biogears/cdm/patient/actions/SESepsis.h>
 
 namespace AMM {
     class PhysiologyThread;
@@ -67,10 +71,6 @@ namespace AMM {
         int lastFrame = 0;
         bool logging_enabled = false;
 
-        std::string get_filename_date(void);
-
-        std::string get_random_string(size_t length);
-
         void TestVentilator(const std::string &ventilatorSettings);
 
         void TestPump(const std::string &pumpSettings);
@@ -80,10 +80,16 @@ namespace AMM {
         void onNewNodeData(Physiology::Node n, SampleInfo_t *info) override;
 
         void onNewTickData(Simulation::Tick ti, SampleInfo_t *info) override;
-        void onNewCommandData(Physiology::Command cm, SampleInfo_t* info) override;
-        void onNewCommandData(PatientAction::BioGears::Command cm, SampleInfo_t *info) override;
+
+        void onNewCommandData(Physiology::Command cm, SampleInfo_t *info) override;
+
+        void onNewCommandData(PatientAction::BioGears::Command cm,
+                              SampleInfo_t *info) override;
+
         void onNewInstrumentData(InstrumentData i, SampleInfo_t *info) override;
-        void onNewPhysiologyModificationData(Physiology::Modification, SampleInfo_t *info) override;
+
+        void onNewPhysiologyModificationData(Physiology::Modification,
+                                             SampleInfo_t *info) override;
 
         std::map<std::string, double (PhysiologyThread::*)()> *nodePathMap;
 
@@ -100,7 +106,5 @@ namespace AMM {
 
         std::mutex m_mutex;
         bool m_runThread;
-
     };
-
 }

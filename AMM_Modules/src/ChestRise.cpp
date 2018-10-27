@@ -1,11 +1,4 @@
-
 #include "AMM/DDS_Manager.h"
-
-#include <sys/ioctl.h>
-#include <linux/types.h>
-#include <linux/spi/spidev.h>
-
-#include <fcntl.h>    /* For O_RDWR */
 
 // Standard includes for SPI datagram library.
 extern "C" {
@@ -164,7 +157,7 @@ int main(int argc, char *argv[]) {
     mgr->InitializeReliableSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
     Publisher *command_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::commandTopic,
-                                                            AMM::DataTypes::getCommandType(), pub_listener);
+                                                                    AMM::DataTypes::getCommandType(), pub_listener);
 
 
     // Publish module configuration once we've set all our publishers and listeners
@@ -185,7 +178,7 @@ int main(int argc, char *argv[]) {
 
     //TODO idler loop here
     while(!closed)
-	  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     cout << "=== [ChestRise] Simulation stopped." << endl;
 

@@ -4,15 +4,15 @@
 #include <fastrtps/participant/Participant.h>
 #include <fastrtps/publisher/Publisher.h>
 #include <fastrtps/publisher/PublisherListener.h>
+#include <fastrtps/subscriber/SampleInfo.h>
 #include <fastrtps/subscriber/Subscriber.h>
 #include <fastrtps/subscriber/SubscriberListener.h>
-#include <fastrtps/subscriber/SampleInfo.h>
 
 #include <fastrtps/rtps/RTPSDomain.h>
 #include <fastrtps/rtps/builtin/data/WriterProxyData.h>
 
-#include <fastrtps/rtps/reader/ReaderListener.h>
 #include <fastrtps/rtps/builtin/discovery/endpoint/EDPSimple.h>
+#include <fastrtps/rtps/reader/ReaderListener.h>
 
 #include <fastrtps/utils/eClock.h>
 
@@ -30,31 +30,26 @@
 
 #include <fastrtps/rtps/resources/AsyncWriterThread.h>
 
-#include <fastrtps/rtps/writer/StatelessWriter.h>
 #include <fastrtps/rtps/reader/StatelessReader.h>
 #include <fastrtps/rtps/reader/WriterProxy.h>
+#include <fastrtps/rtps/writer/StatelessWriter.h>
 
-#include <fastrtps/rtps/history/WriterHistory.h>
 #include <fastrtps/rtps/history/ReaderHistory.h>
+#include <fastrtps/rtps/history/WriterHistory.h>
 
 #include <fastrtps/utils/TimeConversion.h>
 
 #include <fastrtps/rtps/participant/RTPSParticipant.h>
 
-#include <chrono>
-
 #include "AMM/BaseLogger.h"
 
-#include "AMM/DataTypes.h"
 #include "AMM/DDS_Manager.h"
 
-#include <pistache/http.h>
-#include <pistache/http_header.h>
-#include <pistache/router.h>
 #include <pistache/endpoint.h>
+#include <pistache/router.h>
 
-#include "rapidjson/writer.h"
 #include "rapidjson/document.h"
+#include "rapidjson/writer.h"
 
 #include <Net/UdpDiscoveryServer.h>
 
@@ -107,12 +102,10 @@ struct logEntry {
 
 std::map<std::string, double> nodeDataStorage;
 
-std::map<std::string, std::string> statusStorage = {
-        {"STATUS",       "NOT RUNNING"},
-        {"LAST_COMMAND", ""},
-        {"TICK",         "0"},
-        {"TIME",         "0"}
-};
+std::map<std::string, std::string> statusStorage = {{"STATUS",       "NOT RUNNING"},
+                                                    {"LAST_COMMAND", ""},
+                                                    {"TICK",         "0"},
+                                                    {"TIME",         "0"}};
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -123,12 +116,10 @@ database db("amm.db");
 
 void writeLogEntry(logEntry newLogEntry) {
     try {
-        db << "insert into events (source, topic, tick, timestamp, data) values (?,?,?,?,?);"
-           << newLogEntry.source
-           << newLogEntry.topic
-           << newLogEntry.tick
-           << newLogEntry.timestamp
-           << newLogEntry.data;
+        db << "insert into events (source, topic, tick, timestamp, data) values "
+              "(?,?,?,?,?);"
+           << newLogEntry.source << newLogEntry.topic << newLogEntry.tick
+           << newLogEntry.timestamp << newLogEntry.data;
     } catch (exception &e) {
         LOG_ERROR << "[EVENTLOG]" << e.what();
     }
@@ -136,7 +127,8 @@ void writeLogEntry(logEntry newLogEntry) {
 
 class AMMListener : public ListenerInterface {
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) override {
-        if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 && t.frame() > lastTick) {
+        if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 &&
+            t.frame() > lastTick) {
             statusStorage["STATUS"] = "RUNNING";
         }
         lastTick = t.frame();
@@ -144,11 +136,14 @@ class AMMListener : public ListenerInterface {
         statusStorage["TIME"] = to_string(t.time());
     }
 
-    void onNewScenarioData(AMM::Capability::Scenario sc, SampleInfo_t *info) override {};
+    void onNewScenarioData(AMM::Capability::Scenario sc,
+                           SampleInfo_t *info) override {};
 
-    void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t *info) override {
+    void onNewRenderModificationData(AMM::Render::Modification rm,
+                                     SampleInfo_t *info) override {
         int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count();
+                std::chrono::system_clock::now().time_since_epoch())
+                .count();
         GUID_t changeGuid = info->sample_identity.writer_guid();
         std::ostringstream module_guid;
         module_guid << changeGuid;
@@ -156,19 +151,16 @@ class AMMListener : public ListenerInterface {
         std::ostringstream logmessage;
         logmessage << "[" << rm.type() << "]" << rm.payload();
 
-        logEntry newLogEntry{
-                module_guid.str(),
-                "AMM::Render::Modification",
-                lastTick,
-                timestamp,
-                logmessage.str()
-        };
+        logEntry newLogEntry{module_guid.str(), "AMM::Render::Modification",
+                             lastTick, timestamp, logmessage.str()};
         writeLogEntry(newLogEntry);
     };
 
-    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) override {
+    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm,
+                                         SampleInfo_t *info) override {
         int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count();
+                std::chrono::system_clock::now().time_since_epoch())
+                .count();
         GUID_t changeGuid = info->sample_identity.writer_guid();
         std::ostringstream module_guid;
         module_guid << changeGuid;
@@ -178,30 +170,22 @@ class AMMListener : public ListenerInterface {
         std::ostringstream logmessage;
         logmessage << physModName;
 
-        logEntry newLogEntry{
-                module_guid.str(),
-                "AMM::Physiology::Modification",
-                lastTick,
-                timestamp,
-                logmessage.str()
-        };
+        logEntry newLogEntry{module_guid.str(), "AMM::Physiology::Modification",
+                             lastTick, timestamp, logmessage.str()};
         writeLogEntry(newLogEntry);
     };
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c,
+                          SampleInfo_t *info) override {
         int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch()).count();
+                std::chrono::system_clock::now().time_since_epoch())
+                .count();
         GUID_t changeGuid = info->sample_identity.writer_guid();
         std::ostringstream module_guid;
         module_guid << changeGuid;
 
-        logEntry newLogEntry{
-                module_guid.str(),
-                "AMM::Command",
-                lastTick,
-                timestamp,
-                c.message()
-        };
+        logEntry newLogEntry{module_guid.str(), "AMM::Command", lastTick, timestamp,
+                             c.message()};
         writeLogEntry(newLogEntry);
 
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
@@ -226,10 +210,12 @@ class AMMListener : public ListenerInterface {
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         nodeDataStorage[n.nodepath()] = n.dbl();
     }
-
 };
 
-void SendPhysiologyModification(const std::string &type, const std::string &location, const std::string &practitioner, const std::string &payload) {
+void SendPhysiologyModification(const std::string &type,
+                                const std::string &location,
+                                const std::string &practitioner,
+                                const std::string &payload) {
     LOG_DEBUG << "Publishing a phys mod: " << type;
     AMM::Physiology::Modification modInstance;
     modInstance.type(type);
@@ -239,7 +225,10 @@ void SendPhysiologyModification(const std::string &type, const std::string &loca
     mgr->PublishPhysiologyModification(modInstance);
 }
 
-void SendRenderModification(const std::string &type, const std::string &location, const std::string &practitioner, const std::string &payload) {
+void SendRenderModification(const std::string &type,
+                            const std::string &location,
+                            const std::string &practitioner,
+                            const std::string &payload) {
     LOG_DEBUG << "Publishing a render mod: " << type;
     AMM::Render::Modification modInstance;
     modInstance.type(type);
@@ -251,7 +240,12 @@ void SendRenderModification(const std::string &type, const std::string &location
     mgr->PublishRenderModification(modInstance);
 }
 
-void SendPerformanceAssessment(const std::string &assessment_type, const std::string &location, const std::string &practitioner, const std::string &assessment_info, const std::string &step, const std::string &comment) {
+void SendPerformanceAssessment(const std::string &assessment_type,
+                               const std::string &location,
+                               const std::string &practitioner,
+                               const std::string &assessment_info,
+                               const std::string &step,
+                               const std::string &comment) {
     LOG_INFO << "Publishing an assessment: " << assessment_type;
     AMM::Performance::Assessment assessInstance;
     assessInstance.assessment_type(assessment_type);
@@ -280,30 +274,26 @@ void printCookies(const Http::Request &req) {
     std::cout << "]" << std::endl;
 }
 
-
 namespace Generic {
 
     void handleReady(const Rest::Request &request, Http::ResponseWriter response) {
         response.send(Http::Code::Ok, "1");
     }
-
 }
 
 class DDSEndpoint {
 
-
 public:
-
-    explicit DDSEndpoint(Address addr) :
-            httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {
-
-    }
+    explicit DDSEndpoint(Address addr)
+            : httpEndpoint(std::make_shared<Http::Endpoint>(addr)) {}
 
     void init(int thr = 2) {
-        auto opts = Http::Endpoint::options().threads(thr).flags(Tcp::Options::InstallSignalHandler).maxPayload(65536);
+        auto opts = Http::Endpoint::options()
+                .threads(thr)
+                .flags(Tcp::Options::InstallSignalHandler)
+                .maxPayload(65536);
         httpEndpoint->init(opts);
         setupRoutes();
-
     }
 
     void start() {
@@ -311,56 +301,76 @@ public:
         httpEndpoint->serveThreaded();
     }
 
-    void shutdown() {
-        httpEndpoint->shutdown();
-    }
+    void shutdown() { httpEndpoint->shutdown(); }
 
 private:
-
     void setupRoutes() {
         using namespace Rest;
 
-        Routes::Get(router, "/instance", Routes::bind(&DDSEndpoint::getInstance, this));
-        Routes::Get(router, "/node/:name", Routes::bind(&DDSEndpoint::getNode, this));
+        Routes::Get(router, "/instance",
+                    Routes::bind(&DDSEndpoint::getInstance, this));
+        Routes::Get(router, "/node/:name",
+                    Routes::bind(&DDSEndpoint::getNode, this));
         Routes::Get(router, "/nodes", Routes::bind(&DDSEndpoint::getNodes, this));
-        Routes::Get(router, "/command/:name", Routes::bind(&DDSEndpoint::issueCommand, this));
+        Routes::Get(router, "/command/:name",
+                    Routes::bind(&DDSEndpoint::issueCommand, this));
         Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
         Routes::Get(router, "/debug", Routes::bind(&DDSEndpoint::doDebug, this));
 
-        Routes::Get(router, "/events", Routes::bind(&DDSEndpoint::getEventLog, this));
-        Routes::Delete(router, "/events", Routes::bind(&DDSEndpoint::clearEventLog, this));
+        Routes::Get(router, "/events",
+                    Routes::bind(&DDSEndpoint::getEventLog, this));
+        Routes::Delete(router, "/events",
+                       Routes::bind(&DDSEndpoint::clearEventLog, this));
 
-        Routes::Get(router, "/modules/count", Routes::bind(&DDSEndpoint::getModuleCount, this));
-        Routes::Get(router, "/modules", Routes::bind(&DDSEndpoint::getModules, this));
-        Routes::Get(router, "/module/id/:id", Routes::bind(&DDSEndpoint::getModuleById, this));
-        Routes::Get(router, "/module/guid/:guid", Routes::bind(&DDSEndpoint::getModuleByGuid, this));
+        Routes::Get(router, "/modules/count",
+                    Routes::bind(&DDSEndpoint::getModuleCount, this));
+        Routes::Get(router, "/modules",
+                    Routes::bind(&DDSEndpoint::getModules, this));
+        Routes::Get(router, "/module/id/:id",
+                    Routes::bind(&DDSEndpoint::getModuleById, this));
+        Routes::Get(router, "/module/guid/:guid",
+                    Routes::bind(&DDSEndpoint::getModuleByGuid, this));
 
-        Routes::Get(router, "/shutdown", Routes::bind(&DDSEndpoint::doShutdown, this));
+        Routes::Get(router, "/shutdown",
+                    Routes::bind(&DDSEndpoint::doShutdown, this));
 
-        Routes::Get(router, "/actions", Routes::bind(&DDSEndpoint::getActions, this));
-        Routes::Get(router, "/action/:name", Routes::bind(&DDSEndpoint::getAction, this));
-        Routes::Post(router, "/action", Routes::bind(&DDSEndpoint::createAction, this));
-        Routes::Put(router, "/action/:name", Routes::bind(&DDSEndpoint::updateAction, this));
-        Routes::Delete(router, "/action/:name", Routes::bind(&DDSEndpoint::deleteAction, this));
+        Routes::Get(router, "/actions",
+                    Routes::bind(&DDSEndpoint::getActions, this));
+        Routes::Get(router, "/action/:name",
+                    Routes::bind(&DDSEndpoint::getAction, this));
+        Routes::Post(router, "/action",
+                     Routes::bind(&DDSEndpoint::createAction, this));
+        Routes::Put(router, "/action/:name",
+                    Routes::bind(&DDSEndpoint::updateAction, this));
+        Routes::Delete(router, "/action/:name",
+                       Routes::bind(&DDSEndpoint::deleteAction, this));
 
-        Routes::Post(router, "/execute", Routes::bind(&DDSEndpoint::executeCommand, this));
-        Routes::Options(router, "/execute", Routes::bind(&DDSEndpoint::executeOptions, this));
+        Routes::Post(router, "/execute",
+                     Routes::bind(&DDSEndpoint::executeCommand, this));
+        Routes::Options(router, "/execute",
+                        Routes::bind(&DDSEndpoint::executeOptions, this));
 
-        Routes::Post(router, "/topic/physiology_modification",
-                     Routes::bind(&DDSEndpoint::executePhysiologyModification, this));
-        Routes::Post(router, "/topic/render_modification", Routes::bind(&DDSEndpoint::executeRenderModification, this));
-        Routes::Post(router, "/topic/performance_assessment",
-                     Routes::bind(&DDSEndpoint::executePerformanceAssessment, this));
-        Routes::Options(router, "/topic/:mod_type", Routes::bind(&DDSEndpoint::executeOptions, this));
+        Routes::Post(
+                router, "/topic/physiology_modification",
+                Routes::bind(&DDSEndpoint::executePhysiologyModification, this));
+        Routes::Post(router, "/topic/render_modification",
+                     Routes::bind(&DDSEndpoint::executeRenderModification, this));
+        Routes::Post(
+                router, "/topic/performance_assessment",
+                Routes::bind(&DDSEndpoint::executePerformanceAssessment, this));
+        Routes::Options(router, "/topic/:mod_type",
+                        Routes::bind(&DDSEndpoint::executeOptions, this));
 
-        Routes::Get(router, "/patients", Routes::bind(&DDSEndpoint::getPatients, this));
+        Routes::Get(router, "/patients",
+                    Routes::bind(&DDSEndpoint::getPatients, this));
 
         Routes::Get(router, "/states", Routes::bind(&DDSEndpoint::getStates, this));
-        Routes::Get(router, "/states/:name/delete", Routes::bind(&DDSEndpoint::deleteState, this));
-
+        Routes::Get(router, "/states/:name/delete",
+                    Routes::bind(&DDSEndpoint::deleteState, this));
     }
 
-    void getInstance(const Rest::Request &request, Http::ResponseWriter response) {
+    void getInstance(const Rest::Request &request,
+                     Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
 
@@ -369,7 +379,6 @@ private:
                              std::istreambuf_iterator<char>());
         t.close();
 
-
         writer.StartObject();
         writer.Key("name");
         writer.String(hostname);
@@ -377,13 +386,11 @@ private:
         writer.String(scenario.c_str());
         writer.EndObject();
 
-
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
     void getStates(const Rest::Request &request, Http::ResponseWriter response) {
-
 
         StringBuffer s;
         Writer<StringBuffer> writer(s);
@@ -413,7 +420,8 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
-    void deleteState(const Rest::Request &request, Http::ResponseWriter response) {
+    void deleteState(const Rest::Request &request,
+                     Http::ResponseWriter response) {
         auto name = request.param(":name").as<std::string>();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         if (name != "StandardMale@0s.xml") {
@@ -423,16 +431,21 @@ private:
             if (exists(deletePath) && is_regular_file(deletePath)) {
                 LOG_INFO << "Deleting " << deletePath;
                 boost::filesystem::remove(deletePath);
-                response.send(Pistache::Http::Code::Ok, "Deleted", MIME(Application, Json));
+                response.send(Pistache::Http::Code::Ok, "Deleted",
+                              MIME(Application, Json));
             } else {
-                response.send(Pistache::Http::Code::Forbidden, "Unable to delete state file", MIME(Application, Json));
+                response.send(Pistache::Http::Code::Forbidden,
+                              "Unable to delete state file", MIME(Application, Json));
             }
         } else {
-            response.send(Pistache::Http::Code::Forbidden, "Can not delete default state file", MIME(Application, Json));
+            response.send(Pistache::Http::Code::Forbidden,
+                          "Can not delete default state file",
+                          MIME(Application, Json));
         }
     }
 
-    void getPatients(const Rest::Request &request, Http::ResponseWriter response) {
+    void getPatients(const Rest::Request &request,
+                     Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
 
@@ -458,7 +471,8 @@ private:
         writer.EndArray();
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Pistache::Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        response.send(Pistache::Http::Code::Ok, s.GetString(),
+                      MIME(Application, Json));
     }
 
     void getActions(const Rest::Request &request, Http::ResponseWriter response) {
@@ -487,20 +501,24 @@ private:
         writer.EndArray();
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.send(Pistache::Http::Code::Ok, s.GetString(), MIME(Application, Json));
+        response.send(Pistache::Http::Code::Ok, s.GetString(),
+                      MIME(Application, Json));
     }
 
-    void executeCommand(const Rest::Request &request, Http::ResponseWriter response) {
+    void executeCommand(const Rest::Request &request,
+                        Http::ResponseWriter response) {
         Document document;
         document.Parse(request.body().c_str());
         std::string payload = document["payload"].GetString();
-        SendPhysiologyModification(payload, "","","");
+        SendPhysiologyModification(payload, "", "", "");
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
-        response.send(Pistache::Http::Code::Ok, "{\"message\":\"Command executed\"}");
+        response.send(Pistache::Http::Code::Ok,
+                      "{\"message\":\"Command executed\"}");
     }
 
-    void executePhysiologyModification(const Rest::Request &request, Http::ResponseWriter response) {
+    void executePhysiologyModification(const Rest::Request &request,
+                                       Http::ResponseWriter response) {
         std::string type, location, practitioner, payload;
         Document document;
         document.Parse(request.body().c_str());
@@ -516,13 +534,15 @@ private:
         if (document.HasMember("payload")) {
             payload = document["payload"].GetString();
         }
-        SendPhysiologyModification(type,location,practitioner,payload);
+        SendPhysiologyModification(type, location, practitioner, payload);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
-        response.send(Pistache::Http::Code::Ok, "{\"message\":\"Physiology modification published\"}");
+        response.send(Pistache::Http::Code::Ok,
+                      "{\"message\":\"Physiology modification published\"}");
     }
 
-    void executeRenderModification(const Rest::Request &request, Http::ResponseWriter response) {
+    void executeRenderModification(const Rest::Request &request,
+                                   Http::ResponseWriter response) {
         std::string type, location, practitioner, payload;
         Document document;
         document.Parse(request.body().c_str());
@@ -538,13 +558,15 @@ private:
         if (document.HasMember("payload")) {
             payload = document["payload"].GetString();
         }
-        SendRenderModification(type,location,practitioner,payload);
+        SendRenderModification(type, location, practitioner, payload);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
-        response.send(Pistache::Http::Code::Ok, "{\"message\":\"Render modification published\"}");
+        response.send(Pistache::Http::Code::Ok,
+                      "{\"message\":\"Render modification published\"}");
     }
 
-    void executePerformanceAssessment(const Rest::Request &request, Http::ResponseWriter response) {
+    void executePerformanceAssessment(const Rest::Request &request,
+                                      Http::ResponseWriter response) {
         std::string type, location, practitioner, payload, info, step, comment;
         Document document;
         document.Parse(request.body().c_str());
@@ -566,28 +588,31 @@ private:
         if (document.HasMember("comment")) {
             comment = document["comment"].GetString();
         }
-        SendPerformanceAssessment(type, location, practitioner, info, step, comment);
+        SendPerformanceAssessment(type, location, practitioner, info, step,
+                                  comment);
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
-        response.send(Pistache::Http::Code::Ok, "{\"message\":\"Performance assessment published\"}");
+        response.send(Pistache::Http::Code::Ok,
+                      "{\"message\":\"Performance assessment published\"}");
     }
 
-    void executeOptions(const Rest::Request &request, Http::ResponseWriter response) {
+    void executeOptions(const Rest::Request &request,
+                        Http::ResponseWriter response) {
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
         response.send(Pistache::Http::Code::Ok, "{\"message\":\"success\"}");
     }
 
+    void createAction(const Rest::Request &request,
+                      Http::ResponseWriter response) {}
 
-    void createAction(const Rest::Request &request, Http::ResponseWriter response) {
-
-    }
-
-    void deleteAction(const Rest::Request &request, Http::ResponseWriter response) {
+    void deleteAction(const Rest::Request &request,
+                      Http::ResponseWriter response) {
         auto name = request.param(":name").as<std::string>();
     }
 
-    void updateAction(const Rest::Request &request, Http::ResponseWriter response) {
+    void updateAction(const Rest::Request &request,
+                      Http::ResponseWriter response) {
         auto name = request.param(":name").as<std::string>();
     }
 
@@ -595,7 +620,8 @@ private:
         auto name = request.param(":name").as<std::string>();
     }
 
-    void issueCommand(const Rest::Request &request, Http::ResponseWriter response) {
+    void issueCommand(const Rest::Request &request,
+                      Http::ResponseWriter response) {
         auto name = request.param(":name").as<std::string>();
         SendCommand(name);
         StringBuffer s;
@@ -608,8 +634,8 @@ private:
         response.send(Http::Code::Ok, s.GetString());
     }
 
-
-    void getModuleById(const Rest::Request &request, Http::ResponseWriter response) {
+    void getModuleById(const Rest::Request &request,
+                       Http::ResponseWriter response) {
         auto id = request.param(":id").as<std::string>();
         StringBuffer s;
         Writer<StringBuffer> writer(s);
@@ -623,9 +649,9 @@ private:
               " FROM "
               " module_capabilities "
               " WHERE module_id = ?"
-           << id
-           >> [&](string module_id, string module_guid, string module_name, string capabilities, string manufacturer,
-                  string model) {
+           << id >>
+           [&](string module_id, string module_guid, string module_name,
+               string capabilities, string manufacturer, string model) {
                writer.StartObject();
 
                writer.Key("Module_ID");
@@ -651,10 +677,10 @@ private:
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
-
     }
 
-    void getModuleByGuid(const Rest::Request &request, Http::ResponseWriter response) {
+    void getModuleByGuid(const Rest::Request &request,
+                         Http::ResponseWriter response) {
         auto guid = request.param(":guid").as<std::string>();
         StringBuffer s;
         Writer<StringBuffer> writer(s);
@@ -668,9 +694,9 @@ private:
               " FROM "
               " module_capabilities "
               " WHERE module_guid = ?"
-           << guid
-           >> [&](string module_id, string module_guid, string module_name, string capabilities, string manufacturer,
-                  string model) {
+           << guid >>
+           [&](string module_id, string module_guid, string module_name,
+               string capabilities, string manufacturer, string model) {
                writer.StartObject();
 
                writer.Key("Module_ID");
@@ -698,7 +724,8 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
-    void getModuleCount(const Rest::Request &request, Http::ResponseWriter response) {
+    void getModuleCount(const Rest::Request &request,
+                        Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
 
@@ -731,10 +758,11 @@ private:
               "module_capabilities.model as model "
               " FROM "
               " module_capabilities "
-              " LEFT JOIN module_status ON module_capabilities.module_id = module_status.module_id;"
-           >> [&](string module_id, string module_guid, string module_name, string capabilities, string capability,
-                  string capability_status,
-                  string manufacturer, string model) {
+              " LEFT JOIN module_status ON module_capabilities.module_id = "
+              "module_status.module_id;" >>
+           [&](string module_id, string module_guid, string module_name,
+               string capabilities, string capability, string capability_status,
+               string manufacturer, string model) {
                writer.StartObject();
 
                writer.Key("Module_ID");
@@ -764,14 +792,14 @@ private:
                writer.EndObject();
            };
 
-
         writer.EndArray();
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
-    void clearEventLog(const Rest::Request &request, Http::ResponseWriter response) {
+    void clearEventLog(const Rest::Request &request,
+                       Http::ResponseWriter response) {
         try {
             db << "delete from events;";
         } catch (exception &e) {
@@ -780,10 +808,12 @@ private:
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
-        response.send(Pistache::Http::Code::Ok, "{\"message\":\"Event log cleared\"}");
+        response.send(Pistache::Http::Code::Ok,
+                      "{\"message\":\"Event log cleared\"}");
     }
 
-    void getEventLog(const Rest::Request &request, Http::ResponseWriter response) {
+    void getEventLog(const Rest::Request &request,
+                     Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();
@@ -795,23 +825,23 @@ private:
               "timestamp,"
               "data "
               " FROM "
-              " events;"
-           >> [&](string source, string topic, int64_t tick, int64_t timestamp, string data) {
+              " events;" >>
+           [&](string source, string topic, int64_t tick, int64_t timestamp,
+               string data) {
 
-            writer.StartObject();
-            writer.Key("source");
-            writer.String(source.c_str());
-            writer.Key("tick");
-            writer.Uint64(tick);
-            writer.Key("timestamp");
-            writer.Uint64(timestamp);
-            writer.Key("topic");
-            writer.String(topic.c_str());
-            writer.Key("message");
-            writer.String(data.c_str());
-            writer.EndObject();
+               writer.StartObject();
+               writer.Key("source");
+               writer.String(source.c_str());
+               writer.Key("tick");
+               writer.Uint64(tick);
+               writer.Key("timestamp");
+               writer.Uint64(timestamp);
+               writer.Key("topic");
+               writer.String(topic.c_str());
+               writer.Key("message");
+               writer.String(data.c_str());
+               writer.EndObject();
         };
-
 
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
@@ -831,7 +861,6 @@ private:
             writer.EndObject();
             ++nit;
         }
-
 
         auto sit = statusStorage.begin();
         while (sit != statusStorage.end()) {
@@ -865,7 +894,6 @@ private:
         }
     }
 
-
     void doDebug(const Rest::Request &request, Http::ResponseWriter response) {
         printCookies(request);
         response.cookies().add(Http::Cookie("lang", "en-US"));
@@ -886,7 +914,6 @@ private:
     Rest::Router router;
 };
 
-
 void UdpDiscoveryThread() {
     if (discovery) {
         UdpDiscoveryServer udps(io_service, discoveryPort);
@@ -898,7 +925,9 @@ void UdpDiscoveryThread() {
 }
 
 static void show_usage(const std::string &name) {
-    cerr << "Usage: " << name << " <option(s)>" << "\nOptions:\n" << "\t-h,--help\t\tShow this help message\n"
+    cerr << "Usage: " << name << " <option(s)>"
+         << "\nOptions:\n"
+         << "\t-h,--help\t\tShow this help message\n"
          << endl;
 }
 
@@ -929,8 +958,10 @@ int main(int argc, char *argv[]) {
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
-    auto *physmod_sub_listener = new DDS_Listeners::PhysiologyModificationListener();
-    auto *rendermod_sub_listener = new DDS_Listeners::RenderModificationListener();
+    auto *physmod_sub_listener =
+            new DDS_Listeners::PhysiologyModificationListener();
+    auto *rendermod_sub_listener =
+            new DDS_Listeners::RenderModificationListener();
 
     AMMListener rl;
     node_sub_listener->SetUpstream(&rl);
@@ -939,31 +970,32 @@ int main(int argc, char *argv[]) {
     physmod_sub_listener->SetUpstream(&rl);
     rendermod_sub_listener->SetUpstream(&rl);
 
-    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), tick_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(),
-                              rendermod_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(),
-                              physmod_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic,
+                              AMM::DataTypes::getNodeType(), node_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic,
+                                      AMM::DataTypes::getCommandType(),
+                                      command_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::tickTopic,
+                              AMM::DataTypes::getTickType(), tick_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic,
+                                      AMM::DataTypes::getRenderModificationType(),
+                                      rendermod_sub_listener);
+    mgr->InitializeReliableSubscriber(
+            AMM::DataTypes::physModTopic,
+            AMM::DataTypes::getPhysiologyModificationType(), physmod_sub_listener);
 
-    // Publish module configuration once we've set all our publishers and listeners
+    // Publish module configuration once we've set all our publishers and
+    // listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
-            mgr->module_id,
-            nodeString,
-            "Vcom3D",
-            "REST_Adapter",
-            "00001",
-            "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/module_capabilities/rest_adapter_capabilities.xml")
-    );
+            mgr->module_id, nodeString, "Vcom3D", "REST_Adapter", "00001", "0.0.1",
+            mgr->GetCapabilitiesAsString(
+                    "mule1/module_capabilities/rest_adapter_capabilities.xml"));
 
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     std::thread udpD(UdpDiscoveryThread);
-
 
     gethostname(hostname, HOST_NAME_MAX);
 

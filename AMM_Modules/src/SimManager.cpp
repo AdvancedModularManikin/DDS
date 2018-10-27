@@ -10,29 +10,30 @@ using namespace AMM;
 bool closed = false;
 
 static void show_usage(const std::string &name) {
-    cerr << "Usage: " << name << " <option(s)>" <<
-         "\nOptions:\n" <<
-         "\t-r,--rate <sample_rate>\tSpecify the sample rate to run at (samples per second)\n" <<
-         "\t-a\t\t\tAuto-start ticks\n" <<
-         "\t-d\t\t\tDaemonize\n" <<
-         "\t-h,--help\t\t\tShow this help message\n" <<
-         endl;
+    cerr << "Usage: " << name << " <option(s)>"
+         << "\nOptions:\n"
+         << "\t-r,--rate <sample_rate>\tSpecify the sample rate to run at "
+            "(samples per second)\n"
+         << "\t-a\t\t\tAuto-start ticks\n"
+         << "\t-d\t\t\tDaemonize\n"
+         << "\t-h,--help\t\t\tShow this help message\n"
+         << endl;
 }
 
-void show_menu(SimulationManager* simManager) {
+void show_menu(SimulationManager *simManager) {
     using namespace AMM::Physiology;
     string action;
 
-    //std::endl is an automatic flush and should be avoided unless required.
+    // std::endl is an automatic flush and should be avoided unless required.
     cout << "\n"
-      " [1]Status\n"
-      " [2]Run/Resume\n"
-      " [3]Pause/Stop\n"
-      " [4]Shutdown\n"
-      " [5]Command console\n"
-      " [6]Sepsis Test\n"
-      " [7]Pain Test\n"
-      " >> ";
+            " [1]Status\n"
+            " [2]Run/Resume\n"
+            " [3]Pause/Stop\n"
+            " [4]Shutdown\n"
+            " [5]Command console\n"
+            " [6]Sepsis Test\n"
+            " [7]Pain Test\n"
+            " >> ";
     getline(cin, action);
     transform(action.begin(), action.end(), action.begin(), ::toupper);
 
@@ -43,7 +44,8 @@ void show_menu(SimulationManager* simManager) {
             cout << " == Not currently running, paused at tick count: ";
         }
         cout << simManager->GetTickCount() << endl;
-        cout << "  = Operating at " << simManager->GetSampleRate() << " frames per second." << endl;
+        cout << "  = Operating at " << simManager->GetSampleRate()
+             << " frames per second." << endl;
     } else if (action == "2") {
         if (!simManager->isRunning()) {
             cout << " == Starting simulation..." << endl;
@@ -65,7 +67,8 @@ void show_menu(SimulationManager* simManager) {
             cout << " == Stopping simulation and sending shutdown notice..." << endl;
         }
         simManager->StopSimulation();
-        cout << " == Exited after " << simManager->GetTickCount() << " ticks." << endl;
+        cout << " == Exited after " << simManager->GetTickCount() << " ticks."
+             << endl;
         cout << "=== [SimManager] Shutting down Simulation Manager." << endl;
         closed = true;
         simManager->Shutdown();
@@ -85,45 +88,70 @@ void show_menu(SimulationManager* simManager) {
                 simManager->SendCommand(command);
             }
         } while (!consoleclosed);
-    } else if ( action == "6" ) { // Sepsis Test
+    } else if (action == "6") { // Sepsis Test
         using namespace AMM::Physiology::Sepsis;
         Sepsis::Data sepsis;
 
         int choice;
         double severity;
 
-        std::cout  <<  "Enter Sepsis paramaters"
-                       "\nCompartments:"
-                       "\n\t[ 1] BoneTissue"
-                       "\n\t[ 2] FatTissue"
-                       "\n\t[ 3] GutTissue"
-                       "\n\t[ 4] LeftKidneyTissue"
-                       "\n\t[ 5] LeftLungTissue"
-                       "\n\t[ 6] LiverTissue"
-                       "\n\t[ 7] MuscleTissue"
-                       "\n\t[ 8] MyocardiumTissue"
-                       "\n\t[ 9] RightKidneyTissue"
-                       "\n\t[10] RightLungTissue"
-                       "\n\t[11] SkinTissue"
-                       "\n\t[12] SpleenTissue"
-                       "\nEnter a tissue compartment: ";
-        std::cin  >> choice; 
+        std::cout << "Enter Sepsis paramaters"
+                     "\nCompartments:"
+                     "\n\t[ 1] BoneTissue"
+                     "\n\t[ 2] FatTissue"
+                     "\n\t[ 3] GutTissue"
+                     "\n\t[ 4] LeftKidneyTissue"
+                     "\n\t[ 5] LeftLungTissue"
+                     "\n\t[ 6] LiverTissue"
+                     "\n\t[ 7] MuscleTissue"
+                     "\n\t[ 8] MyocardiumTissue"
+                     "\n\t[ 9] RightKidneyTissue"
+                     "\n\t[10] RightLungTissue"
+                     "\n\t[11] SkinTissue"
+                     "\n\t[12] SpleenTissue"
+                     "\nEnter a tissue compartment: ";
+        std::cin >> choice;
         std::cout << "Sepsis Severity: ";
-        std::cin  >> severity; sepsis.severity(severity);
+        std::cin >> severity;
+        sepsis.severity(severity);
 
         switch (choice) {
-            case 1:   sepsis.location(AMM::Physiology::BoneTissue); break;
-            case 2:   sepsis.location(AMM::Physiology::FatTissue); break;
-            case 3:   sepsis.location(AMM::Physiology::GutTissue); break;
-            case 4:   sepsis.location(AMM::Physiology::LeftKidneyTissue); break;
-            case 5:   sepsis.location(AMM::Physiology::LeftLungTissue); break;
-            case 6:   sepsis.location(AMM::Physiology::LiverTissue); break;
-            case 7:   sepsis.location(AMM::Physiology::MuscleTissue); break;
-            case 8:   sepsis.location(AMM::Physiology::MyocardiumTissue); break;
-            case 9:   sepsis.location(AMM::Physiology::RightKidneyTissue); break;
-            case 10:  sepsis.location(AMM::Physiology::RightLungTissue); break;
-            case 11:  sepsis.location(AMM::Physiology::SkinTissue); break;
-            case 12:  sepsis.location(AMM::Physiology::SpleenTissue); break;
+            case 1:
+                sepsis.location(AMM::Physiology::BoneTissue);
+                break;
+            case 2:
+                sepsis.location(AMM::Physiology::FatTissue);
+                break;
+            case 3:
+                sepsis.location(AMM::Physiology::GutTissue);
+                break;
+            case 4:
+                sepsis.location(AMM::Physiology::LeftKidneyTissue);
+                break;
+            case 5:
+                sepsis.location(AMM::Physiology::LeftLungTissue);
+                break;
+            case 6:
+                sepsis.location(AMM::Physiology::LiverTissue);
+                break;
+            case 7:
+                sepsis.location(AMM::Physiology::MuscleTissue);
+                break;
+            case 8:
+                sepsis.location(AMM::Physiology::MyocardiumTissue);
+                break;
+            case 9:
+                sepsis.location(AMM::Physiology::RightKidneyTissue);
+                break;
+            case 10:
+                sepsis.location(AMM::Physiology::RightLungTissue);
+                break;
+            case 11:
+                sepsis.location(AMM::Physiology::SkinTissue);
+                break;
+            case 12:
+                sepsis.location(AMM::Physiology::SpleenTissue);
+                break;
         }
 
         auto buffer = eprosima::fastcdr::FastBuffer();
@@ -131,23 +159,26 @@ void show_menu(SimulationManager* simManager) {
         data << sepsis;
         std::cout << "Sending Sepsis Message\n";
         simManager->SendCommand(AMM::Physiology::SepsisCommand, data);
-    } else if ( action == "7" ) { // Paint Test
+    } else if (action == "7") { // Paint Test
         using namespace AMM::Physiology::PainStimulus;
         PainStimulus::Data pain;
         FMA_Location loc;
         int id;
         std::string description;
         double severity;
-        
+
         std::cout << "Enter Pain Stimulous paramaters:\n"
-                     "Location ID: "; 
-        std::cin  >> id; loc.id(id);
+                     "Location ID: ";
+        std::cin >> id;
+        loc.id(id);
         cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         std::cout << "Location description: ";
-        std::getline(std::cin,description); loc.description(description);
+        std::getline(std::cin, description);
+        loc.description(description);
         pain.location(loc);
         std::cout << "Pain Severity: ";
-        std::cin  >> severity; pain.severity(severity);
+        std::cin >> severity;
+        pain.severity(severity);
         cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
         auto buffer = eprosima::fastcdr::FastBuffer();
@@ -161,11 +192,11 @@ void show_menu(SimulationManager* simManager) {
 }
 
 int main(int argc, char *argv[]) {
-	int sampleRate = 50;
-	int daemonize = 0;
-	int autostart = 0;
+    int sampleRate = 50;
+    int daemonize = 0;
+    int autostart = 0;
     LOG_INFO << "Simulation Manager starting";
-	
+
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -182,17 +213,16 @@ int main(int argc, char *argv[]) {
         }
 
         if ((arg == "-r") || (arg == "--rate")) {
-            istringstream ss(argv[i + 1]);            
+            istringstream ss(argv[i + 1]);
             if (!(ss >> sampleRate)) {
                 cerr << "Invalid sample rate: " << argv[i + 1] << '\n';
                 return 0;
             }
-            
         }
     }
 
-	SimulationManager simManager;
-	simManager.SetSampleRate(sampleRate);
+    SimulationManager simManager;
+    simManager.SetSampleRate(sampleRate);
 
     if (autostart == 1) {
         LOG_INFO << "Auto-starting simulation";
@@ -210,4 +240,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-

@@ -1,42 +1,14 @@
 #include "PhysiologyThread.h"
 
-using namespace std;
-using namespace AMM::Physiology;
-using namespace biogears;
-
-std::vector<std::string> explode(const std::string &delimiter, const std::string &str) {
-    std::vector<std::string> arr;
-
-    int strleng = str.length();
-    int delleng = delimiter.length();
-    if (delleng == 0)
-        return arr;//no change
-
-    int i = 0;
-    int k = 0;
-    while (i < strleng) {
-        int j = 0;
-        while (i + j < strleng && j < delleng && str[i + j] == delimiter[j])
-            j++;
-        if (j == delleng)//found delimiter
-        {
-            arr.push_back(str.substr(k, i - k));
-            i += delleng;
-            k = i;
-        } else {
-            i++;
-        }
-    }
-    arr.push_back(str.substr(k, i - k));
-    return arr;
-};
+#include "Utility.hpp"
 
 namespace AMM {
+    using namespace AMM::Physiology;
     std::vector<std::string> PhysiologyThread::highFrequencyNodes;
     std::map<std::string, double (PhysiologyThread::*)()> PhysiologyThread::nodePathTable;
 
     PhysiologyThread::PhysiologyThread(const std::string &logFile) {
-        m_pe = CreateBioGearsEngine(logFile);
+        m_pe = biogears::CreateBioGearsEngine(logFile);
         PopulateNodePathTable();
         m_runThread = false;
     }
@@ -177,15 +149,10 @@ namespace AMM {
         }
     }
 
-    std::string PhysiologyThread::getTimestampedFilename(const std::string &basePathname) {
-        std::ostringstream filename;
-        filename << basePathname << static_cast<unsigned long>(::time(0)) << ".csv";
-        return filename.str();
-    }
 
     bool PhysiologyThread::LoadState(const std::string &stateFile, double sec) {
-        SEScalarTime startTime;
-        startTime.SetValue(sec, TimeUnit::s);
+        biogears::SEScalarTime startTime;
+        startTime.SetValue(sec, biogears::TimeUnit::s);
 
         LOG_INFO << "Loading state file " << stateFile << " at position " << sec << " seconds";
         if (!m_pe->LoadState(stateFile, &startTime)) {
@@ -197,23 +164,23 @@ namespace AMM {
         PreloadCompartments();
 
         if (logging_enabled) {
-            std::string logFilename = getTimestampedFilename("./logs/Output_");
+            std::string logFilename = getTimestampedFilename("./logs/Output_", ".csv");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
-                                                                                              FrequencyUnit::Per_min);
+                                                                                              biogears::FrequencyUnit::Per_min);
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
-                                                                                              PressureUnit::mmHg);
+                                                                                              biogears::PressureUnit::mmHg);
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
                     "SystolicArterialPressure",
-                    PressureUnit::mmHg);
+                    biogears::PressureUnit::mmHg);
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
                     "DiastolicArterialPressure",
-                    PressureUnit::mmHg);
+                    biogears::PressureUnit::mmHg);
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("RespirationRate",
-                                                                                              FrequencyUnit::Per_min);
+                                                                                              biogears::FrequencyUnit::Per_min);
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TidalVolume",
-                                                                                              VolumeUnit::mL);
+                                                                                              biogears::VolumeUnit::mL);
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TotalLungVolume",
-                                                                                              VolumeUnit::mL);
+                                                                                              biogears::VolumeUnit::mL);
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
                     BGE::VascularCompartment::Aorta, *O2, "PartialPressure");
@@ -239,37 +206,33 @@ namespace AMM {
     }
 
     bool PhysiologyThread::ExecuteCommand(const std::string &cmd) {
-        string scenarioFile = "Actions/" + cmd + ".xml";
+        std::string scenarioFile = "Actions/" + cmd + ".xml";
         return LoadScenarioFile(scenarioFile);
     }
 
-    bool PhysiologyThread::Execute( std::function<std::unique_ptr<biogears::PhysiologyEngine>(std::unique_ptr<biogears::PhysiologyEngine>&&)> func ) {
+    bool PhysiologyThread::Execute(std::function<std::unique_ptr<biogears::PhysiologyEngine>(
+            std::unique_ptr<biogears::PhysiologyEngine> &&)> func) {
         m_pe = func(std::move(m_pe));
         return true;
     }
 
     bool PhysiologyThread::ExecuteXMLCommand(const std::string &cmd) {
-        /** boost::filesystem::path temp = boost::filesystem::unique_path();
-          const std::string scenarioFile = temp.native();  // optional
-          auto scenarioPath = boost::filesystem::temp_directory_path();
-          std::ostringstream fullname;
-          fullname << scenarioPath << scenarioFile;
-          std::string tempName = fullname.str(); **/
-        std::string tempName = std::tmpnam(nullptr);
-        std::ofstream out(tempName);
+        char *tmpname = strdup("/tmp/tmp_amm_xml_XXXXXX");
+        mkstemp(tmpname);
+        std::ofstream out(tmpname);
         out << cmd;
         out.close();
-        return LoadScenarioFile(tempName);
+        return LoadScenarioFile(tmpname);
     }
 
 
     // Load a scenario from an XML file, apply conditions and iterate through the actions
 // This bypasses the standard BioGears ExecuteScenario method to avoid resetting the BioGears engine
     bool PhysiologyThread::LoadScenarioFile(const std::string &scenarioFile) {
-        SEScenario sce(m_pe->GetSubstanceManager());
+        biogears::SEScenario sce(m_pe->GetSubstanceManager());
         sce.Load(scenarioFile);
 
-        double dT_s = m_pe->GetTimeStep(TimeUnit::s);
+        double dT_s = m_pe->GetTimeStep(biogears::TimeUnit::s);
         // double scenarioTime_s;
 
         double sampleTime_s = sce.GetDataRequestManager().GetSamplesPerSecond();
@@ -277,11 +240,11 @@ namespace AMM {
             sampleTime_s = 1 / sampleTime_s;
         double currentSampleTime_s = sampleTime_s;        //Sample the first step
 
-        SEAdvanceTime *adv;
-        for (SEAction *a : sce.GetActions()) {
-            adv = dynamic_cast<SEAdvanceTime *>(a);
+        biogears::SEAdvanceTime *adv;
+        for (biogears::SEAction *a : sce.GetActions()) {
+            adv = dynamic_cast<biogears::SEAdvanceTime *>(a);
             if (adv != nullptr) {
-                double time_s = adv->GetTime(TimeUnit::s);
+                double time_s = adv->GetTime(biogears::TimeUnit::s);
                 auto count = (int) (time_s / dT_s);
                 for (int i = 0; i <= count; i++) {
                     m_pe->AdvanceModelTime();
@@ -302,16 +265,16 @@ namespace AMM {
         m_mutex.lock();
         try {
             m_pe->AdvanceModelTime();
-        } catch (exception &e) {
-                LOG_ERROR << "Error advancing time: " << e.what();
-           // const boost::stacktrace::stacktrace* st = boost::get_error_info<traced>(e);
+        } catch (std::exception &e) {
+            LOG_ERROR << "Error advancing time: " << e.what();
+            // const boost::stacktrace::stacktrace* st = boost::get_error_info<traced>(e);
             //if (st) {
-             //   std::cerr << *st << '\n';
+            //   std::cerr << *st << '\n';
             //}
-            }
+        }
 
         if (logging_enabled) {
-            m_pe->GetEngineTrack()->TrackData(m_pe->GetSimulationTime(TimeUnit::s));
+            m_pe->GetEngineTrack()->TrackData(m_pe->GetSimulationTime(biogears::TimeUnit::s));
         }
         m_mutex.unlock();
     }
@@ -321,7 +284,7 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetSimulationTime() {
-        return m_pe->GetSimulationTime(TimeUnit::s);
+        return m_pe->GetSimulationTime(biogears::TimeUnit::s);
     }
 
     double PhysiologyThread::GetNodePath(const std::string &nodePath) {
@@ -337,37 +300,37 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetHeartRate() {
-        return m_pe->GetCardiovascularSystem()->GetHeartRate(FrequencyUnit::Per_min);
+        return m_pe->GetCardiovascularSystem()->GetHeartRate(biogears::FrequencyUnit::Per_min);
     }
 
 // ?? - Blood Volume - mL
     double PhysiologyThread::GetBloodVolume() {
-        return m_pe->GetCardiovascularSystem()->GetBloodVolume(VolumeUnit::mL);
+        return m_pe->GetCardiovascularSystem()->GetBloodVolume(biogears::VolumeUnit::mL);
     }
 
 // SYS (ART) - Arterial Systolic Pressure - mmHg
     double PhysiologyThread::GetArterialSystolicPressure() {
-        return m_pe->GetCardiovascularSystem()->GetSystolicArterialPressure(PressureUnit::mmHg);
+        return m_pe->GetCardiovascularSystem()->GetSystolicArterialPressure(biogears::PressureUnit::mmHg);
     }
 
 // DIA (ART) - Arterial Diastolic Pressure - mmHg
     double PhysiologyThread::GetArterialDiastolicPressure() {
-        return m_pe->GetCardiovascularSystem()->GetDiastolicArterialPressure(PressureUnit::mmHg);
+        return m_pe->GetCardiovascularSystem()->GetDiastolicArterialPressure(biogears::PressureUnit::mmHg);
     }
 
 // MAP (ART) - Mean Arterial Pressure - mmHg
     double PhysiologyThread::GetMeanArterialPressure() {
-        return m_pe->GetCardiovascularSystem()->GetMeanArterialPressure(PressureUnit::mmHg);
+        return m_pe->GetCardiovascularSystem()->GetMeanArterialPressure(biogears::PressureUnit::mmHg);
     }
 
 // AP - Arterial Pressure - mmHg
     double PhysiologyThread::GetArterialPressure() {
-        return m_pe->GetCardiovascularSystem()->GetArterialPressure(PressureUnit::mmHg);
+        return m_pe->GetCardiovascularSystem()->GetArterialPressure(biogears::PressureUnit::mmHg);
     }
 
 // CVP - Central Venous Pressure - mmHg
     double PhysiologyThread::GetMeanCentralVenousPressure() {
-        return m_pe->GetCardiovascularSystem()->GetMeanCentralVenousPressure(PressureUnit::mmHg);
+        return m_pe->GetCardiovascularSystem()->GetMeanCentralVenousPressure(biogears::PressureUnit::mmHg);
     }
 
 // MCO2 - End Tidal Carbon Dioxide Fraction - unitless %
@@ -382,23 +345,24 @@ namespace AMM {
 
 // BR - Respiration Rate - per minute
     double PhysiologyThread::GetRespirationRate() {
-        return m_pe->GetRespiratorySystem()->GetRespirationRate(FrequencyUnit::Per_min);
+        return m_pe->GetRespiratorySystem()->GetRespirationRate(biogears::FrequencyUnit::Per_min);
     }
 
 // T2 - Core Temperature - degrees C
     double PhysiologyThread::GetCoreTemperature() {
-        return m_pe->GetEnergySystem()->GetCoreTemperature(TemperatureUnit::C);
+        return m_pe->GetEnergySystem()->GetCoreTemperature(biogears::TemperatureUnit::C);
     }
 
 // ECG Waveform in mV
     double PhysiologyThread::GetECGWaveform() {
-        double ecgLead3_mV = m_pe->GetElectroCardioGram()->GetLead3ElectricPotential(ElectricPotentialUnit::mV);
+        double ecgLead3_mV = m_pe->GetElectroCardioGram()->GetLead3ElectricPotential(
+                biogears::ElectricPotentialUnit::mV);
         return ecgLead3_mV;
     }
 
 // Na+ - Sodium Concentration - mg/dL
     double PhysiologyThread::GetSodiumConcentration() {
-        return sodium->GetBloodConcentration(MassPerVolumeUnit::mg_Per_dL);
+        return sodium->GetBloodConcentration(biogears::MassPerVolumeUnit::mg_Per_dL);
     }
 
 // Na+ - Sodium - mmol/L
@@ -408,55 +372,57 @@ namespace AMM {
 
 // Glucose - Glucose Concentration - mg/dL
     double PhysiologyThread::GetGlucoseConcentration() {
-        return glucose->GetBloodConcentration(MassPerVolumeUnit::mg_Per_dL);
+        return glucose->GetBloodConcentration(biogears::MassPerVolumeUnit::mg_Per_dL);
     }
 
 // BUN - BloodUreaNitrogenConcentration - mg/dL
     double PhysiologyThread::GetBUN() {
-        return m_pe->GetBloodChemistrySystem()->GetBloodUreaNitrogenConcentration(MassPerVolumeUnit::mg_Per_dL);
+        return m_pe->GetBloodChemistrySystem()->GetBloodUreaNitrogenConcentration(
+                biogears::MassPerVolumeUnit::mg_Per_dL);
     }
 
 // Creatinine - Creatinine Concentration - mg/dL
     double PhysiologyThread::GetCreatinineConcentration() {
-        return creatinine->GetBloodConcentration(MassPerVolumeUnit::mg_Per_dL);
+        return creatinine->GetBloodConcentration(biogears::MassPerVolumeUnit::mg_Per_dL);
     }
 
     double PhysiologyThread::GetCalciumConcentration() {
-        return calcium->GetBloodConcentration(MassPerVolumeUnit::mg_Per_dL);
+        return calcium->GetBloodConcentration(biogears::MassPerVolumeUnit::mg_Per_dL);
     }
 
     double PhysiologyThread::GetAlbuminConcentration() {
-        return albumin->GetBloodConcentration(MassPerVolumeUnit::g_Per_dL);
+        return albumin->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
     }
 
     double PhysiologyThread::GetLactateConcentration() {
-        return lactate->GetBloodConcentration(MassPerVolumeUnit::g_Per_dL);
+        return lactate->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
     }
 
     double PhysiologyThread::GetTotalBilirubin() {
-        return m_pe->GetBloodChemistrySystem()->GetTotalBilirubin(MassPerVolumeUnit::mg_Per_dL);
+        return m_pe->GetBloodChemistrySystem()->GetTotalBilirubin(biogears::MassPerVolumeUnit::mg_Per_dL);
     }
 
     double PhysiologyThread::GetTotalProtein() {
-        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        biogears::SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
-        SEScalarMassPerVolume protein = metabolicPanel.GetTotalProtein();
-        return protein.GetValue(MassPerVolumeUnit::g_Per_dL);
+        biogears::SEScalarMassPerVolume protein = metabolicPanel.GetTotalProtein();
+        return protein.GetValue(biogears::MassPerVolumeUnit::g_Per_dL);
     }
 
 // RBC - White Blood Cell Count - ct/uL
     double PhysiologyThread::GetWhiteBloodCellCount() {
-        return m_pe->GetBloodChemistrySystem()->GetWhiteBloodCellCount(AmountPerVolumeUnit::ct_Per_uL) / 1000;
+        return m_pe->GetBloodChemistrySystem()->GetWhiteBloodCellCount(biogears::AmountPerVolumeUnit::ct_Per_uL) / 1000;
     }
 
 // RBC - Red Blood Cell Count - ct/uL
     double PhysiologyThread::GetRedBloodCellCount() {
-        return m_pe->GetBloodChemistrySystem()->GetRedBloodCellCount(AmountPerVolumeUnit::ct_Per_uL) / 1000000;
+        return m_pe->GetBloodChemistrySystem()->GetRedBloodCellCount(biogears::AmountPerVolumeUnit::ct_Per_uL) /
+               1000000;
     }
 
 // Hgb - Hemoglobin Concentration - g/dL
     double PhysiologyThread::GetHemoglobinConcentration() {
-        return hemoglobin->GetBloodConcentration(MassPerVolumeUnit::g_Per_dL);
+        return hemoglobin->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
     }
 
 // Hct - Hematocrit - unitless
@@ -471,25 +437,25 @@ namespace AMM {
 
 // PaCO2 - Arterial Carbon Dioxide Pressure - mmHg
     double PhysiologyThread::GetArterialCarbonDioxidePressure() {
-        return m_pe->GetBloodChemistrySystem()->GetArterialCarbonDioxidePressure(PressureUnit::mmHg);
+        return m_pe->GetBloodChemistrySystem()->GetArterialCarbonDioxidePressure(biogears::PressureUnit::mmHg);
     }
 
 // Pa02 - Arterial Oxygen Pressure - mmHg
     double PhysiologyThread::GetArterialOxygenPressure() {
-        return m_pe->GetBloodChemistrySystem()->GetArterialOxygenPressure(PressureUnit::mmHg);
+        return m_pe->GetBloodChemistrySystem()->GetArterialOxygenPressure(biogears::PressureUnit::mmHg);
     }
 
     double PhysiologyThread::GetVenousOxygenPressure() {
-        return m_pe->GetBloodChemistrySystem()->GetVenousOxygenPressure(PressureUnit::mmHg);
+        return m_pe->GetBloodChemistrySystem()->GetVenousOxygenPressure(biogears::PressureUnit::mmHg);
     }
 
     double PhysiologyThread::GetVenousCarbonDioxidePressure() {
-        return m_pe->GetBloodChemistrySystem()->GetVenousCarbonDioxidePressure(PressureUnit::mmHg);
+        return m_pe->GetBloodChemistrySystem()->GetVenousCarbonDioxidePressure(biogears::PressureUnit::mmHg);
     }
 
 // n/a - Bicarbonate Concentration - mg/L
     double PhysiologyThread::GetBicarbonateConcentration() {
-        return bicarbonate->GetBloodConcentration(MassPerVolumeUnit::mg_Per_dL);
+        return bicarbonate->GetBloodConcentration(biogears::MassPerVolumeUnit::mg_Per_dL);
     }
 
 // HCO3 - Bicarbonate - Convert to mmol/L
@@ -503,81 +469,81 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetCO2() {
-        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        biogears::SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
-        SEScalarAmountPerVolume CO2 = metabolicPanel.GetCO2();
-        return CO2.GetValue(AmountPerVolumeUnit::mmol_Per_L);
+        biogears::SEScalarAmountPerVolume CO2 = metabolicPanel.GetCO2();
+        return CO2.GetValue(biogears::AmountPerVolumeUnit::mmol_Per_L);
     }
 
     double PhysiologyThread::GetPotassium() {
-        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        biogears::SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
-        SEScalarAmountPerVolume potassium = metabolicPanel.GetPotassium();
-        return potassium.GetValue(AmountPerVolumeUnit::mmol_Per_L);
+        biogears::SEScalarAmountPerVolume potassium = metabolicPanel.GetPotassium();
+        return potassium.GetValue(biogears::AmountPerVolumeUnit::mmol_Per_L);
     }
 
     double PhysiologyThread::GetChloride() {
-        SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
+        biogears::SEComprehensiveMetabolicPanel metabolicPanel(m_pe->GetLogger());
         m_pe->GetPatientAssessment(metabolicPanel);
-        SEScalarAmountPerVolume chloride = metabolicPanel.GetChloride();
-        return chloride.GetValue(AmountPerVolumeUnit::mmol_Per_L);
+        biogears::SEScalarAmountPerVolume chloride = metabolicPanel.GetChloride();
+        return chloride.GetValue(biogears::AmountPerVolumeUnit::mmol_Per_L);
     }
 
 // PLT - Platelet Count - ct/uL
     double PhysiologyThread::GetPlateletCount() {
-        SECompleteBloodCount CBC(m_pe->GetLogger());
+        biogears::SECompleteBloodCount CBC(m_pe->GetLogger());
         m_pe->GetPatientAssessment(CBC);
-        SEScalarAmountPerVolume plateletCount = CBC.GetPlateletCount();
-        return plateletCount.GetValue(AmountPerVolumeUnit::ct_Per_uL) / 1000;
+        biogears::SEScalarAmountPerVolume plateletCount = CBC.GetPlateletCount();
+        return plateletCount.GetValue(biogears::AmountPerVolumeUnit::ct_Per_uL) / 1000;
     }
 
 // GetExhaledCO2 - tracheal CO2 partial pressure - mmHg
     double PhysiologyThread::GetExhaledCO2() {
-        return carina->GetSubstanceQuantity(*CO2)->GetPartialPressure(PressureUnit::mmHg);
+        return carina->GetSubstanceQuantity(*CO2)->GetPartialPressure(biogears::PressureUnit::mmHg);
     }
 
 // Get Tidal Volume - mL
     double PhysiologyThread::GetTidalVolume() {
-        return m_pe->GetRespiratorySystem()->GetTidalVolume(VolumeUnit::mL);
+        return m_pe->GetRespiratorySystem()->GetTidalVolume(biogears::VolumeUnit::mL);
     }
 
 // Get Total Lung Volume - mL
     double PhysiologyThread::GetTotalLungVolume() {
-        return m_pe->GetRespiratorySystem()->GetTotalLungVolume(VolumeUnit::mL);
+        return m_pe->GetRespiratorySystem()->GetTotalLungVolume(biogears::VolumeUnit::mL);
     }
 
 // Get Left Lung Volume - mL
     double PhysiologyThread::GetLeftLungVolume() {
-        return leftLung->GetVolume(VolumeUnit::mL);
+        return leftLung->GetVolume(biogears::VolumeUnit::mL);
     }
 
 // Get Right Lung Volume - mL
     double PhysiologyThread::GetRightLungVolume() {
-        return rightLung->GetVolume(VolumeUnit::mL);
+        return rightLung->GetVolume(biogears::VolumeUnit::mL);
     }
 
 // Get Left Lung Pleural Cavity Volume - mL
     double PhysiologyThread::GetLeftPleuralCavityVolume() {
-        return leftLung->GetVolume(VolumeUnit::mL);
+        return leftLung->GetVolume(biogears::VolumeUnit::mL);
     }
 
 // Get Right Lung Pleural Cavity Volume - mL
     double PhysiologyThread::GetRightPleuralCavityVolume() {
-        return rightLung->GetVolume(VolumeUnit::mL);
+        return rightLung->GetVolume(biogears::VolumeUnit::mL);
     }
 
 // Get left alveoli baseline compliance (?) volume
     double PhysiologyThread::GetLeftAlveoliBaselineCompliance() {
-        return leftLung->GetVolume(VolumeUnit::mL);
+        return leftLung->GetVolume(biogears::VolumeUnit::mL);
     }
 
 // Get right alveoli baseline compliance (?) volume
     double PhysiologyThread::GetRightAlveoliBaselineCompliance() {
-        return rightLung->GetVolume(VolumeUnit::mL);
+        return rightLung->GetVolume(biogears::VolumeUnit::mL);
     }
 
     double PhysiologyThread::GetCardiacOutput() {
-        return m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min);
+        return m_pe->GetCardiovascularSystem()->GetCardiacOutput(biogears::VolumePerTimeUnit::mL_Per_min);
     }
 
     double PhysiologyThread::GetPainVisualAnalogueScale() {
@@ -587,10 +553,10 @@ namespace AMM {
     void PhysiologyThread::SetIVPump(const std::string &pumpSettings) {
         LOG_TRACE << "Got pump settings: " << pumpSettings;
         std::string type, concentration, rate, dose, substance, bagVolume;
-        vector<string> strings = explode("\n", pumpSettings);
+        std::vector<std::string> strings = explode("\n", pumpSettings);
 
         for (auto str : strings) {
-            vector<string> strs;
+            std::vector<std::string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair
@@ -619,7 +585,7 @@ namespace AMM {
                 } else {
                     LOG_INFO << "Unknown pump setting: " << kvp_k << " = " << kvp_v;
                 }
-            } catch (exception &e) {
+            } catch (std::exception &e) {
                 LOG_ERROR << "Issue with setting " << e.what();
             }
         }
@@ -633,115 +599,115 @@ namespace AMM {
                 double rateVal, massVal, volVal, conVal;
 
                 if (substance == "Saline") {
-                    SESubstanceCompound *subs = m_pe->GetSubstanceManager().GetCompound(substance);
-                    SESubstanceCompoundInfusion infuse(*subs);
-                    vector<string> bagvol = explode(" ", bagVolume);
+                    biogears::SESubstanceCompound *subs = m_pe->GetSubstanceManager().GetCompound(substance);
+                    biogears::SESubstanceCompoundInfusion infuse(*subs);
+                    std::vector<std::string> bagvol = explode(" ", bagVolume);
                     volVal = std::stod(bagvol[0]);
                     volUnit = bagvol[1];
                     LOG_TRACE << "Setting bag volume to " << volVal << " / " << volUnit;
                     if (volUnit == "mL") {
-                        infuse.GetBagVolume().SetValue(volVal, VolumeUnit::mL);
+                        infuse.GetBagVolume().SetValue(volVal, biogears::VolumeUnit::mL);
                     } else {
-                        infuse.GetBagVolume().SetValue(volVal, VolumeUnit::L);
+                        infuse.GetBagVolume().SetValue(volVal, biogears::VolumeUnit::L);
                     }
 
-                    vector<string> rateb = explode(" ", rate);
+                    std::vector<std::string> rateb = explode(" ", rate);
                     rateVal = std::stod(rateb[0]);
                     rateUnit = rateb[1];
 
                     if (rateUnit == "mL/hr") {
                         LOG_TRACE << "Infusing at " << rateVal << " mL per hour";
-                        infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_hr);
+                        infuse.GetRate().SetValue(rateVal, biogears::VolumePerTimeUnit::mL_Per_hr);
                     } else {
                         LOG_TRACE << "Infusing at " << rateVal << " mL per min";
-                        infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_min);
+                        infuse.GetRate().SetValue(rateVal, biogears::VolumePerTimeUnit::mL_Per_min);
                     }
                     m_pe->ProcessAction(infuse);
                 } else {
-                    SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
-                    SESubstanceInfusion infuse(*subs);
-                    vector<string> concentrations = explode("/", concentration);
+                    biogears::SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
+                    biogears::SESubstanceInfusion infuse(*subs);
+                    std::vector<std::string> concentrations = explode("/", concentration);
                     concentrationsMass = concentrations[0];
                     concentrationsVol = concentrations[1];
 
-                    vector<string> conmass = explode(" ", concentrationsMass);
+                    std::vector<std::string> conmass = explode(" ", concentrationsMass);
                     massVal = std::stod(conmass[0]);
                     massUnit = conmass[1];
-                    vector<string> convol = explode(" ", concentrationsVol);
+                    std::vector<std::string> convol = explode(" ", concentrationsVol);
                     volVal = std::stod(convol[0]);
                     volUnit = convol[1];
                     conVal = massVal / volVal;
 
                     LOG_TRACE << "Infusing with concentration of " << conVal << " " << massUnit << "/" << volUnit;
                     if (massUnit == "mg" && volUnit == "mL") {
-                        infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                        infuse.GetConcentration().SetValue(conVal, biogears::MassPerVolumeUnit::mg_Per_mL);
                     } else {
-                        infuse.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                        infuse.GetConcentration().SetValue(conVal, biogears::MassPerVolumeUnit::mg_Per_mL);
                     }
 
-                    vector<string> rateb = explode(" ", rate);
+                    std::vector<std::string> rateb = explode(" ", rate);
                     rateVal = std::stod(rateb[0]);
                     rateUnit = rateb[1];
 
                     if (rateUnit == "mL/hr") {
                         LOG_TRACE << "Infusing at " << rateVal << " mL per hour";
-                        infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_hr);
+                        infuse.GetRate().SetValue(rateVal, biogears::VolumePerTimeUnit::mL_Per_hr);
                     } else {
                         LOG_TRACE << "Infusing at " << rateVal << " mL per min";
-                        infuse.GetRate().SetValue(rateVal, VolumePerTimeUnit::mL_Per_min);
+                        infuse.GetRate().SetValue(rateVal, biogears::VolumePerTimeUnit::mL_Per_min);
                     }
                     m_pe->ProcessAction(infuse);
                 }
             } else if (type == "bolus") {
-                const SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
+                const biogears::SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
 
                 std::string concentrationsMass, concentrationsVol, massUnit, volUnit, doseUnit;
                 double massVal, volVal, conVal, doseVal;
-                vector<string> concentrations = explode("/", concentration);
+                std::vector<std::string> concentrations = explode("/", concentration);
                 concentrationsMass = concentrations[0];
                 concentrationsVol = concentrations[1];
 
-                vector<string> conmass = explode(" ", concentrationsMass);
+                std::vector<std::string> conmass = explode(" ", concentrationsMass);
                 massVal = std::stod(conmass[0]);
                 massUnit = conmass[1];
-                vector<string> convol = explode(" ", concentrationsVol);
+                std::vector<std::string> convol = explode(" ", concentrationsVol);
                 volVal = std::stod(convol[0]);
                 volUnit = convol[1];
                 conVal = massVal / volVal;
 
-                vector<string> doseb = explode(" ", dose);
+                std::vector<std::string> doseb = explode(" ", dose);
                 doseVal = std::stod(doseb[0]);
                 doseUnit = doseb[1];
 
-                SESubstanceBolus bolus(*subs);
+                biogears::SESubstanceBolus bolus(*subs);
                 LOG_TRACE << "Bolus with concentration of " << conVal << " " << massUnit << "/" << volUnit;
                 if (massUnit == "mg" && volUnit == "mL") {
-                    bolus.GetConcentration().SetValue(conVal, MassPerVolumeUnit::mg_Per_mL);
+                    bolus.GetConcentration().SetValue(conVal, biogears::MassPerVolumeUnit::mg_Per_mL);
                 } else {
-                    bolus.GetConcentration().SetValue(conVal, MassPerVolumeUnit::ug_Per_mL);
+                    bolus.GetConcentration().SetValue(conVal, biogears::MassPerVolumeUnit::ug_Per_mL);
                 }
                 LOG_TRACE << "Bolus with a dose of  " << doseVal << doseUnit;
                 if (doseUnit == "mL") {
-                    bolus.GetDose().SetValue(doseVal, VolumeUnit::mL);
+                    bolus.GetDose().SetValue(doseVal, biogears::VolumeUnit::mL);
                 } else {
-                    bolus.GetDose().SetValue(doseVal, VolumeUnit::uL);
+                    bolus.GetDose().SetValue(doseVal, biogears::VolumeUnit::uL);
                 }
                 bolus.SetAdminRoute(CDM::enumBolusAdministration::Intravenous);
                 m_pe->ProcessAction(bolus);
             }
-        } catch (exception &e) {
+        } catch (std::exception &e) {
             LOG_ERROR << "Error processing ivpump action: " << e.what();
         }
     }
 
     void PhysiologyThread::SetPain(const std::string &painSettings) {
-        vector<string> strings = explode("\n", painSettings);
+        std::vector<std::string> strings = explode("\n", painSettings);
 
         std::string location; //location of pain stimulus, examples "Arm", "Leg"
         double severity; //severity (scale 0-1)
 
         for (auto str : strings) {
-            vector<string> strs;
+            std::vector<std::string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair
@@ -758,35 +724,35 @@ namespace AMM {
                 } else {
                     LOG_INFO << "Unknown pain setting: " << kvp_k << " = " << strs[1];
                 }
-            } catch (exception &e) {
+            } catch (std::exception &e) {
                 LOG_ERROR << "Issue with setting " << e.what();
             }
             //set up the configuration of the pain stimulus
         }
-        SEPainStimulus PainStimulus; //pain object
+        biogears::SEPainStimulus PainStimulus; //pain object
         PainStimulus.SetLocation(location);
         PainStimulus.GetSeverity().SetValue(severity);
         try {
             m_pe->ProcessAction(PainStimulus);
-        } catch (exception &e) {
+        } catch (std::exception &e) {
             LOG_ERROR << "Error processing pain action: " << e.what();
         }
     }
 
     void PhysiologyThread::SetVentilator(const std::string &ventilatorSettings) {
-        vector<string> strings = explode("\n", ventilatorSettings);
+        std::vector<std::string> strings = explode("\n", ventilatorSettings);
 
-        SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
-        SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
+        biogears::SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
+        biogears::SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
 
-        config.GetInletFlow().SetValue(2.0, VolumePerTimeUnit::L_Per_min);
+        config.GetInletFlow().SetValue(2.0, biogears::VolumePerTimeUnit::L_Per_min);
         config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Nitrogen);
         config.SetConnection(CDM::enumAnesthesiaMachineConnection::Mask);
         config.SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
-        config.GetReliefValvePressure().SetValue(20.0, PressureUnit::cmH2O);
+        config.GetReliefValvePressure().SetValue(20.0, biogears::PressureUnit::cmH2O);
 
         for (auto str : strings) {
-            vector<string> strs;
+            std::vector<std::string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair
@@ -800,28 +766,28 @@ namespace AMM {
                 if (kvp_k == "OxygenFraction") {
                     config.GetOxygenFraction().SetValue(kvp_v);
                 } else if (kvp_k == "PositiveEndExpiredPressure") {
-                    config.GetPositiveEndExpiredPressure().SetValue(kvp_v * 100, PressureUnit::cmH2O);
+                    config.GetPositiveEndExpiredPressure().SetValue(kvp_v * 100, biogears::PressureUnit::cmH2O);
                 } else if (kvp_k == "RespiratoryRate") {
-                    config.GetRespiratoryRate().SetValue(kvp_v, FrequencyUnit::Per_min);
+                    config.GetRespiratoryRate().SetValue(kvp_v, biogears::FrequencyUnit::Per_min);
                 } else if (kvp_k == "InspiratoryExpiratoryRatio") {
                     config.GetInspiratoryExpiratoryRatio().SetValue(kvp_v);
                 } else if (kvp_k == "TidalVolume") {
                     // empty
                 } else if (kvp_k == "VentilatorPressure") {
-                    config.GetVentilatorPressure().SetValue(kvp_v * 100, PressureUnit::cmH2O);
+                    config.GetVentilatorPressure().SetValue(kvp_v * 100, biogears::PressureUnit::cmH2O);
                 } else if (kvp_k == " ") {
                     // empty
                 } else {
                     LOG_INFO << "Unknown ventilator setting: " << kvp_k << " = " << kvp_v;
                 }
-            } catch (exception &e) {
+            } catch (std::exception &e) {
                 LOG_ERROR << "Issue with setting " << e.what();
             }
         }
 
         try {
             m_pe->ProcessAction(AMConfig);
-        } catch (exception &e) {
+        } catch (std::exception &e) {
             LOG_ERROR << "Error processing ventilator action: " << e.what();
         }
     }
@@ -829,35 +795,42 @@ namespace AMM {
     void PhysiologyThread::Status() {
         m_pe->GetLogger()->Info("");
         m_pe->GetLogger()->Info(
-                std::stringstream() << "Simulation Time : " << m_pe->GetSimulationTime(TimeUnit::s) << "s");
+                std::stringstream() << "Simulation Time : " << m_pe->GetSimulationTime(biogears::TimeUnit::s) << "s");
         m_pe->GetLogger()->Info(
                 std::stringstream() << "Cardiac Output : "
-                                    << m_pe->GetCardiovascularSystem()->GetCardiacOutput(VolumePerTimeUnit::mL_Per_min)
-                                    << VolumePerTimeUnit::mL_Per_min);
+                                    << m_pe->GetCardiovascularSystem()->GetCardiacOutput(
+                                            biogears::VolumePerTimeUnit::mL_Per_min)
+                                    << biogears::VolumePerTimeUnit::mL_Per_min);
         m_pe->GetLogger()->Info(
                 std::stringstream() << "Blood Volume : "
-                                    << m_pe->GetCardiovascularSystem()->GetBloodVolume(VolumeUnit::mL)
-                                    << VolumeUnit::mL);
+                                    << m_pe->GetCardiovascularSystem()->GetBloodVolume(biogears::VolumeUnit::mL)
+                                    << biogears::VolumeUnit::mL);
         m_pe->GetLogger()->Info(
                 std::stringstream() << "Mean Arterial Pressure : "
-                                    << m_pe->GetCardiovascularSystem()->GetMeanArterialPressure(PressureUnit::mmHg)
-                                    << PressureUnit::mmHg);
+                                    << m_pe->GetCardiovascularSystem()->GetMeanArterialPressure(
+                                            biogears::PressureUnit::mmHg)
+                                    << biogears::PressureUnit::mmHg);
         m_pe->GetLogger()->Info(
                 std::stringstream() << "Systolic Pressure : "
-                                    << m_pe->GetCardiovascularSystem()->GetSystolicArterialPressure(PressureUnit::mmHg)
-                                    << PressureUnit::mmHg);
+                                    << m_pe->GetCardiovascularSystem()->GetSystolicArterialPressure(
+                                            biogears::PressureUnit::mmHg)
+                                    << biogears::PressureUnit::mmHg);
         m_pe->GetLogger()->Info(
                 std::stringstream() << "Diastolic Pressure : "
-                                    << m_pe->GetCardiovascularSystem()->GetDiastolicArterialPressure(PressureUnit::mmHg)
-                                    << PressureUnit::mmHg);
+                                    << m_pe->GetCardiovascularSystem()->GetDiastolicArterialPressure(
+                                            biogears::PressureUnit::mmHg)
+                                    << biogears::PressureUnit::mmHg);
         m_pe->GetLogger()->Info(
                 std::stringstream() << "Heart Rate : "
-                                    << m_pe->GetCardiovascularSystem()->GetHeartRate(FrequencyUnit::Per_min)
+                                    << m_pe->GetCardiovascularSystem()->GetHeartRate(biogears::FrequencyUnit::Per_min)
                                     << "bpm");
         m_pe->GetLogger()->Info(
                 std::stringstream() << "Respiration Rate : "
-                                    << m_pe->GetRespiratorySystem()->GetRespirationRate(FrequencyUnit::Per_min)
+                                    << m_pe->GetRespiratorySystem()->GetRespirationRate(
+                                            biogears::FrequencyUnit::Per_min)
                                     << "bpm");
         m_pe->GetLogger()->Info("");
     }
 }
+
+

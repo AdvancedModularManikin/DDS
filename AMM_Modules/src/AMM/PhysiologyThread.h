@@ -1,26 +1,27 @@
 #pragma once
 
-#include <mutex>
-#include <thread>
 #include <ctime>
-#include <stdexcept>
+#include <mutex>
 #include <sstream>
+#include <stdexcept>
+#include <thread>
 
 // Boost dependencies
-#include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/assign/list_of.hpp>
+#include <boost/assign/std/vector.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 
 // BioGears core
 #include <biogears/cdm/CommonDataModel.h>
 #include <biogears/engine/BioGearsPhysiologyEngine.h>
 
-#include <biogears/cdm/patient/SEPatient.h>
+#include <biogears/cdm/compartment/SECompartmentManager.h>
 #include <biogears/cdm/compartment/SECompartmentManager.h>
 #include <biogears/cdm/compartment/fluid/SEGasCompartment.h>
 #include <biogears/cdm/compartment/fluid/SELiquidCompartment.h>
-#include <biogears/cdm/compartment/SECompartmentManager.h>
+#include <biogears/cdm/patient/SEPatient.h>
 #include <biogears/cdm/system/physiology/SEBloodChemistrySystem.h>
 #include <biogears/cdm/system/physiology/SECardiovascularSystem.h>
 #include <biogears/cdm/system/physiology/SEEnergySystem.h>
@@ -37,41 +38,41 @@
 #include <biogears/cdm/system/physiology/SEDrugSystem.h>
 #include <biogears/cdm/system/physiology/SENervousSystem.h>
 
-#include <biogears/cdm/substance/SESubstanceManager.h>
 #include <biogears/cdm/substance/SESubstance.h>
+#include <biogears/cdm/substance/SESubstanceManager.h>
 
-#include <biogears/cdm/utils/SEEventHandler.h>
 #include <biogears/cdm/engine/PhysiologyEngineTrack.h>
+#include <biogears/cdm/utils/SEEventHandler.h>
 
-#include <biogears/cdm/properties/SEScalarFraction.h>
-#include <biogears/cdm/properties/SEScalarFrequency.h>
-#include <biogears/cdm/properties/SEScalarMassPerVolume.h>
-#include <biogears/cdm/properties/SEScalarPressure.h>
-#include <biogears/cdm/properties/SEScalarTemperature.h>
-#include <biogears/cdm/properties/SEScalarTime.h>
-#include <biogears/cdm/properties/SEScalarVolume.h>
-#include <biogears/cdm/properties/SEScalarVolumePerTime.h>
 #include <biogears/cdm/properties/SEFunctionVolumeVsTime.h>
-#include <biogears/cdm/properties/SEScalarMass.h>
-#include <biogears/cdm/properties/SEScalarLength.h>
 #include <biogears/cdm/properties/SEScalarAmountPerVolume.h>
 #include <biogears/cdm/properties/SEScalarFraction.h>
+#include <biogears/cdm/properties/SEScalarFraction.h>
 #include <biogears/cdm/properties/SEScalarFrequency.h>
+#include <biogears/cdm/properties/SEScalarFrequency.h>
+#include <biogears/cdm/properties/SEScalarLength.h>
+#include <biogears/cdm/properties/SEScalarMass.h>
+#include <biogears/cdm/properties/SEScalarMassPerVolume.h>
 #include <biogears/cdm/properties/SEScalarMassPerVolume.h>
 #include <biogears/cdm/properties/SEScalarPressure.h>
+#include <biogears/cdm/properties/SEScalarPressure.h>
+#include <biogears/cdm/properties/SEScalarTemperature.h>
 #include <biogears/cdm/properties/SEScalarTemperature.h>
 #include <biogears/cdm/properties/SEScalarTime.h>
+#include <biogears/cdm/properties/SEScalarTime.h>
+#include <biogears/cdm/properties/SEScalarVolume.h>
 #include <biogears/cdm/properties/SEScalarVolume.h>
 #include <biogears/cdm/properties/SEScalarVolumePerTime.h>
+#include <biogears/cdm/properties/SEScalarVolumePerTime.h>
 
+#include <biogears/cdm/patient/actions/SEPainStimulus.h>
+#include <biogears/cdm/patient/actions/SESubstanceBolus.h>
+#include <biogears/cdm/patient/actions/SESubstanceCompoundInfusion.h>
+#include <biogears/cdm/patient/actions/SESubstanceInfusion.h>
+#include <biogears/cdm/patient/assessments/SECompleteBloodCount.h>
 #include <biogears/cdm/patient/assessments/SEComprehensiveMetabolicPanel.h>
 #include <biogears/cdm/patient/assessments/SEPulmonaryFunctionTest.h>
-#include <biogears/cdm/patient/assessments/SECompleteBloodCount.h>
-#include <biogears/cdm/patient/actions/SESubstanceBolus.h>
-#include <biogears/cdm/patient/actions/SESubstanceInfusion.h>
-#include <biogears/cdm/patient/actions/SESubstanceCompoundInfusion.h>
 #include <biogears/cdm/substance/SESubstanceCompound.h>
-#include <biogears/cdm/patient/actions/SEPainStimulus.h>
 #include <biogears/cdm/system/physiology/SEDrugSystem.h>
 #include <biogears/cdm/system/physiology/SEEnergySystem.h>
 
@@ -83,19 +84,13 @@
 #include <biogears/cdm/system/equipment/Anesthesia/actions/SEMaskLeak.h>
 #include <biogears/cdm/system/equipment/Anesthesia/actions/SEOxygenWallPortPressureLoss.h>
 
+#include <biogears/cdm/scenario/SEAdvanceTime.h>
 #include <biogears/cdm/scenario/SEScenario.h>
 #include <biogears/cdm/scenario/SEScenarioExec.h>
-#include <biogears/cdm/scenario/SEAdvanceTime.h>
 
 #include "AMMPubSubTypes.h"
 
 #include "AMM/BaseLogger.h"
-
-// #include <boost/stacktrace.hpp>
-#include <boost/exception/all.hpp>
-
-// typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
-
 
 // Forward declare what we will use in our thread
 namespace AMM {
@@ -116,7 +111,8 @@ namespace AMM {
         bool ExecuteCommand(const std::string &cmd);
 
         bool Execute(std::function<std::unique_ptr<biogears::PhysiologyEngine>(
-                std::unique_ptr<biogears::PhysiologyEngine> &&)> func);
+                std::unique_ptr<biogears::PhysiologyEngine> &&)>
+                     func);
 
         void Shutdown();
 
@@ -144,8 +140,6 @@ namespace AMM {
         static std::vector<std::string> highFrequencyNodes;
 
         bool logging_enabled = false;
-
-        std::string getTimestampedFilename(const std::string &basePathname);
 
     private:
         bool LoadScenarioFile(const std::string &scenarioFile);
@@ -274,7 +268,6 @@ namespace AMM {
         const biogears::SEGasCompartment *carina;
         const biogears::SEGasCompartment *leftLung;
         const biogears::SEGasCompartment *rightLung;
-
 
     protected:
         std::mutex m_mutex;

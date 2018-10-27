@@ -13,11 +13,11 @@ int autostart = 0;
 bool wipe = false;
 
 static void show_usage(const std::string &name) {
-    cerr << "Usage: " << name << " <option(s)>" <<
-         "\nOptions:\n" <<
-         "\t-d\t\t\tDaemonize\n" <<
-         "\t-h,--help\t\t\tShow this help message\n" <<
-         endl;
+    cerr << "Usage: " << name << " <option(s)>"
+         << "\nOptions:\n"
+         << "\t-d\t\t\tDaemonize\n"
+         << "\t-h,--help\t\t\tShow this help message\n"
+         << endl;
 }
 
 void show_menu(ModuleManager *modManager) {
@@ -66,7 +66,6 @@ int main(int argc, char *argv[]) {
         if (arg == "-w") {
             wipe = true;
         }
-
     }
 
     if (wipe) {
@@ -99,7 +98,6 @@ int main(int argc, char *argv[]) {
                   ");";
             db << "delete from events;";
 
-
             cout << "[ModuleManager] Creating modules table..." << endl;
             db << "create table if not exists modules("
                   "module_id text,"
@@ -123,7 +121,8 @@ int main(int argc, char *argv[]) {
                   "encounter_id text"
                   ");";
 
-            db << "CREATE UNIQUE INDEX idx_mc_model ON module_capabilities (module_name);";
+            db << "CREATE UNIQUE INDEX idx_mc_model ON module_capabilities "
+                  "(module_name);";
 
             db << "delete from module_capabilities;";
 
@@ -150,7 +149,6 @@ int main(int argc, char *argv[]) {
 
     ModuleManager modManager;
     modManager.Start();
-
 
     while (!closed) {
         if (autostart != 1) {

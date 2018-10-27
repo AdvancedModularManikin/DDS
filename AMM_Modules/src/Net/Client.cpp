@@ -7,17 +7,13 @@ void Client::SetName(std::string &name) {
     this->name = name;
 }
 
-void Client::SetUUID(std::string &uuid) {
-    this->uuid = uuid;
-}
+void Client::SetUUID(std::string &uuid) { this->uuid = uuid; }
 
 void Client::SetClientType(std::string &clientType) {
     this->clientType = clientType;
 }
 
-void Client::SetId(std::string id) {
-    this->id = id;
-}
+void Client::SetId(std::string id) { this->id = id; }
 
 void Client::SetKeepHistory(bool historyflag) {
     this->keepHistory = historyflag;

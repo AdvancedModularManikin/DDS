@@ -29,7 +29,6 @@ namespace AMM {
     class ModuleManager : public ListenerInterface {
 
     public:
-
         ModuleManager();
 
         ~ModuleManager() override = default;
@@ -48,19 +47,16 @@ namespace AMM {
 
         void onNewStatusData(AMM::Capability::Status st, SampleInfo_t *info) override;
 
-        void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override;
+        void onNewConfigData(AMM::Capability::Configuration cfg,
+                             SampleInfo_t *info) override;
 
         std::string currentScenario;
 
     protected:
-
         std::thread m_thread;
         std::mutex m_mutex;
         bool m_runThread;
         const char *nodeName = "AMM_ModuleManager";
         DDS_Manager *mgr = new DDS_Manager(nodeName);
-
-
     };
-
 }

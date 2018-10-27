@@ -5,53 +5,73 @@
 #include <mutex>
 #include <thread>
 
-#include <boost/assign/std/vector.hpp>
 #include <boost/assign/list_of.hpp>
+#include <boost/assign/std/vector.hpp>
 #include <map>
-
 
 namespace AMM {
     class DataTypes {
     public:
         // AMM Simulation types
-        static AMM::Simulation::TickPubSubType* getTickType();
+        static AMM::Simulation::TickPubSubType *getTickType();
 
         // AMM Physiology types
-        static AMM::Physiology::NodePubSubType* getNodeType();
-        static AMM::Physiology::HighFrequencyNodePubSubType* getHighFrequencyNodeType();
-        static AMM::Physiology::CommandPubSubType* getPhysiologyCommandType();
+        static AMM::Physiology::NodePubSubType *getNodeType();
+
+        static AMM::Physiology::HighFrequencyNodePubSubType *
+        getHighFrequencyNodeType();
+
+        static AMM::Physiology::CommandPubSubType *getPhysiologyCommandType();
 
         // AMM Patient Action / Intervention types
-        static AMM::PatientAction::BioGears::CommandPubSubType* getCommandType();
+        static AMM::PatientAction::BioGears::CommandPubSubType *getCommandType();
 
         // AMM Performance types
-        static AMM::Performance::StatementPubSubType* getxAPIStatementType();
+        static AMM::Performance::StatementPubSubType *getxAPIStatementType();
 
         // AMM Resource Requirements types
-        static AMM::Resource::Requirement::AirPubSubType* getAirRequirementType();
-        static AMM::Resource::Requirement::BloodPubSubType* getBloodRequirementType();
-        static AMM::Resource::Requirement::Cleaning_SolutionPubSubType* getCleaningSolutionRequirementType();
-        static AMM::Resource::Requirement::Clear_LiquidPubSubType* getClearLiquidRequirementType();
-        static AMM::Resource::Requirement::PowerPubSubType* getPowerRequirementType();
+        static AMM::Resource::Requirement::AirPubSubType *getAirRequirementType();
+
+        static AMM::Resource::Requirement::BloodPubSubType *getBloodRequirementType();
+
+        static AMM::Resource::Requirement::Cleaning_SolutionPubSubType *
+        getCleaningSolutionRequirementType();
+
+        static AMM::Resource::Requirement::Clear_LiquidPubSubType *
+        getClearLiquidRequirementType();
+
+        static AMM::Resource::Requirement::PowerPubSubType *getPowerRequirementType();
 
         // AMM Resource Supply types
-        static AMM::Resource::Supply::AirPubSubType* getAirSupplyType();
-        static AMM::Resource::Supply::BloodPubSubType* getBloodSupplyType();
-        static AMM::Resource::Supply::Cleaning_SolutionPubSubType* getCleaningSolutionSupplyType();
-        static AMM::Resource::Supply::Clear_LiquidPubSubType* getClearLiquidSupplyType();
-        static AMM::Resource::Supply::PowerPubSubType* getPowerSupplyType();
+        static AMM::Resource::Supply::AirPubSubType *getAirSupplyType();
+
+        static AMM::Resource::Supply::BloodPubSubType *getBloodSupplyType();
+
+        static AMM::Resource::Supply::Cleaning_SolutionPubSubType *
+        getCleaningSolutionSupplyType();
+
+        static AMM::Resource::Supply::Clear_LiquidPubSubType *
+        getClearLiquidSupplyType();
+
+        static AMM::Resource::Supply::PowerPubSubType *getPowerSupplyType();
 
         // AMM Capability types
-        static AMM::Capability::ConfigurationPubSubType* getConfigurationType();
-        static AMM::Capability::StatusPubSubType* getStatusType();
-        static AMM::Capability::ScenarioPubSubType* getScenarioType();
+        static AMM::Capability::ConfigurationPubSubType *getConfigurationType();
+
+        static AMM::Capability::StatusPubSubType *getStatusType();
+
+        static AMM::Capability::ScenarioPubSubType *getScenarioType();
 
         // AMM Instrument Data type
-        static AMM::InstrumentDataPubSubType* getInstrumentDataType();
+        static AMM::InstrumentDataPubSubType *getInstrumentDataType();
 
-        static AMM::Performance::AssessmentPubSubType* getPerformanceAssessmentDataType();
-        static AMM::Render::ModificationPubSubType* getRenderModificationType();
-        static AMM::Physiology::ModificationPubSubType* getPhysiologyModificationType();
+        static AMM::Performance::AssessmentPubSubType *
+        getPerformanceAssessmentDataType();
+
+        static AMM::Render::ModificationPubSubType *getRenderModificationType();
+
+        static AMM::Physiology::ModificationPubSubType *
+        getPhysiologyModificationType();
 
         // Topic names
         static std::string tickTopic;

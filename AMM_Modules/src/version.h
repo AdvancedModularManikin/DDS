@@ -1,12 +1,9 @@
 #pragma once
 #include <string>
 
+namespace Version {
 
-namespace Version
-{
-
-    struct Version
-    {
+    struct Version {
         /// Creates empty Version object
         Version();
 
@@ -58,16 +55,20 @@ namespace Version
         std::string asLongStr() const;
 
         // Operators
-        bool operator<(const Version& other);
-        bool operator>(const Version& other);
-        bool operator<=(const Version& other);
-        bool operator>=(const Version& other);
-        bool operator==(const Version& other);
-        bool operator!=(const Version& other);
+        bool operator<(const Version &other);
+
+        bool operator>(const Version &other);
+
+        bool operator<=(const Version &other);
+
+        bool operator>=(const Version &other);
+
+        bool operator==(const Version &other);
+
+        bool operator!=(const Version &other);
     };
 
 /// Get current version
-    const Version& current();
-
+    const Version &current();
 
 } // namespace Version

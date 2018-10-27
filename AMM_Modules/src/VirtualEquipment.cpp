@@ -6,8 +6,10 @@ using namespace std;
 using namespace AMM;
 
 static void show_usage(const std::string &name) {
-    cerr << "Usage: " << name << " <option(s)> node_path node_path ..." << "\nOptions:\n"
-         << "\t-h,--help\t\tShow this help message\n" << endl;
+    cerr << "Usage: " << name << " <option(s)> node_path node_path ..."
+         << "\nOptions:\n"
+         << "\t-h,--help\t\tShow this help message\n"
+         << endl;
     cerr << "Example: " << name << " ECG HR " << endl;
 }
 
@@ -29,7 +31,6 @@ int main(int argc, char *argv[]) {
             return 0;
         }
         node_paths.push_back(arg);
-
     }
 
     // create subscription filter
@@ -53,26 +54,21 @@ int main(int argc, char *argv[]) {
     vel.SetFilter(&node_paths);
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     node_sub_listener->SetUpstream(&vel);
-    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic,
+                              AMM::DataTypes::getNodeType(), node_sub_listener);
 
-
-    // Publish module configuration once we've set all our publishers and listeners
+    // Publish module configuration once we've set all our publishers and
+    // listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
-            mgr->module_id,
-            nodeString,
-            "Vcom3D",
-            nodeName,
-            "00001",
-            "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/module_capabilities/virtual_equipment_capabilities.xml")
-    );
+            mgr->module_id, nodeString, "Vcom3D", nodeName, "00001", "0.0.1",
+            mgr->GetCapabilitiesAsString(
+                    "mule1/module_capabilities/virtual_equipment_capabilities.xml"));
 
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     cout << "=== [VirtualEquipment] Ready ..." << endl;
-
 
     cout << "\t(frame)\t\tNode Path\t\tValue" << endl;
 
@@ -83,7 +79,4 @@ int main(int argc, char *argv[]) {
     cout << "=== [VirtualEquipment] Simulation stopped." << endl;
 
     return 0;
-
 }
-
-

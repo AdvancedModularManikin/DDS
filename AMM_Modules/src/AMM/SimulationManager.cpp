@@ -8,29 +8,25 @@ namespace AMM {
         using namespace AMM::Capability;
         auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
         command_sub_listener->SetUpstream(this);
-        command_subscriber = mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                       command_sub_listener);
+        command_subscriber = mgr->InitializeReliableSubscriber(
+                AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                command_sub_listener);
 
         auto *pub_listener = new DDS_Listeners::PubListener();
-        tick_publisher = mgr->InitializePublisher(AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(),
-                                                  pub_listener);
-        command_publisher = mgr->InitializePublisher(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
-                                                     pub_listener);
-        physiology_publisher = mgr->InitializePublisher(AMM::DataTypes::physiologyCommandTopic, AMM::DataTypes::getPhysiologyCommandType(),
-                                             pub_listener);
+        tick_publisher = mgr->InitializePublisher(
+                AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), pub_listener);
+        physiology_publisher = mgr->InitializeReliablePublisher(
+                AMM::DataTypes::physiologyCommandTopic,
+                AMM::DataTypes::getPhysiologyCommandType(), pub_listener);
         m_runThread = false;
 
         currentScenario = mgr->GetScenario();
         std::string nodeString(nodeName);
         mgr->PublishModuleConfiguration(
-                mgr->module_id,
-                nodeString,
-                "Vcom3D",
-                "SimulationManager",
-                "00001",
+                mgr->module_id, nodeString, "Vcom3D", "SimulationManager", "00001",
                 "0.0.1",
-                mgr->GetCapabilitiesAsString("mule1/module_capabilities/simulation_manager_capabilities.xml")
-        );
+                mgr->GetCapabilitiesAsString(
+                        "mule1/module_capabilities/simulation_manager_capabilities.xml"));
 
         mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
     }
@@ -52,59 +48,53 @@ namespace AMM {
         }
     }
 
-    int SimulationManager::GetTickCount() {
-        return tickCount;
-    }
+    int SimulationManager::GetTickCount() { return tickCount; }
 
-    bool SimulationManager::isRunning() {
-        return m_runThread;
-    }
+    bool SimulationManager::isRunning() { return m_runThread; }
 
-    void SimulationManager::SetSampleRate(int rate) {
-        sampleRate = rate;
-    }
+    void SimulationManager::SetSampleRate(int rate) { sampleRate = rate; }
 
-    int SimulationManager::GetSampleRate() {
-        return sampleRate;
-    }
+    int SimulationManager::GetSampleRate() { return sampleRate; }
 
     void SimulationManager::SendCommand(const std::string &command) {
         LOG_INFO << "Sending a command:" << command;
         AMM::PatientAction::BioGears::Command cmdInstance;
         cmdInstance.message(command);
-        command_publisher->write(&cmdInstance);
+        mgr->PublishCommand(cmdInstance);
     }
 
-    void SimulationManager::SendCommand(const AMM::Physiology::CMD type, eprosima::fastcdr::Cdr &data){
+    void SimulationManager::SendCommand(const AMM::Physiology::CMD type,
+                                        eprosima::fastcdr::Cdr &data) {
         using namespace AMM::Physiology;
         switch (type) {
-            case Physiology::PainCommand:{
-                LOG_INFO << "PaintEvent type: " << type;
+            case Physiology::PainCommand: {
+                LOG_INFO << "PainEvent type: " << type;
                 Physiology::Command command;
                 command.type(type);
                 auto vec = std::vector<char>(data.getSerializedDataLength());
-                memcpy(&vec[0],data.getBufferPointer(), data.getSerializedDataLength());
+                memcpy(&vec[0], data.getBufferPointer(), data.getSerializedDataLength());
                 command.payload(vec);
                 physiology_publisher->write(&command);
-                
+
             }
-            break;
-            case Physiology::SepsisCommand:{
+                break;
+            case Physiology::SepsisCommand: {
                 LOG_INFO << "SepsisEvent type: " << type;
                 Physiology::Command command;
                 command.type(type);
                 auto vec = std::vector<char>(data.getSerializedDataLength());
-                memcpy(&vec[0],data.getBufferPointer(), data.getSerializedDataLength());
+                memcpy(&vec[0], data.getBufferPointer(), data.getSerializedDataLength());
                 command.payload(vec);
                 physiology_publisher->write(&command);
             }
-            break;
+                break;
             default: {
                 LOG_INFO << "Unsupported type: " << type;
                 break;
             }
         }
     }
+
     void SimulationManager::TickLoop() {
         using frames = duration<int64_t, ratio<1, 50>>;
         auto nextFrame = system_clock::now();
@@ -125,9 +115,7 @@ namespace AMM {
         }
     }
 
-    void SimulationManager::Cleanup() {
-
-    }
+    void SimulationManager::Cleanup() {}
 
     void SimulationManager::Shutdown() {
         if (m_runThread) {
@@ -136,18 +124,12 @@ namespace AMM {
             m_thread.join();
         }
 
-        // mgr->SendTick(-1);
-        AMM::Simulation::Tick tickInstance;
-        tickInstance.frame(-1);
-        tick_publisher->write(&tickInstance);
-
         Cleanup();
-
     }
 
-
 // Listener events
-    void SimulationManager::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
+    void SimulationManager::onNewCommandData(
+            AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             LOG_INFO << "We received a SYSTEM action: " << value;
@@ -175,6 +157,5 @@ namespace AMM {
         } else {
             LOG_WARNING << "Unknown command received: " << c.message();
         }
-
     }
 }

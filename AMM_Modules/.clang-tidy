@@ -3,7 +3,7 @@
 Checks:          '*,-google*,-*UnreachableCode,-cppcoreguidelines-pro-bounds-pointer-arithmetic,-readability-braces-around-statements,-readability-redundant-string-init,-readability-else-after-return,-modernize-raw-string-literal,-clang-analyzer-alpha.cplusplus.VirtualCall,-readability-simplify-boolean-expri,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-pro-bounds-array-to-pointer-decay,-clang-analyzer-alpha.core.CastToStruct'
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
-User:            xohnheis
+User:            draum
 CheckOptions:    
   - key:             google-readability-braces-around-statements.ShortStatementLines
     value:           '1'

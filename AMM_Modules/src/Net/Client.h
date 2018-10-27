@@ -14,7 +14,7 @@ public:
 
     bool keepHistory = false;
 
-    //Socket stuff
+    // Socket stuff
     int sock{};
 
     Client() {};

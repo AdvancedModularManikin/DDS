@@ -4,15 +4,15 @@
 #include <fastrtps/participant/Participant.h>
 #include <fastrtps/publisher/Publisher.h>
 #include <fastrtps/publisher/PublisherListener.h>
+#include <fastrtps/subscriber/SampleInfo.h>
 #include <fastrtps/subscriber/Subscriber.h>
 #include <fastrtps/subscriber/SubscriberListener.h>
-#include <fastrtps/subscriber/SampleInfo.h>
 
 #include <fastrtps/rtps/RTPSDomain.h>
 #include <fastrtps/rtps/builtin/data/WriterProxyData.h>
 
-#include <fastrtps/rtps/reader/ReaderListener.h>
 #include <fastrtps/rtps/builtin/discovery/endpoint/EDPSimple.h>
+#include <fastrtps/rtps/reader/ReaderListener.h>
 
 #include <fastrtps/utils/eClock.h>
 
@@ -30,20 +30,19 @@
 
 #include <fastrtps/rtps/resources/AsyncWriterThread.h>
 
-#include <fastrtps/rtps/writer/StatelessWriter.h>
 #include <fastrtps/rtps/reader/StatelessReader.h>
 #include <fastrtps/rtps/reader/WriterProxy.h>
+#include <fastrtps/rtps/writer/StatelessWriter.h>
 
-#include <fastrtps/rtps/history/WriterHistory.h>
 #include <fastrtps/rtps/history/ReaderHistory.h>
+#include <fastrtps/rtps/history/WriterHistory.h>
 
 #include <fastrtps/utils/TimeConversion.h>
 
 #include <fastrtps/rtps/participant/RTPSParticipant.h>
 
-#include "AMM/DataTypes.h"
-#include "AMM/DDS_Manager.h"
 #include "AMM/BaseLogger.h"
+#include "AMM/DDS_Manager.h"
 
 using namespace std;
 using namespace eprosima;
@@ -60,11 +59,10 @@ public:
     std::map<std::string, std::vector<std::string>> topicNtypes;
     std::map<GUID_t, std::string> discovered_names;
 
-    AMMListener(const std::string listenerName) {
-        m_listenerName = listenerName;
-    }
+    AMMListener(const std::string listenerName) { m_listenerName = listenerName; }
 
-    static std::map<std::string, std::vector<uint8_t>> parse_key_value(std::vector<uint8_t> kv) {
+    static std::map<std::string, std::vector<uint8_t>>
+    parse_key_value(std::vector<uint8_t> kv) {
         std::map<std::string, std::vector<uint8_t>> m;
 
         bool keyfound = false;
@@ -104,7 +102,7 @@ public:
                 } else if (isalnum(u8)) {
                     key.push_back(u8);
                 } else if ((u8 == '\0') && (key.size() == 0) && (m.size() > 0)) {
-                    break;  // accept trailing '\0' characters
+                    break; // accept trailing '\0' characters
                 } else if ((prev != ';') || (key.size() > 0)) {
                     goto not_valid;
                 }
@@ -121,8 +119,10 @@ public:
         }
         return m;
         not_valid:
-        // This is not a failure this is something that can happen because the participant_qos userData
-        // is used. Other participants in the system not created by rmw could use userData for something
+        // This is not a failure this is something that can happen because the
+        // participant_qos userData
+        // is used. Other participants in the system not created by rmw could use
+        // userData for something
         // else.
         return std::map<std::string, std::vector<uint8_t>>();
     }
@@ -136,12 +136,11 @@ public:
         return names;
     }
 
-
-    void onParticipantDiscovery(Participant *, ParticipantDiscoveryInfo info) override {
-        if (
-                info.rtps.m_status != DISCOVERED_RTPSPARTICIPANT &&
-                info.rtps.m_status != REMOVED_RTPSPARTICIPANT &&
-                info.rtps.m_status != DROPPED_RTPSPARTICIPANT) {
+    void onParticipantDiscovery(Participant *,
+                                ParticipantDiscoveryInfo info) override {
+        if (info.rtps.m_status != DISCOVERED_RTPSPARTICIPANT &&
+            info.rtps.m_status != REMOVED_RTPSPARTICIPANT &&
+            info.rtps.m_status != DROPPED_RTPSPARTICIPANT) {
             return;
         }
 
@@ -162,7 +161,8 @@ public:
                 if (!name.empty()) {
                     discovered_names[info.rtps.m_guid] = name;
                 }
-                LOG_INFO << "[" << m_listenerName << "] " << info.rtps.m_guid << " joined with name " << name;
+                LOG_INFO << "[" << m_listenerName << "] " << info.rtps.m_guid
+                         << " joined with name " << name;
             }
         } else {
             auto it = discovered_names.find(info.rtps.m_guid);
@@ -170,16 +170,20 @@ public:
             if (it != discovered_names.end()) {
                 discovered_names.erase(it);
             }
-            LOG_INFO << "[" << m_listenerName << "] " << info.rtps.m_guid << " disconnected ";
+            LOG_INFO << "[" << m_listenerName << "] " << info.rtps.m_guid
+                     << " disconnected ";
         }
     }
 
-    void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
+    void onNewCommandData(AMM::PatientAction::BioGears::Command c,
+                          SampleInfo_t *info) override {
         LOG_INFO << "[COMMAND]" << c.message();
     }
 
     void onReaderMatched(RTPSReader *reader, MatchingInfo &info) {
-        LOG_INFO << "[" << m_listenerName << "] New reader matched: " << info.remoteEndpointGuid << " - status " << info.status;
+        LOG_INFO << "[" << m_listenerName
+                 << "] New reader matched: " << info.remoteEndpointGuid
+                 << " - status " << info.status;
     }
 
     void onNewCacheChangeAdded(RTPSReader *reader,
@@ -192,8 +196,9 @@ public:
         if (change->kind == ALIVE) {
             CDRMessage_t tempMsg(0);
             tempMsg.wraps = true;
-            tempMsg.msg_endian = change->serializedPayload.encapsulation ==
-                                 PL_CDR_BE ? BIGEND : LITTLEEND;
+            tempMsg.msg_endian = change->serializedPayload.encapsulation == PL_CDR_BE
+                                 ? BIGEND
+                                 : LITTLEEND;
             tempMsg.length = change->serializedPayload.length;
             tempMsg.max_size = change->serializedPayload.max_size;
             tempMsg.buffer = change->serializedPayload.data;
@@ -217,28 +222,28 @@ public:
         if (change->kind == ALIVE) {
             topicNtypes[fqdn].push_back(proxyData.typeName());
 
-            LOG_INFO << "[" << m_listenerName << "][" << changeGuid << "] Topic " << fqdn << " with type "
-                 << proxyData.typeName();
+            LOG_INFO << "[" << m_listenerName << "][" << changeGuid << "] Topic "
+                     << fqdn << " with type " << proxyData.typeName();
         } else {
             auto it = topicNtypes.find(fqdn);
             if (it != topicNtypes.end()) {
-                const auto &loc =
-                        std::find(std::begin(it->second), std::end(it->second), proxyData.typeName());
+                const auto &loc = std::find(std::begin(it->second),
+                                            std::end(it->second), proxyData.typeName());
                 if (loc != std::end(it->second)) {
                     topicNtypes[fqdn].erase(loc, loc + 1);
-                    LOG_INFO << "[" << m_listenerName << "][" << changeGuid << "] Topic removed " << fqdn << " with type "
-                         << proxyData.typeName();
+                    LOG_INFO << "[" << m_listenerName << "][" << changeGuid
+                             << "] Topic removed " << fqdn << " with type "
+                             << proxyData.typeName();
                 } else {
-                    LOG_INFO << "[" << m_listenerName << "][" << changeGuid << "] Unexpected removal on topic " << fqdn
-                         << " with type "
-                         << proxyData.typeName();
+                    LOG_INFO << "[" << m_listenerName << "][" << changeGuid
+                             << "] Unexpected removal on topic " << fqdn << " with type "
+                             << proxyData.typeName();
                 }
             }
         }
         mapmutex.unlock();
     }
 };
-
 
 int main(int argc, char *argv[]) {
     using namespace AMM::Capability;
@@ -257,27 +262,27 @@ int main(int argc, char *argv[]) {
     auto mgr = new DDS_Manager(nodeName);
     mp_participant = mgr->GetParticipant();
 
-    std::pair<StatefulReader *, StatefulReader *> EDP_Readers = mp_participant->getEDPReaders();
+    std::pair<StatefulReader *, StatefulReader *> EDP_Readers =
+            mp_participant->getEDPReaders();
     auto result = EDP_Readers.first->setListener(&slave_listener_pub);
     result &= EDP_Readers.second->setListener(&slave_listener_sub);
 
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     command_sub_listener->SetUpstream(&commandL);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic,
+                                      AMM::DataTypes::getCommandType(),
+                                      command_sub_listener);
 
-    // Publish module configuration once we've set all our publishers and listeners
+    // Publish module configuration once we've set all our publishers and
+    // listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
-            mgr->module_id,
-            nodeString,
-            "Vcom3D",
-            "Logger",
-            "00001",
-            "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/module_capabilities/logger_capabilities.xml")
-    );
+            mgr->module_id, nodeString, "Vcom3D", "Logger", "00001", "0.0.1",
+            mgr->GetCapabilitiesAsString(
+                    "mule1/module_capabilities/logger_capabilities.xml"));
 
-    // Normally this would be set AFTER configuration is received, but the logger is always operational
+    // Normally this would be set AFTER configuration is received, but the logger
+    // is always operational
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     while (!closed) {
@@ -291,9 +296,7 @@ int main(int argc, char *argv[]) {
         cout.flush();
     }
 
-
     cout << "=== [Logger] Exiting." << endl;
 
     return 0;
-
 }

@@ -6,20 +6,25 @@ std::string AMM::DataTypes::tickTopic = "Tick";
 std::string AMM::DataTypes::nodeTopic = "Data";
 std::string AMM::DataTypes::highFrequencyNodeTopic = "HighFrequency_Data";
 
-std::string AMM::DataTypes::commandTopic = "AMM::PatientAction::BioGears::Command";
+std::string AMM::DataTypes::commandTopic =
+        "AMM::PatientAction::BioGears::Command";
+
 std::string AMM::DataTypes::physiologyCommandTopic = "AMM::Physiology::Command";
 
 std::string AMM::DataTypes::performanceTopic = "Performance";
 
 std::string AMM::DataTypes::airRequirementTopic = "Air_Requirement";
 std::string AMM::DataTypes::bloodRequirementTopic = "Blood_Requirement";
-std::string AMM::DataTypes::cleaningSolutionRequirementTopic = "CleaningSolution_Requirement";
-std::string AMM::DataTypes::clearLiquidRequirementTopic = "ClearLiquid_Requirement";
+std::string AMM::DataTypes::cleaningSolutionRequirementTopic =
+        "CleaningSolution_Requirement";
+std::string AMM::DataTypes::clearLiquidRequirementTopic =
+        "ClearLiquid_Requirement";
 std::string AMM::DataTypes::powerRequirementTopic = "Power_Requirement";
 
 std::string AMM::DataTypes::airSupplyTopic = "Air_Supply";
 std::string AMM::DataTypes::bloodSupplyTopic = "Blood_Supply";
-std::string AMM::DataTypes::cleaningSolutionSupplyTopic = "CleaningSolution_Supply";
+std::string AMM::DataTypes::cleaningSolutionSupplyTopic =
+        "CleaningSolution_Supply";
 std::string AMM::DataTypes::clearLiquidSupplyTopic = "ClearLiquid_Supply";
 std::string AMM::DataTypes::powerSupplyTopic = "Power_Supply";
 
@@ -37,18 +42,21 @@ AMM::Simulation::TickPubSubType *AMM::DataTypes::getTickType() {
 }
 
 AMM::Physiology::NodePubSubType *AMM::DataTypes::getNodeType() {
-    return new AMM::Physiology::NodePubSubType ();
+    return new AMM::Physiology::NodePubSubType();
 }
 
-AMM::Physiology::HighFrequencyNodePubSubType *AMM::DataTypes::getHighFrequencyNodeType() {
+AMM::Physiology::HighFrequencyNodePubSubType *
+AMM::DataTypes::getHighFrequencyNodeType() {
     return new AMM::Physiology::HighFrequencyNodePubSubType();
 };
+
 AMM::Physiology::CommandPubSubType *AMM::DataTypes::getPhysiologyCommandType() {
     return new AMM::Physiology::CommandPubSubType();
 };
 
 // AMM Patient Action / Intervention types
-AMM::PatientAction::BioGears::CommandPubSubType *AMM::DataTypes::getCommandType() {
+AMM::PatientAction::BioGears::CommandPubSubType *
+AMM::DataTypes::getCommandType() {
     return new AMM::PatientAction::BioGears::CommandPubSubType();
 }
 
@@ -58,23 +66,28 @@ AMM::Performance::StatementPubSubType *AMM::DataTypes::getxAPIStatementType() {
 };
 
 // AMM Resource Requirements types
-AMM::Resource::Requirement::AirPubSubType *AMM::DataTypes::getAirRequirementType() {
+AMM::Resource::Requirement::AirPubSubType *
+AMM::DataTypes::getAirRequirementType() {
     return new AMM::Resource::Requirement::AirPubSubType();
 };
 
-AMM::Resource::Requirement::BloodPubSubType *AMM::DataTypes::getBloodRequirementType() {
+AMM::Resource::Requirement::BloodPubSubType *
+AMM::DataTypes::getBloodRequirementType() {
     return new AMM::Resource::Requirement::BloodPubSubType();
 };
 
-AMM::Resource::Requirement::Cleaning_SolutionPubSubType *AMM::DataTypes::getCleaningSolutionRequirementType() {
+AMM::Resource::Requirement::Cleaning_SolutionPubSubType *
+AMM::DataTypes::getCleaningSolutionRequirementType() {
     return new AMM::Resource::Requirement::Cleaning_SolutionPubSubType();
 };
 
-AMM::Resource::Requirement::Clear_LiquidPubSubType *AMM::DataTypes::getClearLiquidRequirementType() {
+AMM::Resource::Requirement::Clear_LiquidPubSubType *
+AMM::DataTypes::getClearLiquidRequirementType() {
     return new AMM::Resource::Requirement::Clear_LiquidPubSubType();
 };
 
-AMM::Resource::Requirement::PowerPubSubType *AMM::DataTypes::getPowerRequirementType() {
+AMM::Resource::Requirement::PowerPubSubType *
+AMM::DataTypes::getPowerRequirementType() {
     return new AMM::Resource::Requirement::PowerPubSubType();
 };
 
@@ -87,11 +100,13 @@ AMM::Resource::Supply::BloodPubSubType *AMM::DataTypes::getBloodSupplyType() {
     return new AMM::Resource::Supply::BloodPubSubType();
 };
 
-AMM::Resource::Supply::Cleaning_SolutionPubSubType *AMM::DataTypes::getCleaningSolutionSupplyType() {
+AMM::Resource::Supply::Cleaning_SolutionPubSubType *
+AMM::DataTypes::getCleaningSolutionSupplyType() {
     return new AMM::Resource::Supply::Cleaning_SolutionPubSubType();
 };
 
-AMM::Resource::Supply::Clear_LiquidPubSubType *AMM::DataTypes::getClearLiquidSupplyType() {
+AMM::Resource::Supply::Clear_LiquidPubSubType *
+AMM::DataTypes::getClearLiquidSupplyType() {
     return new AMM::Resource::Supply::Clear_LiquidPubSubType();
 };
 
@@ -100,7 +115,8 @@ AMM::Resource::Supply::PowerPubSubType *AMM::DataTypes::getPowerSupplyType() {
 };
 
 // AMM Capability types
-AMM::Capability::ConfigurationPubSubType *AMM::DataTypes::getConfigurationType() {
+AMM::Capability::ConfigurationPubSubType *
+AMM::DataTypes::getConfigurationType() {
     return new AMM::Capability::ConfigurationPubSubType();
 };
 
@@ -112,19 +128,21 @@ AMM::Capability::ScenarioPubSubType *AMM::DataTypes::getScenarioType() {
     return new AMM::Capability::ScenarioPubSubType();
 };
 
-AMM::Performance::AssessmentPubSubType *AMM::DataTypes::getPerformanceAssessmentDataType() {
-    return new 
-AMM::Performance::AssessmentPubSubType();
+AMM::Performance::AssessmentPubSubType *
+AMM::DataTypes::getPerformanceAssessmentDataType() {
+    return new AMM::Performance::AssessmentPubSubType();
 }
 
 AMM::InstrumentDataPubSubType *AMM::DataTypes::getInstrumentDataType() {
     return new AMM::InstrumentDataPubSubType();
 };
 
-AMM::Render::ModificationPubSubType *AMM::DataTypes::getRenderModificationType() {
-  return new AMM::Render::ModificationPubSubType();
+AMM::Render::ModificationPubSubType *
+AMM::DataTypes::getRenderModificationType() {
+    return new AMM::Render::ModificationPubSubType();
 };
 
-AMM::Physiology::ModificationPubSubType *AMM::DataTypes::getPhysiologyModificationType() {
-  return new AMM::Physiology::ModificationPubSubType();
+AMM::Physiology::ModificationPubSubType *
+AMM::DataTypes::getPhysiologyModificationType() {
+    return new AMM::Physiology::ModificationPubSubType();
 };
