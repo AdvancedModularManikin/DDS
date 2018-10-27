@@ -18,7 +18,7 @@ matrix:
             - boost1.67
             
 before_install:
-  - pip install cmake
+  - sudo pip install cmake
   - mkdir AMM_Modules/build && cd AMM_Modules/build
   - ../../travis_scripts/fastrtps.sh
   
