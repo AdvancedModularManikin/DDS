@@ -18,8 +18,8 @@ matrix:
             - boost1.67
             
 before_install:
-  - chmod 755 ../../travis_scripts/*.sh
   - mkdir AMM_Modules/build && cd AMM_Modules/build
+  - chmod 755 ../../travis_scripts/*.sh
   - ../../travis_scripts/fastrtps.sh
   - ../../travis_scripts/cmake.sh
   
