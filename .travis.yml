@@ -31,5 +31,7 @@ before_install:
   - ../../travis_scripts/cmake.sh
   
 script:
+  - export CC=gcc-6
+  - export CXX=g++-6
   - /usr/local/bin/cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
   - make
