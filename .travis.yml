@@ -16,6 +16,13 @@ matrix:
           packages:
             - g++-6
             - boost1.67
+            - libtinyxml2-dev
+            - openjdk-8-jdk-headless
+            - gradle      
+            - libtinyxml2-dev
+            - sqlite3
+            - libsqlite3-dev
+            - libcurl4-openssl-dev
             
 before_install:
   - mkdir AMM_Modules/build && cd AMM_Modules/build
@@ -24,17 +31,5 @@ before_install:
   - ../../travis_scripts/cmake.sh
   
 script:
-  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+  - /usr/local/bin/cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
   - make
-
-addons:
-  apt:
-    packages:      
-      - libtinyxml2-dev
-      - openjdk-8-jdk-headless
-      - gradle      
-      - libtinyxml2-dev
-      - sqlite3
-      - libsqlite3-dev
-      - libcurl4-openssl-dev
- 
