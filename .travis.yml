@@ -25,10 +25,14 @@ matrix:
             - libcurl4-openssl-dev
             
 before_install:
+  - export CC=gcc-6
+  - export CXX=g++-6
   - mkdir AMM_Modules/build && cd AMM_Modules/build
-  - chmod 755 ../../travis_scripts/*.sh
-  - ../../travis_scripts/fastrtps.sh
+  - chmod 755 ../../travis_scripts/*.sh  
   - ../../travis_scripts/cmake.sh
+  - ../../travis_scripts/fastrtps.sh
+  - ../../travis_scripts/rapidjson.sh
+  - ../../travis_scripts/pistache.sh
   
 script:
   - export CC=gcc-6

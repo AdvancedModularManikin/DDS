@@ -4,6 +4,6 @@ cd Fast-RTPS
 git submodule update --init
 git pull
 mkdir build && cd build
-cmake -DTHIRDPARTY=ON -DBUILD_JAVA=ON .. 
+/usr/local/bin/cmake -DTHIRDPARTY=ON -DBUILD_JAVA=ON .. 
 make
 sudo make install
