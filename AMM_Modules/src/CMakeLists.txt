@@ -92,6 +92,10 @@ set(IVC_MODULE_EXE amm_ivc_module)
 add_executable(${IVC_MODULE_EXE} ${IVC_MODULE_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
 target_include_directories(${IVC_MODULE_EXE} PUBLIC spi_proto/src)
 
+set(ARDUINO_BRIDGE_SOURCES Arduino_Bridge.cpp)
+set(ARDUINO_BRIDGE_EXE amm_arduino_bridge)
+add_executable(${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES})
+
 set(SERIAL_BRIDGE_SOURCES Serial_Bridge.cpp AMM/SerialPort.cpp AMM/SerialPort.h)
 set(SERIAL_BRIDGE_EXE amm_serial_bridge)
 add_executable(${SERIAL_BRIDGE_EXE} ${SERIAL_BRIDGE_SOURCES})
@@ -197,6 +201,16 @@ target_link_libraries(${FLUID_MANAGER_EXE}
 target_link_libraries(${IVC_MODULE_EXE}
         fastrtps fastcdr
         amm::logger
+        ${TINYXML2_LIBRARIES}
+        amm::datamodel
+        )
+
+target_link_libraries(${ARDUINO_BRIDGE_EXE}
+        fastrtps fastcdr
+        amm::logger
+        Boost::system Boost::filesystem Boost::iostreams Boost::signals Boost::thread
+        Threads::Threads
+        pthread
         ${TINYXML2_LIBRARIES}
         amm::datamodel
         )
