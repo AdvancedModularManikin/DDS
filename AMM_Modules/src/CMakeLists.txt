@@ -208,7 +208,6 @@ target_link_libraries(${IVC_MODULE_EXE}
 target_link_libraries(${ARDUINO_BRIDGE_EXE}
         fastrtps fastcdr
         amm::logger
-        Boost::system Boost::filesystem Boost::iostreams Boost::signals Boost::thread
         Threads::Threads
         pthread
         ${TINYXML2_LIBRARIES}
