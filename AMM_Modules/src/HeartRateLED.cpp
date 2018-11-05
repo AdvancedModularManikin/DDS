@@ -1,11 +1,7 @@
 #include "AMM/DDS_Manager.h"
 
 // Standard includes for SPI datagram library.
-extern "C" {
-#include "spi_proto.h"
-}
-
-#include "spi_proto_master_datagram.h"
+#include "spi_datagram.h"
 
 using namespace std;
 using namespace AMM;
