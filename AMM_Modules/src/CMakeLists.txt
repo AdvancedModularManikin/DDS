@@ -22,18 +22,15 @@ target_link_libraries(
   PUBLIC Boost::log
 )
 
-set(idls AMM.idl)
-foreach (idl ${idls})
     # If fastrtpsgen is installed, we can do code generation.
     if (COMMAND FastRTPS_IDLGEN)
-        FastRTPS_IDLGEN(${PROJECT_SOURCE_DIR}/../IDL/${idl})
+        FastRTPS_IDLGEN(${PROJECT_SOURCE_DIR}/../IDL/AMM.idl)
     endif()
-    string(REGEX REPLACE "\(.*\).idl" "./gen/\\1.cxx" VARS_1 ${idl})
-    string(REGEX REPLACE "\(.*\).idl" "./gen/\\1.h" VARS_2 ${idl})
-    string(REGEX REPLACE "\(.*\).idl" "./gen/\\1PubSubTypes.cxx" VARS_3 ${idl})
-    string(REGEX REPLACE "\(.*\).idl" "./gen/\\1PubSubTypes.h" VARS_4 ${idl})
+    set(VARS_1 "AMM/DDS/AMM.cxx")
+    set(VARS_2 "AMM/DDS/AMM.h")
+    set(VARS_3 "AMM/DDS/AMMPubSubTypes.cxx")
+    set(VARS_4 "AMM/DDS/AMMPubSubTypes.h")
     set(DATAMODEL_SOURCES ${DATAMODEL_SOURCES} ${VARS_1} ${VARS_2} ${VARS_3} ${VARS_4})
-endforeach (idl)
 
 set(DDS_MANAGER dds_manager)
 set(DDS_MANAGER_SOURCES AMM/DDS_Manager.cpp AMM/Listeners/DDS_Listeners.cpp AMM/Listeners/ListenerInterface.h)
@@ -48,7 +45,6 @@ target_link_libraries(
 )
 target_include_directories(amm_types PUBLIC
   PUBLIC ${PROJECT_SOURCE_DIR}/src
-  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/gen
 )
 
 set(SIM_MANAGER_SOURCES SimManager.cpp AMM/SimulationManager.cpp)
