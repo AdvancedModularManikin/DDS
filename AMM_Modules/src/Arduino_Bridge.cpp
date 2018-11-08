@@ -55,6 +55,9 @@ const char *nodeName = "AMM_Serial_Bridge";
 
 DDS_Manager *mgr;
 
+int fd = -1;
+int rc;
+
 void sendConfigInfo(std::string scene, std::string module) {
     std::ostringstream static_filename;
     static_filename << "mule1/module_configuration_static/" << scene << "_" << module << ".txt";
@@ -69,7 +72,6 @@ void sendConfigInfo(std::string scene, std::string module) {
     }
     std::vector<std::string> v = explode("\n", configContent);
     for (int i = 0; i < v.size(); i++) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
         std::string rsp = v[i] + "\n";
         transmitQ.push(rsp);
     }
@@ -281,7 +283,10 @@ public:
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {
             std::ostringstream messageOut;
             messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
-            transmitQ.push(messageOut.str());
+            rc = serialport_write(fd, messageOut.str().c_str());
+            if(rc==-1) {
+                LOG_ERROR << " Error writing to serial port";
+            }
         }
     }
 
@@ -364,7 +369,6 @@ int main(int argc, char *argv[]) {
     LOG_INFO << "Linux Arduino_Bridge starting up";
     const int buf_max = 8192;
     char serialport[40];
-    int fd = -1;
     char eolchar = '\n';
     int timeout = 500;
     char buf[buf_max];
@@ -424,7 +428,7 @@ int main(int argc, char *argv[]) {
     LOG_INFO << "Serial_Bridge ready";
 
     std::thread ec(checkForExit);
-    int rc;
+
 
     while (!closed) {
         memset(buf, 0, buf_max);  //
@@ -441,6 +445,7 @@ int main(int argc, char *argv[]) {
                 LOG_ERROR << " Error writing to serial port";
             }
             transmitQ.pop();
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
