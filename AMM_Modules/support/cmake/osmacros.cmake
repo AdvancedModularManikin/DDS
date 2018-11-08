@@ -44,3 +44,9 @@ macro (FastRTPS_IDLGEN idlfilename)
   )
 endmacro (FastRTPS_IDLGEN)
 endif()
+
+# If fastrtpsgen is installed, we can do code generation.
+if (COMMAND FastRTPS_IDLGEN)
+    #FastRTPS_IDLGEN(${PROJECT_SOURCE_DIR}/../IDL/AMM.idl)
+    add_custom_target(generate_from_idl COMMAND ${FASTRTP_GEN_EXECUTABLE} -replace -d ${CMAKE_CURRENT_SOURCE_DIR}/src/AMM/DDS ${PROJECT_SOURCE_DIR}/../IDL/AMM.idl)
+endif()
