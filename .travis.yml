@@ -18,7 +18,6 @@ matrix:
             - boost1.67
             - libtinyxml2-dev
             - openjdk-8-jdk-headless
-            - gradle      
             - libtinyxml2-dev
             - sqlite3
             - libsqlite3-dev
