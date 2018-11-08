@@ -11,7 +11,7 @@
 #include <stack>
 #include <thread>
 
-#include "AMMPubSubTypes.h"
+#include "AMM/DDS/AMMPubSubTypes.h"
 
 #include "AMM/BaseLogger.h"
 #include "AMM/DDS_Manager.h"

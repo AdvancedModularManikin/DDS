@@ -18,7 +18,7 @@
 #include <Net/Server.h>
 #include <Net/UdpDiscoveryServer.h>
 
-#include "AMMPubSubTypes.h"
+#include "AMM/DDS/AMMPubSubTypes.h"
 
 #include "AMM/BaseLogger.h"
 #include "AMM/DDS_Manager.h"

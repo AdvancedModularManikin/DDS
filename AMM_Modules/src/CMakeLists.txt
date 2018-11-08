@@ -22,10 +22,6 @@ target_link_libraries(
   PUBLIC Boost::log
 )
 
-    # If fastrtpsgen is installed, we can do code generation.
-    if (COMMAND FastRTPS_IDLGEN)
-        FastRTPS_IDLGEN(${PROJECT_SOURCE_DIR}/../IDL/AMM.idl)
-    endif()
     set(VARS_1 "AMM/DDS/AMM.cxx")
     set(VARS_2 "AMM/DDS/AMM.h")
     set(VARS_3 "AMM/DDS/AMMPubSubTypes.cxx")

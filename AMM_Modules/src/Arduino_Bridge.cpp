@@ -20,7 +20,7 @@ extern "C" {
 #include "Serial/arduino-serial-lib.h"
 }
 
-#include "AMMPubSubTypes.h"
+#include "AMM/DDS/AMMPubSubTypes.h"
 #include "AMM/BaseLogger.h"
 #include "AMM/DDS_Manager.h"
 

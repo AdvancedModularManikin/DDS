@@ -2,7 +2,7 @@
 
 #include <fastrtps/rtps/reader/ReaderListener.h>
 
-#include "AMMPubSubTypes.h"
+#include "AMM/DDS/AMMPubSubTypes.h"
 
 using namespace eprosima;
 using namespace eprosima::fastrtps;

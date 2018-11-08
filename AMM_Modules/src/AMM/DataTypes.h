@@ -1,6 +1,6 @@
 #pragma once
 
-#include "AMMPubSubTypes.h"
+#include "AMM/DDS/AMMPubSubTypes.h"
 
 #include <mutex>
 #include <thread>

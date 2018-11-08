@@ -20,7 +20,7 @@
 #include <fastrtps/subscriber/SubscriberListener.h>
 
 #include "AMM/BaseLogger.h"
-#include "AMMPubSubTypes.h"
+#include "AMM/DDS/AMMPubSubTypes.h"
 #include "ListenerInterface.h"
 
 using namespace eprosima;
