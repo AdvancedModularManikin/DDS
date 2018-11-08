@@ -24,8 +24,10 @@ target_link_libraries(
 
 set(idls AMM.idl)
 foreach (idl ${idls})
-    FastRTPS_IDLGEN(${PROJECT_SOURCE_DIR}/../IDL/${idl})
-
+    # If fastrtpsgen is installed, we can do code generation.
+    if (FastRTPS_IDLGEN)
+        FastRTPS_IDLGEN(${PROJECT_SOURCE_DIR}/../IDL/${idl})
+    endif()
     string(REGEX REPLACE "\(.*\).idl" "./gen/\\1.cxx" VARS_1 ${idl})
     string(REGEX REPLACE "\(.*\).idl" "./gen/\\1.h" VARS_2 ${idl})
     string(REGEX REPLACE "\(.*\).idl" "./gen/\\1PubSubTypes.cxx" VARS_3 ${idl})
