@@ -179,7 +179,7 @@ namespace AMM {
             m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularCompartment::Aorta, *CO2, "PartialPressure");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(BGE::PulmonaryCompartment::Carina, "InFlow");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume", biogears::VolumeUnit::mL);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodPH");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("VenousBloodPH");
             m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
         }
         return true;
