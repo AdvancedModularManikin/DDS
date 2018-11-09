@@ -7,6 +7,8 @@
 using namespace AMM;
 
 bool closed = false;
+int autostart = 0;
+bool logging = false;
 
 static void show_usage(const std::string &name) {
     std::cerr << "Usage: " << name << " <option(s)>"
@@ -31,7 +33,13 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
     std::cout
             << " [5]Publish data\t\tPublish all data, right now (running or not)"
             << std::endl;
-    std::cout << " [6]Test pump" << std::endl;
+    std::cout << " [6]Toggle logging  (currently ";
+    if (logging) {
+        std::cout << "enabled";
+    } else {
+        std::cout << "disabled";
+    }
+    std::cout << ")" << std::endl;
     std::cout << " [7]Quit" << std::endl;
     std::cout << " >> ";
     getline(std::cin, action);
@@ -68,17 +76,12 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
         std::cout << " == Done publishing " << pe->GetNodePathCount() << " items."
                   << std::endl;
     } else if (action == "6") {
-        std::cout << "Testing pump settings";
-        // std::string payload = "bagVolume=250 mL\nrate=46.26
-        // mL/hr\nconcentration=200 mg/20 mL\nsubstance=Propofol\ntype=infusion";
-        std::string payload =
-                "bagVolume=1000 mL\nrate=100 mL/hr\nsubstance=Saline\ntype=infusion";
-        pe->TestPump(payload);
-    } else if (action == "8") {
-
-        std::cout << "Testing pain settings";
-        std::string payload = "location=arm\nseverity=0.5";
-        pe->TestPain(payload);
+        if (logging) {
+            logging = false;
+        } else {
+            logging = true;
+        }
+        pe->SetLogging(logging);
     } else if (action == "7") {
         if (!pe->isRunning()) {
             std::cout << " == Simulation not running, but shutting down anyway"
@@ -95,9 +98,6 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
 }
 
 int main(int argc, char *argv[]) {
-    int autostart = 0;
-    bool logging = false;
-
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
