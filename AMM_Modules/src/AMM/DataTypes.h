@@ -2,13 +2,6 @@
 
 #include "AMM/DDS/AMMPubSubTypes.h"
 
-#include <mutex>
-#include <thread>
-
-#include <boost/assign/list_of.hpp>
-#include <boost/assign/std/vector.hpp>
-#include <map>
-
 namespace AMM {
     class DataTypes {
     public:
