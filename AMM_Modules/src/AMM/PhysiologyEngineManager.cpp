@@ -318,6 +318,12 @@ namespace AMM {
                 LOG_TRACE << "Paused engine";
                 StopTickSimulation();
                 paused = true;
+            } else if (value.compare("ENABLE_LOGGING") = 0) {
+                LOG_TRACE << "Enabling logging";
+                this->SetLogging(true);
+            } else if (value.compare("DISABLE_LOGGING") = 0) {
+                LOG_TRACE << "Disabling logging";
+                this->SetLogging(false);
             } else if (value.compare("RESET_SIM") == 0) {
                 LOG_TRACE << "Reset simulation, clearing engine data.";
                 StopTickSimulation();
