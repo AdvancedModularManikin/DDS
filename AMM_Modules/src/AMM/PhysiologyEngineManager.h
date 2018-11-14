@@ -102,6 +102,7 @@ namespace AMM {
 
         DDS_Manager *mgr = new DDS_Manager(nodeName);
 
+        Publisher *hf_node_publisher;
         Publisher *node_publisher;
         Subscriber *tick_subscriber;
         Subscriber *command_subscriber;

@@ -143,7 +143,6 @@ namespace AMM {
 
         Participant *mp_participant;
 
-        Publisher *genPub;
         Publisher *command_publisher;
         Publisher *settings_publisher;
         Publisher *physiology_command_publisher;

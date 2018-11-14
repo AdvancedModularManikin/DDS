@@ -60,6 +60,9 @@ namespace AMM {
         node_publisher = mgr->InitializePublisher(
                 AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), pub_listener);
 
+        hf_node_publisher = mgr->InitializePublisher(
+                AMM::DataTypes::highFrequencyNodeTopic, AMM::DataTypes::getHighFrequencyNodeType(), pub_listener);
+
         std::string nodeString(nodeName);
 
         // Publish module configuration once we've set all our publishers and
@@ -132,7 +135,7 @@ namespace AMM {
         dataInstance.dbl(bg->GetNodePath(node));
         dataInstance.frame(lastFrame);
         try {
-            node_publisher->write(&dataInstance);
+            hf_node_publisher->write(&dataInstance);
         } catch (std::exception &e) {
             LOG_ERROR << "Unable to write high frequency node data  " << node << ": " << e.what();
         }
@@ -185,8 +188,8 @@ namespace AMM {
 
     void PhysiologyEngineManager::AdvanceTimeTick() { bg->AdvanceTimeTick(); }
 
-    void PhysiologyEngineManager::SetLogging(bool logging_enabled) {
-        logging_enabled = logging_enabled;
+    void PhysiologyEngineManager::SetLogging(bool log) {
+        logging_enabled = log;
         bg->logging_enabled = logging_enabled;
     }
 
