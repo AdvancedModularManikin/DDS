@@ -692,6 +692,7 @@ int main(int argc, const char *argv[]) {
     mgr = new DDS_Manager(nodeName.c_str());
 
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
+    auto *hf_node_sub_listener = new DDS_Listeners::HighFrequencyNodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
     auto *render_mod_listener = new DDS_Listeners::RenderModificationListener();
@@ -699,6 +700,7 @@ int main(int argc, const char *argv[]) {
 
     TCPBridgeListener tl;
     node_sub_listener->SetUpstream(&tl);
+    hf_node_sub_listener->SetUpstream(&tl);
     command_sub_listener->SetUpstream(&tl);
     config_sub_listener->SetUpstream(&tl);
     render_mod_listener->SetUpstream(&tl);
@@ -706,6 +708,10 @@ int main(int argc, const char *argv[]) {
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic,
                               AMM::DataTypes::getNodeType(), node_sub_listener);
+
+    mgr->InitializeSubscriber(AMM::DataTypes::highFrequencyNodeTopic,
+                              AMM::DataTypes::getHighFrequencyNodeType(), hf_node_sub_listener);
+
     mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic,
                                       AMM::DataTypes::getCommandType(),
                                       command_sub_listener);

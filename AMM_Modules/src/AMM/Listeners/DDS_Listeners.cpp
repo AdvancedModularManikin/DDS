@@ -34,6 +34,28 @@ void DDS_Listeners::NodeSubListener::onNewDataMessage(Subscriber *sub) {
     }
 }
 
+void DDS_Listeners::HighFrequencyNodeSubListener::onSubscriptionMatched(Subscriber *sub,
+                                                           MatchingInfo &info) {
+    if (info.status == MATCHED_MATCHING) {
+        n_matched++;
+    } else {
+        n_matched--;
+    }
+}
+
+void DDS_Listeners::HighFrequencyNodeSubListener::onNewDataMessage(Subscriber *sub) {
+    AMM::Physiology::HighFrequencyNode n;
+    if (sub->takeNextData(&n, &m_info)) {
+        if (m_info.sampleKind == ALIVE) {
+            if (upstream != nullptr) {
+                upstream->onNewHighFrequencyNodeData(n, &m_info);
+            }
+            ++n_msg;
+        }
+    }
+}
+
+
 void DDS_Listeners::PhysiologyCommandSubListener::onSubscriptionMatched(
         Subscriber *sub, MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {
