@@ -155,11 +155,13 @@ void readHandler() {
                                     "topic"); sub; sub = sub->NextSibling()) {
                                 tinyxml2::XMLElement *s = sub->ToElement();
                                 std::string subTopicName = s->Attribute("name");
-
                                 if (s->Attribute("nodepath")) {
-                                    subTopicName = s->Attribute("nodepath");
-                                } else if (s->Attribute("type")) {
-                                    subTopicName = s->Attribute("type");
+                                    std::string subNodePath = s->Attribute("nodepath");
+                                    if (s->Attribute("type") == "AMM_HighFrequencyNode_Data") {
+                                        subTopicName = "HF_" + subNodePath;
+                                    } else {
+                                        subTopicName = subNodePath;
+                                    }
                                 }
                                 add_once(subscribedTopics, subTopicName);
                                 LOG_TRACE << "[" << capabilityName << "][SUBSCRIBE]" << subTopicName;
@@ -225,13 +227,13 @@ void readHandler() {
             std::map<std::string, std::string> kvp;
 
             BOOST_FOREACH(std::string token, tokenList) {
-                size_t sep_pos = token.find_first_of("=");
-                std::string key = token.substr(0, sep_pos);
-                std::string value = (sep_pos == std::string::npos ? "" : token.substr(sep_pos + 1,
-                                                                                      std::string::npos));
-                kvp[key] = value;
-                LOG_TRACE << "\t" << key << " => " << kvp[key];
-            }
+                            size_t sep_pos = token.find_first_of("=");
+                            std::string key = token.substr(0, sep_pos);
+                            std::string value = (sep_pos == std::string::npos ? "" : token.substr(sep_pos + 1,
+                                                                                                  std::string::npos));
+                            kvp[key] = value;
+                            LOG_TRACE << "\t" << key << " => " << kvp[key];
+                        }
 
             auto type = kvp.find("type");
             if (type != kvp.end()) {
@@ -272,6 +274,18 @@ void readHandler() {
 
 class AMMListener : public ListenerInterface {
 public:
+    void onNewHighFrequencyNodeData(AMM::Physiology::HighFrequencyNode n, SampleInfo_t *info) override {
+        std::string hfname = "HF_" + n.nodepath();
+        if (std::find(subscribedTopics.begin(), subscribedTopics.end(), hfname) != subscribedTopics.end()) {
+            std::ostringstream messageOut;
+            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
+            rc = serialport_write(fd, messageOut.str().c_str());
+            if (rc == -1) {
+                LOG_ERROR << " Error writing to serial port";
+            }
+        }
+    }
+
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         if (n.nodepath() == "EXIT") {
             LOG_INFO << "Shutting down simulation based on shutdown node-data from physiology engine.";
@@ -284,7 +298,7 @@ public:
             std::ostringstream messageOut;
             messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
             rc = serialport_write(fd, messageOut.str().c_str());
-            if(rc==-1) {
+            if (rc == -1) {
                 LOG_ERROR << " Error writing to serial port";
             }
         }
@@ -441,7 +455,7 @@ int main(int argc, char *argv[]) {
             std::string sendStr = transmitQ.front();
             // LOG_TRACE << "Writing from transmitQ: " << sendStr;
             rc = serialport_write(fd, sendStr.c_str());
-            if(rc==-1) {
+            if (rc == -1) {
                 LOG_ERROR << " Error writing to serial port";
             }
             transmitQ.pop();

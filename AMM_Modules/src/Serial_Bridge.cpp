@@ -147,11 +147,13 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
                                  sub; sub = sub->NextSibling()) {
                                 tinyxml2::XMLElement *s = sub->ToElement();
                                 std::string subTopicName = s->Attribute("name");
-
                                 if (s->Attribute("nodepath")) {
-                                    subTopicName = s->Attribute("nodepath");
-                                } else if (s->Attribute("type")) {
-                                    subTopicName = s->Attribute("type");
+                                    std::string subNodePath = s->Attribute("nodepath");
+                                    if (s->Attribute("type") == "AMM_HighFrequencyNode_Data") {
+                                        subTopicName = "HF_" + subNodePath;
+                                    } else {
+                                        subTopicName = subNodePath;
+                                    }
                                 }
                                 add_once(subscribedTopics, subTopicName);
                                 LOG_TRACE << "[" << capabilityName << "][SUBSCRIBE]"
@@ -273,6 +275,15 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
 
 class GenericSerialListener : public ListenerInterface {
 public:
+    void onNewHighFrequencyNodeData(AMM::Physiology::HighFrequencyNode n, SampleInfo_t *info) override {
+        std::string hfname = "HF_" + n.nodepath();
+        if (std::find(subscribedTopics.begin(), subscribedTopics.end(), hfname) != subscribedTopics.end()) {
+            std::ostringstream messageOut;
+            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl()
+                       << std::endl;
+            transmitQ.push(messageOut.str());
+        }
+    }
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         if (n.nodepath() == "EXIT") {
             LOG_INFO << "Shutting down simulation based on shutdown node-data from "

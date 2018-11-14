@@ -16,12 +16,10 @@ public:
     ~ListenerInterface() override {};
 
     virtual void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) {};
-
+    virtual void onNewHighFrequencyNodeData(AMM::Physiology::HighFrequencyNode n, SampleInfo_t *info) {};
     virtual void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {};
-
     virtual void onNewCommandData(AMM::PatientAction::BioGears::Command cm,
                                   SampleInfo_t *info) {};
-
     virtual void onNewCommandData(AMM::Physiology::Command cm,
                                   SampleInfo_t *info) {};
 

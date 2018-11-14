@@ -113,29 +113,44 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::WriteNodeData(std::string node) {
-        AMM::Physiology::Node dataInstance;
-        dataInstance.nodepath(node);
-        dataInstance.dbl(bg->GetNodePath(node));
-        dataInstance.frame(lastFrame);
-        node_publisher->write(&dataInstance);
+        try {
+            AMM::Physiology::Node dataInstance;
+            dataInstance.nodepath(node);
+            dataInstance.dbl(bg->GetNodePath(node));
+            dataInstance.frame(lastFrame);
+            node_publisher->write(&dataInstance);
+        } catch (std::exception &e) {
+            LOG_ERROR << "Unable to write node data  " << node << ": "
+                      << e.what();
+        }
+    }
+
+    void PhysiologyEngineManager::WriteHighFrequencyNodeData(std::string node) {
+        try {
+            AMM::Physiology::HighFrequencyNode dataInstance;
+            dataInstance.nodepath(node);
+            dataInstance.dbl(bg->GetNodePath(node));
+            dataInstance.frame(lastFrame);
+            node_publisher->write(&dataInstance);
+        } catch (std::exception &e) {
+            LOG_ERROR << "Unable to write high frequency node data  " << node << ": "
+                      << e.what();
+        }
     }
 
     void PhysiologyEngineManager::PublishData(bool force = false) {
         auto it = nodePathMap->begin();
         while (it != nodePathMap->end()) {
-            // High-frequency nodes are published every tick
-            // All other nodes are published every % 10 tick
-            if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(),
-                           it->first) != bg->highFrequencyNodes.end()) ||
-                (lastFrame % 11) == 0 || force) {
-                if (it->first != "EXIT") {
-                    try {
-                        WriteNodeData(it->first);
-                    } catch (std::exception &e) {
-                        LOG_ERROR << "Unable to write node data  " << it->first << ": "
-                                  << e.what();
-                    }
-                }
+            if (it->first != "EXIT") {
+                continue;
+            }
+            // If we're forcing publishing OR if we're every 5th frame (10hz)
+            if ((lastFrame % 5) == 0 || force) {
+                WriteNodeData(it->first);
+            }
+            if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) !=
+                 bg->highFrequencyNodes.end())) {
+                    WriteHighFrequencyNodeData(it->first);
             }
             ++it;
         }
@@ -195,6 +210,11 @@ namespace AMM {
 
 // Listener events
     void PhysiologyEngineManager::onNewNodeData(AMM::Physiology::Node n,
+                                                SampleInfo_t *info) {
+        // Placeholder to listen for higher-weighted node data
+    }
+
+    void PhysiologyEngineManager::onNewHighFrequencyNodeData(AMM::Physiology::HighFrequencyNode n,
                                                 SampleInfo_t *info) {
         // Placeholder to listen for higher-weighted node data
     }
@@ -318,10 +338,10 @@ namespace AMM {
                 LOG_TRACE << "Paused engine";
                 StopTickSimulation();
                 paused = true;
-            } else if (value.compare("ENABLE_LOGGING") = 0) {
+            } else if (value.compare("ENABLE_LOGGING") == 0) {
                 LOG_TRACE << "Enabling logging";
                 this->SetLogging(true);
-            } else if (value.compare("DISABLE_LOGGING") = 0) {
+            } else if (value.compare("DISABLE_LOGGING") == 0) {
                 LOG_TRACE << "Disabling logging";
                 this->SetLogging(false);
             } else if (value.compare("RESET_SIM") == 0) {

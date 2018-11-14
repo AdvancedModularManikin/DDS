@@ -62,6 +62,8 @@ namespace AMM {
 
         void WriteNodeData(std::string node);
 
+        void WriteHighFrequencyNodeData(std::string node);
+
         void TickLoop();
 
         void AdvanceTimeTick();
@@ -78,6 +80,8 @@ namespace AMM {
         void TestPain(const std::string &painSettings);
 
         void onNewNodeData(Physiology::Node n, SampleInfo_t *info) override;
+
+        void onNewHighFrequencyNodeData(Physiology::HighFrequencyNode n, SampleInfo_t *info) override;
 
         void onNewTickData(Simulation::Tick ti, SampleInfo_t *info) override;
 
