@@ -202,12 +202,6 @@ public:
     }
 
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
-        if (n.nodepath() == "EXIT") {
-            LOG_INFO << "Shutting down simulation based on shutdown node-data from "
-                        "physiology engine.";
-            closed = true;
-        }
-
         // Drop values into the lab sheets
         for (auto &outer_map_pair : labNodes) {
             if (labNodes[outer_map_pair.first].find(n.nodepath()) !=

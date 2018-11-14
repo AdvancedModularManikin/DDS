@@ -85,7 +85,9 @@ namespace AMM {
         }
     }
 
-    void PhysiologyEngineManager::SendShutdown() { return WriteNodeData("EXIT"); }
+    void PhysiologyEngineManager::SendShutdown() {
+        return WriteNodeData("EXIT");
+    }
 
     void PhysiologyEngineManager::PrintAvailableNodePaths() {
         nodePathMap = bg->GetNodePathTable();

@@ -287,12 +287,6 @@ public:
     }
 
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
-        if (n.nodepath() == "EXIT") {
-            LOG_INFO << "Shutting down simulation based on shutdown node-data from physiology engine.";
-            closed = true;
-            return;
-        }
-
         // Publish values that are supposed to go out on every change
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {
             std::ostringstream messageOut;

@@ -285,14 +285,6 @@ public:
         }
     }
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
-        if (n.nodepath() == "EXIT") {
-            LOG_INFO << "Shutting down simulation based on shutdown node-data from "
-                        "physiology engine.";
-            closed = true;
-            return;
-        }
-
-        // Publish values that are supposed to go out on every change
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(),
                       n.nodepath()) != subscribedTopics.end()) {
             std::ostringstream messageOut;
@@ -304,7 +296,6 @@ public:
 
     void onNewPhysiologyModificationData(AMM::Physiology::Modification pm,
                                          SampleInfo_t *info) override {
-        // Publish values that are supposed to go out on every change
         std::ostringstream messageOut;
         messageOut << "[AMM_Physiology_Modification]"
                    << "type=" << pm.type() << ";"
@@ -323,7 +314,6 @@ public:
 
     void onNewRenderModificationData(AMM::Render::Modification rm,
                                      SampleInfo_t *info) override {
-        // Publish values that are supposed to go out on every change
         std::ostringstream messageOut;
         messageOut << "[AMM_Render_Modification]"
                    << "type=" << rm.type() << ";"
