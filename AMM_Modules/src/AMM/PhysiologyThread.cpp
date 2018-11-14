@@ -49,7 +49,7 @@ namespace AMM {
         nodePathTable["ECG"] = &PhysiologyThread::GetECGWaveform;
         nodePathTable["HR"] = &PhysiologyThread::GetHeartRate;
         nodePathTable["SIM_TIME"] = &PhysiologyThread::GetSimulationTime;
-        nodePathTable["EXIT"] = &PhysiologyThread::GetShutdownMessage;
+        // nodePathTable["EXIT"] = &PhysiologyThread::GetShutdownMessage;
 
         // Cardiovascular System
         nodePathTable["Cardiovascular_HeartRate"] = &PhysiologyThread::GetHeartRate;

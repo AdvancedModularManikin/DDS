@@ -86,7 +86,7 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::SendShutdown() {
-        return WriteNodeData("EXIT");
+        //return WriteNodeData("EXIT");
     }
 
     void PhysiologyEngineManager::PrintAvailableNodePaths() {
@@ -143,9 +143,6 @@ namespace AMM {
     void PhysiologyEngineManager::PublishData(bool force = false) {
         auto it = nodePathMap->begin();
         while (it != nodePathMap->end()) {
-            if (it->first != "EXIT") {
-                continue;
-            }
             // If we're forcing publishing OR if we're every 5th frame (10hz)
             if ((lastFrame % 5) == 0 || force) {
                 WriteNodeData(it->first);
