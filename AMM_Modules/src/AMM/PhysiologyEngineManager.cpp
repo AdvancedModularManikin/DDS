@@ -115,41 +115,38 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::WriteNodeData(std::string node) {
+        AMM::Physiology::Node dataInstance;
+        dataInstance.nodepath(node);
+        dataInstance.dbl(bg->GetNodePath(node));
+        dataInstance.frame(lastFrame);
         try {
-            AMM::Physiology::Node dataInstance;
-            dataInstance.nodepath(node);
-            dataInstance.dbl(bg->GetNodePath(node));
-            dataInstance.frame(lastFrame);
             node_publisher->write(&dataInstance);
         } catch (std::exception &e) {
-            LOG_ERROR << "Unable to write node data  " << node << ": "
-                      << e.what();
+            LOG_ERROR << "Unable to write node data  " << node << ": " << e.what();
         }
     }
 
     void PhysiologyEngineManager::WriteHighFrequencyNodeData(std::string node) {
+        AMM::Physiology::HighFrequencyNode dataInstance;
+        dataInstance.nodepath(node);
+        dataInstance.dbl(bg->GetNodePath(node));
+        dataInstance.frame(lastFrame);
         try {
-            AMM::Physiology::HighFrequencyNode dataInstance;
-            dataInstance.nodepath(node);
-            dataInstance.dbl(bg->GetNodePath(node));
-            dataInstance.frame(lastFrame);
             node_publisher->write(&dataInstance);
         } catch (std::exception &e) {
-            LOG_ERROR << "Unable to write high frequency node data  " << node << ": "
-                      << e.what();
+            LOG_ERROR << "Unable to write high frequency node data  " << node << ": " << e.what();
         }
     }
 
     void PhysiologyEngineManager::PublishData(bool force = false) {
         auto it = nodePathMap->begin();
         while (it != nodePathMap->end()) {
-            // If we're forcing publishing OR if we're every 5th frame (10hz)
-            if ((lastFrame % 5) == 0 || force) {
+            if ((lastFrame % 10) == 0 || force) {
                 WriteNodeData(it->first);
             }
             if ((std::find(bg->highFrequencyNodes.begin(), bg->highFrequencyNodes.end(), it->first) !=
                  bg->highFrequencyNodes.end())) {
-                    WriteHighFrequencyNodeData(it->first);
+                WriteHighFrequencyNodeData(it->first);
             }
             ++it;
         }
@@ -214,7 +211,7 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::onNewHighFrequencyNodeData(AMM::Physiology::HighFrequencyNode n,
-                                                SampleInfo_t *info) {
+                                                             SampleInfo_t *info) {
         // Placeholder to listen for higher-weighted node data
     }
 
@@ -247,7 +244,7 @@ namespace AMM {
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
+                bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
                     // Create variables for scenario
                     SEPainStimulus PainStimulus; // pain object
                     PainStimulus.SetLocation(command.location().description());
@@ -263,7 +260,7 @@ namespace AMM {
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
+                bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
                     // Create variables for scenario
                     SESepsis sepsis; // pain object
                     sepsis.BuildTissueResistorMap();
