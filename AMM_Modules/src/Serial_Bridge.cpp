@@ -275,15 +275,6 @@ void readHandler(boost::array<char, SerialPort::k_readBufferSize> const &buffer,
 
 class GenericSerialListener : public ListenerInterface {
 public:
-    void onNewHighFrequencyNodeData(AMM::Physiology::HighFrequencyNode n, SampleInfo_t *info) override {
-        std::string hfname = "HF_" + n.nodepath();
-        if (std::find(subscribedTopics.begin(), subscribedTopics.end(), hfname) != subscribedTopics.end()) {
-            std::ostringstream messageOut;
-            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl()
-                       << std::endl;
-            transmitQ.push(messageOut.str());
-        }
-    }
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(),
                       n.nodepath()) != subscribedTopics.end()) {
