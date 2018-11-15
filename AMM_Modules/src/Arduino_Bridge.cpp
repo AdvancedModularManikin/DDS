@@ -278,7 +278,8 @@ public:
         std::string hfname = "HF_" + n.nodepath();
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), hfname) != subscribedTopics.end()) {
             std::ostringstream messageOut;
-            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
+            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::
+            endl;
             rc = serialport_write(fd, messageOut.str().c_str());
             if (rc == -1) {
                 LOG_ERROR << " Error writing to serial port";
@@ -386,6 +387,7 @@ int main(int argc, char *argv[]) {
 
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
+    auto *hf_node_sub_listener = new DDS_Listeners::HighFrequencyNodeSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
     auto *render_mod_listener = new DDS_Listeners::RenderModificationListener();
     auto *phys_mod_listener = new DDS_Listeners::PhysiologyModificationListener();
@@ -394,12 +396,15 @@ int main(int argc, char *argv[]) {
 
     command_sub_listener->SetUpstream(&al);
     node_sub_listener->SetUpstream(&al);
+    hf_node_sub_listener->SetUpstream(&al);
     config_sub_listener->SetUpstream(&al);
     render_mod_listener->SetUpstream(&al);
     phys_mod_listener->SetUpstream(&al);
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
                               node_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::highFrequencyNodeTopic,
+                              AMM::DataTypes::getHighFrequencyNodeType(), hf_node_sub_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                                       command_sub_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(),
