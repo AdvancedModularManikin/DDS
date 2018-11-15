@@ -425,7 +425,7 @@ void HandleCapabilities(Client *c, std::string const &capabilityVal) {
 
                     if (s->Attribute("nodepath")) {
                         std::string subNodePath = s->Attribute("nodepath");
-                        if (s->Attribute("type") == "AMM_HighFrequencyNode_Data") {
+                        if (subTopicName == "AMM_HighFrequencyNode_Data") {
                             subTopicName = "HF_" + subNodePath;
                         } else {
                             subTopicName = subNodePath;
