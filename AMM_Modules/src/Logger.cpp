@@ -59,7 +59,7 @@ public:
     std::map<std::string, std::vector<std::string>> topicNtypes;
     std::map<GUID_t, std::string> discovered_names;
 
-    AMMListener(const std::string listenerName) { m_listenerName = listenerName; }
+    AMMListener(const std::string &listenerName) { m_listenerName = listenerName; }
 
     static std::map<std::string, std::vector<uint8_t>>
     parse_key_value(std::vector<uint8_t> kv) {

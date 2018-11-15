@@ -108,7 +108,7 @@ void PublishNodeData(std::string node, float dbl) {
     frame++;
 }
 
-void ProcessConfig(const std::string configContent) {
+void ProcessConfig(const std::string &configContent) {
 
     tinyxml2::XMLDocument doc;
     doc.Parse(configContent.c_str());

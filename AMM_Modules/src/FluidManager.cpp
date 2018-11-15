@@ -29,7 +29,7 @@ bool have_pressure = 0;
 bool send_status = false;
 AMM::Capability::status_values current_status;
 
-void ProcessConfig(const std::string configContent) {
+void ProcessConfig(const std::string &configContent) {
 
     tinyxml2::XMLDocument doc;
     doc.Parse(configContent.c_str());
