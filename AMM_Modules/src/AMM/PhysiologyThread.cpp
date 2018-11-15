@@ -9,16 +9,8 @@ namespace AMM {
 
     PhysiologyThread::PhysiologyThread(const std::string &logFile) {
         m_pe = biogears::CreateBioGearsEngine(logFile);
-        PopulateNodePathTable();
-        m_runThread = false;
-    }
 
-    PhysiologyThread::~PhysiologyThread() {
-        m_runThread = false;
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-    }
-
-    void PhysiologyThread::PreloadSubstances() {
+        // preload substances
         sodium = m_pe->GetSubstanceManager().GetSubstance("Sodium");
         glucose = m_pe->GetSubstanceManager().GetSubstance("Glucose");
         creatinine = m_pe->GetSubstanceManager().GetSubstance("Creatinine");
@@ -33,12 +25,19 @@ namespace AMM {
         potassium = m_pe->GetSubstanceManager().GetSubstance("Potassium");
         chloride = m_pe->GetSubstanceManager().GetSubstance("Chloride");
         lactate = m_pe->GetSubstanceManager().GetSubstance("Lactate");
-    }
 
-    void PhysiologyThread::PreloadCompartments() {
+        // preload compartments
         carina = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Carina);
         leftLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::LeftLung);
         rightLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::RightLung);
+
+        PopulateNodePathTable();
+        m_runThread = false;
+    }
+
+    PhysiologyThread::~PhysiologyThread() {
+        m_runThread = false;
+        std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 
     void PhysiologyThread::PopulateNodePathTable() {
@@ -71,6 +70,11 @@ namespace AMM {
         nodePathTable["Respiratory_LeftAlveoli_BaseCompliance"] = &PhysiologyThread::GetLeftAlveoliBaselineCompliance;
         nodePathTable["Respiratory_RightPleuralCavity_Volume"] = &PhysiologyThread::GetRightPleuralCavityVolume;
         nodePathTable["Respiratory_RightLung_Volume"] = &PhysiologyThread::GetRightLungVolume;
+
+        nodePathTable["Respiratory_LeftLung_Tidal_Volume"] = &PhysiologyThread::GetLeftLungTidalVolume;
+        nodePathTable["Respiratory_RightLung_Tidal_Volume"] = &PhysiologyThread::GetRightLungTidalVolume;
+
+
         nodePathTable["Respiratory_RightAlveoli_BaseCompliance"] = &PhysiologyThread::GetRightAlveoliBaselineCompliance;
         nodePathTable["Respiratory_CarbonDioxide_Exhaled"] = &PhysiologyThread::GetExhaledCO2;
 
@@ -160,25 +164,38 @@ namespace AMM {
             return false;
         }
 
-        PreloadSubstances();
-        PreloadCompartments();
+        /** PreloadSubstances();
+        PreloadCompartments(); **/
 
         if (logging_enabled) {
             std::string logFilename = getTimestampedFilename("./logs/Output_", ".csv");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate", biogears::FrequencyUnit::Per_min);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure", biogears::PressureUnit::mmHg);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("SystolicArterialPressure", biogears::PressureUnit::mmHg);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("DiastolicArterialPressure", biogears::PressureUnit::mmHg);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("RespirationRate", biogears::FrequencyUnit::Per_min);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TidalVolume", biogears::VolumeUnit::mL);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TotalLungVolume", biogears::VolumeUnit::mL);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(BGE::PulmonaryCompartment::LeftLung, "Volume");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(BGE::PulmonaryCompartment::RightLung, "Volume");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
+                                                                                              biogears::FrequencyUnit::Per_min);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
+                                                                                              biogears::PressureUnit::mmHg);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
+                    "SystolicArterialPressure", biogears::PressureUnit::mmHg);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
+                    "DiastolicArterialPressure", biogears::PressureUnit::mmHg);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("RespirationRate",
+                                                                                              biogears::FrequencyUnit::Per_min);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TidalVolume",
+                                                                                              biogears::VolumeUnit::mL);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TotalLungVolume",
+                                                                                              biogears::VolumeUnit::mL);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
+                    BGE::PulmonaryCompartment::LeftLung, "Volume");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
+                    BGE::PulmonaryCompartment::RightLung, "Volume");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularCompartment::Aorta, *O2, "PartialPressure");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(BGE::VascularCompartment::Aorta, *CO2, "PartialPressure");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(BGE::PulmonaryCompartment::Carina, "InFlow");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume", biogears::VolumeUnit::mL);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
+                    BGE::VascularCompartment::Aorta, *O2, "PartialPressure");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
+                    BGE::VascularCompartment::Aorta, *CO2, "PartialPressure");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
+                    BGE::PulmonaryCompartment::Carina, "InFlow");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume",
+                                                                                              biogears::VolumeUnit::mL);
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("ArterialBloodPH");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("VenousBloodPH");
             m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
@@ -505,15 +522,78 @@ namespace AMM {
 
 // Get Left Lung Volume - mL
     double PhysiologyThread::GetLeftLungVolume() {
-        return leftLung->GetVolume(biogears::VolumeUnit::mL);
+        lung_vol_L = leftLung->GetVolume(biogears::VolumeUnit::mL);
+        return lung_vol_L;
     }
 
 // Get Right Lung Volume - mL
     double PhysiologyThread::GetRightLungVolume() {
-        return rightLung->GetVolume(biogears::VolumeUnit::mL);
+        lung_vol_R = rightLung->GetVolume(biogears::VolumeUnit::mL);
+        return lung_vol_R;
     }
 
-// Get Left Lung Pleural Cavity Volume - mL
+    // Calculate and fetch left lung tidal volume
+    double PhysiologyThread::GetLeftLungTidalVolume() {
+        if (falling_L) {
+            if (lung_vol_L < new_min_L) new_min_L = lung_vol_L;
+            else if (lung_vol_L > new_min_L + thresh) {
+                falling_L = false;
+                min_lung_vol_L = new_min_L;
+                new_min_L = 1500.0;
+                leftLungTidalVol = max_lung_vol_L - min_lung_vol_L;
+
+                chestrise_pct_L = leftLungTidalVol * 100 / 300; // scale tidal volume to percent of max chest rise
+                if (chestrise_pct_L > 100) chestrise_pct_L = 100;    // clamp the value to 0 <= chestrise_pct <= 100
+                if (chestrise_pct_L < 0) chestrise_pct_L = 0;
+            }
+        } else {
+            if (lung_vol_L > new_max_L) new_max_L = lung_vol_L;
+            else if (lung_vol_L < new_max_L - thresh) {
+                falling_L = true;
+                max_lung_vol_L = new_max_L;
+                new_max_L = 0.0;
+                leftLungTidalVol = max_lung_vol_L - min_lung_vol_L;
+
+                chestrise_pct_L = leftLungTidalVol * 100 / 300; // scale tidal volume to percent of max chest rise
+                if (chestrise_pct_L > 100) chestrise_pct_L = 100;    // clamp the value to 0 <= chestrise_pct <= 100
+                if (chestrise_pct_L < 0) chestrise_pct_L = 0;
+            }
+        }
+        return leftLungTidalVol;
+    }
+
+    // Calculate and fetch right lung tidal volume
+    double PhysiologyThread::GetRightLungTidalVolume() {
+        if (falling_R) {
+            if (lung_vol_R < new_min_R) new_min_R = lung_vol_R;
+            else if (lung_vol_R > new_min_R + thresh) {
+                falling_R = false;
+                min_lung_vol_R = new_min_R;
+                new_min_R = 1500.0;
+                leftLungTidalVol = max_lung_vol_R - min_lung_vol_R;
+
+                chestrise_pct_R = rightLungTidalVol * 100 / 300; // scale tidal volume to percent of max chest rise
+                if (chestrise_pct_R > 100) chestrise_pct_R = 100;    // clamp the value to 0 <= chestrise_pct <= 100
+                if (chestrise_pct_R < 0) chestrise_pct_R = 0;
+            }
+        } else {
+            if (lung_vol_R > new_max_R) new_max_R = lung_vol_R;
+            else if (lung_vol_R < new_max_R - thresh) {
+                falling_R = true;
+                max_lung_vol_R = new_max_R;
+                new_max_R = 0.0;
+                rightLungTidalVol = max_lung_vol_R - min_lung_vol_R;
+
+                chestrise_pct_R = rightLungTidalVol * 100 / 300; // scale tidal volume to percent of max chest rise
+                if (chestrise_pct_R > 100) chestrise_pct_R = 100;    // clamp the value to 0 <= chestrise_pct <= 100
+                if (chestrise_pct_R < 0) chestrise_pct_R = 0;
+            }
+        }
+        return rightLungTidalVol;
+    }
+
+
+    // Get Left Lung Pleural Cavity Volume - mL
     double PhysiologyThread::GetLeftPleuralCavityVolume() {
         return leftLung->GetVolume(biogears::VolumeUnit::mL);
     }

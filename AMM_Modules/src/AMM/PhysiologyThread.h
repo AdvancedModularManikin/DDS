@@ -146,10 +146,6 @@ namespace AMM {
 
         void PopulateNodePathTable();
 
-        void PreloadSubstances();
-
-        void PreloadCompartments();
-
         double GetShutdownMessage();
 
         double GetHeartRate();
@@ -228,6 +224,10 @@ namespace AMM {
 
         double GetRightLungVolume();
 
+        double GetLeftLungTidalVolume();
+
+        double GetRightLungTidalVolume();
+
         double GetLeftPleuralCavityVolume();
 
         double GetRightPleuralCavityVolume();
@@ -273,5 +273,17 @@ namespace AMM {
         std::mutex m_mutex;
         bool m_runThread;
         std::unique_ptr<biogears::PhysiologyEngine> m_pe;
+
+        double thresh = 1.0;
+
+        bool falling_L;
+        double lung_vol_L, new_min_L, new_max_L, min_lung_vol_L, max_lung_vol_L;
+        double chestrise_pct_L;
+        double leftLungTidalVol;
+
+        bool falling_R;
+        double lung_vol_R, new_min_R, new_max_R, min_lung_vol_R, max_lung_vol_R;
+        double chestrise_pct_R;
+        double rightLungTidalVol;
     };
 }
