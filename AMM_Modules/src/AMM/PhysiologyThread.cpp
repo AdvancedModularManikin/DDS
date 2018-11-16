@@ -166,8 +166,14 @@ namespace AMM {
         leftLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::LeftLung);
         rightLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::RightLung);
 
-
         if (logging_enabled) {
+            InitializeLog();
+        }
+
+        return true;
+    }
+
+    void PhysiologyThread::InitializeLog() {
             std::string logFilename = getTimestampedFilename("./logs/Output_", ".csv");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
                                                                                               biogears::FrequencyUnit::Per_min);
@@ -199,8 +205,6 @@ namespace AMM {
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("ArterialBloodPH");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("VenousBloodPH");
             m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
-        }
-        return true;
     }
 
     bool PhysiologyThread::SaveState() {

@@ -120,22 +120,22 @@ namespace AMM {
     void PhysiologyEngineManager::WriteNodeData(std::string node) {
         AMM::Physiology::Node dataInstance;
         try {
-	  dataInstance.nodepath(node);
-	  dataInstance.dbl(bg->GetNodePath(node));
-	  dataInstance.frame(lastFrame);
-	  node_publisher->write(&dataInstance);
+            dataInstance.nodepath(node);
+            dataInstance.dbl(bg->GetNodePath(node));
+            dataInstance.frame(lastFrame);
+            node_publisher->write(&dataInstance);
         } catch (std::exception &e) {
-	  LOG_ERROR << "Unable to write node data  " << node << ": " << e.what();
+            LOG_ERROR << "Unable to write node data  " << node << ": " << e.what();
         }
     }
 
     void PhysiologyEngineManager::WriteHighFrequencyNodeData(std::string node) {
         AMM::Physiology::HighFrequencyNode dataInstance;
         try {
-	  dataInstance.nodepath(node);
-	  dataInstance.dbl(bg->GetNodePath(node));
-	  dataInstance.frame(lastFrame);
-	  hf_node_publisher->write(&dataInstance);
+            dataInstance.nodepath(node);
+            dataInstance.dbl(bg->GetNodePath(node));
+            dataInstance.frame(lastFrame);
+            hf_node_publisher->write(&dataInstance);
         } catch (std::exception &e) {
             LOG_ERROR << "Unable to write high frequency node data  " << node << ": " << e.what();
         }
@@ -191,6 +191,9 @@ namespace AMM {
     void PhysiologyEngineManager::SetLogging(bool log) {
         logging_enabled = log;
         bg->logging_enabled = logging_enabled;
+        if (logging_enabled) {
+            bg->InitializeLog();
+        }
     }
 
     int PhysiologyEngineManager::GetTickCount() { return lastFrame; }
@@ -247,7 +250,7 @@ namespace AMM {
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
+                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
                     // Create variables for scenario
                     SEPainStimulus PainStimulus; // pain object
                     PainStimulus.SetLocation(command.location().description());
@@ -263,7 +266,7 @@ namespace AMM {
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
+                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
                     // Create variables for scenario
                     SESepsis sepsis; // pain object
                     sepsis.BuildTissueResistorMap();
@@ -337,6 +340,14 @@ namespace AMM {
                 LOG_TRACE << "Paused engine";
                 StopTickSimulation();
                 paused = true;
+            } else if (value.compare("TOGGLE_LOGGING") == 0) {
+                LOG_TRACE << "Toggling log";
+                this->SetLogging(!logging_enabled);
+                if (logging_enabled) {
+                    LOG_TRACE << "Logging is now enabled";
+                } else {
+                    LOG_TRACE << "Logging is now disabled";
+                }
             } else if (value.compare("ENABLE_LOGGING") == 0) {
                 LOG_TRACE << "Enabling logging";
                 this->SetLogging(true);
@@ -364,8 +375,7 @@ namespace AMM {
         }
     }
 
-    void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti,
-                                                SampleInfo_t *info) {
+    void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {
         if (m_runThread) {
             if (ti.frame() == -1) {
                 StopTickSimulation();
@@ -388,29 +398,16 @@ namespace AMM {
                 lastFrame = static_cast<int>(ti.frame());
 
                 // Per-frame stuff happens here
-		try {
-		  AdvanceTimeTick();
-		  PublishData(false);
-		} catch (std::exception &e) {
-		  LOG_ERROR << "Unable to advance time: " << e.what();
-		}
+                try {
+                    AdvanceTimeTick();
+                    PublishData(false);
+                } catch (std::exception &e) {
+                    LOG_ERROR << "Unable to advance time: " << e.what();
+                }
             } else {
                 std::cout.flush();
             }
         }
-    }
-
-    void PhysiologyEngineManager::TestPain(const std::string &painSettings) {
-        bg->SetPain(painSettings);
-    }
-
-    void PhysiologyEngineManager::TestVentilator(
-            const std::string &ventilatorSettings) {
-        bg->SetVentilator(ventilatorSettings);
-    }
-
-    void PhysiologyEngineManager::TestPump(const std::string &pumpSettings) {
-        bg->SetIVPump(pumpSettings);
     }
 
     void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i,
