@@ -47,6 +47,7 @@ std::string xmlPrefix = "<?xml";
 
 std::vector<std::string> subscribedTopics;
 std::vector<std::string> publishedTopics;
+std::map<std::string,std::string> subMaps;
 
 std::queue<std::string> transmitQ;
 
@@ -155,6 +156,8 @@ void readHandler() {
                                     "topic"); sub; sub = sub->NextSibling()) {
                                 tinyxml2::XMLElement *s = sub->ToElement();
                                 std::string subTopicName = s->Attribute("name");
+
+
                                 if (s->Attribute("nodepath")) {
                                     std::string subNodePath = s->Attribute("nodepath");
                                     if (subTopicName == "AMM_HighFrequencyNode_Data") {
@@ -163,6 +166,12 @@ void readHandler() {
                                         subTopicName = subNodePath;
                                     }
                                 }
+
+                                if (s->Attribute('map_name')) {
+                                    std::string subMapName = s->Attribute("map_name");
+                                    subMaps[subTopicName] = subMapName;
+                                }
+
                                 add_once(subscribedTopics, subTopicName);
                                 LOG_TRACE << "[" << capabilityName << "][SUBSCRIBE]" << subTopicName;
                             }
@@ -278,8 +287,13 @@ public:
         std::string hfname = "HF_" + n.nodepath();
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), hfname) != subscribedTopics.end()) {
             std::ostringstream messageOut;
-            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::
-            endl;
+            map<string,string>::iterator i = subMaps.find(hfname);
+            if (i == subMaps.end()) {
+                messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
+            } else {
+                messageOut << "[" << i->first << "]" << n.dbl() << std::endl;
+            }
+
             rc = serialport_write(fd, messageOut.str().c_str());
             if (rc == -1) {
                 LOG_ERROR << " Error writing to serial port";
@@ -291,7 +305,13 @@ public:
         // Publish values that are supposed to go out on every change
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {
             std::ostringstream messageOut;
-            messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
+            map<string,string>::iterator i = subMaps.find(n.nodepath());
+            if (i == subMaps.end()) {
+                messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
+            } else {
+                messageOut << "[" << it->first << "]" << n.dbl() << std::endl;
+            }
+
             rc = serialport_write(fd, messageOut.str().c_str());
             if (rc == -1) {
                 LOG_ERROR << " Error writing to serial port";
