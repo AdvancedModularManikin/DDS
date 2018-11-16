@@ -119,23 +119,23 @@ namespace AMM {
 
     void PhysiologyEngineManager::WriteNodeData(std::string node) {
         AMM::Physiology::Node dataInstance;
-        dataInstance.nodepath(node);
-        dataInstance.dbl(bg->GetNodePath(node));
-        dataInstance.frame(lastFrame);
         try {
-            node_publisher->write(&dataInstance);
+	  dataInstance.nodepath(node);
+	  dataInstance.dbl(bg->GetNodePath(node));
+	  dataInstance.frame(lastFrame);
+	  node_publisher->write(&dataInstance);
         } catch (std::exception &e) {
-            LOG_ERROR << "Unable to write node data  " << node << ": " << e.what();
+	  LOG_ERROR << "Unable to write node data  " << node << ": " << e.what();
         }
     }
 
     void PhysiologyEngineManager::WriteHighFrequencyNodeData(std::string node) {
         AMM::Physiology::HighFrequencyNode dataInstance;
-        dataInstance.nodepath(node);
-        dataInstance.dbl(bg->GetNodePath(node));
-        dataInstance.frame(lastFrame);
         try {
-            hf_node_publisher->write(&dataInstance);
+	  dataInstance.nodepath(node);
+	  dataInstance.dbl(bg->GetNodePath(node));
+	  dataInstance.frame(lastFrame);
+	  hf_node_publisher->write(&dataInstance);
         } catch (std::exception &e) {
             LOG_ERROR << "Unable to write high frequency node data  " << node << ": " << e.what();
         }
@@ -388,8 +388,12 @@ namespace AMM {
                 lastFrame = static_cast<int>(ti.frame());
 
                 // Per-frame stuff happens here
-                AdvanceTimeTick();
-                PublishData(false);
+		try {
+		  AdvanceTimeTick();
+		  PublishData(false);
+		} catch (std::exception &e) {
+		  LOG_ERROR << "Unable to advance time: " << e.what();
+		}
             } else {
                 std::cout.flush();
             }

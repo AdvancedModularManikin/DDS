@@ -10,26 +10,7 @@ namespace AMM {
     PhysiologyThread::PhysiologyThread(const std::string &logFile) {
         m_pe = biogears::CreateBioGearsEngine(logFile);
 
-        // preload substances
-        sodium = m_pe->GetSubstanceManager().GetSubstance("Sodium");
-        glucose = m_pe->GetSubstanceManager().GetSubstance("Glucose");
-        creatinine = m_pe->GetSubstanceManager().GetSubstance("Creatinine");
-        calcium = m_pe->GetSubstanceManager().GetSubstance("Calcium");
-        hemoglobin = m_pe->GetSubstanceManager().GetSubstance("Hemoglobin");
-        bicarbonate = m_pe->GetSubstanceManager().GetSubstance("Bicarbonate");
-        albumin = m_pe->GetSubstanceManager().GetSubstance("Albumin");
-        CO2 = m_pe->GetSubstanceManager().GetSubstance("CarbonDioxide");
-        N2 = m_pe->GetSubstanceManager().GetSubstance("Nitrogen");
-        O2 = m_pe->GetSubstanceManager().GetSubstance("Oxygen");
-        CO = m_pe->GetSubstanceManager().GetSubstance("CarbonMonoxide");
-        potassium = m_pe->GetSubstanceManager().GetSubstance("Potassium");
-        chloride = m_pe->GetSubstanceManager().GetSubstance("Chloride");
-        lactate = m_pe->GetSubstanceManager().GetSubstance("Lactate");
 
-        // preload compartments
-        carina = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Carina);
-        leftLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::LeftLung);
-        rightLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::RightLung);
 
         PopulateNodePathTable();
         m_runThread = false;
@@ -164,8 +145,27 @@ namespace AMM {
             return false;
         }
 
-        /** PreloadSubstances();
-        PreloadCompartments(); **/
+	// preload substances
+        sodium = m_pe->GetSubstanceManager().GetSubstance("Sodium");
+        glucose = m_pe->GetSubstanceManager().GetSubstance("Glucose");
+        creatinine = m_pe->GetSubstanceManager().GetSubstance("Creatinine");
+        calcium = m_pe->GetSubstanceManager().GetSubstance("Calcium");
+        hemoglobin = m_pe->GetSubstanceManager().GetSubstance("Hemoglobin");
+        bicarbonate = m_pe->GetSubstanceManager().GetSubstance("Bicarbonate");
+        albumin = m_pe->GetSubstanceManager().GetSubstance("Albumin");
+        CO2 = m_pe->GetSubstanceManager().GetSubstance("CarbonDioxide");
+        N2 = m_pe->GetSubstanceManager().GetSubstance("Nitrogen");
+        O2 = m_pe->GetSubstanceManager().GetSubstance("Oxygen");
+        CO = m_pe->GetSubstanceManager().GetSubstance("CarbonMonoxide");
+        potassium = m_pe->GetSubstanceManager().GetSubstance("Potassium");
+        chloride = m_pe->GetSubstanceManager().GetSubstance("Chloride");
+        lactate = m_pe->GetSubstanceManager().GetSubstance("Lactate");
+
+        // preload compartments
+        carina = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Carina);
+        leftLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::LeftLung);
+        rightLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::RightLung);
+
 
         if (logging_enabled) {
             std::string logFilename = getTimestampedFilename("./logs/Output_", ".csv");
