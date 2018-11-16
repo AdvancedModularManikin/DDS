@@ -167,7 +167,7 @@ void readHandler() {
                                     }
                                 }
 
-                                if (s->Attribute('map_name')) {
+                                if (s->Attribute("map_name")) {
                                     std::string subMapName = s->Attribute("map_name");
                                     subMaps[subTopicName] = subMapName;
                                 }
@@ -309,7 +309,7 @@ public:
             if (i == subMaps.end()) {
                 messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
             } else {
-                messageOut << "[" << it->first << "]" << n.dbl() << std::endl;
+                messageOut << "[" << i->first << "]" << n.dbl() << std::endl;
             }
 
             rc = serialport_write(fd, messageOut.str().c_str());
