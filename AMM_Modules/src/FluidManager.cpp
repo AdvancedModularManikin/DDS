@@ -240,7 +240,7 @@ air_reservoir_control_task(void)
     int solenoid_AD = solenoid_0 + 7;
     remote_set_gpio(solenoid_B, 1); // TODO turn off to vent, another control output
     remote_set_gpio(solenoid_A, 0); //solenoid A TODO to purge lines A off B on
-    remote_set_gpio(solenoid_C, 1);
+    remote_set_gpio(solenoid_C, 0);
     int motor_enable = 16;//B1
     remote_set_gpio(motor_enable, 1);
     //in order to purge: Turn B off, Turn A on, Turn AC & AD on
@@ -273,7 +273,7 @@ air_reservoir_control_task(void)
     remote_set_gpio(motor_enable, 1);
     remote_set_gpio(solenoid_B, 1);
     remote_set_gpio(solenoid_A, 0);
-    remote_set_gpio(solenoid_C, 1);
+    remote_set_gpio(solenoid_C, 0);
     while (!have_pressure) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
@@ -318,7 +318,7 @@ air_reservoir_control_task(void)
     remote_set_gpio(motor_enable, 1);
     remote_set_gpio(solenoid_B, 1);
     remote_set_gpio(solenoid_A, 0);
-    remote_set_gpio(solenoid_C, 1);
+    remote_set_gpio(solenoid_C, 0);
 
     int stay_operational = 1; //TODO change in response to DDS commands
     while (stay_operational) {
