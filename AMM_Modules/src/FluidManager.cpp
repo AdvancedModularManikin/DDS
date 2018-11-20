@@ -27,7 +27,8 @@ float operating_pressure = 15.0;
 float purge_pressure = 15.0;
 bool have_pressure = 0;
 bool send_status = false;
-AMM::Capability::status_values current_status;
+AMM::Capability::status_values current_status = HALTING_ERROR;
+bool module_stopped = false;
 
 void ProcessConfig(const std::string &configContent) {
 
@@ -110,6 +111,10 @@ class FluidListener : public ListenerInterface {
                 // We'll force them for now.
                 //TODO confirm nothing else needs to happen //send_status = true;
                 current_status = OPERATIONAL;
+            }
+
+            if (value == "STOP") {
+                module_stopped = true;
             }
         }
     }
@@ -278,6 +283,8 @@ air_reservoir_control_task(void)
     //pressurize, when done goto enter_state_operational;
     //TODO need to determine if pressure is really completed.
     while(not_pressurized) {
+        if (module_stopped) goto state_error;
+
         pid.target = operating_pressure;
         float hold_isum = pid.isum;
         uint32_t adcRead = remote_get_adc(0);
@@ -314,6 +321,7 @@ air_reservoir_control_task(void)
 
     int stay_operational = 1; //TODO change in response to DDS commands
     while (stay_operational) {
+        if (module_stopped) goto state_error;
         pid.target = operating_pressure;
         float hold_isum = pid.isum;
         uint32_t adcRead = remote_get_adc(0);
@@ -366,6 +374,8 @@ air_reservoir_control_task(void)
         }
         bool purge_not_complete = 1;
         while (purge_not_complete) {
+            if (module_stopped) goto state_error;
+
             pid.target = purge_pressure;
             float hold_isum = pid.isum;
             uint32_t adcRead = remote_get_adc(P3);
@@ -401,8 +411,8 @@ air_reservoir_control_task(void)
     remote_set_gpio(solenoid_AD, 0);
     goto state_error;
 
-    state_error:
-    //TODO turn off motor, close all solenoids, turn off 24V rail
+    state_error: // this is also the stopped state
+    //turn off motor, close all solenoids, turn off 24V rail
     remote_set_gpio(motor_enable, 0);
     remote_set_gpio(rail_24V, 0);
     for (int i = 0; i < SOLENOID_NUM;i++) remote_set_gpio(solenoid_0+i, 0);
