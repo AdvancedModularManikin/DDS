@@ -113,7 +113,7 @@ class FluidListener : public ListenerInterface {
                 current_status = OPERATIONAL;
             }
 
-            if (value == "STOP") {
+            if (value == "STOP_SIM") {
                 module_stopped = true;
             }
         }
