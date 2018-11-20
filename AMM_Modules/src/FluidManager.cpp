@@ -268,7 +268,7 @@ air_reservoir_control_task(void)
     remote_set_gpio(rail_24V, 1); //should_24v_be_on = 1;
     bool should_motor_run = 1;
 
-    state_startup:
+    state_startup: {
     remote_set_gpio(rail_24V, 1);
     remote_set_gpio(motor_enable, 1);
     remote_set_gpio(solenoid_B, 1);
@@ -310,8 +310,9 @@ air_reservoir_control_task(void)
             goto state_operational;
         }
     }
+    }
 
-    state_operational:
+    state_operational: {
     puts("entering operational state!");
     remote_set_gpio(rail_24V, 1);
     remote_set_gpio(motor_enable, 1);
@@ -344,8 +345,9 @@ air_reservoir_control_task(void)
         //goto state_purge;
         //printf("pressurizing psi to %f\n", psi);
     }
+    }
 
-    state_purge:
+    state_purge: {
     //TODO purge does not quite complete, issues detecting if the lines are clear
     //the five lines following purge both (although having both open causes an issue similar to blowing your nose)
     remote_set_gpio(solenoid_C, 0);
@@ -409,9 +411,10 @@ air_reservoir_control_task(void)
     }
     remote_set_gpio(solenoid_AC, 0);
     remote_set_gpio(solenoid_AD, 0);
+    }
     goto state_error;
 
-    state_error: // this is also the stopped state
+    state_error: {// this is also the stopped state
     //turn off motor, close all solenoids, turn off 24V rail
     remote_set_gpio(motor_enable, 0);
     remote_set_gpio(rail_24V, 0);
@@ -422,5 +425,6 @@ air_reservoir_control_task(void)
     while(1) {
         puts("in error state!");
         std::this_thread::sleep_for(std::chrono::milliseconds(5000));
+    }
     }
 }
