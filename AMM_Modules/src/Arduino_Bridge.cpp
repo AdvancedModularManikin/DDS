@@ -430,16 +430,6 @@ int main(int argc, char *argv[]) {
 
     strcpy(serialport, PORT_LINUX);
 
-    fd = serialport_init(serialport, BAUD);
-    if (fd == -1) {
-        LOG_ERROR << "Unable to open serial port " << serialport;
-        exit(EXIT_FAILURE);
-    }
-
-    LOG_INFO << "Opened port " << serialport;
-    serialport_flush(fd);
-
-
     // Publish bridge module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
@@ -453,11 +443,18 @@ int main(int argc, char *argv[]) {
     );
 
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
-
-    LOG_INFO << "Serial_Bridge ready";
-
     std::thread ec(checkForExit);
 
+    fd = serialport_init(serialport, BAUD);
+    if (fd == -1) {
+        LOG_ERROR << "Unable to open serial port " << serialport;
+        exit(EXIT_FAILURE);
+    }
+
+    LOG_INFO << "Opened port " << serialport;
+//    serialport_flush(fd);
+
+    LOG_INFO << "Serial_Bridge ready";
 
     while (!closed) {
         memset(buf, 0, buf_max);  //
