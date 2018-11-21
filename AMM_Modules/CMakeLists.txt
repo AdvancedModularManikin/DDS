@@ -50,6 +50,7 @@ if(MSVC)
 else()
     # add_compile_options(-std=c++14 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wunused -pedantic)
     add_compile_options(-std=c++14)
+    add_compile_options(-O0)
 endif()
 
 if(DEFINED ENV{BIOGEARS_HOME})
