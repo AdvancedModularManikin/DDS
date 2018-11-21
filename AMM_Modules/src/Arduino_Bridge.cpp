@@ -47,7 +47,7 @@ std::string xmlPrefix = "<?xml";
 
 std::vector<std::string> subscribedTopics;
 std::vector<std::string> publishedTopics;
-std::map<std::string,std::string> subMaps;
+std::map<std::string, std::string> subMaps;
 
 std::queue<std::string> transmitQ;
 
@@ -100,13 +100,12 @@ void readHandler() {
         } else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
             std::string value = rsp;
             LOG_INFO << "Received XML via serial";
-            if (first_message) {
-                first_message = false;
-                LOG_TRACE << "\tCAPABILITY XML:  " << value;
+            LOG_TRACE << "\tXML: " << value;
+            tinyxml2::XMLDocument doc(false);
+            doc.Parse(value.c_str());
+            tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
 
-                tinyxml2::XMLDocument doc(false);
-                doc.Parse(value.c_str());
-                tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
+            if (root) {
                 tinyxml2::XMLNode *mod = root->FirstChildElement("module");
                 tinyxml2::XMLElement *module = mod->ToElement();
 
@@ -191,9 +190,6 @@ void readHandler() {
                     }
                 }
             } else {
-                LOG_TRACE << "\tSTATUS XML: " << value;
-                tinyxml2::XMLDocument doc(false);
-                doc.Parse(value.c_str());
                 tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleStatus");
                 tinyxml2::XMLElement *module = root->FirstChildElement("module")->ToElement();
                 const char *name = module->Attribute("name");
@@ -287,7 +283,7 @@ public:
         std::string hfname = "HF_" + n.nodepath();
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), hfname) != subscribedTopics.end()) {
             std::ostringstream messageOut;
-            map<string,string>::iterator i = subMaps.find(hfname);
+            map<string, string>::iterator i = subMaps.find(hfname);
             if (i == subMaps.end()) {
                 messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
             } else {
@@ -305,7 +301,7 @@ public:
         // Publish values that are supposed to go out on every change
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), n.nodepath()) != subscribedTopics.end()) {
             std::ostringstream messageOut;
-            map<string,string>::iterator i = subMaps.find(n.nodepath());
+            map<string, string>::iterator i = subMaps.find(n.nodepath());
             if (i == subMaps.end()) {
                 messageOut << "[AMM_Node_Data]" << n.nodepath() << "=" << n.dbl() << std::endl;
             } else {
