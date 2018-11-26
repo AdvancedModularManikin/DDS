@@ -195,10 +195,10 @@ namespace AMM {
             m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
                     BGE::PulmonaryCompartment::RightLung, "Volume");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
+/*            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
                     BGE::VascularCompartment::Aorta, *O2, "PartialPressure");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
-                    BGE::VascularCompartment::Aorta, *CO2, "PartialPressure");
+                    BGE::VascularCompartment::Aorta, *CO2, "PartialPressure");*/
             m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
                     BGE::PulmonaryCompartment::Carina, "InFlow");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume",
