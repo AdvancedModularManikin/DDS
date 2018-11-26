@@ -246,6 +246,8 @@ namespace AMM {
 
         double GetLactateConcentration();
 
+        double GetLactateConcentrationMMOL();
+
         double GetTotalBilirubin();
 
         double GetTotalProtein();

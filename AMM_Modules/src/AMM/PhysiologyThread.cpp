@@ -89,6 +89,7 @@ namespace AMM {
         nodePathTable["Substance_Calcium_Concentration"] = &PhysiologyThread::GetCalciumConcentration;
         nodePathTable["Substance_Albumin_Concentration"] = &PhysiologyThread::GetAlbuminConcentration;
         nodePathTable["Substance_Lactate_Concentration"] = &PhysiologyThread::GetLactateConcentration;
+        nodePathTable["Substance_Lactate_Concentration_mmol"] = &PhysiologyThread::GetLactateConcentrationMMOL;
 
         nodePathTable["MetabolicPanel_Bilirubin"] = &PhysiologyThread::GetTotalBilirubin;
         nodePathTable["MetabolicPanel_Protein"] = &PhysiologyThread::GetTotalProtein;
@@ -409,6 +410,11 @@ namespace AMM {
     double PhysiologyThread::GetLactateConcentration() {
         return lactate->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
     }
+
+    double PhysiologyThread::GetLactateConcentrationMMOL() {
+        return GetLactateConcentration() * 0.1110;
+    }
+
 
     double PhysiologyThread::GetTotalBilirubin() {
         return m_pe->GetBloodChemistrySystem()->GetTotalBilirubin(biogears::MassPerVolumeUnit::mg_Per_dL);
