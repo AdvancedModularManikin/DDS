@@ -283,6 +283,7 @@ air_reservoir_control_task(void)
 
     state_startup:
     {
+        LOG_INFO << "Awaiting configuration";
         while (!have_pressure) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
@@ -433,6 +434,7 @@ air_reservoir_control_task(void)
     state_error:
     {// this is also the stopped state
         //turn off motor, close all solenoids, turn off 24V rail
+        LOG_INFO << "Disabling motor, resetting valves";
         remote_set_gpio(motor_enable, 0);
         remote_set_gpio(rail_24V, 0);
         remote_set_gpio(solenoid_B, 0);
