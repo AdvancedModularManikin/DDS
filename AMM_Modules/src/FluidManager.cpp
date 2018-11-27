@@ -25,7 +25,7 @@ const string haltingString = "HALTING_ERROR";
 
 float operating_pressure = 15.0;
 float purge_pressure = 15.0;
-bool have_pressure = 0;
+bool have_pressure = false;
 bool send_status = false;
 AMM::Capability::status_values current_status = HALTING_ERROR;
 bool module_stopped = false;
@@ -67,7 +67,7 @@ void ProcessConfig(const std::string &configContent) {
         tinyxml2::XMLElement *entry5_1 = entry5->FirstChildElement("data")->ToElement();
         if (!strcmp(entry5_1->ToElement()->Attribute("name"), "operating_pressure")) {
             operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
-            have_pressure = 1;
+            have_pressure = true;
             //TODO used to send the pressure as a message here. Ensure it's getting where it needs to go in the local state
             break;
         }
@@ -283,14 +283,14 @@ air_reservoir_control_task(void)
 
     state_startup:
     {
+        while (!have_pressure) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
         remote_set_gpio(rail_24V, 1);
         remote_set_gpio(motor_enable, 1);
         remote_set_gpio(solenoid_B, 1);
         remote_set_gpio(solenoid_A, 0);
         remote_set_gpio(solenoid_C, 0);
-        while (!have_pressure) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
         int not_pressurized = 1;
         puts("entering startup!");
 
@@ -435,13 +435,13 @@ air_reservoir_control_task(void)
         //turn off motor, close all solenoids, turn off 24V rail
         remote_set_gpio(motor_enable, 0);
         remote_set_gpio(rail_24V, 0);
-        for (int i = 0; i < SOLENOID_NUM; i++) remote_set_gpio(solenoid_0 + i, 0);
+        remote_set_gpio(solenoid_B, 0);
+        remote_set_gpio(solenoid_A, 0);
+        remote_set_gpio(solenoid_C, 0);
         current_status = HALTING_ERROR;
         send_status = true;
 
-        while (1) {
-            puts("in error state!");
-            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-        }
+        have_pressure = false;
+        goto state_startup;
     }
 }
