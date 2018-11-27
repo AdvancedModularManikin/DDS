@@ -228,14 +228,14 @@ uint32_t stall_val = 0x100;
 //PSI (atmospheric is 0)
 //float operating_pressure = 5.0;
 
-int gpio_J4 = 7 + 7;
-int gpio_J5 = 7 + 6;
-int gpio_J6 = 7 + 5;
-int gpio_J7 = 7 + 4;
-int gpio_J8 = 7 + 3;
-int gpio_J9 = 7 + 2;
-int gpio_J10 = 7 + 1;
-int gpio_J11 = 7 + 0; 
+int gpio_J4 = 7 + 0;
+int gpio_J5 = 7 + 1;
+int gpio_J6 = 7 + 2;
+int gpio_J7 = 7 + 3;
+int gpio_J8 = 7 + 4;
+int gpio_J9 = 7 + 5;
+int gpio_J10 = 7 + 6;
+int gpio_J11 = 7 + 7;
 
 bool should_pid_run = true;
 float ret;
