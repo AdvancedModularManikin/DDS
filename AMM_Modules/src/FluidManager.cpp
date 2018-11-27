@@ -444,6 +444,7 @@ air_reservoir_control_task(void)
         send_status = true;
 
         have_pressure = false;
+        module_stopped = false;
         goto state_startup;
     }
 }
