@@ -210,7 +210,8 @@ struct pid_ctl {
 };
 
 float
-pi_supply(struct pid_ctl *p, float reading) {
+pi_supply(struct pid_ctl *p, float reading)
+{
     float diff = reading - p->last;
     p->last = reading;
     p->last_diff = diff;
@@ -227,17 +228,27 @@ uint32_t stall_val = 0x100;
 //PSI (atmospheric is 0)
 //float operating_pressure = 5.0;
 
+int gpio_J4 = 7 + 7;
+int gpio_J5 = 7 + 6;
+int gpio_J6 = 7 + 5;
+int gpio_J7 = 7 + 4;
+int gpio_J8 = 7 + 3;
+int gpio_J9 = 7 + 2;
+int gpio_J10 = 7 + 1;
+int gpio_J11 = 7 + 0; 
+
 bool should_pid_run = true;
 float ret;
 uint32_t val;
 
 void
-air_reservoir_control_task(void) {
+air_reservoir_control_task(void)
+{
     int solenoid_0 = 7, motor_dac = 0;
-    int solenoid_A = solenoid_0 + 0;
-    int solenoid_B = solenoid_0 + 1;
-    int solenoid_C = solenoid_0 + 5;
-    int solenoid_AC = solenoid_0 + 6;
+    int solenoid_A = gpio_J4;
+    int solenoid_B = gpio_J5;
+    int solenoid_C = gpio_J6;
+    int solenoid_AC = gpio_J10;
     int solenoid_AD = solenoid_0 + 7;
     remote_set_gpio(solenoid_B, 1); // TODO turn off to vent, another control output
     remote_set_gpio(solenoid_A, 0); //solenoid A TODO to purge lines A off B on
@@ -266,6 +277,7 @@ air_reservoir_control_task(void) {
 
     uint16_t dacVal;
     int rail_24V = 15;
+    remote_set_dac(motor_dac, 0);
     remote_set_gpio(rail_24V, 1); //should_24v_be_on = 1;
     bool should_motor_run = 1;
 
