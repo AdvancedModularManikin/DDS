@@ -13,6 +13,14 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/assign/std/vector.hpp>
 #include <boost/serialization/map.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/foreach.hpp>
+#include <boost/bind.hpp>
+#include <boost/asio.hpp>
+#include <boost/thread.hpp>
+
+#include "AMM/Utility.hpp"
+
 
 #include <Net/Client.h>
 #include <Net/Server.h>
@@ -52,6 +60,7 @@ const string registerPrefix = "REGISTER=";
 const string requestPrefix = "REQUEST=";
 const string keepHistoryPrefix = "KEEP_HISTORY=";
 const string actionPrefix = "ACT=";
+std::string genericTopicPrefix = "[";
 const string keepAlivePrefix = "[KEEPALIVE]";
 const string loadScenarioPrefix = "LOAD_SCENARIO:";
 const string haltingString = "HALTING_ERROR";
@@ -86,6 +95,7 @@ void InitializeLabNodes() {
     labNodes["ALL"]["BloodChemistry_Arterial_Oxygen_Pressure"] = 0.0f;
     labNodes["ALL"]["Substance_Bicarbonate"] = 0.0f;
     labNodes["ALL"]["Substance_BaseExcess"] = 0.0f;
+    labNodes["ALL"]["Substance_Lactate_Concentration_mmol"] = 0.0f;
 
     labNodes["POCT"]["Substance_Sodium"] = 0.0f;
     labNodes["POCT"]["MetabolicPanel_Potassium"] = 0.0f;
@@ -624,6 +634,55 @@ void *Server::HandleClient(void *args) {
                     } else if (str.substr(0, requestPrefix.size()) == requestPrefix) {
                         std::string request = str.substr(requestPrefix.size());
                         DispatchRequest(c, request);
+                    } else if (!str.compare(0, genericTopicPrefix.size(), genericTopicPrefix)) {
+                        std::string topic, message, modType, modLocation, modPayload;
+                        unsigned first = str.find("[");
+                        unsigned last = str.find("]");
+                        topic = str.substr(first + 1, last - first - 1);
+                        message = str.substr(last + 1);
+                        LOG_INFO << "Received a message for topic " << topic << " with a payload of: " << message;
+
+                        std::list<std::string> tokenList;
+                        split(tokenList, message, boost::algorithm::is_any_of(";"), boost::token_compress_on);
+                        std::map<std::string, std::string> kvp;
+
+                        BOOST_FOREACH(std::string token, tokenList) {
+                            size_t sep_pos = token.find_first_of("=");
+                            std::string key = token.substr(0, sep_pos);
+                            std::string value = (sep_pos == std::string::npos ? "" : token.substr(sep_pos + 1,
+                                                                                                  std::string::npos));
+                            kvp[key] = value;
+                            LOG_TRACE << "\t" << key << " => " << kvp[key];
+                        }
+
+                        auto type = kvp.find("type");
+                        if (type != kvp.end()) {
+                            modType = type->second;
+                        }
+
+                        auto location = kvp.find("location");
+                        if (location != kvp.end()) {
+                            modLocation = type->second;
+                        }
+
+                        auto payload = kvp.find("payload");
+                        if (payload != kvp.end()) {
+                            modPayload = type->second;
+                        }
+
+                        if (topic == "AMM_Render_Modification") {
+                            AMM::Render::Modification renderMod;
+                            renderMod.type(modType);
+                            renderMod.payload(modPayload);
+                            mgr->PublishRenderModification(renderMod);
+                        } else if (topic == "AMM_Physiology_Modification") {
+                            AMM::Physiology::Modification physMod;
+                            physMod.type(modType);
+                            physMod.payload(modPayload);
+                            mgr->PublishPhysiologyModification(physMod);
+                        } else {
+                            LOG_TRACE << "Unknown topic: " << topic;
+                        }
                     } else if (str.substr(0, actionPrefix.size()) == actionPrefix) {
                         // Sending action
                         std::string action = str.substr(actionPrefix.size());
