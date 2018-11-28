@@ -25,7 +25,7 @@ const string haltingString = "HALTING_ERROR";
 
 float operating_pressure = 15.0;
 float purge_pressure = 15.0;
-bool have_pressure = 0;
+bool have_pressure = false;
 bool send_status = false;
 AMM::Capability::status_values current_status = HALTING_ERROR;
 bool module_stopped = false;
@@ -67,7 +67,7 @@ void ProcessConfig(const std::string &configContent) {
         tinyxml2::XMLElement *entry5_1 = entry5->FirstChildElement("data")->ToElement();
         if (!strcmp(entry5_1->ToElement()->Attribute("name"), "operating_pressure")) {
             operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
-            have_pressure = 1;
+            have_pressure = true;
             //TODO used to send the pressure as a message here. Ensure it's getting where it needs to go in the local state
             break;
         }
@@ -210,7 +210,8 @@ struct pid_ctl {
 };
 
 float
-pi_supply(struct pid_ctl *p, float reading) {
+pi_supply(struct pid_ctl *p, float reading)
+{
     float diff = reading - p->last;
     p->last = reading;
     p->last_diff = diff;
@@ -227,17 +228,27 @@ uint32_t stall_val = 0x100;
 //PSI (atmospheric is 0)
 //float operating_pressure = 5.0;
 
+int gpio_J4 = 7 + 0;
+int gpio_J5 = 7 + 1;
+int gpio_J6 = 7 + 2;
+int gpio_J7 = 7 + 3;
+int gpio_J8 = 7 + 4;
+int gpio_J9 = 7 + 5;
+int gpio_J10 = 7 + 6;
+int gpio_J11 = 7 + 7;
+
 bool should_pid_run = true;
 float ret;
 uint32_t val;
 
 void
-air_reservoir_control_task(void) {
+air_reservoir_control_task(void)
+{
     int solenoid_0 = 7, motor_dac = 0;
-    int solenoid_A = solenoid_0 + 0;
-    int solenoid_B = solenoid_0 + 1;
-    int solenoid_C = solenoid_0 + 5;
-    int solenoid_AC = solenoid_0 + 6;
+    int solenoid_A = gpio_J4;
+    int solenoid_B = gpio_J5;
+    int solenoid_C = gpio_J6;
+    int solenoid_AC = gpio_J10;
     int solenoid_AD = solenoid_0 + 7;
     remote_set_gpio(solenoid_B, 1); // TODO turn off to vent, another control output
     remote_set_gpio(solenoid_A, 0); //solenoid A TODO to purge lines A off B on
@@ -266,19 +277,21 @@ air_reservoir_control_task(void) {
 
     uint16_t dacVal;
     int rail_24V = 15;
+    remote_set_dac(motor_dac, 0);
     remote_set_gpio(rail_24V, 1); //should_24v_be_on = 1;
     bool should_motor_run = 1;
 
     state_startup:
     {
+        LOG_INFO << "Awaiting configuration";
+        while (!have_pressure) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
         remote_set_gpio(rail_24V, 1);
         remote_set_gpio(motor_enable, 1);
         remote_set_gpio(solenoid_B, 1);
         remote_set_gpio(solenoid_A, 0);
         remote_set_gpio(solenoid_C, 0);
-        while (!have_pressure) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        }
         int not_pressurized = 1;
         puts("entering startup!");
 
@@ -421,15 +434,17 @@ air_reservoir_control_task(void) {
     state_error:
     {// this is also the stopped state
         //turn off motor, close all solenoids, turn off 24V rail
+        LOG_INFO << "Disabling motor, resetting valves";
         remote_set_gpio(motor_enable, 0);
         remote_set_gpio(rail_24V, 0);
-        for (int i = 0; i < SOLENOID_NUM; i++) remote_set_gpio(solenoid_0 + i, 0);
+        remote_set_gpio(solenoid_B, 0);
+        remote_set_gpio(solenoid_A, 0);
+        remote_set_gpio(solenoid_C, 0);
         current_status = HALTING_ERROR;
         send_status = true;
 
-        while (1) {
-            puts("in error state!");
-            std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-        }
+        have_pressure = false;
+        module_stopped = false;
+        goto state_startup;
     }
 }
