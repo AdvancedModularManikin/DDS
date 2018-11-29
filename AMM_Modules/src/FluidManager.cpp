@@ -132,6 +132,7 @@ int main(int argc, char *argv[]) {
     host_remote_init(&remote);
     std::thread remote_thread(remote_task);
     std::thread air_tank_thread(air_reservoir_control_task);
+    std::thread button_thread(button_monitor_task);
 
     cout << "=== [FluidManager] Ready ..." << endl;
     for (int i = 1; i < argc; ++i) {
@@ -446,5 +447,30 @@ air_reservoir_control_task(void)
         have_pressure = false;
         module_stopped = false;
         goto state_startup;
+    }
+}
+
+//controls solenoids AD and AC via buttons.
+void
+button_monitor_task(void)
+{
+    bool last_read[2] = {0};
+    bool cur_val[2] = {0};
+    bool sol_last_state[2] = {0};
+    int sol_ix[2] = {solenoid_AC, solenoid_AD};
+    int button_ix[2] = {expansion_button_1, expansion_button_2};
+
+
+    for (;;) {
+        for (int i = 0; i < 2; i++) {
+            last_read[i] = cur_val[i];
+            cur_val[i] = remote_get_gpio(button_ix[i]);
+            if (cur_val[i] && !last_read[i]) {
+                remote_set_gpio(sol_ix[i], sol_last_state[i]);
+                sol_last_state[i] = !sol_last_state[i];
+                //TODO flash LED. We don't have interrupt capabilty, so the user holds the button until the LED changes state (should be quick)
+            }
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
     }
 }
