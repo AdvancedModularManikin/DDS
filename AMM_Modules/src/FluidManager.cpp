@@ -481,6 +481,9 @@ button_monitor_task(void)
     int sol_ix[2] = {solenoid_AC, solenoid_AD};
     int button_ix[2] = {gpio_J21_1, gpio_J21_2};
 
+    remote_set_gpio_meta(button_ix[0], 0);
+    remote_set_gpio_meta(button_ix[1], 1);
+
     for (;;) {
         for (int i = 0; i < 2; i++) {
             last_read[i] = cur_val[i];
