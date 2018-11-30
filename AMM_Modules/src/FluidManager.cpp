@@ -68,6 +68,7 @@ void ProcessConfig(const std::string &configContent) {
         if (!strcmp(entry5_1->ToElement()->Attribute("name"), "operating_pressure")) {
             operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
             have_pressure = true;
+            LOG_INFO << "Received pressure";
             //TODO used to send the pressure as a message here. Ensure it's getting where it needs to go in the local state
             break;
         }
@@ -476,6 +477,7 @@ button_monitor_task(void)
                 remote_set_gpio(sol_ix[i], sol_last_state[i]);
                 sol_last_state[i] = !sol_last_state[i];
                 //TODO flash LED. We don't have interrupt capabilty, so the user holds the button until the LED changes state (should be quick)
+                LOG_INFO << "[button] pressed";
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
