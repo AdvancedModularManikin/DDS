@@ -489,6 +489,7 @@ button_monitor_task(void)
             last_read[i] = cur_val[i];
             cur_val[i] = remote_get_gpio(button_ix[i]);
             if (cur_val[i] && !last_read[i]) {
+                printf("cur_val[%d]: %d, \tlast_val: %d\n", i, cur_val, last_read);
                 remote_set_gpio(sol_ix[i], sol_last_state[i]);
                 sol_last_state[i] = !sol_last_state[i];
                 //TODO flash LED. We don't have interrupt capabilty, so the user holds the button until the LED changes state (should be quick)
