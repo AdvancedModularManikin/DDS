@@ -127,6 +127,7 @@ static void show_usage(const std::string &name) {
 }
 
 void air_reservoir_control_task(void);
+void button_monitor_task(void);
 
 int main(int argc, char *argv[]) {
     host_remote_init(&remote);
