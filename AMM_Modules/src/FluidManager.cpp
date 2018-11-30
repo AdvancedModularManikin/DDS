@@ -200,6 +200,13 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+#define RATE_LIMIT_MOD 2<<6
+int rate_limit_count = 1;
+bool rate_limiter(int modulus) {
+    rate_limit_count++;
+    return (rate_limit_count % modulus == 0);
+}
+
 //code from air_tank.cpp initially copied here
 struct pid_ctl {
     float p;
@@ -296,7 +303,7 @@ air_reservoir_control_task(void)
         remote_set_gpio(solenoid_A, 0);
         remote_set_gpio(solenoid_C, 0);
         int not_pressurized = 1;
-        puts("entering startup!");
+        LOG_INFO << "Pressurizing";
 
         //pressurize, when done goto enter_state_operational;
         //TODO need to determine if pressure is really completed.
@@ -305,7 +312,7 @@ air_reservoir_control_task(void)
 
             pid.target = operating_pressure;
             float hold_isum = pid.isum;
-            uint32_t adcRead = remote_get_adc(0);
+            uint32_t adcRead = remote_get_adc(P1);
             float psi = ((float) adcRead) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
             ret = pi_supply(&pid, psi);
 
@@ -321,8 +328,12 @@ air_reservoir_control_task(void)
             //float psiP2 = ((float)remote_get_adc(P2))*(3.0/10280.0*16.0) - 15.0/8.0;
             //float psiP3 = ((float)remote_get_adc(P3))*(3.0/10280.0*16.0) - 15.0/8.0;
             float psiP4 = ((float) remote_get_adc(P4)) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+            if (rate_limiter(RATE_LIMIT_MOD)) {
+                LOG_DEBUG << "P1: " << psi;
+                LOG_DEBUG << "P4: " << psiP4;
+            }
             if (psiP4 > (operating_pressure - 0.1)) {
-                puts("pressurization complete!");
+                LOG_INFO << "Pressurization complete";
                 current_status = OPERATIONAL;
                 send_status = true;
                 goto state_operational;
@@ -332,7 +343,7 @@ air_reservoir_control_task(void)
 
     state_operational:
     {
-        puts("entering operational state!");
+        LOG_INFO << "System Operational";
         remote_set_gpio(rail_24V, 1);
         remote_set_gpio(motor_enable, 1);
         remote_set_gpio(solenoid_B, 1);
@@ -344,8 +355,9 @@ air_reservoir_control_task(void)
             if (module_stopped) goto state_error;
             pid.target = operating_pressure;
             float hold_isum = pid.isum;
-            uint32_t adcRead = remote_get_adc(0);
+            uint32_t adcRead = remote_get_adc(P1);
             float psi = ((float) adcRead) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+            if (rate_limiter(RATE_LIMIT_MOD)) LOG_DEBUG << "P1: " << psi;
             ret = pi_supply(&pid, psi);
 
             //convert back to 0-2^12 range for DAC
