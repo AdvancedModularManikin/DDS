@@ -450,16 +450,22 @@ air_reservoir_control_task(void)
     }
 }
 
+int gpio_J21_1 = 4;
+int gpio_J21_2 = 5;
+int gpio_J21_3 = 6;
+
 //controls solenoids AD and AC via buttons.
 void
 button_monitor_task(void)
 {
+    //TODO check which is which
+    int solenoid_AC = gpio_J10, solenoid_AD = gpio_J11;
+
     bool last_read[2] = {0};
     bool cur_val[2] = {0};
     bool sol_last_state[2] = {0};
     int sol_ix[2] = {solenoid_AC, solenoid_AD};
-    int button_ix[2] = {expansion_button_1, expansion_button_2};
-
+    int button_ix[2] = {gpio_J21_1, gpio_J21_2};
 
     for (;;) {
         for (int i = 0; i < 2; i++) {
