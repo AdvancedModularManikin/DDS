@@ -238,6 +238,7 @@ uint32_t stall_val = 0x100;
 //PSI (atmospheric is 0)
 //float operating_pressure = 5.0;
 
+// hat junctions in terms of remote gpio indices
 int gpio_J4 = 7 + 0;
 int gpio_J5 = 7 + 1;
 int gpio_J6 = 7 + 2;
@@ -246,6 +247,16 @@ int gpio_J8 = 7 + 4;
 int gpio_J9 = 7 + 5;
 int gpio_J10 = 7 + 6;
 int gpio_J11 = 7 + 7;
+int gpio_J21_1 = 4;
+int gpio_J21_2 = 5;
+int gpio_J21_3 = 6;
+
+//fluid manager solenoids in terms of hat junctions
+int solenoid_A = gpio_J4;
+int solenoid_B = gpio_J5;
+int solenoid_C = gpio_J6;
+int solenoid_AC = gpio_J11;
+int solenoid_AD = gpio_J10;
 
 bool should_pid_run = true;
 float ret;
@@ -254,12 +265,8 @@ uint32_t val;
 void
 air_reservoir_control_task(void)
 {
-    int solenoid_0 = 7, motor_dac = 0;
-    int solenoid_A = gpio_J4;
-    int solenoid_B = gpio_J5;
-    int solenoid_C = gpio_J6;
-    int solenoid_AC = gpio_J10;
-    int solenoid_AD = solenoid_0 + 7;
+    int motor_dac = 0;
+
     remote_set_gpio(solenoid_B, 1); // TODO turn off to vent, another control output
     remote_set_gpio(solenoid_A, 0); //solenoid A TODO to purge lines A off B on
     remote_set_gpio(solenoid_C, 0);
@@ -464,17 +471,10 @@ air_reservoir_control_task(void)
     }
 }
 
-int gpio_J21_1 = 4;
-int gpio_J21_2 = 5;
-int gpio_J21_3 = 6;
-
 //controls solenoids AD and AC via buttons.
 void
 button_monitor_task(void)
 {
-    //TODO check which is which
-    int solenoid_AC = gpio_J10, solenoid_AD = gpio_J11;
-
     bool last_read[2] = {0};
     bool cur_val[2] = {0};
     bool sol_last_state[2] = {0};
