@@ -641,7 +641,11 @@ void *Server::HandleClient(void *args) {
                         topic = str.substr(first + 1, last - first - 1);
                         message = str.substr(last + 1);
 
-                        // LOG_INFO << "Received a message for topic " << topic << " with a payload of: " << message;
+                        if (topic == "KEEPALIVE") {
+                            continue;
+                        }
+
+                        LOG_INFO << "Received a message for topic " << topic << " with a payload of: " << message;
 
                         std::list<std::string> tokenList;
                         split(tokenList, message, boost::algorithm::is_any_of(";"), boost::token_compress_on);
