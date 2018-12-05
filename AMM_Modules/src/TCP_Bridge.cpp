@@ -640,7 +640,8 @@ void *Server::HandleClient(void *args) {
                         unsigned last = str.find("]");
                         topic = str.substr(first + 1, last - first - 1);
                         message = str.substr(last + 1);
-                        LOG_INFO << "Received a message for topic " << topic << " with a payload of: " << message;
+
+                        // LOG_INFO << "Received a message for topic " << topic << " with a payload of: " << message;
 
                         std::list<std::string> tokenList;
                         split(tokenList, message, boost::algorithm::is_any_of(";"), boost::token_compress_on);
@@ -694,7 +695,7 @@ void *Server::HandleClient(void *args) {
                     } else if (str.substr(0, keepAlivePrefix.size()) == keepAlivePrefix) {
                         // keepalive, ignore it
                     } else {
-                        LOG_ERROR << "Client " << c->id << " unknown message:" << str;
+                        // LOG_ERROR << "Client " << c->id << " unknown message:" << str;
                     }
                 }
             }
