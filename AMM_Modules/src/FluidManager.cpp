@@ -481,15 +481,15 @@ button_monitor_task(void)
     int sol_ix[2] = {solenoid_AC, solenoid_AD};
     int button_ix[2] = {gpio_J21_1, gpio_J21_2};
 
-    remote_set_gpio_meta(button_ix[0], 0);
+    remote_set_gpio_meta(button_ix[0], 1);
     remote_set_gpio_meta(button_ix[1], 1);
 
     for (;;) {
         for (int i = 0; i < 2; i++) {
             last_read[i] = cur_val[i];
             cur_val[i] = remote_get_gpio(button_ix[i]);
-            printf("cur_val[%d]: %d, \tlast_val: %d\n", i, cur_val, last_read);
-            if (cur_val[i] && !last_read[i]) {
+            //printf("cur_val[%d]: %d, \tlast_val: %d\n", i, cur_val[i], last_read[i]);
+            if (!cur_val[i] && last_read[i]) {
                 remote_set_gpio(sol_ix[i], sol_last_state[i]);
                 sol_last_state[i] = !sol_last_state[i];
                 //TODO flash LED. We don't have interrupt capabilty, so the user holds the button until the LED changes state (should be quick)
