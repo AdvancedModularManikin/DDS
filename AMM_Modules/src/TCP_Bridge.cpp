@@ -660,13 +660,14 @@ void *Server::HandleClient(void *args) {
                         std::map<std::string, std::string> kvp;
 
                         BOOST_FOREACH(std::string token, tokenList) {
-                            size_t sep_pos = token.find_first_of("=");
-                            std::string key = token.substr(0, sep_pos);
-                            std::string value = (sep_pos == std::string::npos ? "" : token.substr(sep_pos + 1,
-                                                                                                  std::string::npos));
-                            kvp[key] = value;
-                            LOG_TRACE << "\t" << key << " => " << kvp[key];
-                        }
+                                        size_t sep_pos = token.find_first_of("=");
+                                        std::string key = token.substr(0, sep_pos);
+                                        std::string value = (sep_pos == std::string::npos ? "" : token.substr(
+                                                sep_pos + 1,
+                                                std::string::npos));
+                                        kvp[key] = value;
+                                        LOG_TRACE << "\t" << key << " => " << kvp[key];
+                                    }
 
                         auto type = kvp.find("type");
                         if (type != kvp.end()) {
@@ -694,16 +695,16 @@ void *Server::HandleClient(void *args) {
                             physMod.payload(modPayload);
                             mgr->PublishPhysiologyModification(physMod);
                         } else if (topic == "AMM_Command") {
-			  AMM::PatientAction::BioGears::Command cmdInstance;
-			  cmdInstance.message(message);
-			  mgr->PublishCommand(cmdInstance);
-			} else {
-			  LOG_TRACE << "Unknown topic: " << topic;
+                            AMM::PatientAction::BioGears::Command cmdInstance;
+                            cmdInstance.message(message);
+                            mgr->PublishCommand(cmdInstance);
+                        } else {
+                            LOG_TRACE << "Unknown topic: " << topic;
                         }
                     } else if (str.substr(0, keepAlivePrefix.size()) == keepAlivePrefix) {
                         // keepalive, ignore it
                     } else {
-		       LOG_ERROR << "Client " << c->id << " unknown message:" << str;
+                        LOG_ERROR << "Client " << c->id << " unknown message:" << str;
                     }
                 }
             }
