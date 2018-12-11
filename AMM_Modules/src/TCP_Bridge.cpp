@@ -634,6 +634,14 @@ void *Server::HandleClient(void *args) {
                     } else if (str.substr(0, requestPrefix.size()) == requestPrefix) {
                         std::string request = str.substr(requestPrefix.size());
                         DispatchRequest(c, request);
+                    } else if (str.substr(0, actionPrefix.size()) == actionPrefix) {
+                        // Sending action
+                        std::string action = str.substr(actionPrefix.size());
+                        LOG_INFO << "Client " << c->id
+                                 << " posting action to AMM: " << action;
+                        AMM::PatientAction::BioGears::Command cmdInstance;
+                        cmdInstance.message(action);
+                        mgr->PublishCommand(cmdInstance);
                     } else if (!str.compare(0, genericTopicPrefix.size(), genericTopicPrefix)) {
                         std::string topic, message, modType, modLocation, modPayload;
                         unsigned first = str.find("[");
@@ -685,21 +693,17 @@ void *Server::HandleClient(void *args) {
                             physMod.type(modType);
                             physMod.payload(modPayload);
                             mgr->PublishPhysiologyModification(physMod);
-                        } else {
-                            LOG_TRACE << "Unknown topic: " << topic;
+                        } else if (topic == "AMM_Command") {
+			  AMM::PatientAction::BioGears::Command cmdInstance;
+			  cmdInstance.message(message);
+			  mgr->PublishCommand(cmdInstance);
+			} else {
+			  LOG_TRACE << "Unknown topic: " << topic;
                         }
-                    } else if (str.substr(0, actionPrefix.size()) == actionPrefix) {
-                        // Sending action
-                        std::string action = str.substr(actionPrefix.size());
-                        LOG_INFO << "Client " << c->id
-                                 << " posting action to AMM: " << action;
-                        AMM::PatientAction::BioGears::Command cmdInstance;
-                        cmdInstance.message(action);
-                        mgr->PublishCommand(cmdInstance);
                     } else if (str.substr(0, keepAlivePrefix.size()) == keepAlivePrefix) {
                         // keepalive, ignore it
                     } else {
-                        // LOG_ERROR << "Client " << c->id << " unknown message:" << str;
+		       LOG_ERROR << "Client " << c->id << " unknown message:" << str;
                     }
                 }
             }
