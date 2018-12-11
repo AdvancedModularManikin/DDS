@@ -475,17 +475,18 @@ air_reservoir_control_task(void)
 void
 button_monitor_task(void)
 {
-    bool last_read[2] = {0};
-    bool cur_val[2] = {0};
-    bool sol_last_state[2] = {0};
-    int sol_ix[2] = {solenoid_AC, solenoid_AD};
-    int button_ix[2] = {gpio_J21_1, gpio_J21_2};
+#define BUTTON_NUM 3
+    bool last_read[BUTTON_NUM] = {0};
+    bool cur_val[BUTTON_NUM] = {0};
+    bool sol_last_state[BUTTON_NUM] = {0};
+    int sol_ix[BUTTON_NUM] = {solenoid_AC, solenoid_AD, solenoid_A};
+    int button_ix[BUTTON_NUM] = {gpio_J21_1, gpio_J21_2, gpio_J21_3};
 
     remote_set_gpio_meta(button_ix[0], 1);
     remote_set_gpio_meta(button_ix[1], 1);
 
     for (;;) {
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < BUTTON_NUM; i++) {
             last_read[i] = cur_val[i];
             cur_val[i] = remote_get_gpio(button_ix[i]);
             //printf("cur_val[%d]: %d, \tlast_val: %d\n", i, cur_val[i], last_read[i]);
