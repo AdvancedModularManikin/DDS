@@ -482,8 +482,9 @@ button_monitor_task(void)
     int sol_ix[BUTTON_NUM] = {solenoid_AC, solenoid_AD, solenoid_A};
     int button_ix[BUTTON_NUM] = {gpio_J21_1, gpio_J21_2, gpio_J21_3};
 
-    remote_set_gpio_meta(button_ix[0], 1);
-    remote_set_gpio_meta(button_ix[1], 1);
+    for (int i = 0; i < BUTTON_NUM; i++) {
+        remote_set_gpio_meta(button_ix[i], 1);
+    }
 
     for (;;) {
         for (int i = 0; i < BUTTON_NUM; i++) {
