@@ -11,7 +11,6 @@ namespace AMM {
         m_pe = biogears::CreateBioGearsEngine(logFile);
 
 
-
         PopulateNodePathTable();
         m_runThread = false;
     }
@@ -99,6 +98,13 @@ namespace AMM {
 
         nodePathTable["CompleteBloodCount_Platelet"] = &PhysiologyThread::GetPlateletCount;
 
+        nodePathTable["Renal_UrineProductionRate"] = &PhysiologyThread::GetUrineProductionRate;
+        nodePathTable["Urinalysis_SpecificGravity"] = &PhysiologyThread::GetUrineSpecificGravity;
+        nodePathTable["Renal_UrineOsmolality"] = &PhysiologyThread::GetUrineOsmolality;
+        nodePathTable["Renal_UrineOsmolarity"] = &PhysiologyThread::GetUrineOsmolarity;
+        nodePathTable["Renal_BladderGlucose"] = &PhysiologyThread::GetBladderGlucose;
+
+
         // Label which nodes are high-frequency
         highFrequencyNodes = {
                 "ECG",
@@ -146,7 +152,7 @@ namespace AMM {
             return false;
         }
 
-	// preload substances
+        // preload substances
         sodium = m_pe->GetSubstanceManager().GetSubstance("Sodium");
         glucose = m_pe->GetSubstanceManager().GetSubstance("Glucose");
         creatinine = m_pe->GetSubstanceManager().GetSubstance("Creatinine");
@@ -166,6 +172,7 @@ namespace AMM {
         carina = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::Carina);
         leftLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::LeftLung);
         rightLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::RightLung);
+        bladder = m_pe->GetCompartments().GetLiquidCompartment(BGE::UrineCompartment::Bladder);
 
         if (logging_enabled) {
             InitializeLog();
@@ -175,37 +182,37 @@ namespace AMM {
     }
 
     void PhysiologyThread::InitializeLog() {
-            std::string logFilename = getTimestampedFilename("./logs/Output_", ".csv");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
-                                                                                              biogears::FrequencyUnit::Per_min);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
-                                                                                              biogears::PressureUnit::mmHg);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
-                    "SystolicArterialPressure", biogears::PressureUnit::mmHg);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
-                    "DiastolicArterialPressure", biogears::PressureUnit::mmHg);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("RespirationRate",
-                                                                                              biogears::FrequencyUnit::Per_min);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TidalVolume",
-                                                                                              biogears::VolumeUnit::mL);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TotalLungVolume",
-                                                                                              biogears::VolumeUnit::mL);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
-                    BGE::PulmonaryCompartment::LeftLung, "Volume");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
-                    BGE::PulmonaryCompartment::RightLung, "Volume");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
+        std::string logFilename = getTimestampedFilename("./logs/Output_", ".csv");
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
+                                                                                          biogears::FrequencyUnit::Per_min);
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
+                                                                                          biogears::PressureUnit::mmHg);
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
+                "SystolicArterialPressure", biogears::PressureUnit::mmHg);
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
+                "DiastolicArterialPressure", biogears::PressureUnit::mmHg);
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("RespirationRate",
+                                                                                          biogears::FrequencyUnit::Per_min);
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TidalVolume",
+                                                                                          biogears::VolumeUnit::mL);
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TotalLungVolume",
+                                                                                          biogears::VolumeUnit::mL);
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
+                BGE::PulmonaryCompartment::LeftLung, "Volume");
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
+                BGE::PulmonaryCompartment::RightLung, "Volume");
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
 /*            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
                     BGE::VascularCompartment::Aorta, *O2, "PartialPressure");
             m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
                     BGE::VascularCompartment::Aorta, *CO2, "PartialPressure");*/
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
-                    BGE::PulmonaryCompartment::Carina, "InFlow");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume",
-                                                                                              biogears::VolumeUnit::mL);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("ArterialBloodPH");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("VenousBloodPH");
-            m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
+                BGE::PulmonaryCompartment::Carina, "InFlow");
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume",
+                                                                                          biogears::VolumeUnit::mL);
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("ArterialBloodPH");
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("VenousBloodPH");
+        m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
     }
 
     bool PhysiologyThread::SaveState() {
@@ -515,7 +522,30 @@ namespace AMM {
         return plateletCount.GetValue(biogears::AmountPerVolumeUnit::ct_Per_uL) / 1000;
     }
 
-// GetExhaledCO2 - tracheal CO2 partial pressure - mmHg
+    double PhysiologyThread::GetUrineProductionRate() {
+        return m_pe->GetRenalSystem()->GetUrineProductionRate(biogears::VolumePerTimeUnit::mL_Per_min);
+    }
+
+    double PhysiologyThread::GetUrineSpecificGravity() {
+        return m_pe->GetRenalSystem()->GetUrineSpecificGravity();
+    }
+
+    double PhysiologyThread::GetBladderGlucose() {
+        return bladder->GetSubstanceQuantity(*glucose)->GetConcentration().GetValue(biogears::MassPerVolumeUnit::mg_Per_dL);
+    }
+
+
+    double PhysiologyThread::GetUrineOsmolality() {
+        return m_pe->GetRenalSystem()->GetUrineOsmolality(biogears::OsmolalityUnit::mOsm_Per_kg);
+
+    }
+
+    double PhysiologyThread::GetUrineOsmolarity() {
+        return m_pe->GetRenalSystem()->GetUrineOsmolarity(biogears::OsmolarityUnit::mOsm_Per_L);
+    }
+
+
+    // GetExhaledCO2 - tracheal CO2 partial pressure - mmHg
     double PhysiologyThread::GetExhaledCO2() {
         return carina->GetSubstanceQuantity(*CO2)->GetPartialPressure(biogears::PressureUnit::mmHg);
     }
