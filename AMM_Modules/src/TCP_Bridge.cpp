@@ -115,6 +115,7 @@ void InitializeLabNodes() {
     labNodes["ABG"]["Substance_Bicarbonate"] = 0.0f;
     labNodes["ABG"]["Substance_BaseExcess"] = 0.0f;
     labNodes["ABG"]["BloodChemistry_Oxygen_Saturation"] = 0.0f;
+    labNodes["ABG"]["Substance_Lactate_Concentration_mmol"] = 0.0f;
 
     labNodes["VBG"]["BloodChemistry_BloodPH"] = 0.0f;
     labNodes["VBG"]["BloodChemistry_Arterial_CarbonDioxide_Pressure"] = 0.0f;
@@ -124,6 +125,7 @@ void InitializeLabNodes() {
     labNodes["VBG"]["Substance_BaseExcess"] = 0.0f;
     labNodes["VBG"]["BloodChemistry_VenousCarbonDioxidePressure"] = 0.0f;
     labNodes["VBG"]["BloodChemistry_VenousOxygenPressure"] = 0.0f;
+    labNodes["VBG"]["Substance_Lactate_Concentration_mmol"] = 0.0f;
 
     labNodes["BMP"]["Substance_Sodium"] = 0.0f;
     labNodes["BMP"]["MetabolicPanel_Potassium"] = 0.0f;
