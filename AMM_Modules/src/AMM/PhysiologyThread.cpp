@@ -419,7 +419,7 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetLactateConcentrationMMOL() {
-        return GetLactateConcentration() * 0.1110;
+        return (GetLactateConcentration() * 0.1110) * 1000;
     }
 
 
