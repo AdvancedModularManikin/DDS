@@ -61,7 +61,7 @@ set(COMMAND_EXECUTOR_SOURCES CommandExecutor.cpp)
 set(COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 
-set(SPI_SOURCES spi_proto/src/crc16.c spi_proto/src/spi_proto.c spi_proto/src/config.h spi_proto/src/spi_proto.h)
+set(SPI_SOURCES spi_proto/src/crc16.c spi_proto/src/spi_proto.c spi_proto/src/spi_proto.h)
 #add_library(spi_proto ${SPI_PROTO_SOURCES})
 set(SPI_REMOTE_SOURCES spi_proto/src/spi_remote_host.c spi_proto/src/binary_semaphore.c spi_proto/src/spi_proto_master.cpp spi_proto/src/spi_chunks.cpp)
 set(SPI_DATAGRAM_SOURCES spi_proto/src/spi_proto_master_datagram.cpp)
