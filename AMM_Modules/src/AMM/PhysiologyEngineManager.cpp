@@ -233,8 +233,9 @@ namespace AMM {
                 LOG_INFO << "Pain payload received: " << pm.payload();
                 bg->SetPain(pm.payload());
             } else if (pm.type() == "hemorrhage") {
-                LOG_INFO << "Hemorrhage location: " << pm.location();
+                LOG_INFO << "Hemorrhage location: " << pm.location().description();
                 LOG_INFO << "Hemorrhage payload received: " << pm.payload();
+                bg->SetHemorrhage(pm.location.description(),pm.payload);
             } else {
                 LOG_INFO << "Physiology modification received: " << pm.payload();
                 bg->ExecuteXMLCommand(pm.payload());

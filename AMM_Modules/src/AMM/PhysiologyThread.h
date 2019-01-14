@@ -129,6 +129,7 @@ namespace AMM {
         void SetIVPump(const std::string &pumpSettings);
 
         void SetPain(const std::string &painSettings);
+        void SetHemorrhage(const std::string &location, const std::string &hemorrhageSettings);
 
         void Status();
 

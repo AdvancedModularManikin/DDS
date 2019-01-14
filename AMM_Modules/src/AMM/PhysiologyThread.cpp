@@ -531,7 +531,8 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetBladderGlucose() {
-        return bladder->GetSubstanceQuantity(*glucose)->GetConcentration().GetValue(biogears::MassPerVolumeUnit::mg_Per_dL);
+        return bladder->GetSubstanceQuantity(*glucose)->GetConcentration().GetValue(
+                biogears::MassPerVolumeUnit::mg_Per_dL);
     }
 
 
@@ -808,6 +809,40 @@ namespace AMM {
             }
         } catch (std::exception &e) {
             LOG_ERROR << "Error processing ivpump action: " << e.what();
+        }
+    }
+
+    void PhysiologyThread::SetHemorrhage(const std::string &location, const std::string &hemorrhageSettings) {
+        double flowRate;
+        std::vector<std::string> strings = explode("\n", hemorrhageSettings);
+        for (auto str : strings) {
+            std::vector<std::string> strs;
+            boost::split(strs, str, boost::is_any_of("="));
+            auto strs_size = strs.size();
+            // Check if it's not a key value pair
+            if (strs_size != 2) {
+                continue;
+            }
+            std::string kvp_k = strs[0];
+            // all settings for the ventilator are floats
+            try {
+                if (kvp_k == "flowrate") {
+                    flowRate = std::stod(strs[1]);
+                } else {
+                    LOG_INFO << "Unknown hemorrhage setting: " << kvp_k << " = " << strs[1];
+                }
+            } catch (std::exception &e) {
+                LOG_ERROR << "Issue with setting " << e.what();
+            }
+        }
+
+        SEHemorrhage hemorrhage;
+        hemorrhage.SetCompartment(location);
+        hemorrhage.GetInitialRate().SetValue(flowRate, VolumePerTimeUnit::mL_Per_min);
+        try {
+            m_pe->ProcessAction(hemorrhage);
+        } catch (std::exception &e) {
+            LOG_ERROR << "Error processing hemorrhage action: " << e.what();
         }
     }
 
