@@ -32,6 +32,7 @@
 #include <biogears/cdm/engine/PhysiologyEngineTrack.h>
 #include <biogears/cdm/patient/actions/SEPainStimulus.h>
 #include <biogears/cdm/patient/actions/SESubstanceBolus.h>
+#include <biogears/cdm/patient/actions/SEHemorrhage.h>
 
 #include <biogears/cdm/substance/SESubstanceManager.h>
 #include <biogears/cdm/system/physiology/SEBloodChemistrySystem.h>
@@ -59,6 +60,7 @@
 #include <biogears/cdm/properties/SEScalarVolumePerTime.h>
 #include <biogears/cdm/properties/SEScalarOsmolality.h>
 #include <biogears/cdm/properties/SEScalarOsmolarity.h>
+#include <biogears/cdm/properties/SEScalarTypes.h>
 
 #include <biogears/cdm/patient/actions/SEPainStimulus.h>
 #include <biogears/cdm/patient/actions/SESubstanceBolus.h>
