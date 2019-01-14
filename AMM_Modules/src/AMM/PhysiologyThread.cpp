@@ -836,9 +836,10 @@ namespace AMM {
             }
         }
 
-        SEHemorrhage hemorrhage;
+        biogears::SEHemorrhage hemorrhage;
         hemorrhage.SetCompartment(location);
-        hemorrhage.GetInitialRate().SetValue(flowRate, VolumePerTimeUnit::mL_Per_min);
+        hemorrhage.GetInitialRate().SetValue(flowRate, biogears::VolumePerTimeUnit::mL_Per_min);
+
         try {
             m_pe->ProcessAction(hemorrhage);
         } catch (std::exception &e) {
