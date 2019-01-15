@@ -269,7 +269,7 @@ void SendPerformanceAssessment(const std::string &assessment_type,
 
 void SendCommand(const std::string &command) {
     LOG_INFO << "Publishing a command:" << command;
-    if (command.equals("CLEAR_LOG") == 0) {
+    if (command == "CLEAR_LOG") {
         // handle this locally
         clearLog();
     }
