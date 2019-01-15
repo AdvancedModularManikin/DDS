@@ -114,6 +114,14 @@ Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
 
+void clearLog() {
+    try {
+        db << "delete from events";
+    } catch (exception &e) {
+        LOG_ERROR << "[EVENTLOG]" << e.what();
+    }
+}
+
 void writeLogEntry(logEntry newLogEntry) {
     try {
         db << "insert into events (source, topic, tick, timestamp, data) values "
@@ -201,6 +209,8 @@ class AMMListener : public ListenerInterface {
                 statusStorage["TICK"] = "0";
                 statusStorage["TIME"] = "0";
                 nodeDataStorage.clear();
+            } else if (value.compare("CLEAR_LOG") == 0) {
+                clearLog();
             }
         }
 
