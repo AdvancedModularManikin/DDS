@@ -238,22 +238,21 @@ void readHandler() {
                                                                                                   std::string::npos));
                             kvp[key] = value;
                             LOG_TRACE << "\t" << key << " => " << kvp[key];
+                            if (key == "type") {
+                                LOG_TRACE << "  Type is " << kvp[key];
+                                modType = kvp[key];
+                            }
+                            if (key == "location") {
+                                LOG_TRACE << "  Location is " << kvp[key];
+                                modLocation = kvp[key];
+                            }
+
+                            if (key == "payload") {
+                                LOG_TRACE << "  Payload is " << kvp[key];
+                                modPayload = kvp[key];
+                            }
+
                         }
-
-            auto type = kvp.find("type");
-            if (type != kvp.end()) {
-                modType = type->second;
-            }
-
-            auto location = kvp.find("location");
-            if (location != kvp.end()) {
-                modLocation = type->second;
-            }
-
-            auto payload = kvp.find("payload");
-            if (payload != kvp.end()) {
-                modPayload = type->second;
-            }
 
             if (topic == "AMM_Render_Modification") {
                 AMM::Render::Modification renderMod;
