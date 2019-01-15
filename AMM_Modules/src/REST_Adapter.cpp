@@ -269,6 +269,10 @@ void SendPerformanceAssessment(const std::string &assessment_type,
 
 void SendCommand(const std::string &command) {
     LOG_INFO << "Publishing a command:" << command;
+    if (command.equals("CLEAR_LOG") == 0) {
+        // handle this locally
+        clearLog();
+    }
     AMM::PatientAction::BioGears::Command cmdInstance;
     cmdInstance.message(command);
     mgr->PublishCommand(cmdInstance);
