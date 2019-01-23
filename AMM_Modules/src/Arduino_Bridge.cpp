@@ -370,11 +370,11 @@ public:
             }
             // Send it on through the bridge
             std::ostringstream cmdMessage;
-            cmdMessage << "[AMM_Command]" << value;
+            cmdMessage << "[AMM_Command]" << value << "\n";
             transmitQ.push(cmdMessage.str());
         } else {
             std::ostringstream cmdMessage;
-            cmdMessage << "[AMM_Command]" << c.message();
+            cmdMessage << "[AMM_Command]" << c.message() << "\n";
             transmitQ.push(cmdMessage.str());
         }
     }
