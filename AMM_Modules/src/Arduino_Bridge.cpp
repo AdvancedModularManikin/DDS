@@ -355,27 +355,23 @@ public:
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
-                std::ostringstream cmdMessage;
-                cmdMessage << "[AMM_Command]" << c.message();
-                transmitQ.push(cmdMessage.str());
+
             } else if (value.compare("STOP_SIM") == 0) {
-                std::ostringstream cmdMessage;
-                cmdMessage << "[AMM_Command]" << c.message();
-                transmitQ.push(cmdMessage.str());
+
             } else if (value.compare("PAUSE_SIM") == 0) {
-                std::ostringstream cmdMessage;
-                cmdMessage << "[AMM_Command]" << c.message();
-                transmitQ.push(cmdMessage.str());
+
             } else if (value.compare("RESET_SIM") == 0) {
-                std::ostringstream cmdMessage;
-                cmdMessage << "[AMM_Command]" << c.message();
-                transmitQ.push(cmdMessage.str());
+
             } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
                 std::string scene = value.substr(loadScenarioPrefix.size());
                 LOG_TRACE << "Time to load scene " << scene;
                 //@TODO Grab the actual module name
                 sendConfigInfo(scene, "liquid_sensor");
             }
+            // Send it on through the bridge
+            std::ostringstream cmdMessage;
+            cmdMessage << "[AMM_Command]" << value;
+            transmitQ.push(cmdMessage.str());
         } else {
             std::ostringstream cmdMessage;
             cmdMessage << "[AMM_Command]" << c.message();
