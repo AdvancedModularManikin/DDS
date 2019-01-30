@@ -125,6 +125,7 @@ void chest_rise_task(void)
 
 // This is mostly boilerplate
 int main(int argc, char *argv[]) {
+    plog::InitializeLogger();
     std::thread datagram_thread(datagram_task);     // Required for SPI datagram library
     std::thread chest_rise_thread(chest_rise_task);  // Required to run module business logic
 

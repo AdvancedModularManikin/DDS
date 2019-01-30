@@ -42,6 +42,7 @@ void show_menu(ModuleManager *modManager) {
 }
 
 int main(int argc, char *argv[]) {
+    plog::InitializeLogger();
     cout << "=== [AMM - Module Manager] ===" << endl;
 
     for (int i = 1; i < argc; ++i) {

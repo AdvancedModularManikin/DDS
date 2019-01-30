@@ -129,6 +129,8 @@ static void show_usage(const std::string &name) {
 void air_reservoir_control_task(void);
 
 int main(int argc, char *argv[]) {
+    plog::InitializeLogger();
+
     host_remote_init(&remote);
     std::thread remote_thread(remote_task);
     std::thread air_tank_thread(air_reservoir_control_task);

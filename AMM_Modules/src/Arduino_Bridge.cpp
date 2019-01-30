@@ -394,6 +394,7 @@ void checkForExit() {
 }
 
 int main(int argc, char *argv[]) {
+    plog::InitializeLogger();
     LOG_INFO << "Linux Arduino_Bridge starting up";
     const int buf_max = 8192;
     char serialport[40];

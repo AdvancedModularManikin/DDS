@@ -27,9 +27,10 @@
 #include <Net/UdpDiscoveryServer.h>
 
 #include "AMM/DDS/AMMPubSubTypes.h"
+#include "AMM/DDS_Manager.h"
 
 #include "AMM/BaseLogger.h"
-#include "AMM/DDS_Manager.h"
+#include "AMM/DDS_Log_Appender.h"
 
 #include "AMM/Utility.hpp"
 
@@ -737,8 +738,9 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, const char *argv[]) {
+    plog::InitializeLogger();
     using namespace AMM::Capability;
-    LOG_INFO << "=== [AMM - Network Bridge] ===";
+    LOG_INFO << "=== [AMM - TCP Bridge] ===";
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -761,6 +763,9 @@ int main(int argc, const char *argv[]) {
     const std::string nodeName = "AMM_TCP_Bridge";
     std::string nodeString(nodeName);
     mgr = new DDS_Manager(nodeName.c_str());
+
+    static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
+    plog::get()->addAppender(&DDSAppender);
 
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *hf_node_sub_listener = new DDS_Listeners::HighFrequencyNodeSubListener();
@@ -805,7 +810,7 @@ int main(int argc, const char *argv[]) {
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
-    LOG_INFO << "=== [Network_Bridge] Ready ...";
+    LOG_INFO << "TCP Bridge ready.";
 
     std::thread t1(UdpDiscoveryThread);
     s = new Server(bridgePort);
@@ -815,5 +820,5 @@ int main(int argc, const char *argv[]) {
 
     t1.join();
 
-    LOG_INFO << "=== [Network_Bridge] Simulation stopped.";
+    LOG_INFO << "TCP Bridge shutdown.";
 }

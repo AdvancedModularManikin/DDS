@@ -13,6 +13,7 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, char *argv[]) {
+    plog::InitializeLogger();
     using namespace AMM::Capability;
 
     for (int i = 1; i < argc; ++i) {
