@@ -303,4 +303,15 @@ module AMM
             sequence<string> message;
         };
     };
+	
+	module Diagnostics
+	{
+		module Log {
+			struct Record {				
+				unsigned long long timestamp;				
+				string log_level;
+				string message;
+			};
+		};
+	};
 };

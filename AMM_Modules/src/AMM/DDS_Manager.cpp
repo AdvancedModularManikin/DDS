@@ -56,6 +56,10 @@ namespace AMM {
                 AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
                 pub_listener);
 
+        log_publisher = InitializeReliablePublisher(
+                AMM::DataTypes::logRecordTopic, AMM::DataTypes::getLogRecordType(),
+                pub_listener);
+
         module_id = GenerateID();
     }
 
@@ -139,6 +143,10 @@ namespace AMM {
         Domain::registerType(
                 mp_participant,
                 (TopicDataType *) AMM::DataTypes::getPerformanceAssessmentDataType());
+
+        Domain::registerType(
+                mp_participant,
+                (TopicDataType *) AMM::DataTypes::getLogRecordType());
     }
 
     Publisher *DDS_Manager::InitializePublisher(const std::string &topicName,
@@ -232,6 +240,19 @@ namespace AMM {
         } catch (std::exception &e) {
             LOG_ERROR << "[DDS_Manager][config]" << e.what();
         }
+    }
+
+    void DDS_Manager::PublishLogRecord(const std::string &message) {
+        PublishLogRecord(message, "info");
+    }
+
+    void DDS_Manager::PublishLogRecord(const std::string &message, const std::string &log_level) {
+        long now = std::chrono::duration_cast<std::chrono::microseconds> (std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+        AMM::Diagnostics::Log::Record logInstance;
+        logInstance.message(message);
+        logInstance.log_level(log_level);
+        logInstance.timestamp(now);
+        log_publisher->write(&logInstance);
     }
 
     void DDS_Manager::SetStatus(const std::string &local_module_id,

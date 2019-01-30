@@ -702,6 +702,31 @@ namespace AMM
         	unsigned char* m_keyBuffer;
         };
     }
+    namespace Diagnostics
+    {
+        namespace Log
+        {
+            /*!
+             * @brief This class represents the TopicDataType of the type Record defined by the user in the IDL file.
+             * @ingroup AMM
+             */
+            class RecordPubSubType : public eprosima::fastrtps::TopicDataType {
+            public:
+                    typedef Record type;
+
+            	RecordPubSubType();
+            	virtual ~RecordPubSubType();
+            	bool serialize(void *data, eprosima::fastrtps::rtps::SerializedPayload_t *payload);
+            	bool deserialize(eprosima::fastrtps::rtps::SerializedPayload_t *payload, void *data);
+                    std::function<uint32_t()> getSerializedSizeProvider(void* data);
+            	bool getKey(void *data, eprosima::fastrtps::rtps::InstanceHandle_t *ihandle);
+            	void* createData();
+            	void deleteData(void * data);
+            	MD5 m_md5;
+            	unsigned char* m_keyBuffer;
+            };
+        }
+    }
 }
 
 #endif // _AMM_PUBSUBTYPE_H_

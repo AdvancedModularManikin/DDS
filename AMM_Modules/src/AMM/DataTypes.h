@@ -66,6 +66,8 @@ namespace AMM {
         static AMM::Physiology::ModificationPubSubType *
         getPhysiologyModificationType();
 
+        static AMM::Diagnostics::Log::RecordPubSubType *getLogRecordType();
+
         // Topic names
         static std::string tickTopic;
 
@@ -91,6 +93,8 @@ namespace AMM {
         static std::string statusTopic;
         static std::string configurationTopic;
         static std::string scenarioTopic;
+
+        static std::string logRecordTopic;
 
         static std::string renderModTopic;
         static std::string physModTopic;

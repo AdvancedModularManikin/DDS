@@ -6618,6 +6618,206 @@ namespace AMM
             std::vector<std::string> m_message;
         };
     }
+    namespace Diagnostics
+    {
+        namespace Log
+        {
+            /*!
+             * @brief This class represents the structure Record defined by the user in the IDL file.
+             * @ingroup AMM
+             */
+            class Record
+            {
+            public:
+
+                /*!
+                 * @brief Default constructor.
+                 */
+                eProsima_user_DllExport Record();
+                
+                /*!
+                 * @brief Default destructor.
+                 */
+                eProsima_user_DllExport ~Record();
+                
+                /*!
+                 * @brief Copy constructor.
+                 * @param x Reference to the object AMM::Diagnostics::Log::Record that will be copied.
+                 */
+                eProsima_user_DllExport Record(const Record &x);
+                
+                /*!
+                 * @brief Move constructor.
+                 * @param x Reference to the object AMM::Diagnostics::Log::Record that will be copied.
+                 */
+                eProsima_user_DllExport Record(Record &&x);
+                
+                /*!
+                 * @brief Copy assignment.
+                 * @param x Reference to the object AMM::Diagnostics::Log::Record that will be copied.
+                 */
+                eProsima_user_DllExport Record& operator=(const Record &x);
+                
+                /*!
+                 * @brief Move assignment.
+                 * @param x Reference to the object AMM::Diagnostics::Log::Record that will be copied.
+                 */
+                eProsima_user_DllExport Record& operator=(Record &&x);
+                
+                /*!
+                 * @brief This function sets a value in member timestamp
+                 * @param _timestamp New value for member timestamp
+                 */
+                inline eProsima_user_DllExport void timestamp(uint64_t _timestamp)
+                {
+                    m_timestamp = _timestamp;
+                }
+
+                /*!
+                 * @brief This function returns the value of member timestamp
+                 * @return Value of member timestamp
+                 */
+                inline eProsima_user_DllExport uint64_t timestamp() const
+                {
+                    return m_timestamp;
+                }
+
+                /*!
+                 * @brief This function returns a reference to member timestamp
+                 * @return Reference to member timestamp
+                 */
+                inline eProsima_user_DllExport uint64_t& timestamp()
+                {
+                    return m_timestamp;
+                }
+                /*!
+                 * @brief This function copies the value in member log_level
+                 * @param _log_level New value to be copied in member log_level
+                 */
+                inline eProsima_user_DllExport void log_level(const std::string &_log_level)
+                {
+                    m_log_level = _log_level;
+                }
+
+                /*!
+                 * @brief This function moves the value in member log_level
+                 * @param _log_level New value to be moved in member log_level
+                 */
+                inline eProsima_user_DllExport void log_level(std::string &&_log_level)
+                {
+                    m_log_level = std::move(_log_level);
+                }
+
+                /*!
+                 * @brief This function returns a constant reference to member log_level
+                 * @return Constant reference to member log_level
+                 */
+                inline eProsima_user_DllExport const std::string& log_level() const
+                {
+                    return m_log_level;
+                }
+
+                /*!
+                 * @brief This function returns a reference to member log_level
+                 * @return Reference to member log_level
+                 */
+                inline eProsima_user_DllExport std::string& log_level()
+                {
+                    return m_log_level;
+                }
+                /*!
+                 * @brief This function copies the value in member message
+                 * @param _message New value to be copied in member message
+                 */
+                inline eProsima_user_DllExport void message(const std::string &_message)
+                {
+                    m_message = _message;
+                }
+
+                /*!
+                 * @brief This function moves the value in member message
+                 * @param _message New value to be moved in member message
+                 */
+                inline eProsima_user_DllExport void message(std::string &&_message)
+                {
+                    m_message = std::move(_message);
+                }
+
+                /*!
+                 * @brief This function returns a constant reference to member message
+                 * @return Constant reference to member message
+                 */
+                inline eProsima_user_DllExport const std::string& message() const
+                {
+                    return m_message;
+                }
+
+                /*!
+                 * @brief This function returns a reference to member message
+                 * @return Reference to member message
+                 */
+                inline eProsima_user_DllExport std::string& message()
+                {
+                    return m_message;
+                }
+                
+                /*!
+                 * @brief This function returns the maximum serialized size of an object
+                 * depending on the buffer alignment.
+                 * @param current_alignment Buffer alignment.
+                 * @return Maximum serialized size.
+                 */
+                eProsima_user_DllExport static size_t getMaxCdrSerializedSize(size_t current_alignment = 0);
+
+                /*!
+                 * @brief This function returns the serialized size of a data depending on the buffer alignment.
+                 * @param data Data which is calculated its serialized size.
+                 * @param current_alignment Buffer alignment.
+                 * @return Serialized size.
+                 */
+                eProsima_user_DllExport static size_t getCdrSerializedSize(const AMM::Diagnostics::Log::Record& data, size_t current_alignment = 0);
+
+
+                /*!
+                 * @brief This function serializes an object using CDR serialization.
+                 * @param cdr CDR serialization object.
+                 */
+                eProsima_user_DllExport void serialize(eprosima::fastcdr::Cdr &cdr) const;
+
+                /*!
+                 * @brief This function deserializes an object using CDR serialization.
+                 * @param cdr CDR serialization object.
+                 */
+                eProsima_user_DllExport void deserialize(eprosima::fastcdr::Cdr &cdr);
+
+
+
+                /*!
+                 * @brief This function returns the maximum serialized size of the Key of an object
+                 * depending on the buffer alignment.
+                 * @param current_alignment Buffer alignment.
+                 * @return Maximum serialized size.
+                 */
+                eProsima_user_DllExport static size_t getKeyMaxCdrSerializedSize(size_t current_alignment = 0);
+
+                /*!
+                 * @brief This function tells you if the Key has been defined for this type
+                 */
+                eProsima_user_DllExport static bool isKeyDefined();
+
+                /*!
+                 * @brief This function serializes the key members of an object using CDR serialization.
+                 * @param cdr CDR serialization object.
+                 */
+                eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
+                
+            private:
+                uint64_t m_timestamp;
+                std::string m_log_level;
+                std::string m_message;
+            };
+        }
+    }
 }
 
 #endif // _AMM_H_

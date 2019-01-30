@@ -85,6 +85,10 @@ namespace AMM {
 
         void PublishInstrumentData(AMM::InstrumentData instrumentDataInstance);
 
+        void PublishLogRecord(const std::string &message);
+
+        void PublishLogRecord(const std::string &message, const std::string &log_level);
+
         Publisher *InitializeReliablePublisher(const std::string &topicName,
                                                TopicDataType *topicType,
                                                PublisherListener *pub_listener);
@@ -143,6 +147,7 @@ namespace AMM {
 
         Participant *mp_participant;
 
+        Publisher *log_publisher;
         Publisher *command_publisher;
         Publisher *settings_publisher;
         Publisher *physiology_command_publisher;

@@ -3159,5 +3159,106 @@ namespace AMM
 
 
     } //End of namespace Capability
+    namespace Diagnostics
+    {
+        namespace Log
+        {
+            RecordPubSubType::RecordPubSubType() {
+                setName("AMM::Diagnostics::Log::Record");
+                m_typeSize = (uint32_t)Record::getMaxCdrSerializedSize() + 4 /*encapsulation*/;
+                m_isGetKeyDefined = Record::isKeyDefined();
+                m_keyBuffer = (unsigned char*)malloc(Record::getKeyMaxCdrSerializedSize()>16 ? Record::getKeyMaxCdrSerializedSize() : 16);
+            }
+
+            RecordPubSubType::~RecordPubSubType() {
+                if(m_keyBuffer!=nullptr)
+                    free(m_keyBuffer);
+            }
+
+            bool RecordPubSubType::serialize(void *data, SerializedPayload_t *payload) {
+                Record *p_type = (Record*) data;
+                eprosima::fastcdr::FastBuffer fastbuffer((char*) payload->data, payload->max_size); // Object that manages the raw buffer.
+                eprosima::fastcdr::Cdr ser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+                        eprosima::fastcdr::Cdr::DDS_CDR); // Object that serializes the data.
+                payload->encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
+                // Serialize encapsulation
+                ser.serialize_encapsulation();
+
+                try
+                {
+                    p_type->serialize(ser); // Serialize the object:
+                }
+                catch(eprosima::fastcdr::exception::NotEnoughMemoryException& /*exception*/)
+                {
+                    return false;
+                }
+
+                payload->length = (uint32_t)ser.getSerializedDataLength(); //Get the serialized length
+                return true;
+            }
+
+            bool RecordPubSubType::deserialize(SerializedPayload_t* payload, void* data) {
+                Record* p_type = (Record*) data; 	//Convert DATA to pointer of your type
+                eprosima::fastcdr::FastBuffer fastbuffer((char*)payload->data, payload->length); // Object that manages the raw buffer.
+                eprosima::fastcdr::Cdr deser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+                        eprosima::fastcdr::Cdr::DDS_CDR); // Object that deserializes the data.
+                // Deserialize encapsulation.
+                deser.read_encapsulation();
+                payload->encapsulation = deser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
+
+                try
+                {
+                    p_type->deserialize(deser); //Deserialize the object:
+                }
+                catch(eprosima::fastcdr::exception::NotEnoughMemoryException& /*exception*/)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            std::function<uint32_t()> RecordPubSubType::getSerializedSizeProvider(void* data) {
+                return [data]() -> uint32_t
+                {
+                    return (uint32_t)type::getCdrSerializedSize(*static_cast<Record*>(data)) + 4 /*encapsulation*/;
+                };
+            }
+
+            void* RecordPubSubType::createData() {
+                return (void*)new Record();
+            }
+
+            void RecordPubSubType::deleteData(void* data) {
+                delete((Record*)data);
+            }
+
+            bool RecordPubSubType::getKey(void *data, InstanceHandle_t* handle) {
+                if(!m_isGetKeyDefined)
+                    return false;
+                Record* p_type = (Record*) data;
+                eprosima::fastcdr::FastBuffer fastbuffer((char*)m_keyBuffer,Record::getKeyMaxCdrSerializedSize()); 	// Object that manages the raw buffer.
+                eprosima::fastcdr::Cdr ser(fastbuffer, eprosima::fastcdr::Cdr::BIG_ENDIANNESS); 	// Object that serializes the data.
+                p_type->serializeKey(ser);
+                if(Record::getKeyMaxCdrSerializedSize()>16)	{
+                    m_md5.init();
+                    m_md5.update(m_keyBuffer,(unsigned int)ser.getSerializedDataLength());
+                    m_md5.finalize();
+                    for(uint8_t i = 0;i<16;++i)    	{
+                        handle->value[i] = m_md5.digest[i];
+                    }
+                }
+                else    {
+                    for(uint8_t i = 0;i<16;++i)    	{
+                        handle->value[i] = m_keyBuffer[i];
+                    }
+                }
+                return true;
+            }
+
+
+        } //End of namespace Log
+
+    } //End of namespace Diagnostics
 
 } //End of namespace AMM

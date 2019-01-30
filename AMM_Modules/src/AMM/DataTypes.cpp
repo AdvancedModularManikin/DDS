@@ -37,6 +37,8 @@ std::string AMM::DataTypes::instrumentDataTopic = "InstrumentData";
 std::string AMM::DataTypes::renderModTopic = "RenderModification";
 std::string AMM::DataTypes::physModTopic = "PhysiologyModification";
 
+std::string AMM::DataTypes::logRecordTopic = "LogRecord";
+
 AMM::Simulation::TickPubSubType *AMM::DataTypes::getTickType() {
     return new AMM::Simulation::TickPubSubType();
 }
@@ -145,4 +147,8 @@ AMM::DataTypes::getRenderModificationType() {
 AMM::Physiology::ModificationPubSubType *
 AMM::DataTypes::getPhysiologyModificationType() {
     return new AMM::Physiology::ModificationPubSubType();
+};
+
+AMM::Diagnostics::Log::RecordPubSubType *AMM::DataTypes::getLogRecordType() {
+    return new AMM::Diagnostics::Log::RecordPubSubType();
 };

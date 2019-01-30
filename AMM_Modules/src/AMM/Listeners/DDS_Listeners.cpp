@@ -257,6 +257,29 @@ void DDS_Listeners::EquipmentSubListener::onNewDataMessage(Subscriber *sub) {
     }
 }
 
+
+void DDS_Listeners::LogRecordSubListener::onSubscriptionMatched(
+        Subscriber *sub, MatchingInfo &info) {
+    if (info.status == MATCHED_MATCHING) {
+        n_matched++;
+    } else {
+        n_matched--;
+    }
+}
+
+void DDS_Listeners::LogRecordSubListener::onNewDataMessage(Subscriber *sub) {
+    AMM::Diagnostics::Log::Record r;
+
+    if (sub->takeNextData(&r, &m_info)) {
+        ++n_msg;
+        if (m_info.sampleKind == ALIVE) {
+            if (upstream != nullptr) {
+                upstream->onNewLogRecordData(r, &m_info);
+            }
+        }
+    }
+}
+
 void DDS_Listeners::PubListener::onPublicationMatched(Publisher *pub,
                                                       MatchingInfo &info) {
     if (info.status == MATCHED_MATCHING) {

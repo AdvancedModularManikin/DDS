@@ -3580,3 +3580,112 @@ void AMM::Capability::Status::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 	 
 }
 
+AMM::Diagnostics::Log::Record::Record()
+{
+    m_timestamp = 0;
+
+
+}
+
+AMM::Diagnostics::Log::Record::~Record()
+{
+}
+
+AMM::Diagnostics::Log::Record::Record(const Record &x)
+{
+    m_timestamp = x.m_timestamp;
+    m_log_level = x.m_log_level;
+    m_message = x.m_message;
+}
+
+AMM::Diagnostics::Log::Record::Record(Record &&x)
+{
+    m_timestamp = x.m_timestamp;
+    m_log_level = std::move(x.m_log_level);
+    m_message = std::move(x.m_message);
+}
+
+AMM::Diagnostics::Log::Record& AMM::Diagnostics::Log::Record::operator=(const Record &x)
+{
+    m_timestamp = x.m_timestamp;
+    m_log_level = x.m_log_level;
+    m_message = x.m_message;
+    
+    return *this;
+}
+
+AMM::Diagnostics::Log::Record& AMM::Diagnostics::Log::Record::operator=(Record &&x)
+{
+    m_timestamp = x.m_timestamp;
+    m_log_level = std::move(x.m_log_level);
+    m_message = std::move(x.m_message);
+    
+    return *this;
+}
+
+size_t AMM::Diagnostics::Log::Record::getMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t initial_alignment = current_alignment;
+            
+    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
+
+
+    return current_alignment - initial_alignment;
+}
+
+size_t AMM::Diagnostics::Log::Record::getCdrSerializedSize(const AMM::Diagnostics::Log::Record& data, size_t current_alignment)
+{
+    size_t initial_alignment = current_alignment;
+            
+    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.log_level().size() + 1;
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.message().size() + 1;
+
+
+    return current_alignment - initial_alignment;
+}
+
+void AMM::Diagnostics::Log::Record::serialize(eprosima::fastcdr::Cdr &scdr) const
+{
+    scdr << m_timestamp;
+    scdr << m_log_level;
+    scdr << m_message;
+}
+
+void AMM::Diagnostics::Log::Record::deserialize(eprosima::fastcdr::Cdr &dcdr)
+{
+    dcdr >> m_timestamp;
+    dcdr >> m_log_level;
+    dcdr >> m_message;
+}
+
+size_t AMM::Diagnostics::Log::Record::getKeyMaxCdrSerializedSize(size_t current_alignment)
+{
+	size_t current_align = current_alignment;
+            
+
+
+
+
+    return current_align;
+}
+
+bool AMM::Diagnostics::Log::Record::isKeyDefined()
+{
+    return false;
+}
+
+void AMM::Diagnostics::Log::Record::serializeKey(eprosima::fastcdr::Cdr &scdr) const
+{
+	 
+	 
+	 
+}
+
+
