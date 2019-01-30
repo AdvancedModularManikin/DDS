@@ -235,7 +235,6 @@ namespace AMM {
     void DDS_Manager::PublishModuleConfiguration(
             AMM::Capability::Configuration configInstance) {
         try {
-            LOG_TRACE << "Publishing config for " << configInstance.module_name();
             config_publisher->write(&configInstance);
         } catch (std::exception &e) {
             LOG_ERROR << "[DDS_Manager][config]" << e.what();
@@ -305,7 +304,6 @@ namespace AMM {
 
     void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
         try {
-            LOG_TRACE << "Publishing status for " << statusInstance.module_name();
             status_publisher->write(&statusInstance);
         } catch (std::exception &e) {
             LOG_ERROR << "[DDS_Manager][status]" << e.what();

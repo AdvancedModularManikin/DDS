@@ -1,7 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
-
 #include <fstream>
 #include <sstream>
 #include <streambuf>
