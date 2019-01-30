@@ -10,16 +10,24 @@ configure_file(
 add_custom_target(versionFileTouchForRebuild
         COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_CURRENT_BINARY_DIR}/version.cpp")
 
+add_library(plog INTERFACE)
+target_include_directories(plog INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
+add_library(plog::plog ALIAS plog)
+file(GLOB_RECURSE PLOG_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/plog/*.h)
+add_library(plog-headers STATIC ${PLOG_HEADERS})
+set_target_properties(plog-headers PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(plog-headers PROPERTIES FOLDER Include)
 
 set(BASE_LOGGER amm_base_logger)
 set(BASE_LOGGER_SOURCES AMM/BaseLogger.cpp)
-add_library(amm_base_logger  SHARED ${BASE_LOGGER_SOURCES})
+add_library(amm_base_logger SHARED ${BASE_LOGGER_SOURCES})
 add_library(amm::logger ALIAS amm_base_logger)
 
 target_link_libraries(
   amm_base_logger
   PUBLIC Threads::Threads
-  PUBLIC Boost::log
+  PUBLIC plog
+#  PUBLIC Boost::log
 )
 
     set(VARS_1 "AMM/DDS/AMM.cxx")
@@ -90,10 +98,6 @@ set(ARDUINO_BRIDGE_SOURCES Arduino_Bridge.cpp)
 set(ARDUINO_BRIDGE_EXE amm_arduino_bridge)
 add_executable(${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES})
 
-set(SERIAL_BRIDGE_SOURCES Serial_Bridge.cpp AMM/SerialPort.cpp AMM/SerialPort.h)
-set(SERIAL_BRIDGE_EXE amm_serial_bridge)
-add_executable(${SERIAL_BRIDGE_EXE} ${SERIAL_BRIDGE_SOURCES})
-
 set(TCP_BRIDGE_SOURCES TCP_Bridge.cpp Net/Server.cpp Net/ServerThread.cpp Net/Client.cpp Net/UdpDiscoveryServer.cpp)
 set(TCP_BRIDGE_EXE amm_tcp_bridge)
 add_executable(${TCP_BRIDGE_EXE} ${TCP_BRIDGE_SOURCES})
@@ -143,6 +147,7 @@ if (Biogears_FOUND)
             amm::logger
             Biogears::libbiogears
             Threads::Threads
+            Boost::system
             amm::datamodel
             )
 endif ()
@@ -153,6 +158,7 @@ target_link_libraries(${LOGGER_EXE}
         PUBLIC Boost::system
         PUBLIC pthread
         PUBLIC amm::datamodel
+        PUBLIC sqlite3
         )
 
 target_link_libraries(${SIM_MANAGER_EXE}
@@ -204,16 +210,7 @@ target_link_libraries(${ARDUINO_BRIDGE_EXE}
         amm::logger
         Threads::Threads
         pthread
-        ${TINYXML2_LIBRARIES}
-        amm::datamodel
-        )
-
-target_link_libraries(${SERIAL_BRIDGE_EXE}
-        fastrtps fastcdr
-        amm::logger
-        Boost::system Boost::filesystem Boost::iostreams Boost::signals Boost::thread
-        Threads::Threads
-        pthread
+        Boost::system
         ${TINYXML2_LIBRARIES}
         amm::datamodel
         )
