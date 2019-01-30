@@ -15,7 +15,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/support/cmake )
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/logs/)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/gen/)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/)
@@ -63,7 +62,7 @@ endif()
 find_package(fastcdr REQUIRED)
 find_package(fastrtps REQUIRED)
 find_package(Threads REQUIRED)
-find_package(Boost 1.58 COMPONENTS filesystem iostreams system signals thread log log_setup REQUIRED)
+find_package(Boost 1.58 COMPONENTS filesystem iostreams system signals thread REQUIRED)
 find_package(TinyXML2 REQUIRED)
 find_package(SQLite3 REQUIRED)
 
