@@ -1024,14 +1024,13 @@ int main(int argc, char *argv[]) {
     Port port(static_cast<uint16_t>(portNumber));
     Address addr(Ipv4::any(), port);
     DDSEndpoint server(addr);
-    LOG_INFO << "REST_Adapter Listening on *:" << portNumber;
-    LOG_INFO << "\tCores =\t" << hardware_concurrency();
-    LOG_INFO << "\tThreads =\t" << thr;
     server.init(thr);
+    LOG_INFO << "REST_Adapter Listening on *:" << portNumber;
 
     m_runThread = true;
-
     server.start();
+
+    LOG_INFO << "REST_Adapter ready.";
 
     while (m_runThread) {
         getline(cin, action);
