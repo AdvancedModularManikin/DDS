@@ -224,7 +224,7 @@ namespace AMM {
             logInstance.log_level(log_level);
             // logInstance.timestamp(now);
             if (!log_initialized) {
-                log_publisher = InitializePublisher(
+                log_publisher = InitializeReliablePublisher(
                         AMM::DataTypes::logRecordTopic, AMM::DataTypes::getLogRecordType(),
                         pub_listener);
                 log_initialized = true;
@@ -301,8 +301,8 @@ namespace AMM {
             AMM::PatientAction::BioGears::Command cmdInstance) {
         if (!command_initialized) {
             command_publisher =
-                    InitializePublisher(AMM::DataTypes::commandTopic,
-                                        AMM::DataTypes::getCommandType(), pub_listener);
+                    InitializeReliablePublisher(AMM::DataTypes::commandTopic,
+                                                AMM::DataTypes::getCommandType(), pub_listener);
             command_initialized = true;
         }
         try {
@@ -345,7 +345,7 @@ namespace AMM {
     void DDS_Manager::PublishInstrumentData(
             AMM::InstrumentData instrumentDataInstance) {
         if (!settings_initialized) {
-            settings_publisher = InitializePublisher(
+            settings_publisher = InitializeReliablePublisher(
                     AMM::DataTypes::instrumentDataTopic,
                     AMM::DataTypes::getInstrumentDataType(), pub_listener);
             settings_initialized = true;

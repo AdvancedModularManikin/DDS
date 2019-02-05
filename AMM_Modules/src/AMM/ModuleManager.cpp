@@ -26,13 +26,13 @@ namespace AMM {
         config_sub_listener->SetUpstream(mmL);
         log_sub_listener->SetUpstream(mmL);
 
-        mgr->InitializeSubscriber(AMM::DataTypes::statusTopic,
+        mgr->InitializeReliableSubscriber(AMM::DataTypes::statusTopic,
                                   AMM::DataTypes::getStatusType(),
                                   status_sub_listener);
-        mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic,
+        mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic,
                                   AMM::DataTypes::getConfigurationType(),
                                   config_sub_listener);
-        mgr->InitializeSubscriber(AMM::DataTypes::logRecordTopic,
+        mgr->InitializeReliableSubscriber(AMM::DataTypes::logRecordTopic,
                                   AMM::DataTypes::getLogRecordType(),
                                   log_sub_listener);
 
