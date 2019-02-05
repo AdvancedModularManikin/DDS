@@ -192,7 +192,6 @@ void show_menu(SimulationManager *simManager) {
 }
 
 int main(int argc, char *argv[]) {
-    plog::InitializeLogger();
     int sampleRate = 50;
     int daemonize = 0;
     int autostart = 0;

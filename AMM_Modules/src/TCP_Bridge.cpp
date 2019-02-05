@@ -19,9 +19,6 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 
-#include "AMM/Utility.hpp"
-
-
 #include <Net/Client.h>
 #include <Net/Server.h>
 #include <Net/UdpDiscoveryServer.h>
@@ -32,7 +29,7 @@
 #include "AMM/BaseLogger.h"
 #include "AMM/DDS_Log_Appender.h"
 
-#include "AMM/Utility.hpp"
+#include "AMM/Utility.h"
 
 #include "tinyxml2.h"
 
@@ -170,7 +167,7 @@ void sendConfig(Client *c, std::string clientType) {
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
-    std::string encodedConfigContent = encode64(configContent);
+    std::string encodedConfigContent = Utility::encode64(configContent);
     encodedConfig = configPrefix + encodedConfigContent + "\n";
 
     Server::SendToClient(c, encodedConfig);
@@ -183,7 +180,7 @@ void sendConfigToAll(std::string scene) {
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
-    std::string encodedConfigContent = encode64(configContent);
+    std::string encodedConfigContent = Utility::encode64(configContent);
     encodedConfig = configPrefix + encodedConfigContent + "\n";
 
     std::string loadScenarioPrefix = "LOAD_SCENARIO:";
@@ -252,7 +249,7 @@ public:
                    << "payload=" << pm.payload();
         string stringOut = messageOut.str();
 
-        LOG_TRACE << "Received a phys mod: " << stringOut;
+        LOG_DEBUG << "Received a phys mod: " << stringOut;
 
         auto it = clientMap.begin();
         while (it != clientMap.end()) {
@@ -282,13 +279,13 @@ public:
                    << "payload=" << rm.payload();
         string stringOut = messageOut.str();
 
-        LOG_TRACE << "Received a render mod: " << stringOut;
+        LOG_DEBUG << "Received a render mod: " << stringOut;
 
         auto it = clientMap.begin();
         while (it != clientMap.end()) {
             std::string cid = it->first;
             std::vector<std::string> subV = subscribedTopics[cid];
-            LOG_TRACE << "Trying to find client " << cid;
+            LOG_DEBUG << "Trying to find client " << cid;
 
             if (std::find(subV.begin(), subV.end(), rm.type()) != subV.end() ||
                 std::find(subV.begin(), subV.end(), "AMM_Render_Modification") !=
@@ -304,7 +301,7 @@ public:
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c,
                           SampleInfo_t *info) override {
-        LOG_TRACE << "We got command data!   It is: " << c.message();
+        LOG_DEBUG << "We got command data!   It is: " << c.message();
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
@@ -340,7 +337,7 @@ void PublishSettings(std::string const &equipmentType) {
     for (auto &inner_map_pair : equipmentSettings[equipmentType]) {
         payload << inner_map_pair.first << "=" << inner_map_pair.second
                 << std::endl;
-        LOG_TRACE << "\t" << inner_map_pair.first << ": " << inner_map_pair.second;
+        LOG_DEBUG << "\t" << inner_map_pair.first << ": " << inner_map_pair.second;
     }
 
     AMM::InstrumentData i;
@@ -444,8 +441,8 @@ void HandleCapabilities(Client *c, std::string const &capabilityVal) {
                             subTopicName = subNodePath;
                         }
                     }
-                    add_once(subscribedTopics[c->id], subTopicName);
-                    LOG_TRACE << "[" << capabilityName << "][" << c->id
+                    Utility::add_once(subscribedTopics[c->id], subTopicName);
+                    LOG_DEBUG << "[" << capabilityName << "][" << c->id
                               << "][SUBSCRIBE]" << subTopicName;
                 }
             }
@@ -459,8 +456,8 @@ void HandleCapabilities(Client *c, std::string const &capabilityVal) {
                      pub; pub = pub->NextSibling()) {
                     tinyxml2::XMLElement *p = pub->ToElement();
                     std::string pubTopicName = p->Attribute("name");
-                    add_once(publishedTopics[c->id], pubTopicName);
-                    LOG_TRACE << "[" << capabilityName << "][" << c->id
+                    Utility::add_once(publishedTopics[c->id], pubTopicName);
+                    LOG_DEBUG << "[" << capabilityName << "][" << c->id
                               << "][PUBLISH]" << pubTopicName;
                 }
             }
@@ -494,11 +491,11 @@ void HandleStatus(Client *c, std::string const &statusVal) {
 
 void DispatchRequest(Client *c, std::string const &request) {
     if (boost::starts_with(request, "LABS")) {
-        LOG_TRACE << "LABS request: " << request;
+        LOG_DEBUG << "LABS request: " << request;
         const auto equals_idx = request.find_first_of(';');
         if (std::string::npos != equals_idx) {
             auto str = request.substr(equals_idx + 1);
-            LOG_TRACE << "\tReturn lab values for " << str;
+            LOG_DEBUG << "\tReturn lab values for " << str;
             auto it = labNodes[str].begin();
             while (it != labNodes[str].end()) {
                 std::ostringstream messageOut;
@@ -507,7 +504,7 @@ void DispatchRequest(Client *c, std::string const &request) {
                 ++it;
             }
         } else {
-            LOG_TRACE << "No specific labs requested, return all values.";
+            LOG_DEBUG << "No specific labs requested, return all values.";
             auto it = labNodes["ALL"].begin();
             while (it != labNodes["ALL"].end()) {
                 std::ostringstream messageOut;
@@ -535,7 +532,7 @@ void *Server::HandleClient(void *args) {
     c->SetName(defaultName);
     Server::clients.push_back(*c);
     clientMap[c->id] = uuid;
-    LOG_TRACE << "Adding client with id: " << c->id;
+    LOG_DEBUG << "Adding client with id: " << c->id;
     ServerThread::UnlockMutex(uuid);
 
     while (true) {
@@ -550,7 +547,7 @@ void *Server::HandleClient(void *args) {
             // Remove client in Static clients <vector>
             ServerThread::LockMutex(uuid);
             index = Server::FindClientIndex(c);
-            LOG_TRACE << "Erasing user in position " << index
+            LOG_DEBUG << "Erasing user in position " << index
                       << " whose name id is: " << Server::clients[index].id;
             Server::clients.erase(Server::clients.begin() + index);
 
@@ -567,7 +564,7 @@ void *Server::HandleClient(void *args) {
             if (!boost::algorithm::ends_with(globalInboundBuffer[c->id], "\n")) {
                 continue;
             }
-            vector<string> strings = explode("\n", globalInboundBuffer[c->id]);
+            vector<string> strings = Utility::explode("\n", globalInboundBuffer[c->id]);
             globalInboundBuffer[c->id].clear();
 
             for (auto str : strings) {
@@ -591,7 +588,7 @@ void *Server::HandleClient(void *args) {
                         // Client set their status (OPERATIONAL, etc)
                         std::string statusVal;
                         try {
-                            statusVal = decode64(str.substr(statusPrefix.size()));
+                            statusVal = Utility::decode64(str.substr(statusPrefix.size()));
                         } catch (exception &e) {
                             LOG_ERROR << "Error decoding base64 string: " << e.what();
                             break;
@@ -604,7 +601,7 @@ void *Server::HandleClient(void *args) {
                         // Client sent their capabilities / announced
                         std::string capabilityVal;
                         try {
-                            capabilityVal = decode64(str.substr(capabilityPrefix.size()));
+                            capabilityVal = Utility::decode64(str.substr(capabilityPrefix.size()));
                         } catch (exception &e) {
                             LOG_ERROR << "Error decoding base64 string: " << e.what();
                             break;
@@ -615,7 +612,7 @@ void *Server::HandleClient(void *args) {
                     } else if (str.substr(0, settingsPrefix.size()) == settingsPrefix) {
                         std::string settingsVal;
                         try {
-                            settingsVal = decode64(str.substr(settingsPrefix.size()));
+                            settingsVal = Utility::decode64(str.substr(settingsPrefix.size()));
                         } catch (exception &e) {
                             LOG_ERROR << "Error decoding base64 string: " << e.what();
                             break;
@@ -669,7 +666,7 @@ void *Server::HandleClient(void *args) {
                                                 sep_pos + 1,
                                                 std::string::npos));
                                         kvp[key] = value;
-                                        LOG_TRACE << "\t" << key << " => " << kvp[key];
+                                        LOG_DEBUG << "\t" << key << " => " << kvp[key];
                                     }
 
                         auto type = kvp.find("type");
@@ -702,7 +699,7 @@ void *Server::HandleClient(void *args) {
                             cmdInstance.message(message);
                             mgr->PublishCommand(cmdInstance);
                         } else {
-                            LOG_TRACE << "Unknown topic: " << topic;
+                            LOG_DEBUG << "Unknown topic: " << topic;
                         }
                     } else if (str.substr(0, keepAlivePrefix.size()) == keepAlivePrefix) {
                         // keepalive, ignore it
@@ -738,7 +735,7 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, const char *argv[]) {
-    plog::InitializeLogger();
+
     using namespace AMM::Capability;
     LOG_INFO << "=== [AMM - TCP Bridge] ===";
 
@@ -764,8 +761,11 @@ int main(int argc, const char *argv[]) {
     std::string nodeString(nodeName);
     mgr = new DDS_Manager(nodeName.c_str());
 
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
     static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
-    plog::get()->addAppender(&DDSAppender);
+    plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
+
+    LOG_INFO << "Log to console and DDS";
 
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *hf_node_sub_listener = new DDS_Listeners::HighFrequencyNodeSubListener();

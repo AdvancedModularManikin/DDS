@@ -9,6 +9,8 @@
 #include <fastcdr/Cdr.h>
 
 #include "AMM/BaseLogger.h"
+#include "AMM/DDS_Log_Appender.h"
+
 #include "AMM/DDS_Manager.h"
 #include "AMM/DataTypes.h"
 #include "AMM/Listeners/DDS_Listeners.h"

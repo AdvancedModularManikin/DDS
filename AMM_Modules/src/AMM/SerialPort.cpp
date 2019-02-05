@@ -39,7 +39,7 @@ namespace AMM {
             return -1;
         }
 
-        LOG_TRACE << "Connecting to serial port ";
+        LOG_DEBUG << "Connecting to serial port ";
 
         m_bInitialized = true;
 

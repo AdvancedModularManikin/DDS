@@ -17,6 +17,10 @@ std::string get_filename_date(void) {
 
 namespace AMM {
     PhysiologyEngineManager::PhysiologyEngineManager() {
+        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+        static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
+        plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
+
         using namespace Capability;
 
         if (bg == nullptr) {
@@ -201,13 +205,13 @@ namespace AMM {
     void PhysiologyEngineManager::Status() { bg->Status(); }
 
     void PhysiologyEngineManager::Shutdown() {
-        LOG_TRACE << "[PhysiologyManager] Sending -1 values to all topics.";
+        LOG_DEBUG << "[PhysiologyManager] Sending -1 values to all topics.";
         SendShutdown();
 
-        LOG_TRACE << "[PhysiologyManager][BG] Shutting down BioGears.";
+        LOG_DEBUG << "[PhysiologyManager][BG] Shutting down BioGears.";
         bg->Shutdown();
 
-        LOG_TRACE << "[PhysiologyManager][DDS] Shutting down DDS Connections.";
+        LOG_DEBUG << "[PhysiologyManager][DDS] Shutting down DDS Connections.";
     }
 
 // Listener events
@@ -248,7 +252,7 @@ namespace AMM {
         using namespace biogears;
         switch (cm.type()) {
             case AMM::Physiology::CMD::PainCommand: {
-                LOG_TRACE << "AMM::Physiology::CMD::PainCommand";
+                LOG_DEBUG << "AMM::Physiology::CMD::PainCommand";
 
                 AMM::Physiology::PainStimulus::Data command;
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
@@ -265,7 +269,7 @@ namespace AMM {
             }
                 break;
             case AMM::Physiology::CMD::SepsisCommand: {
-                LOG_TRACE << "AMM::Physiology::CMD::SepsisCommand";
+                LOG_DEBUG << "AMM::Physiology::CMD::SepsisCommand";
                 AMM::Physiology::Sepsis::Data command;
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
@@ -320,7 +324,7 @@ namespace AMM {
             }
                 break;
             default:
-                LOG_TRACE << "Unsupported CMD Type. Value sent was " << cm.type();
+                LOG_DEBUG << "Unsupported CMD Type. Value sent was " << cm.type();
                 break;
         };
     }
@@ -330,43 +334,43 @@ namespace AMM {
         LOG_INFO << "Command received: " << cm.message();
         if (!cm.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = cm.message().substr(sysPrefix.size());
-            LOG_TRACE << "We received a SYSTEM action: " << value;
+            LOG_DEBUG << "We received a SYSTEM action: " << value;
             if (value.compare("START_ENGINE") == 0 || value.compare("START_SIM") == 0) {
-                LOG_TRACE << "Started engine based on Tick Simulation";
+                LOG_DEBUG << "Started engine based on Tick Simulation";
                 StartTickSimulation();
             } else if (value.compare("STOP_ENGINE") == 0) {
-                LOG_TRACE << "Stopped engine";
+                LOG_DEBUG << "Stopped engine";
                 StopTickSimulation();
                 StopSimulation();
                 Shutdown();
             } else if (value.compare("PAUSE_ENGINE") == 0 ||
                        value.compare("PAUSE_SIM") == 0) {
-                LOG_TRACE << "Paused engine";
+                LOG_DEBUG << "Paused engine";
                 StopTickSimulation();
                 paused = true;
             } else if (value.compare("TOGGLE_LOGGING") == 0) {
-                LOG_TRACE << "Toggling log";
+                LOG_DEBUG << "Toggling log";
                 this->SetLogging(!logging_enabled);
                 if (logging_enabled) {
-                    LOG_TRACE << "Logging is now enabled";
+                    LOG_DEBUG << "Logging is now enabled";
                 } else {
-                    LOG_TRACE << "Logging is now disabled";
+                    LOG_DEBUG << "Logging is now disabled";
                 }
             } else if (value.compare("ENABLE_LOGGING") == 0) {
-                LOG_TRACE << "Enabling logging";
+                LOG_DEBUG << "Enabling logging";
                 this->SetLogging(true);
             } else if (value.compare("DISABLE_LOGGING") == 0) {
-                LOG_TRACE << "Disabling logging";
+                LOG_DEBUG << "Disabling logging";
                 this->SetLogging(false);
             } else if (value.compare("RESET_SIM") == 0) {
-                LOG_TRACE << "Reset simulation, clearing engine data.";
+                LOG_DEBUG << "Reset simulation, clearing engine data.";
                 StopTickSimulation();
                 StopSimulation();
             } else if (value.compare("SAVE_STATE") == 0) {
                 std::ostringstream ss;
                 ss << "./states/SavedState_" << get_filename_date() << "@"
                    << (int) std::round(bg->GetSimulationTime()) << "s.xml";
-                LOG_TRACE << "Saved state file: " << ss.str();
+                LOG_DEBUG << "Saved state file: " << ss.str();
                 bg->SaveState(ss.str());
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
                 StopTickSimulation();
@@ -374,7 +378,7 @@ namespace AMM {
                 StartTickSimulation();
             }
         } else {
-            LOG_TRACE << "Command received: " << cm.message();
+            LOG_DEBUG << "Command received: " << cm.message();
             bg->ExecuteCommand(cm.message());
         }
     }
@@ -416,7 +420,7 @@ namespace AMM {
 
     void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i,
                                                       SampleInfo_t *info) {
-        LOG_TRACE << "Instrument data for " << i.instrument()
+        LOG_DEBUG << "Instrument data for " << i.instrument()
                   << " received with payload: " << i.payload();
         std::string instrument(i.instrument());
         if (instrument == "ventilator") {

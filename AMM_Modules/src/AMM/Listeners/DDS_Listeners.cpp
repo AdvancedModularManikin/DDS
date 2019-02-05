@@ -147,6 +147,7 @@ void DDS_Listeners::StatusSubListener::onNewDataMessage(Subscriber *sub) {
 
 void DDS_Listeners::ConfigSubListener::onSubscriptionMatched(
         Subscriber *sub, MatchingInfo &info) {
+
     if (info.status == MATCHED_MATCHING) {
         n_matched++;
     } else {
@@ -156,7 +157,6 @@ void DDS_Listeners::ConfigSubListener::onSubscriptionMatched(
 
 void DDS_Listeners::ConfigSubListener::onNewDataMessage(Subscriber *sub) {
     AMM::Capability::Configuration cfg;
-
     if (sub->takeNextData(&cfg, &m_info)) {
         ++n_msg;
         if (m_info.sampleKind == ALIVE) {
@@ -269,7 +269,6 @@ void DDS_Listeners::LogRecordSubListener::onSubscriptionMatched(
 
 void DDS_Listeners::LogRecordSubListener::onNewDataMessage(Subscriber *sub) {
     AMM::Diagnostics::Log::Record r;
-
     if (sub->takeNextData(&r, &m_info)) {
         ++n_msg;
         if (m_info.sampleKind == ALIVE) {

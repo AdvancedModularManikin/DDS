@@ -6,8 +6,6 @@
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
 
-#include "AMM/Utility.hpp"
-
 #include <vector>
 #include <queue>
 #include <stack>
@@ -16,12 +14,16 @@
 #include <string>
 #include <iostream>
 
+#include "AMM/Utility.h"
+
 extern "C" {
 #include "Serial/arduino-serial-lib.h"
 }
 
 #include "AMM/DDS/AMMPubSubTypes.h"
 #include "AMM/BaseLogger.h"
+#include "AMM/DDS_Log_Appender.h"
+
 #include "AMM/DDS_Manager.h"
 
 
@@ -62,7 +64,7 @@ int rc;
 void sendConfigInfo(std::string scene, std::string module) {
     std::ostringstream static_filename;
     static_filename << "mule1/module_configuration_static/" << scene << "_" << module << ".txt";
-    LOG_TRACE << "Loading config from filename: " << static_filename.str();
+    LOG_DEBUG << "Loading config from filename: " << static_filename.str();
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
@@ -71,7 +73,7 @@ void sendConfigInfo(std::string scene, std::string module) {
         LOG_ERROR << "Configuration empty.";
         return;
     }
-    std::vector<std::string> v = explode("\n", configContent);
+    std::vector<std::string> v = Utility::explode("\n", configContent);
     for (int i = 0; i < v.size(); i++) {
         std::string rsp = v[i] + "\n";
         transmitQ.push(rsp);
@@ -83,13 +85,13 @@ void readHandler() {
     if (!boost::algorithm::ends_with(globalInboundBuffer, "\n")) {
         return;
     }*/
-    std::vector<std::string> v = explode("\n", globalInboundBuffer);
+    std::vector<std::string> v = Utility::explode("\n", globalInboundBuffer);
     globalInboundBuffer.clear();
     for (int i = 0; i < v.size(); i++) {
         std::string rsp = v[i];
         if (!rsp.compare(0, reportPrefix.size(), reportPrefix)) {
             std::string value = rsp.substr(reportPrefix.size());
-            LOG_TRACE << "Received report via serial: " << value;
+            LOG_DEBUG << "Received report via serial: " << value;
         } else if (!rsp.compare(0, actionPrefix.size(), actionPrefix)) {
             std::string value = rsp.substr(actionPrefix.size());
             LOG_INFO << "Received command via serial, publishing to AMM: " << value;
@@ -100,7 +102,7 @@ void readHandler() {
         } else if (!rsp.compare(0, xmlPrefix.size(), xmlPrefix)) {
             std::string value = rsp;
             LOG_INFO << "Received XML via serial";
-            LOG_TRACE << "\tXML: " << value;
+            LOG_DEBUG << "\tXML: " << value;
             tinyxml2::XMLDocument doc(false);
             doc.Parse(value.c_str());
             tinyxml2::XMLNode *root = doc.FirstChildElement("AMMModuleConfiguration");
@@ -138,13 +140,13 @@ void readHandler() {
                         tinyxml2::XMLElement *starting_settings = cap->FirstChildElement(
                                 "starting_settings");
                         if (starting_settings) {
-                            LOG_TRACE << "Received starting settings";
+                            LOG_DEBUG << "Received starting settings";
                             for (tinyxml2::XMLNode *settingNode = starting_settings->FirstChildElement(
                                     "setting"); settingNode; settingNode = settingNode->NextSibling()) {
                                 tinyxml2::XMLElement *setting = settingNode->ToElement();
                                 std::string settingName = setting->Attribute("name");
                                 std::string settingValue = setting->Attribute("value");
-                                LOG_TRACE << "[" << settingName << "] = " << settingValue;
+                                LOG_DEBUG << "[" << settingName << "] = " << settingValue;
                             }
                         }
 
@@ -171,8 +173,8 @@ void readHandler() {
                                     subMaps[subTopicName] = subMapName;
                                 }
 
-                                add_once(subscribedTopics, subTopicName);
-                                LOG_TRACE << "[" << capabilityName << "][SUBSCRIBE]" << subTopicName;
+                                Utility::add_once(subscribedTopics, subTopicName);
+                                LOG_DEBUG << "[" << capabilityName << "][SUBSCRIBE]" << subTopicName;
                             }
                         }
 
@@ -183,8 +185,8 @@ void readHandler() {
                                     "topic"); pub; pub = pub->NextSibling()) {
                                 tinyxml2::XMLElement *p = pub->ToElement();
                                 std::string pubTopicName = p->Attribute("name");
-                                add_once(publishedTopics, pubTopicName);
-                                LOG_TRACE << "[" << capabilityName << "][PUBLISH]" << pubTopicName;
+                                Utility::add_once(publishedTopics, pubTopicName);
+                                LOG_DEBUG << "[" << capabilityName << "][PUBLISH]" << pubTopicName;
                             }
                         }
                     }
@@ -237,18 +239,18 @@ void readHandler() {
                             std::string value = (sep_pos == std::string::npos ? "" : token.substr(sep_pos + 1,
                                                                                                   std::string::npos));
                             kvp[key] = value;
-                            LOG_TRACE << "\t" << key << " => " << kvp[key];
+                            LOG_DEBUG << "\t" << key << " => " << kvp[key];
                             if (key == "type") {
-                                LOG_TRACE << "  Type is " << kvp[key];
+                                LOG_DEBUG << "  Type is " << kvp[key];
                                 modType = kvp[key];
                             }
                             if (key == "location") {
-                                LOG_TRACE << "  Location is " << kvp[key];
+                                LOG_DEBUG << "  Location is " << kvp[key];
                                 modLocation = kvp[key];
                             }
 
                             if (key == "payload") {
-                                LOG_TRACE << "  Payload is " << kvp[key];
+                                LOG_DEBUG << "  Payload is " << kvp[key];
                                 modPayload = kvp[key];
                             }
 
@@ -265,11 +267,11 @@ void readHandler() {
                 physMod.payload(modPayload);
                 mgr->PublishPhysiologyModification(physMod);
             } else {
-                LOG_TRACE << "Unknown topic: " << topic;
+                LOG_DEBUG << "Unknown topic: " << topic;
             }
         } else {
             if (!rsp.empty() && rsp != "\r") {
-                LOG_TRACE << "Unknown message: " << rsp;
+                LOG_DEBUG << "Unknown message: " << rsp;
             }
         }
     }
@@ -321,7 +323,7 @@ public:
                    << pm.location().description() << ";" << "learner_id=" << pm.practitioner() << ";" << "payload="
                    << pm.payload() << std::endl;
         std::string stringOut = messageOut.str();
-        LOG_TRACE << "Physiology modification received from AMM: " << stringOut;
+        LOG_DEBUG << "Physiology modification received from AMM: " << stringOut;
 
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), pm.type()) != subscribedTopics.end() ||
             std::find(subscribedTopics.begin(), subscribedTopics.end(), "AMM_Physiology_Modification") !=
@@ -339,7 +341,7 @@ public:
                    << rm.payload() << std::endl;
         std::string stringOut = messageOut.str();
 
-        LOG_TRACE << "Render modification received from AMM: " << stringOut;
+        LOG_DEBUG << "Render modification received from AMM: " << stringOut;
 
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), rm.type()) != subscribedTopics.end() ||
             std::find(subscribedTopics.begin(), subscribedTopics.end(), "AMM_Render_Modification") !=
@@ -351,7 +353,7 @@ public:
     }
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
-        LOG_TRACE << "Command received from AMM: " << c.message();
+        LOG_DEBUG << "Command received from AMM: " << c.message();
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
@@ -364,7 +366,7 @@ public:
 
             } else if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
                 std::string scene = value.substr(loadScenarioPrefix.size());
-                LOG_TRACE << "Time to load scene " << scene;
+                LOG_DEBUG << "Time to load scene " << scene;
                 //@TODO Grab the actual module name
                 sendConfigInfo(scene, "liquid_sensor");
             }
@@ -394,8 +396,6 @@ void checkForExit() {
 }
 
 int main(int argc, char *argv[]) {
-    plog::InitializeLogger();
-    LOG_INFO << "Linux Arduino_Bridge starting up";
     const int buf_max = 8192;
     char serialport[40];
     char eolchar = '\n';
@@ -404,6 +404,12 @@ int main(int argc, char *argv[]) {
 
     std::string nodeString(nodeName);
     mgr = new DDS_Manager(nodeName);
+
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+    static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
+    plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
+
+    LOG_INFO << "Linux Arduino_Bridge starting up";
 
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
@@ -463,13 +469,13 @@ int main(int argc, char *argv[]) {
     while (!closed) {
         memset(buf, 0, buf_max);  //
         serialport_read_until(fd, buf, eolchar, buf_max, timeout);
-        //        LOG_TRACE << "Read in string: " << buf;
+        //        LOG_DEBUG << "Read in string: " << buf;
         globalInboundBuffer += buf;
         readHandler();
 
         while (!transmitQ.empty()) {
             std::string sendStr = transmitQ.front();
-            // LOG_TRACE << "Writing from transmitQ: " << sendStr;
+            // LOG_DEBUG << "Writing from transmitQ: " << sendStr;
             rc = serialport_write(fd, sendStr.c_str());
             if (rc == -1) {
                 LOG_ERROR << " Error writing to serial port";

@@ -6,6 +6,9 @@
 
 #include "AMM/DDS_Manager.h"
 
+#include "AMM/BaseLogger.h"
+#include "AMM/DDS_Log_Appender.h"
+
 #include "tinyxml2.h"
 
 #include "spi_remote.h"
@@ -151,6 +154,9 @@ int main(int argc, char *argv[]) {
     const char *nodeName = "AMM_FluidManager";
     std::string nodeString(nodeName);
     auto *mgr = new DDS_Manager(nodeName);
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+    static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
+    plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
 
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();

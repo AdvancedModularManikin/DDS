@@ -6,6 +6,10 @@ using namespace std::chrono;
 namespace AMM {
     SimulationManager::SimulationManager() {
         using namespace AMM::Capability;
+        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+        static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
+        plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
+
         auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
         command_sub_listener->SetUpstream(this);
         command_subscriber = mgr->InitializeReliableSubscriber(

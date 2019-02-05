@@ -1,7 +1,5 @@
 #include "PhysiologyThread.h"
 
-#include "Utility.hpp"
-
 namespace AMM {
     using namespace AMM::Physiology;
     std::vector<std::string> PhysiologyThread::highFrequencyNodes;
@@ -182,7 +180,7 @@ namespace AMM {
     }
 
     void PhysiologyThread::InitializeLog() {
-        std::string logFilename = getTimestampedFilename("./logs/Output_", ".csv");
+        std::string logFilename = Utility::getTimestampedFilename("./logs/Output_", ".csv");
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
                                                                                           biogears::FrequencyUnit::Per_min);
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
@@ -663,9 +661,9 @@ namespace AMM {
     }
 
     void PhysiologyThread::SetIVPump(const std::string &pumpSettings) {
-        LOG_TRACE << "Got pump settings: " << pumpSettings;
+        LOG_DEBUG << "Got pump settings: " << pumpSettings;
         std::string type, concentration, rate, dose, substance, bagVolume;
-        std::vector<std::string> strings = explode("\n", pumpSettings);
+        std::vector<std::string> strings = Utility::explode("\n", pumpSettings);
 
         for (auto str : strings) {
             std::vector<std::string> strs;
@@ -702,7 +700,7 @@ namespace AMM {
             }
         }
 
-        LOG_TRACE << "Done breaking out KVPs";
+        LOG_DEBUG << "Done breaking out KVPs";
 
 
         try {
@@ -713,59 +711,59 @@ namespace AMM {
                 if (substance == "Saline") {
                     biogears::SESubstanceCompound *subs = m_pe->GetSubstanceManager().GetCompound(substance);
                     biogears::SESubstanceCompoundInfusion infuse(*subs);
-                    std::vector<std::string> bagvol = explode(" ", bagVolume);
+                    std::vector<std::string> bagvol = Utility::explode(" ", bagVolume);
                     volVal = std::stod(bagvol[0]);
                     volUnit = bagvol[1];
-                    LOG_TRACE << "Setting bag volume to " << volVal << " / " << volUnit;
+                    LOG_DEBUG << "Setting bag volume to " << volVal << " / " << volUnit;
                     if (volUnit == "mL") {
                         infuse.GetBagVolume().SetValue(volVal, biogears::VolumeUnit::mL);
                     } else {
                         infuse.GetBagVolume().SetValue(volVal, biogears::VolumeUnit::L);
                     }
 
-                    std::vector<std::string> rateb = explode(" ", rate);
+                    std::vector<std::string> rateb = Utility::explode(" ", rate);
                     rateVal = std::stod(rateb[0]);
                     rateUnit = rateb[1];
 
                     if (rateUnit == "mL/hr") {
-                        LOG_TRACE << "Infusing at " << rateVal << " mL per hour";
+                        LOG_DEBUG << "Infusing at " << rateVal << " mL per hour";
                         infuse.GetRate().SetValue(rateVal, biogears::VolumePerTimeUnit::mL_Per_hr);
                     } else {
-                        LOG_TRACE << "Infusing at " << rateVal << " mL per min";
+                        LOG_DEBUG << "Infusing at " << rateVal << " mL per min";
                         infuse.GetRate().SetValue(rateVal, biogears::VolumePerTimeUnit::mL_Per_min);
                     }
                     m_pe->ProcessAction(infuse);
                 } else {
                     biogears::SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
                     biogears::SESubstanceInfusion infuse(*subs);
-                    std::vector<std::string> concentrations = explode("/", concentration);
+                    std::vector<std::string> concentrations = Utility::explode("/", concentration);
                     concentrationsMass = concentrations[0];
                     concentrationsVol = concentrations[1];
 
-                    std::vector<std::string> conmass = explode(" ", concentrationsMass);
+                    std::vector<std::string> conmass = Utility::explode(" ", concentrationsMass);
                     massVal = std::stod(conmass[0]);
                     massUnit = conmass[1];
-                    std::vector<std::string> convol = explode(" ", concentrationsVol);
+                    std::vector<std::string> convol = Utility::explode(" ", concentrationsVol);
                     volVal = std::stod(convol[0]);
                     volUnit = convol[1];
                     conVal = massVal / volVal;
 
-                    LOG_TRACE << "Infusing with concentration of " << conVal << " " << massUnit << "/" << volUnit;
+                    LOG_DEBUG << "Infusing with concentration of " << conVal << " " << massUnit << "/" << volUnit;
                     if (massUnit == "mg" && volUnit == "mL") {
                         infuse.GetConcentration().SetValue(conVal, biogears::MassPerVolumeUnit::mg_Per_mL);
                     } else {
                         infuse.GetConcentration().SetValue(conVal, biogears::MassPerVolumeUnit::mg_Per_mL);
                     }
 
-                    std::vector<std::string> rateb = explode(" ", rate);
+                    std::vector<std::string> rateb = Utility::explode(" ", rate);
                     rateVal = std::stod(rateb[0]);
                     rateUnit = rateb[1];
 
                     if (rateUnit == "mL/hr") {
-                        LOG_TRACE << "Infusing at " << rateVal << " mL per hour";
+                        LOG_DEBUG << "Infusing at " << rateVal << " mL per hour";
                         infuse.GetRate().SetValue(rateVal, biogears::VolumePerTimeUnit::mL_Per_hr);
                     } else {
-                        LOG_TRACE << "Infusing at " << rateVal << " mL per min";
+                        LOG_DEBUG << "Infusing at " << rateVal << " mL per min";
                         infuse.GetRate().SetValue(rateVal, biogears::VolumePerTimeUnit::mL_Per_min);
                     }
                     m_pe->ProcessAction(infuse);
@@ -775,30 +773,30 @@ namespace AMM {
 
                 std::string concentrationsMass, concentrationsVol, massUnit, volUnit, doseUnit;
                 double massVal, volVal, conVal, doseVal;
-                std::vector<std::string> concentrations = explode("/", concentration);
+                std::vector<std::string> concentrations = Utility::explode("/", concentration);
                 concentrationsMass = concentrations[0];
                 concentrationsVol = concentrations[1];
 
-                std::vector<std::string> conmass = explode(" ", concentrationsMass);
+                std::vector<std::string> conmass = Utility::explode(" ", concentrationsMass);
                 massVal = std::stod(conmass[0]);
                 massUnit = conmass[1];
-                std::vector<std::string> convol = explode(" ", concentrationsVol);
+                std::vector<std::string> convol = Utility::explode(" ", concentrationsVol);
                 volVal = std::stod(convol[0]);
                 volUnit = convol[1];
                 conVal = massVal / volVal;
 
-                std::vector<std::string> doseb = explode(" ", dose);
+                std::vector<std::string> doseb = Utility::explode(" ", dose);
                 doseVal = std::stod(doseb[0]);
                 doseUnit = doseb[1];
 
                 biogears::SESubstanceBolus bolus(*subs);
-                LOG_TRACE << "Bolus with concentration of " << conVal << " " << massUnit << "/" << volUnit;
+                LOG_DEBUG << "Bolus with concentration of " << conVal << " " << massUnit << "/" << volUnit;
                 if (massUnit == "mg" && volUnit == "mL") {
                     bolus.GetConcentration().SetValue(conVal, biogears::MassPerVolumeUnit::mg_Per_mL);
                 } else {
                     bolus.GetConcentration().SetValue(conVal, biogears::MassPerVolumeUnit::ug_Per_mL);
                 }
-                LOG_TRACE << "Bolus with a dose of  " << doseVal << doseUnit;
+                LOG_DEBUG << "Bolus with a dose of  " << doseVal << doseUnit;
                 if (doseUnit == "mL") {
                     bolus.GetDose().SetValue(doseVal, biogears::VolumeUnit::mL);
                 } else {
@@ -814,7 +812,7 @@ namespace AMM {
 
     void PhysiologyThread::SetHemorrhage(const std::string &location, const std::string &hemorrhageSettings) {
         double flowRate;
-        std::vector<std::string> strings = explode("\n", hemorrhageSettings);
+        std::vector<std::string> strings = Utility::explode("\n", hemorrhageSettings);
         for (auto str : strings) {
             std::vector<std::string> strs;
             boost::split(strs, str, boost::is_any_of("="));
@@ -848,7 +846,7 @@ namespace AMM {
     }
 
     void PhysiologyThread::SetPain(const std::string &painSettings) {
-        std::vector<std::string> strings = explode("\n", painSettings);
+        std::vector<std::string> strings = Utility::explode("\n", painSettings);
 
         std::string location; //location of pain stimulus, examples "Arm", "Leg"
         double severity; //severity (scale 0-1)
@@ -887,7 +885,7 @@ namespace AMM {
     }
 
     void PhysiologyThread::SetVentilator(const std::string &ventilatorSettings) {
-        std::vector<std::string> strings = explode("\n", ventilatorSettings);
+        std::vector<std::string> strings = Utility::explode("\n", ventilatorSettings);
 
         biogears::SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
         biogears::SEAnesthesiaMachine &config = AMConfig.GetConfiguration();

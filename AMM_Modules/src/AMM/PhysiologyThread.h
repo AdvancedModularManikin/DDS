@@ -90,6 +90,8 @@
 
 #include "AMM/BaseLogger.h"
 
+#include "AMM/Utility.h"
+
 // Forward declare what we will use in our thread
 namespace AMM {
     class PhysiologyThread {

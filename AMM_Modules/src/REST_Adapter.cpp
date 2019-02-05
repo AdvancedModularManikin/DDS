@@ -42,8 +42,11 @@
 #include <fastrtps/rtps/participant/RTPSParticipant.h>
 
 #include "AMM/BaseLogger.h"
+#include "AMM/DDS_Log_Appender.h"
 
 #include "AMM/DDS_Manager.h"
+
+#include "AMM/Utility.h"
 
 #include <pistache/endpoint.h>
 #include <pistache/router.h>
@@ -946,7 +949,7 @@ static void show_usage(const std::string &name) {
 }
 
 int main(int argc, char *argv[]) {
-    plog::InitializeLogger();
+
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -969,6 +972,10 @@ int main(int argc, char *argv[]) {
     std::string nodeString(nodeName);
     mgr = new DDS_Manager(nodeName);
     mp_participant = mgr->GetParticipant();
+
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+    static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
+    plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
 
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();

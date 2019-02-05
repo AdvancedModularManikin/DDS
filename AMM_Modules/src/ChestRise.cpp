@@ -51,16 +51,16 @@ class ChestRiseListener : public ListenerInterface {
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
-                LOG_TRACE << "Starting breathing";
+                LOG_DEBUG << "Starting breathing";
                 status = SIMULATION_STATUS_START;
             } else if (value.compare("STOP_SIM") == 0) {
-                LOG_TRACE << "Stopping breathing";
+                LOG_DEBUG << "Stopping breathing";
                 status = SIMULATION_STATUS_STOP;
             } else if (value.compare("PAUSE_SIM") == 0) {
-                LOG_TRACE << "Pausing breathing";
+                LOG_DEBUG << "Pausing breathing";
                 status = SIMULATION_STATUS_PAUSE;
             } else if (value.compare("RESET_SIM") == 0) {
-                LOG_TRACE << "Resetting";
+                LOG_DEBUG << "Resetting";
                 status = SIMULATION_STATUS_RESET;
             }
         }
@@ -125,7 +125,6 @@ void chest_rise_task(void)
 
 // This is mostly boilerplate
 int main(int argc, char *argv[]) {
-    plog::InitializeLogger();
     std::thread datagram_thread(datagram_task);     // Required for SPI datagram library
     std::thread chest_rise_thread(chest_rise_task);  // Required to run module business logic
 

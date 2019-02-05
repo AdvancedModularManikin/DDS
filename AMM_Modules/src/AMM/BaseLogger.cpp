@@ -2,5 +2,5 @@
 
 void plog::InitializeLogger() {
     static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
-    plog::init(plog::debug, &consoleAppender);
+    plog::init(plog::verbose, &consoleAppender);
 }

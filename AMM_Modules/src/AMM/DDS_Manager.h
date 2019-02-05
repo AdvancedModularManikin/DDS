@@ -144,15 +144,24 @@ namespace AMM {
         const std::string scenarioFile = "current_scenario.txt";
 
         Participant *mp_participant;
-
+        DDS_Listeners::PubListener* pub_listener;
         Publisher *log_publisher;
+        bool log_initialized = false;
         Publisher *command_publisher;
+        bool command_initialized = false;
         Publisher *settings_publisher;
+        bool settings_initialized = false;
         Publisher *physiology_command_publisher;
+        bool physcommand_initialized = false;
         Publisher *perfdata_publisher;
+        bool perfdata_initialized = false;
         Publisher *physmod_publisher;
+        bool physmod_initialized = false;
         Publisher *render_publisher;
+        bool render_initialized = false;
         Publisher *config_publisher;
+        bool config_initialized = false;
         Publisher *status_publisher;
+        bool status_initialized = false;
     };
 }

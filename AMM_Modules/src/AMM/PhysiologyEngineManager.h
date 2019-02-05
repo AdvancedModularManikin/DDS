@@ -13,6 +13,7 @@
 #include "AMM/PhysiologyThread.h"
 
 #include "AMM/BaseLogger.h"
+#include "AMM/DDS_Log_Appender.h"
 
 #include <fastcdr/Cdr.h>
 #include <fastcdr/FastBuffer.h>

@@ -149,6 +149,7 @@ AMM::DataTypes::getPhysiologyModificationType() {
     return new AMM::Physiology::ModificationPubSubType();
 };
 
-AMM::Diagnostics::Log::RecordPubSubType *AMM::DataTypes::getLogRecordType() {
+AMM::Diagnostics::Log::RecordPubSubType *
+AMM::DataTypes::getLogRecordType() {
     return new AMM::Diagnostics::Log::RecordPubSubType();
 };

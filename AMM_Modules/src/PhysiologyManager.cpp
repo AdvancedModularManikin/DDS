@@ -98,7 +98,7 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
 }
 
 int main(int argc, char *argv[]) {
-    plog::InitializeLogger();
+
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {

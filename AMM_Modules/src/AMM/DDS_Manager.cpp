@@ -22,43 +22,7 @@ namespace AMM {
 
         RegisterTypes();
 
-        auto *pub_listener = new DDS_Listeners::PubListener();
-
-        command_publisher =
-                InitializePublisher(AMM::DataTypes::commandTopic,
-                                    AMM::DataTypes::getCommandType(), pub_listener);
-
-        settings_publisher = InitializePublisher(
-                AMM::DataTypes::instrumentDataTopic,
-                AMM::DataTypes::getInstrumentDataType(), pub_listener);
-
-        physiology_command_publisher = InitializeReliablePublisher(
-                AMM::DataTypes::physiologyCommandTopic,
-                AMM::DataTypes::getPhysiologyCommandType(), pub_listener);
-
-        perfdata_publisher = InitializeReliablePublisher(
-                AMM::DataTypes::performanceTopic,
-                AMM::DataTypes::getPerformanceAssessmentDataType(), pub_listener);
-
-        physmod_publisher = InitializeReliablePublisher(
-                AMM::DataTypes::physModTopic,
-                AMM::DataTypes::getPhysiologyModificationType(), pub_listener);
-
-        render_publisher = InitializeReliablePublisher(
-                AMM::DataTypes::renderModTopic,
-                AMM::DataTypes::getRenderModificationType(), pub_listener);
-
-        config_publisher = InitializeReliablePublisher(
-                AMM::DataTypes::configurationTopic,
-                AMM::DataTypes::getConfigurationType(), pub_listener);
-
-        status_publisher = InitializeReliablePublisher(
-                AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
-                pub_listener);
-
-        log_publisher = InitializeReliablePublisher(
-                AMM::DataTypes::logRecordTopic, AMM::DataTypes::getLogRecordType(),
-                pub_listener);
+        pub_listener = new DDS_Listeners::PubListener();
 
         module_id = GenerateID();
     }
@@ -235,9 +199,15 @@ namespace AMM {
     void DDS_Manager::PublishModuleConfiguration(
             AMM::Capability::Configuration configInstance) {
         try {
+            if (!config_initialized) {
+                config_publisher = InitializeReliablePublisher(
+                        AMM::DataTypes::configurationTopic,
+                        AMM::DataTypes::getConfigurationType(), pub_listener);
+                config_initialized = true;
+            }
             config_publisher->write(&configInstance);
         } catch (std::exception &e) {
-            LOG_ERROR << "[DDS_Manager][config]" << e.what();
+            LOG_ERROR << e.what();
         }
     }
 
@@ -246,12 +216,23 @@ namespace AMM {
     }
 
     void DDS_Manager::PublishLogRecord(const std::string &message, const std::string &log_level) {
-        long now = std::chrono::duration_cast<std::chrono::microseconds> (std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+        long now = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         AMM::Diagnostics::Log::Record logInstance;
-        logInstance.message(message);
-        logInstance.log_level(log_level);
-        logInstance.timestamp(now);
-        log_publisher->write(&logInstance);
+        try {
+            logInstance.message(message);
+            logInstance.log_level(log_level);
+            // logInstance.timestamp(now);
+            if (!log_initialized) {
+                log_publisher = InitializePublisher(
+                        AMM::DataTypes::logRecordTopic, AMM::DataTypes::getLogRecordType(),
+                        pub_listener);
+                log_initialized = true;
+            }
+            log_publisher->write(&logInstance);
+        } catch (std::exception &e) {
+            LOG_ERROR << e.what();
+        }
     }
 
     void DDS_Manager::SetStatus(const std::string &local_module_id,
@@ -304,35 +285,91 @@ namespace AMM {
 
     void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
         try {
+            if (!status_initialized) {
+                status_publisher = InitializeReliablePublisher(
+                        AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
+                        pub_listener);
+                status_initialized = true;
+            }
             status_publisher->write(&statusInstance);
         } catch (std::exception &e) {
-            LOG_ERROR << "[DDS_Manager][status]" << e.what();
+            LOG_ERROR << e.what();
         }
     }
 
     void DDS_Manager::PublishCommand(
             AMM::PatientAction::BioGears::Command cmdInstance) {
-        command_publisher->write(&cmdInstance);
+        if (!command_initialized) {
+            command_publisher =
+                    InitializePublisher(AMM::DataTypes::commandTopic,
+                                        AMM::DataTypes::getCommandType(), pub_listener);
+            command_initialized = true;
+        }
+        try {
+            command_publisher->write(&cmdInstance);
+        } catch (std::exception &e) {
+            LOG_ERROR << e.what();
+        }
     }
 
     void DDS_Manager::PublishRenderModification(
             AMM::Render::Modification modInstance) {
-        render_publisher->write(&modInstance);
+        if (!render_initialized) {
+            render_publisher = InitializeReliablePublisher(
+                    AMM::DataTypes::renderModTopic,
+                    AMM::DataTypes::getRenderModificationType(), pub_listener);
+            render_initialized = true;
+        }
+        try {
+            render_publisher->write(&modInstance);
+        } catch (std::exception &e) {
+            LOG_ERROR << e.what();
+        }
     }
 
     void DDS_Manager::PublishPhysiologyModification(
             AMM::Physiology::Modification modInstance) {
-        physmod_publisher->write(&modInstance);
+        if (!physmod_initialized) {
+            physmod_publisher = InitializeReliablePublisher(
+                    AMM::DataTypes::physModTopic,
+                    AMM::DataTypes::getPhysiologyModificationType(), pub_listener);
+            physcommand_initialized = true;
+        }
+        try {
+            physmod_publisher->write(&modInstance);
+        } catch (std::exception &e) {
+            LOG_ERROR << e.what();
+        }
     }
 
     void DDS_Manager::PublishInstrumentData(
             AMM::InstrumentData instrumentDataInstance) {
-        settings_publisher->write(&instrumentDataInstance);
+        if (!settings_initialized) {
+            settings_publisher = InitializePublisher(
+                    AMM::DataTypes::instrumentDataTopic,
+                    AMM::DataTypes::getInstrumentDataType(), pub_listener);
+            settings_initialized = true;
+        }
+        try {
+            settings_publisher->write(&instrumentDataInstance);
+        } catch (std::exception &e) {
+            LOG_ERROR << e.what();
+        }
     }
 
     void DDS_Manager::PublishPerformanceData(
             AMM::Performance::Assessment assessmentInstance) {
-        perfdata_publisher->write(&assessmentInstance);
+        if (!perfdata_initialized) {
+            perfdata_publisher = InitializeReliablePublisher(
+                    AMM::DataTypes::performanceTopic,
+                    AMM::DataTypes::getPerformanceAssessmentDataType(), pub_listener);
+            perfdata_initialized = true;
+        }
+        try {
+            perfdata_publisher->write(&assessmentInstance);
+        } catch (std::exception &e) {
+            LOG_ERROR << e.what();
+        }
     }
 
     std::string DDS_Manager::GetCapabilitiesAsString(const std::string &filename) {
@@ -356,4 +393,5 @@ namespace AMM {
         out << currentScenario;
         out.close();
     }
+
 }

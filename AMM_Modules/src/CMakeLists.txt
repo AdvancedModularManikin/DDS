@@ -94,19 +94,15 @@ set(IVC_MODULE_EXE amm_ivc_module)
 add_executable(${IVC_MODULE_EXE} ${IVC_MODULE_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
 target_include_directories(${IVC_MODULE_EXE} PUBLIC spi_proto/src)
 
-set(ARDUINO_BRIDGE_SOURCES Arduino_Bridge.cpp)
+set(ARDUINO_BRIDGE_SOURCES Arduino_Bridge.cpp AMM/Utility.cpp)
 set(ARDUINO_BRIDGE_EXE amm_arduino_bridge)
 add_executable(${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES})
 
-set(TCP_BRIDGE_SOURCES TCP_Bridge.cpp Net/Server.cpp Net/ServerThread.cpp Net/Client.cpp Net/UdpDiscoveryServer.cpp)
+set(TCP_BRIDGE_SOURCES TCP_Bridge.cpp AMM/Utility.cpp Net/Server.cpp Net/ServerThread.cpp Net/Client.cpp Net/UdpDiscoveryServer.cpp)
 set(TCP_BRIDGE_EXE amm_tcp_bridge)
 add_executable(${TCP_BRIDGE_EXE} ${TCP_BRIDGE_SOURCES})
 
-set(LOGGER_SOURCES Logger.cpp)
-set(LOGGER_EXE amm_logger)
-add_executable(${LOGGER_EXE} ${LOGGER_SOURCES})
-
-set(MODULE_MANAGER_SOURCES ModuleManager.cpp AMM/ModuleManager.cpp)
+set(MODULE_MANAGER_SOURCES ModuleManager.cpp AMM/ModuleManager.cpp AMM/Utility.cpp AMM/Listeners/ModuleManagerListener.cpp)
 set(MODULE_MANAGER_EXE amm_module_manager)
 add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
 target_link_libraries(${MODULE_MANAGER_EXE}
@@ -118,7 +114,7 @@ target_link_libraries(${MODULE_MANAGER_EXE}
         amm::datamodel
         )
 
-set(REST_ADAPTER_SOURCES REST_Adapter.cpp Net/UdpDiscoveryServer.cpp)
+set(REST_ADAPTER_SOURCES REST_Adapter.cpp AMM/Utility.cpp Net/UdpDiscoveryServer.cpp)
 set(REST_ADAPTER_EXE amm_rest_adapter)
 
 if(Pistache_FOUND)
@@ -138,7 +134,7 @@ endif ()
 
 
 if (Biogears_FOUND)
-    set(PHYSIOLOGY_MANAGER_SOURCES PhysiologyManager.cpp AMM/PhysiologyEngineManager.cpp AMM/PhysiologyThread.cpp)
+    set(PHYSIOLOGY_MANAGER_SOURCES PhysiologyManager.cpp AMM/Utility.cpp AMM/PhysiologyEngineManager.cpp AMM/PhysiologyThread.cpp)
     set(PHYSIOLOGY_MANAGER_EXE amm_physiology_manager)
     add_executable(${PHYSIOLOGY_MANAGER_EXE} ${PHYSIOLOGY_MANAGER_SOURCES})
     add_dependencies(${PHYSIOLOGY_MANAGER_EXE} stage_biogears_schema stage_biogears_data)
@@ -151,15 +147,6 @@ if (Biogears_FOUND)
             amm::datamodel
             )
 endif ()
-
-target_link_libraries(${LOGGER_EXE}
-        PUBLIC fastrtps fastcdr
-        PUBLIC amm::logger
-        PUBLIC Boost::system
-        PUBLIC pthread
-        PUBLIC amm::datamodel
-        PUBLIC sqlite3
-        )
 
 target_link_libraries(${SIM_MANAGER_EXE}
         fastrtps fastcdr
