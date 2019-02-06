@@ -95,18 +95,9 @@ std::string dataKey = "name";
 
 DDS_Manager *mgr;
 
-struct logEntry {
-    std::string source;
-    std::string topic;
-    int64_t tick = 0;
-    int64_t timestamp;
-    std::string data = "";
-};
-
 std::map<std::string, double> nodeDataStorage;
 
 std::map<std::string, std::string> statusStorage = {{"STATUS",       "NOT RUNNING"},
-                                                    {"LAST_COMMAND", ""},
                                                     {"TICK",         "0"},
                                                     {"TIME",         "0"}};
 
@@ -116,25 +107,6 @@ int64_t lastTick = 0;
 Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
-
-void clearLog() {
-    try {
-        db << "delete from events";
-    } catch (exception &e) {
-        LOG_ERROR << "[EVENTLOG]" << e.what();
-    }
-}
-
-void writeLogEntry(logEntry newLogEntry) {
-    try {
-        db << "insert into events (source, topic, tick, timestamp, data) values "
-              "(?,?,?,?,?);"
-           << newLogEntry.source << newLogEntry.topic << newLogEntry.tick
-           << newLogEntry.timestamp << newLogEntry.data;
-    } catch (exception &e) {
-        LOG_ERROR << "[EVENTLOG]" << e.what();
-    }
-}
 
 class AMMListener : public ListenerInterface {
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) override {
@@ -150,55 +122,9 @@ class AMMListener : public ListenerInterface {
     void onNewScenarioData(AMM::Capability::Scenario sc,
                            SampleInfo_t *info) override {};
 
-    void onNewRenderModificationData(AMM::Render::Modification rm,
-                                     SampleInfo_t *info) override {
-        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch())
-                .count();
-        GUID_t changeGuid = info->sample_identity.writer_guid();
-        std::ostringstream module_guid;
-        module_guid << changeGuid;
-
-        std::ostringstream logmessage;
-        logmessage << "[" << rm.type() << "]" << rm.payload();
-
-        logEntry newLogEntry{module_guid.str(), "AMM::Render::Modification",
-                             lastTick, timestamp, logmessage.str()};
-        writeLogEntry(newLogEntry);
-    };
-
-    void onNewPhysiologyModificationData(AMM::Physiology::Modification pm,
-                                         SampleInfo_t *info) override {
-        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch())
-                .count();
-        GUID_t changeGuid = info->sample_identity.writer_guid();
-        std::ostringstream module_guid;
-        module_guid << changeGuid;
-
-        std::string physModName = pm.type();
-
-        std::ostringstream logmessage;
-        logmessage << physModName;
-
-        logEntry newLogEntry{module_guid.str(), "AMM::Physiology::Modification",
-                             lastTick, timestamp, logmessage.str()};
-        writeLogEntry(newLogEntry);
-    };
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c,
                           SampleInfo_t *info) override {
-        int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                std::chrono::system_clock::now().time_since_epoch())
-                .count();
-        GUID_t changeGuid = info->sample_identity.writer_guid();
-        std::ostringstream module_guid;
-        module_guid << changeGuid;
-
-        logEntry newLogEntry{module_guid.str(), "AMM::Command", lastTick, timestamp,
-                             c.message()};
-        writeLogEntry(newLogEntry);
-
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {
@@ -213,11 +139,9 @@ class AMMListener : public ListenerInterface {
                 statusStorage["TIME"] = "0";
                 nodeDataStorage.clear();
             } else if (value.compare("CLEAR_LOG") == 0) {
-                clearLog();
+
             }
         }
-
-        statusStorage["LAST_COMMAND"] = c.message();
     }
 
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
@@ -272,10 +196,6 @@ void SendPerformanceAssessment(const std::string &assessment_type,
 
 void SendCommand(const std::string &command) {
     LOG_INFO << "Publishing a command:" << command;
-    if (command == "CLEAR_LOG") {
-        // handle this locally
-        clearLog();
-    }
     AMM::PatientAction::BioGears::Command cmdInstance;
     cmdInstance.message(command);
     mgr->PublishCommand(cmdInstance);
@@ -336,8 +256,6 @@ private:
 
         Routes::Get(router, "/events",
                     Routes::bind(&DDSEndpoint::getEventLog, this));
-        Routes::Delete(router, "/events",
-                       Routes::bind(&DDSEndpoint::clearEventLog, this));
 
         Routes::Get(router, "/modules/count",
                     Routes::bind(&DDSEndpoint::getModuleCount, this));
@@ -815,20 +733,6 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
-    void clearEventLog(const Rest::Request &request,
-                       Http::ResponseWriter response) {
-        try {
-            db << "delete from events;";
-        } catch (exception &e) {
-            LOG_ERROR << "[EVENTLOG]" << e.what();
-        }
-
-        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-        response.headers().add<Http::Header::AccessControlAllowHeaders>("*");
-        response.send(Pistache::Http::Code::Ok,
-                      "{\"message\":\"Event log cleared\"}");
-    }
-
     void getEventLog(const Rest::Request &request,
                      Http::ResponseWriter response) {
         StringBuffer s;
@@ -980,17 +884,12 @@ int main(int argc, char *argv[]) {
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
-    auto *physmod_sub_listener =
-            new DDS_Listeners::PhysiologyModificationListener();
-    auto *rendermod_sub_listener =
-            new DDS_Listeners::RenderModificationListener();
 
     AMMListener rl;
     node_sub_listener->SetUpstream(&rl);
     command_sub_listener->SetUpstream(&rl);
     tick_sub_listener->SetUpstream(&rl);
-    physmod_sub_listener->SetUpstream(&rl);
-    rendermod_sub_listener->SetUpstream(&rl);
+
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic,
                               AMM::DataTypes::getNodeType(), node_sub_listener);
@@ -999,23 +898,6 @@ int main(int argc, char *argv[]) {
                                       command_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::tickTopic,
                               AMM::DataTypes::getTickType(), tick_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic,
-                                      AMM::DataTypes::getRenderModificationType(),
-                                      rendermod_sub_listener);
-    mgr->InitializeReliableSubscriber(
-            AMM::DataTypes::physModTopic,
-            AMM::DataTypes::getPhysiologyModificationType(), physmod_sub_listener);
-
-    // Publish module configuration once we've set all our publishers and
-    // listeners
-    // This announces that we're available for configuration
-    mgr->PublishModuleConfiguration(
-            mgr->module_id, nodeString, "Vcom3D", "REST_Adapter", "00001", "0.0.1",
-            mgr->GetCapabilitiesAsString(
-                    "mule1/module_capabilities/rest_adapter_capabilities.xml"));
-
-    // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     std::thread udpD(UdpDiscoveryThread);
 
@@ -1028,9 +910,17 @@ int main(int argc, char *argv[]) {
     LOG_INFO << "REST_Adapter Listening on *:" << portNumber;
 
     m_runThread = true;
+
     server.start();
 
     LOG_INFO << "REST_Adapter ready.";
+
+    mgr->PublishModuleConfiguration(
+            mgr->module_id, nodeString, "Vcom3D", "REST_Adapter", "00001", "0.0.1",
+            mgr->GetCapabilitiesAsString(
+                    "mule1/module_capabilities/rest_adapter_capabilities.xml"));
+
+    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     while (m_runThread) {
         getline(cin, action);

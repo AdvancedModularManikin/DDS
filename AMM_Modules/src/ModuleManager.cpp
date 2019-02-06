@@ -12,6 +12,20 @@ bool setup = false;
 int autostart = 0;
 bool wipe = false;
 
+void WipeTables() {
+    try {
+        sqlite_config config;
+        database db("amm.db", config);
+        db << "delete from events;";
+        db << "delete from modules;";
+        db << "delete from module_capabilities;";
+        db << "delete from module_status;";
+        db << "delete from pubsubs;";
+        db << "delete from logs;";
+    } catch (exception &e) {
+        LOG_ERROR << e.what();
+    }
+}
 
 void SetupTables() {
     try {
@@ -27,7 +41,6 @@ void SetupTables() {
               "timestamp bigint,"
               "data text"
               ");";
-        db << "delete from events;";
 
         LOG_INFO << "Creating modules table...";
         db << "create table if not exists modules("
@@ -36,7 +49,6 @@ void SetupTables() {
               "module_name text,"
               "timestamp text"
               ");";
-        db << "delete from modules;";
 
         LOG_INFO << "Creating module capabilities table...";
         db << "create table if not exists module_capabilities ("
@@ -52,12 +64,7 @@ void SetupTables() {
               "encounter_id text"
               ");";
 
-        db << "CREATE UNIQUE INDEX idx_mc_model ON module_capabilities "
-              "(module_name);";
-
-        db << "delete from module_capabilities;";
-
-        LOG_INFO << "[ModuleManager] Creating module status table...";
+        LOG_INFO << "Creating module status table...";
         db << "create table if not exists module_status ("
               "module_id text,"
               "module_guid text,"
@@ -67,8 +74,6 @@ void SetupTables() {
               "timestamp text,"
               "encounter_id text"
               ");";
-        db << "CREATE UNIQUE INDEX idx_ms_model ON module_status (module_name);";
-        db << "delete from module_status;";
 
         LOG_INFO << "Creating pubsub table...";
         db << "create table if not exists pubsubs("
@@ -86,25 +91,12 @@ void SetupTables() {
               "log_level text,"
               "timestamp bigint"
               ");";
-        db << "delete from logs;";
-    } catch (exception &e) {
-        LOG_ERROR << e.what();
-    }
-}
 
-void WipeTables() {
-    try {
-        sqlite_config config;
-        database db("amm.db", config);
-        db << "delete from events;";
-        db << "delete from modules;";
-        db << "delete from module_capabilities;";
-        db << "delete from module_status;";
-        db << "delete from pubsubs;";
-        db << "delete from logs;";
     } catch (exception &e) {
         LOG_ERROR << e.what();
     }
+
+    WipeTables();
 }
 
 static void show_usage(const std::string &name) {
