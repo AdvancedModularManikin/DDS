@@ -34,10 +34,6 @@ namespace AMM {
         auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
         command_sub_listener->SetUpstream(this);
 
-        auto *physiology_command_sub_listener =
-                new DDS_Listeners::PhysiologyCommandSubListener();
-        physiology_command_sub_listener->SetUpstream(this);
-
         auto *equipment_sub_listener = new DDS_Listeners::EquipmentSubListener();
         equipment_sub_listener->SetUpstream(this);
 
@@ -50,9 +46,11 @@ namespace AMM {
         tick_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::tickTopic,
                                                     AMM::DataTypes::getTickType(),
                                                     tick_sub_listener);
+
         command_subscriber = mgr->InitializeReliableSubscriber(
                 AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
                 command_sub_listener);
+
         equipment_subscriber = mgr->InitializeReliableSubscriber(
                 AMM::DataTypes::instrumentDataTopic,
                 AMM::DataTypes::getInstrumentDataType(), equipment_sub_listener);

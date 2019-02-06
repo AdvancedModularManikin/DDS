@@ -19,12 +19,20 @@ namespace AMM {
         auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
         auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
         auto *log_sub_listener = new DDS_Listeners::LogRecordSubListener();
+        auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
+        auto *physmod_sub_listener =
+                new DDS_Listeners::PhysiologyModificationListener();
+        auto *rendermod_sub_listener =
+                new DDS_Listeners::RenderModificationListener();
 
         auto *mmL = new ModuleManagerListener();
 
         status_sub_listener->SetUpstream(mmL);
         config_sub_listener->SetUpstream(mmL);
         log_sub_listener->SetUpstream(mmL);
+        tick_sub_listener->SetUpstream(mmL);
+        physmod_sub_listener->SetUpstream(mmL);
+        rendermod_sub_listener->SetUpstream(mmL);
 
         mgr->InitializeReliableSubscriber(AMM::DataTypes::statusTopic,
                                   AMM::DataTypes::getStatusType(),
@@ -35,6 +43,14 @@ namespace AMM {
         mgr->InitializeReliableSubscriber(AMM::DataTypes::logRecordTopic,
                                   AMM::DataTypes::getLogRecordType(),
                                   log_sub_listener);
+        mgr->InitializeSubscriber(AMM::DataTypes::tickTopic,
+                                  AMM::DataTypes::getTickType(), tick_sub_listener);
+        mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic,
+                                          AMM::DataTypes::getRenderModificationType(),
+                                          rendermod_sub_listener);
+        mgr->InitializeReliableSubscriber(
+                AMM::DataTypes::physModTopic,
+                AMM::DataTypes::getPhysiologyModificationType(), physmod_sub_listener);
 
         currentScenario = mgr->GetScenario();
 

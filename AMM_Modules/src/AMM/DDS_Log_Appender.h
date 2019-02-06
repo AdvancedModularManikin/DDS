@@ -22,7 +22,7 @@ namespace plog {
             util::nstring message = record.getMessage();
             util::nstring severity = plog::severityToString(record.getSeverity());
             // util::nstring str = Formatter::format(record);
-            m_mgr->PublishLogRecord(message, severity);
+                //            m_mgr->PublishLogRecord(message, severity);
             //m_mgr->PublishLogRecord(str);
         }
 
