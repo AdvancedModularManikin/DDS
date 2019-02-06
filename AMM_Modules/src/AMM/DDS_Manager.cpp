@@ -119,6 +119,7 @@ namespace AMM {
         PublisherAttributes wparam;
         wparam.topic.topicDataType = topicType->getName();
         wparam.topic.topicName = topicName;
+        wparam.topic.topicKind = NO_KEY;
         Publisher *gen_publisher =
                 Domain::createPublisher(mp_participant, wparam, pub_listener);
         return gen_publisher;
@@ -131,6 +132,7 @@ namespace AMM {
         PublisherAttributes wparam;
         wparam.topic.topicDataType = topicType->getName();
         wparam.topic.topicName = topicName;
+        wparam.topic.topicKind = NO_KEY;
         wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
         Publisher *gen_publisher =
                 Domain::createPublisher(mp_participant, wparam, pub_listener);
@@ -144,7 +146,7 @@ namespace AMM {
         SubscriberAttributes rparam;
         rparam.topic.topicDataType = topicType->getName();
         rparam.topic.topicName = topicName;
-        rparam.topic.topicKind = topicKind;
+        rparam.topic.topicKind = NO_KEY;
 
         Subscriber *gen_subscriber =
                 Domain::createSubscriber(mp_participant, rparam, sub_listener);
@@ -157,7 +159,7 @@ namespace AMM {
         SubscriberAttributes rparam;
         rparam.topic.topicDataType = topicType->getName();
         rparam.topic.topicName = topicName;
-        rparam.topic.topicKind = topicKind;
+        rparam.topic.topicKind = NO_KEY;
         rparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
         Subscriber *gen_subscriber =
                 Domain::createSubscriber(mp_participant, rparam, sub_listener);
