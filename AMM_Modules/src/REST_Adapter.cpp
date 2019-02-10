@@ -73,6 +73,7 @@ using namespace sqlite;
 using namespace tinyxml2;
 using namespace AMM;
 using namespace AMM::Capability;
+
 // UDP discovery port
 short discoveryPort = 8889;
 
@@ -93,8 +94,6 @@ std::string state_path = "./states/";
 std::string patient_path = "./patients/";
 std::string dataKey = "name";
 
-DDS_Manager *mgr;
-
 std::map<std::string, double> nodeDataStorage;
 
 std::map<std::string, std::string> statusStorage = {{"STATUS", "NOT RUNNING"},
@@ -104,6 +103,8 @@ std::map<std::string, std::string> statusStorage = {{"STATUS", "NOT RUNNING"},
 bool m_runThread = false;
 int64_t lastTick = 0;
 
+
+DDS_Manager *mgr;
 Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
@@ -852,6 +853,26 @@ static void show_usage(const std::string &name) {
          << endl;
 }
 
+Port port(static_cast<uint16_t>(portNumber));
+Address addr(Ipv4::any(), port);
+DDSEndpoint server(addr);
+
+void signalHandler( int signum ) {
+    LOG_WARNING << "Interrupt signal (" << signum << ") received.";
+
+    if (signum == 15) {
+        server.shutdown();
+        LOG_INFO << "Stopped REST listener.";
+
+        io_service.stop();
+        LOG_INFO << "Stopping IO services";
+
+        LOG_INFO << "Shutdown complete";
+    }
+
+    exit(signum);
+}
+
 int main(int argc, char *argv[]) {
 
     for (int i = 1; i < argc; ++i) {
@@ -898,9 +919,6 @@ int main(int argc, char *argv[]) {
 
     gethostname(hostname, HOST_NAME_MAX);
 
-    Port port(static_cast<uint16_t>(portNumber));
-    Address addr(Ipv4::any(), port);
-    DDSEndpoint server(addr);
     server.init(thr);
     LOG_INFO << "REST_Adapter Listening on *:" << portNumber;
 
@@ -917,6 +935,9 @@ int main(int argc, char *argv[]) {
 
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
+
     while (m_runThread) {
         getline(cin, action);
         transform(action.begin(), action.end(), action.begin(), ::toupper);
@@ -929,11 +950,10 @@ int main(int argc, char *argv[]) {
     }
 
     server.shutdown();
-    LOG_INFO << "Stopped REST listener.";
-
     io_service.stop();
     udpD.join();
-    LOG_INFO << "Stopped UDP discovery.";
+
+    LOG_INFO << "Shutdown complete";
 
     return 0;
 }
