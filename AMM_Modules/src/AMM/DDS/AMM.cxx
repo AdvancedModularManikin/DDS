@@ -25,7 +25,6 @@ namespace { char dummy; }
 #endif
 
 #include "AMM.h"
-
 #include <fastcdr/Cdr.h>
 
 #include <fastcdr/exceptions/BadParamException.h>
@@ -36,6 +35,8 @@ using namespace eprosima::fastcdr::exception;
 FMA_Location::FMA_Location()
 {
     m_id = 0;
+
+
 
 }
 
@@ -59,7 +60,7 @@ FMA_Location& FMA_Location::operator=(const FMA_Location &x)
 {
     m_id = x.m_id;
     m_description = x.m_description;
-    
+
     return *this;
 }
 
@@ -67,15 +68,16 @@ FMA_Location& FMA_Location::operator=(FMA_Location &&x)
 {
     m_id = x.m_id;
     m_description = std::move(x.m_description);
-    
+
     return *this;
 }
 
 size_t FMA_Location::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
@@ -85,9 +87,11 @@ size_t FMA_Location::getMaxCdrSerializedSize(size_t current_alignment)
 
 size_t FMA_Location::getCdrSerializedSize(const FMA_Location& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.description().size() + 1;
 
@@ -124,13 +128,17 @@ bool FMA_Location::isKeyDefined()
 
 void FMA_Location::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 }
 UUID::UUID()
 {
     m_UUID_MSB = 0;
+
     m_UUID_LSB = 0;
+
+
 }
 
 UUID::~UUID()
@@ -153,7 +161,7 @@ UUID& UUID::operator=(const UUID &x)
 {
     m_UUID_MSB = x.m_UUID_MSB;
     m_UUID_LSB = x.m_UUID_LSB;
-    
+
     return *this;
 }
 
@@ -161,17 +169,19 @@ UUID& UUID::operator=(UUID &&x)
 {
     m_UUID_MSB = x.m_UUID_MSB;
     m_UUID_LSB = x.m_UUID_LSB;
-    
+
     return *this;
 }
 
 size_t UUID::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
-    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
+
+    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
 
     return current_alignment - initial_alignment;
@@ -179,11 +189,14 @@ size_t UUID::getMaxCdrSerializedSize(size_t current_alignment)
 
 size_t UUID::getCdrSerializedSize(const UUID& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
-    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
+
+    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
 
     return current_alignment - initial_alignment;
@@ -218,6 +231,7 @@ bool UUID::isKeyDefined()
 
 void UUID::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 }
@@ -225,6 +239,8 @@ AMM::Event::Fragment::Fragment()
 {
 
     m_timestamp = 0.0;
+
+
 
 
 
@@ -263,7 +279,7 @@ AMM::Event::Fragment& AMM::Event::Fragment::operator=(const Fragment &x)
     m_learner_id = x.m_learner_id;
     m_fragment_type = x.m_fragment_type;
     m_payload = x.m_payload;
-    
+
     return *this;
 }
 
@@ -275,16 +291,17 @@ AMM::Event::Fragment& AMM::Event::Fragment::operator=(Fragment &&x)
     m_learner_id = std::move(x.m_learner_id);
     m_fragment_type = std::move(x.m_fragment_type);
     m_payload = std::move(x.m_payload);
-    
+
     return *this;
 }
 
 size_t AMM::Event::Fragment::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += UUID::getMaxCdrSerializedSize(current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
     current_alignment += FMA_Location::getMaxCdrSerializedSize(current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -299,10 +316,12 @@ size_t AMM::Event::Fragment::getMaxCdrSerializedSize(size_t current_alignment)
 
 size_t AMM::Event::Fragment::getCdrSerializedSize(const AMM::Event::Fragment& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += UUID::getCdrSerializedSize(data.id(), current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
     current_alignment += FMA_Location::getCdrSerializedSize(data.location(), current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.learner_id().size() + 1;
@@ -356,6 +375,7 @@ bool AMM::Event::Fragment::isKeyDefined()
 
 void AMM::Event::Fragment::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 scdr << m_id;  
 	 
 	 
@@ -368,6 +388,8 @@ AMM::Event::FragmentAmendmentRequest::FragmentAmendmentRequest()
 
 
     m_timestamp = 0.0;
+
+
 
 
 
@@ -413,7 +435,7 @@ AMM::Event::FragmentAmendmentRequest& AMM::Event::FragmentAmendmentRequest::oper
     m_learner_id = x.m_learner_id;
     m_fragment_type = x.m_fragment_type;
     m_payload = x.m_payload;
-    
+
     return *this;
 }
 
@@ -427,17 +449,18 @@ AMM::Event::FragmentAmendmentRequest& AMM::Event::FragmentAmendmentRequest::oper
     m_learner_id = std::move(x.m_learner_id);
     m_fragment_type = std::move(x.m_fragment_type);
     m_payload = std::move(x.m_payload);
-    
+
     return *this;
 }
 
 size_t AMM::Event::FragmentAmendmentRequest::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += UUID::getMaxCdrSerializedSize(current_alignment);
     current_alignment += UUID::getMaxCdrSerializedSize(current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
@@ -454,11 +477,13 @@ size_t AMM::Event::FragmentAmendmentRequest::getMaxCdrSerializedSize(size_t curr
 
 size_t AMM::Event::FragmentAmendmentRequest::getCdrSerializedSize(const AMM::Event::FragmentAmendmentRequest& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += UUID::getCdrSerializedSize(data.id(), current_alignment);
     current_alignment += UUID::getCdrSerializedSize(data.fragment_id(), current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.status().size() + 1;
 
@@ -520,6 +545,7 @@ bool AMM::Event::FragmentAmendmentRequest::isKeyDefined()
 
 void AMM::Event::FragmentAmendmentRequest::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 scdr << m_fragment_id;  
 	 
@@ -533,6 +559,8 @@ AMM::Event::Record::Record()
 {
 
     m_timestamp = 0.0;
+
+
 
 
 
@@ -571,7 +599,7 @@ AMM::Event::Record& AMM::Event::Record::operator=(const Record &x)
     m_learner_id = x.m_learner_id;
     m_record_type = x.m_record_type;
     m_payload = x.m_payload;
-    
+
     return *this;
 }
 
@@ -583,16 +611,17 @@ AMM::Event::Record& AMM::Event::Record::operator=(Record &&x)
     m_learner_id = std::move(x.m_learner_id);
     m_record_type = std::move(x.m_record_type);
     m_payload = std::move(x.m_payload);
-    
+
     return *this;
 }
 
 size_t AMM::Event::Record::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += UUID::getMaxCdrSerializedSize(current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
     current_alignment += FMA_Location::getMaxCdrSerializedSize(current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -607,10 +636,12 @@ size_t AMM::Event::Record::getMaxCdrSerializedSize(size_t current_alignment)
 
 size_t AMM::Event::Record::getCdrSerializedSize(const AMM::Event::Record& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += UUID::getCdrSerializedSize(data.id(), current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
     current_alignment += FMA_Location::getCdrSerializedSize(data.location(), current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.learner_id().size() + 1;
@@ -664,6 +695,7 @@ bool AMM::Event::Record::isKeyDefined()
 
 void AMM::Event::Record::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 scdr << m_id;  
 	 
 	 
@@ -674,6 +706,7 @@ void AMM::Event::Record::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 
 AMM::Environment::Settings::Settings()
 {
+
 }
 
 AMM::Environment::Settings::~Settings()
@@ -693,21 +726,21 @@ AMM::Environment::Settings::Settings(Settings &&x)
 AMM::Environment::Settings& AMM::Environment::Settings::operator=(const Settings &x)
 {
     m_description = x.m_description;
-    
+
     return *this;
 }
 
 AMM::Environment::Settings& AMM::Environment::Settings::operator=(Settings &&x)
 {
     m_description = std::move(x.m_description);
-    
+
     return *this;
 }
 
 size_t AMM::Environment::Settings::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     return current_alignment - initial_alignment;
@@ -715,8 +748,9 @@ size_t AMM::Environment::Settings::getMaxCdrSerializedSize(size_t current_alignm
 
 size_t AMM::Environment::Settings::getCdrSerializedSize(const AMM::Environment::Settings& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.description().size() + 1;
 
     return current_alignment - initial_alignment;
@@ -747,13 +781,17 @@ bool AMM::Environment::Settings::isKeyDefined()
 
 void AMM::Environment::Settings::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 
 AMM::Simulation::Tick::Tick()
 {
     m_frame = 0;
+
     m_time = 0.0;
+
+
 }
 
 AMM::Simulation::Tick::~Tick()
@@ -776,7 +814,7 @@ AMM::Simulation::Tick& AMM::Simulation::Tick::operator=(const Tick &x)
 {
     m_frame = x.m_frame;
     m_time = x.m_time;
-    
+
     return *this;
 }
 
@@ -784,17 +822,19 @@ AMM::Simulation::Tick& AMM::Simulation::Tick::operator=(Tick &&x)
 {
     m_frame = x.m_frame;
     m_time = x.m_time;
-    
+
     return *this;
 }
 
 size_t AMM::Simulation::Tick::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
 
     return current_alignment - initial_alignment;
@@ -802,11 +842,14 @@ size_t AMM::Simulation::Tick::getMaxCdrSerializedSize(size_t current_alignment)
 
 size_t AMM::Simulation::Tick::getCdrSerializedSize(const AMM::Simulation::Tick& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
 
 
     return current_alignment - initial_alignment;
@@ -829,6 +872,7 @@ size_t AMM::Simulation::Tick::getKeyMaxCdrSerializedSize(size_t current_alignmen
 	size_t current_align = current_alignment;
             
      current_align += 8 + eprosima::fastcdr::Cdr::alignment(current_align, 8);
+
      
 
 
@@ -842,12 +886,14 @@ bool AMM::Simulation::Tick::isKeyDefined()
 
 void AMM::Simulation::Tick::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 scdr << m_frame;  
 	 
 }
 
 AMM::InstrumentData::InstrumentData()
 {
+
 
 
 }
@@ -872,7 +918,7 @@ AMM::InstrumentData& AMM::InstrumentData::operator=(const InstrumentData &x)
 {
     m_instrument = x.m_instrument;
     m_payload = x.m_payload;
-    
+
     return *this;
 }
 
@@ -880,14 +926,14 @@ AMM::InstrumentData& AMM::InstrumentData::operator=(InstrumentData &&x)
 {
     m_instrument = std::move(x.m_instrument);
     m_payload = std::move(x.m_payload);
-    
+
     return *this;
 }
 
 size_t AMM::InstrumentData::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -898,8 +944,9 @@ size_t AMM::InstrumentData::getMaxCdrSerializedSize(size_t current_alignment)
 
 size_t AMM::InstrumentData::getCdrSerializedSize(const AMM::InstrumentData& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.instrument().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.payload().size() + 1;
@@ -937,6 +984,7 @@ bool AMM::InstrumentData::isKeyDefined()
 
 void AMM::InstrumentData::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 }
@@ -945,6 +993,8 @@ void AMM::InstrumentData::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 AMM::Physiology::Command::Command()
 {
     m_type = AMM::Physiology::PainCommand;
+
+
 
 }
 
@@ -968,7 +1018,7 @@ AMM::Physiology::Command& AMM::Physiology::Command::operator=(const Command &x)
 {
     m_type = x.m_type;
     m_payload = x.m_payload;
-    
+
     return *this;
 }
 
@@ -976,18 +1026,21 @@ AMM::Physiology::Command& AMM::Physiology::Command::operator=(Command &&x)
 {
     m_type = x.m_type;
     m_payload = std::move(x.m_payload);
-    
+
     return *this;
 }
 
 size_t AMM::Physiology::Command::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
-    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
     current_alignment += (100 * 1) + eprosima::fastcdr::Cdr::alignment(current_alignment, 1);
+
 
 
 
@@ -996,12 +1049,16 @@ size_t AMM::Physiology::Command::getMaxCdrSerializedSize(size_t current_alignmen
 
 size_t AMM::Physiology::Command::getCdrSerializedSize(const AMM::Physiology::Command& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
-    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
+    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
     current_alignment += (data.payload().size() * 1) + eprosima::fastcdr::Cdr::alignment(current_alignment, 1);
+
 
 
 
@@ -1016,7 +1073,11 @@ void AMM::Physiology::Command::serialize(eprosima::fastcdr::Cdr &scdr) const
 
 void AMM::Physiology::Command::deserialize(eprosima::fastcdr::Cdr &dcdr)
 {
-    dcdr >> (uint32_t&)m_type;
+    {
+        uint32_t enum_value = 0;
+        dcdr >> enum_value;
+        m_type = (AMM::Physiology::CMD)enum_value;
+    }
     dcdr >> m_payload;
 }
 
@@ -1037,6 +1098,7 @@ bool AMM::Physiology::Command::isKeyDefined()
 
 void AMM::Physiology::Command::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 }
@@ -1044,6 +1106,8 @@ AMM::Physiology::PainStimulus::Data::Data()
 {
 
     m_severity = 0.0;
+
+
 }
 
 AMM::Physiology::PainStimulus::Data::~Data()
@@ -1066,7 +1130,7 @@ AMM::Physiology::PainStimulus::Data& AMM::Physiology::PainStimulus::Data::operat
 {
     m_location = x.m_location;
     m_severity = x.m_severity;
-    
+
     return *this;
 }
 
@@ -1074,16 +1138,17 @@ AMM::Physiology::PainStimulus::Data& AMM::Physiology::PainStimulus::Data::operat
 {
     m_location = std::move(x.m_location);
     m_severity = x.m_severity;
-    
+
     return *this;
 }
 
 size_t AMM::Physiology::PainStimulus::Data::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += FMA_Location::getMaxCdrSerializedSize(current_alignment);
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
 
     return current_alignment - initial_alignment;
@@ -1091,10 +1156,12 @@ size_t AMM::Physiology::PainStimulus::Data::getMaxCdrSerializedSize(size_t curre
 
 size_t AMM::Physiology::PainStimulus::Data::getCdrSerializedSize(const AMM::Physiology::PainStimulus::Data& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += FMA_Location::getCdrSerializedSize(data.location(), current_alignment);
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
 
     return current_alignment - initial_alignment;
@@ -1129,6 +1196,7 @@ bool AMM::Physiology::PainStimulus::Data::isKeyDefined()
 
 void AMM::Physiology::PainStimulus::Data::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 }
@@ -1136,7 +1204,10 @@ void AMM::Physiology::PainStimulus::Data::serializeKey(eprosima::fastcdr::Cdr &s
 AMM::Physiology::Sepsis::Data::Data()
 {
     m_location = AMM::Physiology::BoneTissue;
+
     m_severity = 0.0;
+
+
 }
 
 AMM::Physiology::Sepsis::Data::~Data()
@@ -1159,7 +1230,7 @@ AMM::Physiology::Sepsis::Data& AMM::Physiology::Sepsis::Data::operator=(const Da
 {
     m_location = x.m_location;
     m_severity = x.m_severity;
-    
+
     return *this;
 }
 
@@ -1167,17 +1238,19 @@ AMM::Physiology::Sepsis::Data& AMM::Physiology::Sepsis::Data::operator=(Data &&x
 {
     m_location = x.m_location;
     m_severity = x.m_severity;
-    
+
     return *this;
 }
 
 size_t AMM::Physiology::Sepsis::Data::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
 
     return current_alignment - initial_alignment;
@@ -1185,11 +1258,14 @@ size_t AMM::Physiology::Sepsis::Data::getMaxCdrSerializedSize(size_t current_ali
 
 size_t AMM::Physiology::Sepsis::Data::getCdrSerializedSize(const AMM::Physiology::Sepsis::Data& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
 
     return current_alignment - initial_alignment;
@@ -1203,7 +1279,11 @@ void AMM::Physiology::Sepsis::Data::serialize(eprosima::fastcdr::Cdr &scdr) cons
 
 void AMM::Physiology::Sepsis::Data::deserialize(eprosima::fastcdr::Cdr &dcdr)
 {
-    dcdr >> (uint32_t&)m_location;
+    {
+        uint32_t enum_value = 0;
+        dcdr >> enum_value;
+        m_location = (AMM::Physiology::TissueCompartment)enum_value;
+    }
     dcdr >> m_severity;
 }
 
@@ -1224,12 +1304,14 @@ bool AMM::Physiology::Sepsis::Data::isKeyDefined()
 
 void AMM::Physiology::Sepsis::Data::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 }
 
 AMM::Physiology::Modification::Modification()
 {
+
 
 
 
@@ -1266,7 +1348,7 @@ AMM::Physiology::Modification& AMM::Physiology::Modification::operator=(const Mo
     m_practitioner = x.m_practitioner;
     m_type = x.m_type;
     m_payload = x.m_payload;
-    
+
     return *this;
 }
 
@@ -1277,14 +1359,14 @@ AMM::Physiology::Modification& AMM::Physiology::Modification::operator=(Modifica
     m_practitioner = std::move(x.m_practitioner);
     m_type = std::move(x.m_type);
     m_payload = std::move(x.m_payload);
-    
+
     return *this;
 }
 
 size_t AMM::Physiology::Modification::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += UUID::getMaxCdrSerializedSize(current_alignment);
     current_alignment += FMA_Location::getMaxCdrSerializedSize(current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -1299,8 +1381,9 @@ size_t AMM::Physiology::Modification::getMaxCdrSerializedSize(size_t current_ali
 
 size_t AMM::Physiology::Modification::getCdrSerializedSize(const AMM::Physiology::Modification& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += UUID::getCdrSerializedSize(data.id(), current_alignment);
     current_alignment += FMA_Location::getCdrSerializedSize(data.location(), current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.practitioner().size() + 1;
@@ -1351,6 +1434,7 @@ bool AMM::Physiology::Modification::isKeyDefined()
 
 void AMM::Physiology::Modification::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 	 
@@ -1362,7 +1446,10 @@ AMM::Physiology::Node::Node()
     m_frame = 0;
 
 
+
     m_dbl = 0.0;
+
+
 
 }
 
@@ -1395,7 +1482,7 @@ AMM::Physiology::Node& AMM::Physiology::Node::operator=(const Node &x)
     m_unit = x.m_unit;
     m_dbl = x.m_dbl;
     m_str = x.m_str;
-    
+
     return *this;
 }
 
@@ -1406,21 +1493,23 @@ AMM::Physiology::Node& AMM::Physiology::Node::operator=(Node &&x)
     m_unit = std::move(x.m_unit);
     m_dbl = x.m_dbl;
     m_str = std::move(x.m_str);
-    
+
     return *this;
 }
 
 size_t AMM::Physiology::Node::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
@@ -1430,15 +1519,18 @@ size_t AMM::Physiology::Node::getMaxCdrSerializedSize(size_t current_alignment)
 
 size_t AMM::Physiology::Node::getCdrSerializedSize(const AMM::Physiology::Node& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.nodepath().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.unit().size() + 1;
 
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.str().size() + 1;
 
@@ -1469,6 +1561,7 @@ size_t AMM::Physiology::Node::getKeyMaxCdrSerializedSize(size_t current_alignmen
 	size_t current_align = current_alignment;
             
      current_align += 8 + eprosima::fastcdr::Cdr::alignment(current_align, 8);
+
      
      current_align += 4 + eprosima::fastcdr::Cdr::alignment(current_align, 4) + 255 + 1;
      
@@ -1486,6 +1579,7 @@ bool AMM::Physiology::Node::isKeyDefined()
 
 void AMM::Physiology::Node::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 scdr << m_frame;  
 	 scdr << m_nodepath;  
 	 
@@ -1497,7 +1591,10 @@ AMM::Physiology::HighFrequencyNode::HighFrequencyNode()
     m_frame = 0;
 
 
+
     m_dbl = 0.0;
+
+
 
 }
 
@@ -1530,7 +1627,7 @@ AMM::Physiology::HighFrequencyNode& AMM::Physiology::HighFrequencyNode::operator
     m_unit = x.m_unit;
     m_dbl = x.m_dbl;
     m_str = x.m_str;
-    
+
     return *this;
 }
 
@@ -1541,21 +1638,23 @@ AMM::Physiology::HighFrequencyNode& AMM::Physiology::HighFrequencyNode::operator
     m_unit = std::move(x.m_unit);
     m_dbl = x.m_dbl;
     m_str = std::move(x.m_str);
-    
+
     return *this;
 }
 
 size_t AMM::Physiology::HighFrequencyNode::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
@@ -1565,15 +1664,18 @@ size_t AMM::Physiology::HighFrequencyNode::getMaxCdrSerializedSize(size_t curren
 
 size_t AMM::Physiology::HighFrequencyNode::getCdrSerializedSize(const AMM::Physiology::HighFrequencyNode& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.nodepath().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.unit().size() + 1;
 
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.str().size() + 1;
 
@@ -1604,6 +1706,7 @@ size_t AMM::Physiology::HighFrequencyNode::getKeyMaxCdrSerializedSize(size_t cur
 	size_t current_align = current_alignment;
             
      current_align += 8 + eprosima::fastcdr::Cdr::alignment(current_align, 8);
+
      
      current_align += 4 + eprosima::fastcdr::Cdr::alignment(current_align, 4) + 255 + 1;
      
@@ -1621,6 +1724,7 @@ bool AMM::Physiology::HighFrequencyNode::isKeyDefined()
 
 void AMM::Physiology::HighFrequencyNode::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 scdr << m_frame;  
 	 scdr << m_nodepath;  
 	 
@@ -1630,6 +1734,7 @@ void AMM::Physiology::HighFrequencyNode::serializeKey(eprosima::fastcdr::Cdr &sc
 
 AMM::Render::Modification::Modification()
 {
+
 
 
 
@@ -1666,7 +1771,7 @@ AMM::Render::Modification& AMM::Render::Modification::operator=(const Modificati
     m_practitioner = x.m_practitioner;
     m_type = x.m_type;
     m_payload = x.m_payload;
-    
+
     return *this;
 }
 
@@ -1677,14 +1782,14 @@ AMM::Render::Modification& AMM::Render::Modification::operator=(Modification &&x
     m_practitioner = std::move(x.m_practitioner);
     m_type = std::move(x.m_type);
     m_payload = std::move(x.m_payload);
-    
+
     return *this;
 }
 
 size_t AMM::Render::Modification::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += UUID::getMaxCdrSerializedSize(current_alignment);
     current_alignment += FMA_Location::getMaxCdrSerializedSize(current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -1699,8 +1804,9 @@ size_t AMM::Render::Modification::getMaxCdrSerializedSize(size_t current_alignme
 
 size_t AMM::Render::Modification::getCdrSerializedSize(const AMM::Render::Modification& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += UUID::getCdrSerializedSize(data.id(), current_alignment);
     current_alignment += FMA_Location::getCdrSerializedSize(data.location(), current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.practitioner().size() + 1;
@@ -1751,6 +1857,7 @@ bool AMM::Render::Modification::isKeyDefined()
 
 void AMM::Render::Modification::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 	 
@@ -1760,6 +1867,7 @@ void AMM::Render::Modification::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 
 AMM::PatientAction::BioGears::Command::Command()
 {
+
 }
 
 AMM::PatientAction::BioGears::Command::~Command()
@@ -1779,21 +1887,21 @@ AMM::PatientAction::BioGears::Command::Command(Command &&x)
 AMM::PatientAction::BioGears::Command& AMM::PatientAction::BioGears::Command::operator=(const Command &x)
 {
     m_message = x.m_message;
-    
+
     return *this;
 }
 
 AMM::PatientAction::BioGears::Command& AMM::PatientAction::BioGears::Command::operator=(Command &&x)
 {
     m_message = std::move(x.m_message);
-    
+
     return *this;
 }
 
 size_t AMM::PatientAction::BioGears::Command::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     return current_alignment - initial_alignment;
@@ -1801,8 +1909,9 @@ size_t AMM::PatientAction::BioGears::Command::getMaxCdrSerializedSize(size_t cur
 
 size_t AMM::PatientAction::BioGears::Command::getCdrSerializedSize(const AMM::PatientAction::BioGears::Command& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.message().size() + 1;
 
     return current_alignment - initial_alignment;
@@ -1833,12 +1942,14 @@ bool AMM::PatientAction::BioGears::Command::isKeyDefined()
 
 void AMM::PatientAction::BioGears::Command::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 
 
 AMM::Performance::xAPIModifier::xAPIModifier()
 {
+
 
 
 }
@@ -1863,7 +1974,7 @@ AMM::Performance::xAPIModifier& AMM::Performance::xAPIModifier::operator=(const 
 {
     m_key = x.m_key;
     m_value = x.m_value;
-    
+
     return *this;
 }
 
@@ -1871,14 +1982,14 @@ AMM::Performance::xAPIModifier& AMM::Performance::xAPIModifier::operator=(xAPIMo
 {
     m_key = std::move(x.m_key);
     m_value = std::move(x.m_value);
-    
+
     return *this;
 }
 
 size_t AMM::Performance::xAPIModifier::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -1889,8 +2000,9 @@ size_t AMM::Performance::xAPIModifier::getMaxCdrSerializedSize(size_t current_al
 
 size_t AMM::Performance::xAPIModifier::getCdrSerializedSize(const AMM::Performance::xAPIModifier& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.key().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.value().size() + 1;
@@ -1928,12 +2040,14 @@ bool AMM::Performance::xAPIModifier::isKeyDefined()
 
 void AMM::Performance::xAPIModifier::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 }
 
 AMM::Performance::Statement::Statement()
 {
+
 
 
 
@@ -1974,7 +2088,7 @@ AMM::Performance::Statement& AMM::Performance::Statement::operator=(const Statem
     m_verb_modifiers = x.m_verb_modifiers;
     m_obj = x.m_obj;
     m_obj_modifiers = x.m_obj_modifiers;
-    
+
     return *this;
 }
 
@@ -1986,17 +2100,19 @@ AMM::Performance::Statement& AMM::Performance::Statement::operator=(Statement &&
     m_verb_modifiers = std::move(x.m_verb_modifiers);
     m_obj = std::move(x.m_obj);
     m_obj_modifiers = std::move(x.m_obj_modifiers);
-    
+
     return *this;
 }
 
 size_t AMM::Performance::Statement::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
     for(size_t a = 0; a < 100; ++a)
     {
         current_alignment += AMM::Performance::xAPIModifier::getMaxCdrSerializedSize(current_alignment);}
@@ -2004,6 +2120,8 @@ size_t AMM::Performance::Statement::getMaxCdrSerializedSize(size_t current_align
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
     for(size_t a = 0; a < 100; ++a)
     {
         current_alignment += AMM::Performance::xAPIModifier::getMaxCdrSerializedSize(current_alignment);}
@@ -2011,6 +2129,8 @@ size_t AMM::Performance::Statement::getMaxCdrSerializedSize(size_t current_align
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
     for(size_t a = 0; a < 100; ++a)
     {
         current_alignment += AMM::Performance::xAPIModifier::getMaxCdrSerializedSize(current_alignment);}
@@ -2021,11 +2141,14 @@ size_t AMM::Performance::Statement::getMaxCdrSerializedSize(size_t current_align
 
 size_t AMM::Performance::Statement::getCdrSerializedSize(const AMM::Performance::Statement& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.noun().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
     for(size_t a = 0; a < data.noun_modifiers().size(); ++a)
     {
         current_alignment += AMM::Performance::xAPIModifier::getCdrSerializedSize(data.noun_modifiers().at(a), current_alignment);}
@@ -2033,6 +2156,8 @@ size_t AMM::Performance::Statement::getCdrSerializedSize(const AMM::Performance:
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.verb().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
     for(size_t a = 0; a < data.verb_modifiers().size(); ++a)
     {
         current_alignment += AMM::Performance::xAPIModifier::getCdrSerializedSize(data.verb_modifiers().at(a), current_alignment);}
@@ -2040,6 +2165,8 @@ size_t AMM::Performance::Statement::getCdrSerializedSize(const AMM::Performance:
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.obj().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
     for(size_t a = 0; a < data.obj_modifiers().size(); ++a)
     {
         current_alignment += AMM::Performance::xAPIModifier::getCdrSerializedSize(data.obj_modifiers().at(a), current_alignment);}
@@ -2089,6 +2216,7 @@ bool AMM::Performance::Statement::isKeyDefined()
 
 void AMM::Performance::Statement::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 	 
@@ -2098,6 +2226,7 @@ void AMM::Performance::Statement::serializeKey(eprosima::fastcdr::Cdr &scdr) con
 }
 AMM::Performance::Assessment::Assessment()
 {
+
 
 
 
@@ -2142,7 +2271,7 @@ AMM::Performance::Assessment& AMM::Performance::Assessment::operator=(const Asse
     m_assessment_info = x.m_assessment_info;
     m_step = x.m_step;
     m_comment = x.m_comment;
-    
+
     return *this;
 }
 
@@ -2155,14 +2284,14 @@ AMM::Performance::Assessment& AMM::Performance::Assessment::operator=(Assessment
     m_assessment_info = std::move(x.m_assessment_info);
     m_step = std::move(x.m_step);
     m_comment = std::move(x.m_comment);
-    
+
     return *this;
 }
 
 size_t AMM::Performance::Assessment::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -2182,8 +2311,9 @@ size_t AMM::Performance::Assessment::getMaxCdrSerializedSize(size_t current_alig
 
 size_t AMM::Performance::Assessment::getCdrSerializedSize(const AMM::Performance::Assessment& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.Timestamp().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.learner_id().size() + 1;
@@ -2245,6 +2375,7 @@ bool AMM::Performance::Assessment::isKeyDefined()
 
 void AMM::Performance::Assessment::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 	 
@@ -2257,7 +2388,10 @@ void AMM::Performance::Assessment::serializeKey(eprosima::fastcdr::Cdr &scdr) co
 AMM::Resource::Requirement::Power::Power()
 {
     m_volts = 0.0;
+
     m_amps = 0.0;
+
+
 }
 
 AMM::Resource::Requirement::Power::~Power()
@@ -2280,7 +2414,7 @@ AMM::Resource::Requirement::Power& AMM::Resource::Requirement::Power::operator=(
 {
     m_volts = x.m_volts;
     m_amps = x.m_amps;
-    
+
     return *this;
 }
 
@@ -2288,17 +2422,19 @@ AMM::Resource::Requirement::Power& AMM::Resource::Requirement::Power::operator=(
 {
     m_volts = x.m_volts;
     m_amps = x.m_amps;
-    
+
     return *this;
 }
 
 size_t AMM::Resource::Requirement::Power::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
-    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
+
+    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
 
     return current_alignment - initial_alignment;
@@ -2306,11 +2442,14 @@ size_t AMM::Resource::Requirement::Power::getMaxCdrSerializedSize(size_t current
 
 size_t AMM::Resource::Requirement::Power::getCdrSerializedSize(const AMM::Resource::Requirement::Power& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
-    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
+
+    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
 
     return current_alignment - initial_alignment;
@@ -2345,12 +2484,15 @@ bool AMM::Resource::Requirement::Power::isKeyDefined()
 
 void AMM::Resource::Requirement::Power::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 }
 AMM::Resource::Requirement::Blood::Blood()
 {
     m_volume = 0.0;
+
+
 }
 
 AMM::Resource::Requirement::Blood::~Blood()
@@ -2370,21 +2512,21 @@ AMM::Resource::Requirement::Blood::Blood(Blood &&x)
 AMM::Resource::Requirement::Blood& AMM::Resource::Requirement::Blood::operator=(const Blood &x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 AMM::Resource::Requirement::Blood& AMM::Resource::Requirement::Blood::operator=(Blood &&x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 size_t AMM::Resource::Requirement::Blood::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2393,8 +2535,9 @@ size_t AMM::Resource::Requirement::Blood::getMaxCdrSerializedSize(size_t current
 
 size_t AMM::Resource::Requirement::Blood::getCdrSerializedSize(const AMM::Resource::Requirement::Blood& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2426,11 +2569,14 @@ bool AMM::Resource::Requirement::Blood::isKeyDefined()
 
 void AMM::Resource::Requirement::Blood::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 AMM::Resource::Requirement::Clear_Liquid::Clear_Liquid()
 {
     m_volume = 0.0;
+
+
 }
 
 AMM::Resource::Requirement::Clear_Liquid::~Clear_Liquid()
@@ -2450,21 +2596,21 @@ AMM::Resource::Requirement::Clear_Liquid::Clear_Liquid(Clear_Liquid &&x)
 AMM::Resource::Requirement::Clear_Liquid& AMM::Resource::Requirement::Clear_Liquid::operator=(const Clear_Liquid &x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 AMM::Resource::Requirement::Clear_Liquid& AMM::Resource::Requirement::Clear_Liquid::operator=(Clear_Liquid &&x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 size_t AMM::Resource::Requirement::Clear_Liquid::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2473,8 +2619,9 @@ size_t AMM::Resource::Requirement::Clear_Liquid::getMaxCdrSerializedSize(size_t 
 
 size_t AMM::Resource::Requirement::Clear_Liquid::getCdrSerializedSize(const AMM::Resource::Requirement::Clear_Liquid& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2506,11 +2653,14 @@ bool AMM::Resource::Requirement::Clear_Liquid::isKeyDefined()
 
 void AMM::Resource::Requirement::Clear_Liquid::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 AMM::Resource::Requirement::Air::Air()
 {
     m_volume = 0.0;
+
+
 }
 
 AMM::Resource::Requirement::Air::~Air()
@@ -2530,21 +2680,21 @@ AMM::Resource::Requirement::Air::Air(Air &&x)
 AMM::Resource::Requirement::Air& AMM::Resource::Requirement::Air::operator=(const Air &x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 AMM::Resource::Requirement::Air& AMM::Resource::Requirement::Air::operator=(Air &&x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 size_t AMM::Resource::Requirement::Air::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2553,8 +2703,9 @@ size_t AMM::Resource::Requirement::Air::getMaxCdrSerializedSize(size_t current_a
 
 size_t AMM::Resource::Requirement::Air::getCdrSerializedSize(const AMM::Resource::Requirement::Air& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2586,11 +2737,14 @@ bool AMM::Resource::Requirement::Air::isKeyDefined()
 
 void AMM::Resource::Requirement::Air::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 AMM::Resource::Requirement::Cleaning_Solution::Cleaning_Solution()
 {
     m_volume = 0.0;
+
+
 }
 
 AMM::Resource::Requirement::Cleaning_Solution::~Cleaning_Solution()
@@ -2610,21 +2764,21 @@ AMM::Resource::Requirement::Cleaning_Solution::Cleaning_Solution(Cleaning_Soluti
 AMM::Resource::Requirement::Cleaning_Solution& AMM::Resource::Requirement::Cleaning_Solution::operator=(const Cleaning_Solution &x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 AMM::Resource::Requirement::Cleaning_Solution& AMM::Resource::Requirement::Cleaning_Solution::operator=(Cleaning_Solution &&x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 size_t AMM::Resource::Requirement::Cleaning_Solution::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2633,8 +2787,9 @@ size_t AMM::Resource::Requirement::Cleaning_Solution::getMaxCdrSerializedSize(si
 
 size_t AMM::Resource::Requirement::Cleaning_Solution::getCdrSerializedSize(const AMM::Resource::Requirement::Cleaning_Solution& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2666,13 +2821,17 @@ bool AMM::Resource::Requirement::Cleaning_Solution::isKeyDefined()
 
 void AMM::Resource::Requirement::Cleaning_Solution::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 
 AMM::Resource::Supply::Power::Power()
 {
     m_volts = 0.0;
+
     m_amps = 0.0;
+
+
 }
 
 AMM::Resource::Supply::Power::~Power()
@@ -2695,7 +2854,7 @@ AMM::Resource::Supply::Power& AMM::Resource::Supply::Power::operator=(const Powe
 {
     m_volts = x.m_volts;
     m_amps = x.m_amps;
-    
+
     return *this;
 }
 
@@ -2703,17 +2862,19 @@ AMM::Resource::Supply::Power& AMM::Resource::Supply::Power::operator=(Power &&x)
 {
     m_volts = x.m_volts;
     m_amps = x.m_amps;
-    
+
     return *this;
 }
 
 size_t AMM::Resource::Supply::Power::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
-    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
+
+    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
 
     return current_alignment - initial_alignment;
@@ -2721,11 +2882,14 @@ size_t AMM::Resource::Supply::Power::getMaxCdrSerializedSize(size_t current_alig
 
 size_t AMM::Resource::Supply::Power::getCdrSerializedSize(const AMM::Resource::Supply::Power& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
-    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
+
+    current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
 
     return current_alignment - initial_alignment;
@@ -2760,12 +2924,15 @@ bool AMM::Resource::Supply::Power::isKeyDefined()
 
 void AMM::Resource::Supply::Power::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 }
 AMM::Resource::Supply::Blood::Blood()
 {
     m_volume = 0.0;
+
+
 }
 
 AMM::Resource::Supply::Blood::~Blood()
@@ -2785,21 +2952,21 @@ AMM::Resource::Supply::Blood::Blood(Blood &&x)
 AMM::Resource::Supply::Blood& AMM::Resource::Supply::Blood::operator=(const Blood &x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 AMM::Resource::Supply::Blood& AMM::Resource::Supply::Blood::operator=(Blood &&x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 size_t AMM::Resource::Supply::Blood::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2808,8 +2975,9 @@ size_t AMM::Resource::Supply::Blood::getMaxCdrSerializedSize(size_t current_alig
 
 size_t AMM::Resource::Supply::Blood::getCdrSerializedSize(const AMM::Resource::Supply::Blood& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2841,11 +3009,14 @@ bool AMM::Resource::Supply::Blood::isKeyDefined()
 
 void AMM::Resource::Supply::Blood::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 AMM::Resource::Supply::Clear_Liquid::Clear_Liquid()
 {
     m_volume = 0.0;
+
+
 }
 
 AMM::Resource::Supply::Clear_Liquid::~Clear_Liquid()
@@ -2865,21 +3036,21 @@ AMM::Resource::Supply::Clear_Liquid::Clear_Liquid(Clear_Liquid &&x)
 AMM::Resource::Supply::Clear_Liquid& AMM::Resource::Supply::Clear_Liquid::operator=(const Clear_Liquid &x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 AMM::Resource::Supply::Clear_Liquid& AMM::Resource::Supply::Clear_Liquid::operator=(Clear_Liquid &&x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 size_t AMM::Resource::Supply::Clear_Liquid::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2888,8 +3059,9 @@ size_t AMM::Resource::Supply::Clear_Liquid::getMaxCdrSerializedSize(size_t curre
 
 size_t AMM::Resource::Supply::Clear_Liquid::getCdrSerializedSize(const AMM::Resource::Supply::Clear_Liquid& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2921,11 +3093,14 @@ bool AMM::Resource::Supply::Clear_Liquid::isKeyDefined()
 
 void AMM::Resource::Supply::Clear_Liquid::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 AMM::Resource::Supply::Air::Air()
 {
     m_volume = 0.0;
+
+
 }
 
 AMM::Resource::Supply::Air::~Air()
@@ -2945,21 +3120,21 @@ AMM::Resource::Supply::Air::Air(Air &&x)
 AMM::Resource::Supply::Air& AMM::Resource::Supply::Air::operator=(const Air &x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 AMM::Resource::Supply::Air& AMM::Resource::Supply::Air::operator=(Air &&x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 size_t AMM::Resource::Supply::Air::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -2968,8 +3143,9 @@ size_t AMM::Resource::Supply::Air::getMaxCdrSerializedSize(size_t current_alignm
 
 size_t AMM::Resource::Supply::Air::getCdrSerializedSize(const AMM::Resource::Supply::Air& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -3001,11 +3177,14 @@ bool AMM::Resource::Supply::Air::isKeyDefined()
 
 void AMM::Resource::Supply::Air::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 AMM::Resource::Supply::Cleaning_Solution::Cleaning_Solution()
 {
     m_volume = 0.0;
+
+
 }
 
 AMM::Resource::Supply::Cleaning_Solution::~Cleaning_Solution()
@@ -3025,21 +3204,21 @@ AMM::Resource::Supply::Cleaning_Solution::Cleaning_Solution(Cleaning_Solution &&
 AMM::Resource::Supply::Cleaning_Solution& AMM::Resource::Supply::Cleaning_Solution::operator=(const Cleaning_Solution &x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 AMM::Resource::Supply::Cleaning_Solution& AMM::Resource::Supply::Cleaning_Solution::operator=(Cleaning_Solution &&x)
 {
     m_volume = x.m_volume;
-    
+
     return *this;
 }
 
 size_t AMM::Resource::Supply::Cleaning_Solution::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -3048,8 +3227,9 @@ size_t AMM::Resource::Supply::Cleaning_Solution::getMaxCdrSerializedSize(size_t 
 
 size_t AMM::Resource::Supply::Cleaning_Solution::getCdrSerializedSize(const AMM::Resource::Supply::Cleaning_Solution& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
 
 
@@ -3081,6 +3261,7 @@ bool AMM::Resource::Supply::Cleaning_Solution::isKeyDefined()
 
 void AMM::Resource::Supply::Cleaning_Solution::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 
@@ -3088,6 +3269,7 @@ void AMM::Resource::Supply::Cleaning_Solution::serializeKey(eprosima::fastcdr::C
 
 AMM::Capability::AMM_version::AMM_version()
 {
+
 
 
 
@@ -3116,7 +3298,7 @@ AMM::Capability::AMM_version& AMM::Capability::AMM_version::operator=(const AMM_
     m_software_version = x.m_software_version;
     m_hardware_version = x.m_hardware_version;
     m_specification_version = x.m_specification_version;
-    
+
     return *this;
 }
 
@@ -3125,14 +3307,14 @@ AMM::Capability::AMM_version& AMM::Capability::AMM_version::operator=(AMM_versio
     m_software_version = std::move(x.m_software_version);
     m_hardware_version = std::move(x.m_hardware_version);
     m_specification_version = std::move(x.m_specification_version);
-    
+
     return *this;
 }
 
 size_t AMM::Capability::AMM_version::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -3145,8 +3327,9 @@ size_t AMM::Capability::AMM_version::getMaxCdrSerializedSize(size_t current_alig
 
 size_t AMM::Capability::AMM_version::getCdrSerializedSize(const AMM::Capability::AMM_version& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.software_version().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.hardware_version().size() + 1;
@@ -3189,12 +3372,14 @@ bool AMM::Capability::AMM_version::isKeyDefined()
 
 void AMM::Capability::AMM_version::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 	 
 }
 AMM::Capability::Configuration::Configuration()
 {
+
 
 
 
@@ -3243,7 +3428,7 @@ AMM::Capability::Configuration& AMM::Capability::Configuration::operator=(const 
     m_version = x.m_version;
     m_amm_version = x.m_amm_version;
     m_capabilities = x.m_capabilities;
-    
+
     return *this;
 }
 
@@ -3257,14 +3442,14 @@ AMM::Capability::Configuration& AMM::Capability::Configuration::operator=(Config
     m_version = std::move(x.m_version);
     m_amm_version = std::move(x.m_amm_version);
     m_capabilities = std::move(x.m_capabilities);
-    
+
     return *this;
 }
 
 size_t AMM::Capability::Configuration::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -3286,8 +3471,9 @@ size_t AMM::Capability::Configuration::getMaxCdrSerializedSize(size_t current_al
 
 size_t AMM::Capability::Configuration::getCdrSerializedSize(const AMM::Capability::Configuration& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.module_id().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.module_name().size() + 1;
@@ -3354,6 +3540,7 @@ bool AMM::Capability::Configuration::isKeyDefined()
 
 void AMM::Capability::Configuration::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 	 
@@ -3365,6 +3552,7 @@ void AMM::Capability::Configuration::serializeKey(eprosima::fastcdr::Cdr &scdr) 
 }
 AMM::Capability::Scenario::Scenario()
 {
+
 }
 
 AMM::Capability::Scenario::~Scenario()
@@ -3384,21 +3572,21 @@ AMM::Capability::Scenario::Scenario(Scenario &&x)
 AMM::Capability::Scenario& AMM::Capability::Scenario::operator=(const Scenario &x)
 {
     m_id = x.m_id;
-    
+
     return *this;
 }
 
 AMM::Capability::Scenario& AMM::Capability::Scenario::operator=(Scenario &&x)
 {
     m_id = std::move(x.m_id);
-    
+
     return *this;
 }
 
 size_t AMM::Capability::Scenario::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     return current_alignment - initial_alignment;
@@ -3406,8 +3594,9 @@ size_t AMM::Capability::Scenario::getMaxCdrSerializedSize(size_t current_alignme
 
 size_t AMM::Capability::Scenario::getCdrSerializedSize(const AMM::Capability::Scenario& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.id().size() + 1;
 
     return current_alignment - initial_alignment;
@@ -3438,6 +3627,7 @@ bool AMM::Capability::Scenario::isKeyDefined()
 
 void AMM::Capability::Scenario::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 }
 AMM::Capability::Status::Status()
@@ -3446,6 +3636,8 @@ AMM::Capability::Status::Status()
 
 
     m_status_value = AMM::Capability::OPERATIONAL;
+
+
 
 }
 
@@ -3478,7 +3670,7 @@ AMM::Capability::Status& AMM::Capability::Status::operator=(const Status &x)
     m_capability = x.m_capability;
     m_status_value = x.m_status_value;
     m_message = x.m_message;
-    
+
     return *this;
 }
 
@@ -3489,14 +3681,14 @@ AMM::Capability::Status& AMM::Capability::Status::operator=(Status &&x)
     m_capability = std::move(x.m_capability);
     m_status_value = x.m_status_value;
     m_message = std::move(x.m_message);
-    
+
     return *this;
 }
 
 size_t AMM::Capability::Status::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -3505,7 +3697,10 @@ size_t AMM::Capability::Status::getMaxCdrSerializedSize(size_t current_alignment
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
     for(size_t a = 0; a < 100; ++a)
     {
         current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
@@ -3516,8 +3711,9 @@ size_t AMM::Capability::Status::getMaxCdrSerializedSize(size_t current_alignment
 
 size_t AMM::Capability::Status::getCdrSerializedSize(const AMM::Capability::Status& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.module_id().size() + 1;
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.module_name().size() + 1;
@@ -3526,7 +3722,10 @@ size_t AMM::Capability::Status::getCdrSerializedSize(const AMM::Capability::Stat
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
 
+
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+
+
     for(size_t a = 0; a < data.message().size(); ++a)
     {
         current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.message().at(a).size() + 1;
@@ -3549,7 +3748,11 @@ void AMM::Capability::Status::deserialize(eprosima::fastcdr::Cdr &dcdr)
     dcdr >> m_module_id;
     dcdr >> m_module_name;
     dcdr >> m_capability;
-    dcdr >> (uint32_t&)m_status_value;
+    {
+        uint32_t enum_value = 0;
+        dcdr >> enum_value;
+        m_status_value = (AMM::Capability::status_values)enum_value;
+    }
     dcdr >> m_message;
 }
 
@@ -3573,6 +3776,7 @@ bool AMM::Capability::Status::isKeyDefined()
 
 void AMM::Capability::Status::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 	 
@@ -3583,6 +3787,8 @@ void AMM::Capability::Status::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 AMM::Diagnostics::Log::Record::Record()
 {
     m_timestamp = 0;
+
+
 
 
 }
@@ -3610,7 +3816,7 @@ AMM::Diagnostics::Log::Record& AMM::Diagnostics::Log::Record::operator=(const Re
     m_timestamp = x.m_timestamp;
     m_log_level = x.m_log_level;
     m_message = x.m_message;
-    
+
     return *this;
 }
 
@@ -3619,15 +3825,16 @@ AMM::Diagnostics::Log::Record& AMM::Diagnostics::Log::Record::operator=(Record &
     m_timestamp = x.m_timestamp;
     m_log_level = std::move(x.m_log_level);
     m_message = std::move(x.m_message);
-    
+
     return *this;
 }
 
 size_t AMM::Diagnostics::Log::Record::getMaxCdrSerializedSize(size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
@@ -3639,9 +3846,11 @@ size_t AMM::Diagnostics::Log::Record::getMaxCdrSerializedSize(size_t current_ali
 
 size_t AMM::Diagnostics::Log::Record::getCdrSerializedSize(const AMM::Diagnostics::Log::Record& data, size_t current_alignment)
 {
+    (void)data;
     size_t initial_alignment = current_alignment;
-            
+
     current_alignment += 8 + eprosima::fastcdr::Cdr::alignment(current_alignment, 8);
+
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.log_level().size() + 1;
 
@@ -3683,6 +3892,7 @@ bool AMM::Diagnostics::Log::Record::isKeyDefined()
 
 void AMM::Diagnostics::Log::Record::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
+	(void) scdr;
 	 
 	 
 	 
