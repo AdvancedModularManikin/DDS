@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
     auto *pub_listener = new DDS_Listeners::PubListener();
     Publisher *command_publisher =
             mgr->InitializePublisher(AMM::DataTypes::commandTopic,
-                                     AMM::DataTypes::getCommandType(), pub_listener);
+                                     &mgr->CommandType, pub_listener);
 
     // Publish module configuration once we've set all our publishers and
     // listeners

@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     node_sub_listener->SetUpstream(&vel);
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic,
-                              AMM::DataTypes::getNodeType(), node_sub_listener);
+                              &mgr->NodeType, node_sub_listener);
 
     // Publish module configuration once we've set all our publishers and
     // listeners

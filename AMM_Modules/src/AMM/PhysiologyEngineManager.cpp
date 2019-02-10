@@ -44,26 +44,26 @@ namespace AMM {
         auto *pub_listener = new DDS_Listeners::PubListener();
 
         tick_subscriber = mgr->InitializeSubscriber(AMM::DataTypes::tickTopic,
-                                                    AMM::DataTypes::getTickType(),
+                                                    &mgr->TickType,
                                                     tick_sub_listener);
 
         command_subscriber = mgr->InitializeReliableSubscriber(
-                AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                AMM::DataTypes::commandTopic, &mgr->CommandType,
                 command_sub_listener);
 
         equipment_subscriber = mgr->InitializeReliableSubscriber(
                 AMM::DataTypes::instrumentDataTopic,
-                AMM::DataTypes::getInstrumentDataType(), equipment_sub_listener);
+                &mgr->InstrumentDataType, equipment_sub_listener);
 
         physmod_subscriber = mgr->InitializeReliableSubscriber(
                 AMM::DataTypes::physModTopic,
-                AMM::DataTypes::getPhysiologyModificationType(), physmod_sub_listener);
+                &mgr->PhysiologyModificationType, physmod_sub_listener);
 
         node_publisher = mgr->InitializePublisher(
-                AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), pub_listener);
+                AMM::DataTypes::nodeTopic, &mgr->NodeType, pub_listener);
 
         hf_node_publisher = mgr->InitializePublisher(
-                AMM::DataTypes::highFrequencyNodeTopic, AMM::DataTypes::getHighFrequencyNodeType(), pub_listener);
+                AMM::DataTypes::highFrequencyNodeTopic, &mgr->HighFrequencyNodeType, pub_listener);
 
         std::string nodeString(nodeName);
 

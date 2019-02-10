@@ -97,9 +97,9 @@ DDS_Manager *mgr;
 
 std::map<std::string, double> nodeDataStorage;
 
-std::map<std::string, std::string> statusStorage = {{"STATUS",       "NOT RUNNING"},
-                                                    {"TICK",         "0"},
-                                                    {"TIME",         "0"}};
+std::map<std::string, std::string> statusStorage = {{"STATUS", "NOT RUNNING"},
+                                                    {"TICK",   "0"},
+                                                    {"TIME",   "0"}};
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -762,7 +762,7 @@ private:
                writer.Key("message");
                writer.String(data.c_str());
                writer.EndObject();
-        };
+           };
 
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
@@ -890,14 +890,9 @@ int main(int argc, char *argv[]) {
     command_sub_listener->SetUpstream(&rl);
     tick_sub_listener->SetUpstream(&rl);
 
-
-    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic,
-                              AMM::DataTypes::getNodeType(), node_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic,
-                                      AMM::DataTypes::getCommandType(),
-                                      command_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::tickTopic,
-                              AMM::DataTypes::getTickType(), tick_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, &mgr->NodeType, node_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType, command_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, &mgr->TickType, tick_sub_listener);
 
     std::thread udpD(UdpDiscoveryThread);
 

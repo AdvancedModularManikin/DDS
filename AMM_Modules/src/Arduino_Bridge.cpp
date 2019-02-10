@@ -427,15 +427,15 @@ int main(int argc, char *argv[]) {
     render_mod_listener->SetUpstream(&al);
     phys_mod_listener->SetUpstream(&al);
 
-    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, &mgr->NodeType,
                               node_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::highFrequencyNodeTopic,
-                              AMM::DataTypes::getHighFrequencyNodeType(), hf_node_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                              &mgr->HighFrequencyNodeType, hf_node_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType,
                                       command_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic, AMM::DataTypes::getRenderModificationType(),
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic, &mgr->RenderModificationType,
                                       render_mod_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic, AMM::DataTypes::getPhysiologyModificationType(),
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic, &mgr->PhysiologyModificationType,
                                       phys_mod_listener);
 
     strcpy(serialport, PORT_LINUX);

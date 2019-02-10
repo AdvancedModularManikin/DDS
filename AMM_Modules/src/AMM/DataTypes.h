@@ -5,69 +5,6 @@
 namespace AMM {
     class DataTypes {
     public:
-        // AMM Simulation types
-        static AMM::Simulation::TickPubSubType *getTickType();
-
-        // AMM Physiology types
-        static AMM::Physiology::NodePubSubType *getNodeType();
-
-        static AMM::Physiology::HighFrequencyNodePubSubType *
-        getHighFrequencyNodeType();
-
-        static AMM::Physiology::CommandPubSubType *getPhysiologyCommandType();
-
-        // AMM Patient Action / Intervention types
-        static AMM::PatientAction::BioGears::CommandPubSubType *getCommandType();
-
-        // AMM Performance types
-        static AMM::Performance::StatementPubSubType *getxAPIStatementType();
-
-        // AMM Resource Requirements types
-        static AMM::Resource::Requirement::AirPubSubType *getAirRequirementType();
-
-        static AMM::Resource::Requirement::BloodPubSubType *getBloodRequirementType();
-
-        static AMM::Resource::Requirement::Cleaning_SolutionPubSubType *
-        getCleaningSolutionRequirementType();
-
-        static AMM::Resource::Requirement::Clear_LiquidPubSubType *
-        getClearLiquidRequirementType();
-
-        static AMM::Resource::Requirement::PowerPubSubType *getPowerRequirementType();
-
-        // AMM Resource Supply types
-        static AMM::Resource::Supply::AirPubSubType *getAirSupplyType();
-
-        static AMM::Resource::Supply::BloodPubSubType *getBloodSupplyType();
-
-        static AMM::Resource::Supply::Cleaning_SolutionPubSubType *
-        getCleaningSolutionSupplyType();
-
-        static AMM::Resource::Supply::Clear_LiquidPubSubType *
-        getClearLiquidSupplyType();
-
-        static AMM::Resource::Supply::PowerPubSubType *getPowerSupplyType();
-
-        // AMM Capability types
-        static AMM::Capability::ConfigurationPubSubType *getConfigurationType();
-
-        static AMM::Capability::StatusPubSubType *getStatusType();
-
-        static AMM::Capability::ScenarioPubSubType *getScenarioType();
-
-        // AMM Instrument Data type
-        static AMM::InstrumentDataPubSubType *getInstrumentDataType();
-
-        static AMM::Performance::AssessmentPubSubType *
-        getPerformanceAssessmentDataType();
-
-        static AMM::Render::ModificationPubSubType *getRenderModificationType();
-
-        static AMM::Physiology::ModificationPubSubType *
-        getPhysiologyModificationType();
-
-        static AMM::Diagnostics::Log::RecordPubSubType *getLogRecordType();
-
         // Topic names
         static std::string tickTopic;
 

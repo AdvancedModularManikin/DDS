@@ -783,21 +783,21 @@ int main(int argc, const char *argv[]) {
     phys_mod_listener->SetUpstream(&tl);
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic,
-                              AMM::DataTypes::getNodeType(), node_sub_listener);
+                              &mgr->NodeType, node_sub_listener);
 
     mgr->InitializeSubscriber(AMM::DataTypes::highFrequencyNodeTopic,
-                              AMM::DataTypes::getHighFrequencyNodeType(), hf_node_sub_listener);
+                              &mgr->HighFrequencyNodeType, hf_node_sub_listener);
 
     mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic,
-                                      AMM::DataTypes::getCommandType(),
+                                      &mgr->CommandType,
                                       command_sub_listener);
 
     mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic,
-                                      AMM::DataTypes::getRenderModificationType(),
+                                      &mgr->RenderModificationType,
                                       render_mod_listener);
     mgr->InitializeReliableSubscriber(
             AMM::DataTypes::physModTopic,
-            AMM::DataTypes::getPhysiologyModificationType(), phys_mod_listener);
+            &mgr->PhysiologyModificationType, phys_mod_listener);
 
     // Publish module configuration once we've set all our publishers and
     // listeners

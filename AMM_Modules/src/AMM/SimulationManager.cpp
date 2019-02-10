@@ -13,15 +13,15 @@ namespace AMM {
         auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
         command_sub_listener->SetUpstream(this);
         command_subscriber = mgr->InitializeReliableSubscriber(
-                AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(),
+                AMM::DataTypes::commandTopic, &mgr->CommandType,
                 command_sub_listener);
 
         auto *pub_listener = new DDS_Listeners::PubListener();
         tick_publisher = mgr->InitializePublisher(
-                AMM::DataTypes::tickTopic, AMM::DataTypes::getTickType(), pub_listener);
+                AMM::DataTypes::tickTopic, &mgr->TickType, pub_listener);
         physiology_publisher = mgr->InitializeReliablePublisher(
                 AMM::DataTypes::physiologyCommandTopic,
-                AMM::DataTypes::getPhysiologyCommandType(), pub_listener);
+                &mgr->PhysiologyCommandType, pub_listener);
         m_runThread = false;
 
         currentScenario = mgr->GetScenario();

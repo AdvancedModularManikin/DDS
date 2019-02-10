@@ -238,14 +238,14 @@ int main(int argc, char *argv[]) {
 
     auto *pub_listener = new DDS_Listeners::PubListener();
 
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType, command_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, &mgr->ConfigurationType,
                                       config_sub_listener);
 
     Publisher *command_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::commandTopic,
-                                                         AMM::DataTypes::getCommandType(), pub_listener);
+                                                         &mgr->CommandType, pub_listener);
 
-    Publisher *node_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
+    Publisher *node_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::nodeTopic, &mgr->NodeType,
                                                       pub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
