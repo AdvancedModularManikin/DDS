@@ -138,6 +138,61 @@ namespace AMM {
 
         std::string module_id;
 
+        AMM::Simulation::TickPubSubType TickType;
+
+        // AMM Physiology types
+        AMM::Physiology::NodePubSubType NodeType;
+
+        AMM::Physiology::HighFrequencyNodePubSubType HighFrequencyNodeType;
+
+        AMM::Physiology::CommandPubSubType PhysiologyCommandType;
+
+        // AMM Patient Action / Intervention types
+        AMM::PatientAction::BioGears::CommandPubSubType CommandType;
+
+        // AMM Performance types
+        AMM::Performance::StatementPubSubType xAPIStatementType;
+
+        // AMM Resource Requirements types
+        AMM::Resource::Requirement::AirPubSubType AirRequirementType;
+
+        AMM::Resource::Requirement::BloodPubSubType BloodRequirementType;
+
+        AMM::Resource::Requirement::Cleaning_SolutionPubSubType CleaningSolutionRequirementType;
+
+        AMM::Resource::Requirement::Clear_LiquidPubSubType ClearLiquidRequirementType;
+
+        AMM::Resource::Requirement::PowerPubSubType PowerRequirementType;
+
+        // AMM Resource Supply types
+        AMM::Resource::Supply::AirPubSubType AirSupplyType;
+
+        AMM::Resource::Supply::BloodPubSubType BloodSupplyType;
+
+        AMM::Resource::Supply::Cleaning_SolutionPubSubType CleaningSolutionSupplyType;
+
+        AMM::Resource::Supply::Clear_LiquidPubSubType ClearLiquidSupplyType;
+
+        AMM::Resource::Supply::PowerPubSubType PowerSupplyType;
+
+        // AMM Capability types
+        AMM::Capability::ConfigurationPubSubType ConfigurationType;
+
+        AMM::Capability::StatusPubSubType StatusType;
+
+        AMM::Capability::ScenarioPubSubType ScenarioType;
+
+        // AMM Instrument Data type
+        AMM::InstrumentDataPubSubType InstrumentDataType;
+
+        AMM::Performance::AssessmentPubSubType PerformanceAssessmentDataType;
+
+        AMM::Render::ModificationPubSubType RenderModificationType;
+
+        AMM::Physiology::ModificationPubSubType PhysiologyModificationType;
+
+        AMM::Diagnostics::Log::RecordPubSubType LogRecordType;
+
     protected:
         // @TODO: Load this from a config file
         const int domainId = 15;

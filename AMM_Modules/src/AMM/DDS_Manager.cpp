@@ -9,6 +9,8 @@ using namespace eprosima::fastrtps::rtps;
 namespace AMM {
 
     DDS_Manager::DDS_Manager(const char *nodeName) {
+        LOG_INFO << "Instantiating DDS manager";
+
         ParticipantAttributes PParam;
         PParam.rtps.builtin.domainId = (uint32_t) domainId;
         PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
@@ -20,9 +22,15 @@ namespace AMM {
             return;
         }
 
+        LOG_INFO << "Registering types";
+
         RegisterTypes();
 
+        LOG_INFO << "Making pub listener";
+
         pub_listener = new DDS_Listeners::PubListener();
+
+        LOG_INFO << "Generating ID";
 
         module_id = GenerateID();
     }
@@ -35,82 +43,48 @@ namespace AMM {
     }
 
     void DDS_Manager::RegisterTypes() {
-        Domain::registerType(mp_participant,
-                             (TopicDataType *) AMM::DataTypes::getTickType());
+        Domain::registerType(mp_participant, (TopicDataType *) &TickType);
 
-        Domain::registerType(mp_participant,
-                             (TopicDataType *) AMM::DataTypes::getNodeType());
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getHighFrequencyNodeType());
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getPhysiologyCommandType());
+        Domain::registerType(mp_participant, (TopicDataType *) &NodeType);
+        Domain::registerType(mp_participant, (TopicDataType *) &HighFrequencyNodeType);
+        Domain::registerType(mp_participant, (TopicDataType *) &PhysiologyCommandType);
 
         // AMM Patient Action / Intervention types
-        Domain::registerType(mp_participant,
-                             (TopicDataType *) AMM::DataTypes::getCommandType());
+        Domain::registerType(mp_participant, (TopicDataType *) &CommandType);
 
         // AMM Performance types
-        Domain::registerType(mp_participant,
-                             (TopicDataType *) AMM::DataTypes::getxAPIStatementType());
+        Domain::registerType(mp_participant, (TopicDataType *) &xAPIStatementType);
 
         // AMM Resource Requirements types
-        Domain::registerType(
-                mp_participant, (TopicDataType *) AMM::DataTypes::getAirRequirementType());
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getBloodRequirementType());
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getCleaningSolutionRequirementType());
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getClearLiquidRequirementType());
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getPowerRequirementType());
+        Domain::registerType(mp_participant, (TopicDataType *) &AirRequirementType);
+        Domain::registerType(mp_participant, (TopicDataType *) &BloodRequirementType);
+        Domain::registerType(mp_participant, (TopicDataType *) &CleaningSolutionRequirementType);
+        Domain::registerType(mp_participant, (TopicDataType *) &ClearLiquidRequirementType);
+        Domain::registerType(mp_participant, (TopicDataType *) &PowerRequirementType);
 
         // AMM Resource Supply types
-        Domain::registerType(mp_participant,
-                             (TopicDataType *) AMM::DataTypes::getAirSupplyType());
-        Domain::registerType(mp_participant,
-                             (TopicDataType *) AMM::DataTypes::getBloodSupplyType());
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getCleaningSolutionSupplyType());
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getClearLiquidSupplyType());
-        Domain::registerType(mp_participant,
-                             (TopicDataType *) AMM::DataTypes::getPowerSupplyType());
+        Domain::registerType(mp_participant, (TopicDataType *) &AirSupplyType);
+        Domain::registerType(mp_participant, (TopicDataType *) &BloodSupplyType);
+        Domain::registerType(mp_participant, (TopicDataType *) &CleaningSolutionSupplyType);
+        Domain::registerType(mp_participant, (TopicDataType *) &ClearLiquidSupplyType);
+        Domain::registerType(mp_participant, (TopicDataType *) &PowerSupplyType);
+
 
         // AMM Capability types
-        Domain::registerType(mp_participant,
-                             (TopicDataType *) AMM::DataTypes::getConfigurationType());
-        Domain::registerType(mp_participant,
-                             (TopicDataType *) AMM::DataTypes::getStatusType());
+        Domain::registerType(mp_participant, (TopicDataType *) &ConfigurationType);
+        Domain::registerType(mp_participant, (TopicDataType *) &StatusType);
 
         // AMM instrument data type
-        Domain::registerType(
-                mp_participant, (TopicDataType *) AMM::DataTypes::getInstrumentDataType());
+        Domain::registerType(mp_participant, (TopicDataType *) &InstrumentDataType);
 
         // AMM Modification data types
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getPhysiologyModificationType());
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getRenderModificationType());
+        Domain::registerType(mp_participant, (TopicDataType *) &PhysiologyModificationType);
+        Domain::registerType(mp_participant, (TopicDataType *) &RenderModificationType);
 
         // AMM performance assessment data
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getPerformanceAssessmentDataType());
+        Domain::registerType(mp_participant, (TopicDataType *) &PerformanceAssessmentDataType);
 
-        Domain::registerType(
-                mp_participant,
-                (TopicDataType *) AMM::DataTypes::getLogRecordType());
+        Domain::registerType(mp_participant, (TopicDataType *) &LogRecordType);
     }
 
     Publisher *DDS_Manager::InitializePublisher(const std::string &topicName,
@@ -119,9 +93,8 @@ namespace AMM {
         PublisherAttributes wparam;
         wparam.topic.topicDataType = topicType->getName();
         wparam.topic.topicName = topicName;
-        wparam.topic.topicKind = NO_KEY;
-        Publisher *gen_publisher =
-                Domain::createPublisher(mp_participant, wparam, pub_listener);
+        // wparam.topic.topicKind = NO_KEY;
+        Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
         return gen_publisher;
     }
 
@@ -132,10 +105,9 @@ namespace AMM {
         PublisherAttributes wparam;
         wparam.topic.topicDataType = topicType->getName();
         wparam.topic.topicName = topicName;
-        wparam.topic.topicKind = NO_KEY;
-        // wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
-        Publisher *gen_publisher =
-                Domain::createPublisher(mp_participant, wparam, pub_listener);
+        // wparam.topic.topicKind = NO_KEY;
+        wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
+        Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
         return gen_publisher;
     }
 
@@ -146,9 +118,8 @@ namespace AMM {
         SubscriberAttributes rparam;
         rparam.topic.topicDataType = topicType->getName();
         rparam.topic.topicName = topicName;
-        rparam.topic.topicKind = NO_KEY;
-        Subscriber *gen_subscriber =
-                Domain::createSubscriber(mp_participant, rparam, sub_listener);
+        rparam.topic.topicKind = topicKind;
+        Subscriber *gen_subscriber = Domain::createSubscriber(mp_participant, rparam, sub_listener);
         return gen_subscriber;
     }
 
@@ -158,10 +129,9 @@ namespace AMM {
         SubscriberAttributes rparam;
         rparam.topic.topicDataType = topicType->getName();
         rparam.topic.topicName = topicName;
-        // rparam.topic.topicKind = NO_KEY;
-        // rparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
-        Subscriber *gen_subscriber =
-                Domain::createSubscriber(mp_participant, rparam, sub_listener);
+        rparam.topic.topicKind = topicKind;
+        rparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
+        Subscriber *gen_subscriber = Domain::createSubscriber(mp_participant, rparam, sub_listener);
         return gen_subscriber;
     }
 
@@ -197,15 +167,18 @@ namespace AMM {
         PublishModuleConfiguration(configInstance);
     }
 
-    void DDS_Manager::PublishModuleConfiguration(
-            AMM::Capability::Configuration configInstance) {
+    void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
+        LOG_INFO << "Publishing module configuration";
         try {
+            AMM::Capability::ConfigurationPubSubType configType;
             if (!config_initialized) {
                 config_publisher = InitializeReliablePublisher(
                         AMM::DataTypes::configurationTopic,
-                        AMM::DataTypes::getConfigurationType(), pub_listener);
+                        &configType, pub_listener);
+                LOG_INFO << "Initialized publisher";
                 config_initialized = true;
             }
+            LOG_INFO << "Writing configuration";
             config_publisher->write(&configInstance);
         } catch (std::exception &e) {
             LOG_ERROR << e.what();
@@ -223,10 +196,10 @@ namespace AMM {
         try {
             logInstance.message(message);
             logInstance.log_level(log_level);
-            // logInstance.timestamp(now);
+            logInstance.timestamp(now);
             if (!log_initialized) {
                 log_publisher = InitializeReliablePublisher(
-                        AMM::DataTypes::logRecordTopic, AMM::DataTypes::getLogRecordType(),
+                        AMM::DataTypes::logRecordTopic, &LogRecordType,
                         pub_listener);
                 log_initialized = true;
             }
@@ -288,7 +261,7 @@ namespace AMM {
         try {
             if (!status_initialized) {
                 status_publisher = InitializeReliablePublisher(
-                        AMM::DataTypes::statusTopic, AMM::DataTypes::getStatusType(),
+                        AMM::DataTypes::statusTopic, &StatusType,
                         pub_listener);
                 status_initialized = true;
             }
@@ -303,7 +276,7 @@ namespace AMM {
         if (!command_initialized) {
             command_publisher =
                     InitializeReliablePublisher(AMM::DataTypes::commandTopic,
-                                                AMM::DataTypes::getCommandType(), pub_listener);
+                                                &CommandType, pub_listener);
             command_initialized = true;
         }
         try {
@@ -318,7 +291,7 @@ namespace AMM {
         if (!render_initialized) {
             render_publisher = InitializeReliablePublisher(
                     AMM::DataTypes::renderModTopic,
-                    AMM::DataTypes::getRenderModificationType(), pub_listener);
+                    &RenderModificationType, pub_listener);
             render_initialized = true;
         }
         try {
@@ -333,7 +306,7 @@ namespace AMM {
         if (!physmod_initialized) {
             physmod_publisher = InitializeReliablePublisher(
                     AMM::DataTypes::physModTopic,
-                    AMM::DataTypes::getPhysiologyModificationType(), pub_listener);
+                    &PhysiologyModificationType, pub_listener);
             physcommand_initialized = true;
         }
         try {
@@ -348,7 +321,7 @@ namespace AMM {
         if (!settings_initialized) {
             settings_publisher = InitializeReliablePublisher(
                     AMM::DataTypes::instrumentDataTopic,
-                    AMM::DataTypes::getInstrumentDataType(), pub_listener);
+                    &InstrumentDataType, pub_listener);
             settings_initialized = true;
         }
         try {
@@ -363,7 +336,7 @@ namespace AMM {
         if (!perfdata_initialized) {
             perfdata_publisher = InitializeReliablePublisher(
                     AMM::DataTypes::performanceTopic,
-                    AMM::DataTypes::getPerformanceAssessmentDataType(), pub_listener);
+                    &PerformanceAssessmentDataType, pub_listener);
             perfdata_initialized = true;
         }
         try {
