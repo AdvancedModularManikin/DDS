@@ -17,6 +17,7 @@ std::string get_filename_date(void) {
 
 namespace AMM {
     PhysiologyEngineManager::PhysiologyEngineManager() {
+
         static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
         static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
         plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);

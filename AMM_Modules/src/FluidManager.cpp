@@ -154,6 +154,7 @@ int main(int argc, char *argv[]) {
     const char *nodeName = "AMM_FluidManager";
     std::string nodeString(nodeName);
     auto *mgr = new DDS_Manager(nodeName);
+
     static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
     static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
     plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);

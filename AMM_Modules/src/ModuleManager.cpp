@@ -139,7 +139,9 @@ void show_menu(ModuleManager *modManager) {
 
 
 int main(int argc, char *argv[]) {
-    plog::InitializeLogger();
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+    plog::init(plog::verbose, &consoleAppender);
+
     LOG_INFO << "AMM - Module Manager";
 
     for (int i = 1; i < argc; ++i) {

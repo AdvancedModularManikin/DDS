@@ -2,6 +2,8 @@
 
 #include "AMM/BaseLogger.h"
 
+#include "AMM/DDS_Log_Appender.h"
+
 #include "AMM/DataTypes.h"
 
 #include "AMM/DDS_Manager.h"

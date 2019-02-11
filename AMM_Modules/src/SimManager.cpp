@@ -192,6 +192,9 @@ void show_menu(SimulationManager *simManager) {
 }
 
 int main(int argc, char *argv[]) {
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+    plog::init(plog::verbose, &consoleAppender);
+
     int sampleRate = 50;
     int daemonize = 0;
     int autostart = 0;

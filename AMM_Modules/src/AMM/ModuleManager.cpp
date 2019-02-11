@@ -13,6 +13,7 @@ namespace AMM {
     bool ModuleManager::isRunning() { return m_runThread; }
 
     void ModuleManager::Start() {
+
         using namespace AMM::Capability;
         std::string nodeString(nodeName);
 
@@ -48,6 +49,7 @@ namespace AMM {
         mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType,
                                           command_sub_listener);
 
+
         currentScenario = mgr->GetScenario();
 
         // Publish module configuration once we've set all our publishers and listeners
@@ -58,6 +60,8 @@ namespace AMM {
 
         // This announces that we're available for configuration
         mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
+
+
 
         if (!m_runThread) {
             m_runThread = true;

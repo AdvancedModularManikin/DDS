@@ -98,6 +98,8 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
 }
 
 int main(int argc, char *argv[]) {
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+    plog::init(plog::verbose, &consoleAppender);
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];

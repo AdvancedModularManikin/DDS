@@ -20,7 +20,11 @@ namespace plog {
             util::nstring message = record.getMessage();
             util::nstring severity = plog::severityToString(record.getSeverity());
             // util::nstring str = Formatter::format(record);
-            m_mgr->PublishLogRecord(message, severity);
+            try {
+                m_mgr->PublishLogRecord(message, severity);
+            } catch (std::exception &e) {
+                LOG_ERROR << e.what();
+            }
             //m_mgr->PublishLogRecord(str);
         }
 
