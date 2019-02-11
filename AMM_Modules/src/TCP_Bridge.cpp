@@ -285,8 +285,6 @@ public:
         while (it != clientMap.end()) {
             std::string cid = it->first;
             std::vector<std::string> subV = subscribedTopics[cid];
-            LOG_DEBUG << "Trying to find client " << cid;
-
             if (std::find(subV.begin(), subV.end(), rm.type()) != subV.end() ||
                 std::find(subV.begin(), subV.end(), "AMM_Render_Modification") !=
                 subV.end()) {
@@ -443,7 +441,7 @@ void HandleCapabilities(Client *c, std::string const &capabilityVal) {
                     }
                     Utility::add_once(subscribedTopics[c->id], subTopicName);
                     LOG_DEBUG << "[" << capabilityName << "][" << c->id
-                              << "][SUBSCRIBE]" << subTopicName;
+                              << "] Subscribing to " << subTopicName;
                 }
             }
 
@@ -458,7 +456,7 @@ void HandleCapabilities(Client *c, std::string const &capabilityVal) {
                     std::string pubTopicName = p->Attribute("name");
                     Utility::add_once(publishedTopics[c->id], pubTopicName);
                     LOG_DEBUG << "[" << capabilityName << "][" << c->id
-                              << "][PUBLISH]" << pubTopicName;
+                              << "] Publishing " << pubTopicName;
                 }
             }
         }
@@ -482,7 +480,6 @@ void HandleStatus(Client *c, std::string const &statusVal) {
 
     std::size_t found = statusVal.find(haltingString);
     if (found != std::string::npos) {
-        LOG_INFO << "\tThis is a halting error, so set that status";
         mgr->SetStatus(c->uuid, nodeName, HALTING_ERROR);
     } else {
         mgr->SetStatus(c->uuid, nodeName, OPERATIONAL);
@@ -495,7 +492,7 @@ void DispatchRequest(Client *c, std::string const &request) {
         const auto equals_idx = request.find_first_of(';');
         if (std::string::npos != equals_idx) {
             auto str = request.substr(equals_idx + 1);
-            LOG_DEBUG << "\tReturn lab values for " << str;
+            LOG_DEBUG << "Return lab values for " << str;
             auto it = labNodes[str].begin();
             while (it != labNodes[str].end()) {
                 std::ostringstream messageOut;
@@ -718,11 +715,10 @@ void UdpDiscoveryThread() {
     if (discovery) {
         boost::asio::io_service io_service;
         UdpDiscoveryServer udps(io_service, discoveryPort);
-        LOG_INFO << "\tUDP Discovery listening on port " << discoveryPort;
+        LOG_INFO << "UDP Discovery listening on port " << discoveryPort;
         io_service.run();
     } else {
-        LOG_INFO
-            << "\tUDP discovery service not started due to command line option.";
+        LOG_INFO << "UDP discovery service not started due to command line option.";
     }
 }
 
