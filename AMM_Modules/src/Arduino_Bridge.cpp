@@ -395,12 +395,26 @@ void checkForExit() {
     }
 }
 
+
+void signalHandler( int signum ) {
+    LOG_WARNING << "Interrupt signal (" << signum << ") received.";
+
+    if (signum == 15) {
+        serialport_close(fd);
+        LOG_INFO << "Shutdown complete";
+    }
+
+    exit(signum);
+}
+
+
 int main(int argc, char *argv[]) {
     const int buf_max = 8192;
     char serialport[40];
     char eolchar = '\n';
     int timeout = 500;
     char buf[buf_max];
+    strcpy(serialport, PORT_LINUX);
 
     std::string nodeString(nodeName);
     mgr = new DDS_Manager(nodeName);
@@ -427,18 +441,14 @@ int main(int argc, char *argv[]) {
     render_mod_listener->SetUpstream(&al);
     phys_mod_listener->SetUpstream(&al);
 
-    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, &mgr->NodeType,
-                              node_sub_listener);
-    mgr->InitializeSubscriber(AMM::DataTypes::highFrequencyNodeTopic,
-                              &mgr->HighFrequencyNodeType, hf_node_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType,
-                                      command_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, &mgr->NodeType, node_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::highFrequencyNodeTopic, &mgr->HighFrequencyNodeType,
+                              hf_node_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType, command_sub_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic, &mgr->RenderModificationType,
                                       render_mod_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic, &mgr->PhysiologyModificationType,
                                       phys_mod_listener);
-
-    strcpy(serialport, PORT_LINUX);
 
     // Publish bridge module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
@@ -463,6 +473,9 @@ int main(int argc, char *argv[]) {
 
     LOG_INFO << "Opened port " << serialport;
 //    serialport_flush(fd);
+
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
 
     LOG_INFO << "Serial_Bridge ready";
 
