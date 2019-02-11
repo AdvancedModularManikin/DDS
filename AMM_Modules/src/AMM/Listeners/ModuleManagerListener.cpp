@@ -129,7 +129,7 @@ void ModuleManagerListener::onNewPhysiologyModificationData(AMM::Physiology::Mod
 void ModuleManagerListener::ClearEventLog() {
     mapmutex.lock();
     try {
-        db << "delete from events";
+        db << "delete from events;";
     } catch (exception &e) {
         LOG_ERROR << e.what();
     }
@@ -139,7 +139,7 @@ void ModuleManagerListener::ClearEventLog() {
 void ModuleManagerListener::ClearDiagnosticLog() {
     mapmutex.lock();
     try {
-        db << "delete from logs";
+        db << "delete from logs;";
     } catch (exception &e) {
         LOG_ERROR << e.what();
     }
