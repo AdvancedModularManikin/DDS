@@ -258,6 +258,9 @@ private:
         Routes::Get(router, "/events",
                     Routes::bind(&DDSEndpoint::getEventLog, this));
 
+        Routes::Get(router, "/logs",
+                    Routes::bind(&DDSEndpoint::getDiagnosticLog, this));
+
         Routes::Get(router, "/modules/count",
                     Routes::bind(&DDSEndpoint::getModuleCount, this));
         Routes::Get(router, "/modules",
@@ -741,27 +744,71 @@ private:
         writer.StartArray();
 
         db << "SELECT "
-              "source,"
-              "topic,"
-              "tick,"
-              "timestamp,"
-              "data "
-              " FROM "
-              " events;" >>
-           [&](string source, string topic, int64_t tick, int64_t timestamp,
+              "module_capabilities.module_name,"
+              "events.source,"
+              "events.topic,"
+              "events.tick,"
+              "events.timestamp,"
+              "events.data "
+              "FROM "
+              "events "
+              "LEFT JOIN module_capabilities "
+              "ON "
+              "events.source = module_capabilities.module_guid" >>
+           [&](string module_name, string source, string topic, int64_t tick, int64_t timestamp,
                string data) {
 
                writer.StartObject();
                writer.Key("source");
+               writer.String(module_name.c_str());
+               writer.Key("module_guid");
                writer.String(source.c_str());
                writer.Key("tick");
                writer.Uint64(tick);
                writer.Key("timestamp");
-               writer.Uint64(timestamp);
+               writer.Uint64(timestamp);SIM
                writer.Key("topic");
                writer.String(topic.c_str());
                writer.Key("message");
                writer.String(data.c_str());
+               writer.EndObject();
+           };
+
+        writer.EndArray();
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getDiagnosticLog(const Rest::Request &request,
+                     Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+
+        db << "SELECT "
+              "module_capabilities.module_name, "
+              "logs.module_guid, "
+              "logs.message,"
+              "logs.log_level,"
+              "logs.timestamp "
+              "FROM "
+              "logs "
+              "LEFT JOIN module_capabilities "
+              "ON "
+              "logs.module_guid = module_capabilities.module_guid" >>
+           [&](string module_name, string module_guid, string message, string log_level, int64_t timestamp) {
+
+               writer.StartObject();
+               writer.Key("source");
+               writer.String(module_name.c_str());
+               writer.Key("module_guid");
+               writer.String(module_guid.c_str());
+               writer.Key("timestamp");
+               writer.Uint64(timestamp);
+               writer.Key("log_level");
+               writer.String(log_level.c_str());
+               writer.Key("message");
+               writer.String(message.c_str());
                writer.EndObject();
            };
 
