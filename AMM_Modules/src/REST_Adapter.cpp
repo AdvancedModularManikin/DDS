@@ -766,7 +766,7 @@ private:
                writer.Key("tick");
                writer.Uint64(tick);
                writer.Key("timestamp");
-               writer.Uint64(timestamp);SIM
+               writer.Uint64(timestamp);
                writer.Key("topic");
                writer.String(topic.c_str());
                writer.Key("message");
