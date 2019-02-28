@@ -228,7 +228,7 @@ public:
     void init(int thr = 2) {
         auto opts = Http::Endpoint::options()
                 .threads(thr)
-                .flags(Tcp::Options::InstallSignalHandler)
+                .flags(Tcp::Options::InstallSignalHandler | Tcp::Options::ReuseAddr)
                 .maxPayload(65536);
         httpEndpoint->init(opts);
         setupRoutes();
@@ -313,7 +313,7 @@ private:
         StringBuffer s;
         Writer<StringBuffer> writer(s);
 
-        std::ifstream t("mule1/current_scenario.txt");
+        std::ifstream t("static/current_scenario.txt");
         std::string scenario((std::istreambuf_iterator<char>(t)),
                              std::istreambuf_iterator<char>());
         t.close();
@@ -780,7 +780,7 @@ private:
     }
 
     void getDiagnosticLog(const Rest::Request &request,
-                     Http::ResponseWriter response) {
+                          Http::ResponseWriter response) {
         StringBuffer s;
         Writer<StringBuffer> writer(s);
         writer.StartArray();
@@ -904,17 +904,15 @@ Port port(static_cast<uint16_t>(portNumber));
 Address addr(Ipv4::any(), port);
 DDSEndpoint server(addr);
 
-void signalHandler( int signum ) {
+void signalHandler(int signum) {
     LOG_WARNING << "Interrupt signal (" << signum << ") received.";
 
-    if (signum == 15) {
+    if (signum == 15 || signum == 9) {
         server.shutdown();
-        LOG_INFO << "Stopped REST listener.";
+        LOG_TRACE << "Stopped REST listener.";
 
         io_service.stop();
-        LOG_INFO << "Stopping IO services";
-
-        LOG_INFO << "Shutdown complete";
+        LOG_TRACE << "Stopping IO services";
     }
 
     exit(signum);
@@ -967,30 +965,36 @@ int main(int argc, char *argv[]) {
     gethostname(hostname, HOST_NAME_MAX);
 
     server.init(thr);
-    LOG_INFO << "REST_Adapter Listening on *:" << portNumber;
+    LOG_INFO << "Listening on *:" << portNumber;
 
     m_runThread = true;
 
     server.start();
 
-    LOG_INFO << "REST_Adapter ready.";
-
-    /*mgr->PublishModuleConfiguration(
-            mgr->module_id, nodeString, "Vcom3D", "REST_Adapter", "00001", "0.0.1",
-            mgr->GetCapabilitiesAsString(
-                    "mule1/module_capabilities/rest_adapter_capabilities.xml"));
-
-    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);*/
-
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
+
+    mgr->PublishModuleConfiguration(
+            mgr->module_id,
+            nodeString,
+            "Vcom3D",
+            "REST_Adapter",
+            "00001",
+            "0.0.1",
+            mgr->GetCapabilitiesAsString("static/module_capabilities/rest_adapter_capabilities.xml")
+    );
+
+    // Normally this would be set AFTER configuration is received
+    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
+
+    LOG_INFO << "Ready.";
 
     while (m_runThread) {
         getline(cin, action);
         transform(action.begin(), action.end(), action.begin(), ::toupper);
         if (action == "EXIT") {
             m_runThread = false;
-            LOG_INFO << "Shutting down.";
+            LOG_INFO << "Shutting down from command-line.";
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(250));
         cout.flush();
