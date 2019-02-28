@@ -452,7 +452,7 @@ int main(int argc, char *argv[]) {
 
     // Publish bridge module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
-    mgr->PublishModuleConfiguration(
+    /*mgr->PublishModuleConfiguration(
             mgr->module_id,
             nodeString,
             "Vcom3D",
@@ -462,7 +462,7 @@ int main(int argc, char *argv[]) {
             mgr->GetCapabilitiesAsString("mule1/module_capabilities/serial_bridge_capabilities.xml")
     );
 
-    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
+    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);*/
     std::thread ec(checkForExit);
 
     fd = serialport_init(serialport, BAUD);

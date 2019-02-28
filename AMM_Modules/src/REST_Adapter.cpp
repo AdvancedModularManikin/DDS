@@ -975,12 +975,12 @@ int main(int argc, char *argv[]) {
 
     LOG_INFO << "REST_Adapter ready.";
 
-    mgr->PublishModuleConfiguration(
+    /*mgr->PublishModuleConfiguration(
             mgr->module_id, nodeString, "Vcom3D", "REST_Adapter", "00001", "0.0.1",
             mgr->GetCapabilitiesAsString(
                     "mule1/module_capabilities/rest_adapter_capabilities.xml"));
 
-    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
+    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);*/
 
     signal(SIGINT, signalHandler);
     signal(SIGTERM, signalHandler);
