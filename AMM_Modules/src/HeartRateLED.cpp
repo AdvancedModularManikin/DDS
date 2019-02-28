@@ -141,13 +141,8 @@ int main(int argc, char *argv[]) {
     HeartRateListener vel;
     node_sub_listener->SetUpstream(&vel);
     command_sub_listener->SetUpstream(&vel);
-    auto *pub_listener = new DDS_Listeners::PubListener();
     mgr->InitializeReliableSubscriber(AMM::DataTypes::nodeTopic, &mgr->NodeType, node_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType,
-                                      command_sub_listener);
-    Publisher *command_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::commandTopic,
-                                                                    &mgr->CommandType, pub_listener);
-
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType, command_sub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
@@ -159,7 +154,7 @@ int main(int argc, char *argv[]) {
             "00001", // versions
             "0.0.1", // versions
             // This is currently a bad example; I'm not sure where this file is supposed to live
-            mgr->GetCapabilitiesAsString("mule1/module_capabilities/heart_rate_led_capabilities.xml")
+            mgr->GetCapabilitiesAsString("static/module_capabilities/heart_rate_led_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received

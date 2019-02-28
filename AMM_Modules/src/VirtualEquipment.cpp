@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     mgr->PublishModuleConfiguration(
             mgr->module_id, nodeString, "Vcom3D", nodeName, "00001", "0.0.1",
             mgr->GetCapabilitiesAsString(
-                    "mule1/module_capabilities/virtual_equipment_capabilities.xml"));
+                    "static/module_capabilities/virtual_equipment_capabilities.xml"));
 
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);

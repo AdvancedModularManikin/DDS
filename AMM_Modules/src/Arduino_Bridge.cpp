@@ -63,7 +63,7 @@ int rc;
 
 void sendConfigInfo(std::string scene, std::string module) {
     std::ostringstream static_filename;
-    static_filename << "mule1/module_configuration_static/" << scene << "_" << module << ".txt";
+    static_filename << "static/module_configuration_static/" << scene << "_" << module << ".txt";
     LOG_DEBUG << "Loading config from filename: " << static_filename.str();
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
@@ -280,6 +280,11 @@ void readHandler() {
 
 class AMMListener : public ListenerInterface {
 public:
+    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
+
+
+    }
+
     void onNewHighFrequencyNodeData(AMM::Physiology::HighFrequencyNode n, SampleInfo_t *info) override {
         std::string hfname = "HF_" + n.nodepath();
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), hfname) != subscribedTopics.end()) {
@@ -450,19 +455,6 @@ int main(int argc, char *argv[]) {
     mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic, &mgr->PhysiologyModificationType,
                                       phys_mod_listener);
 
-    // Publish bridge module configuration once we've set all our publishers and listeners
-    // This announces that we're available for configuration
-    /*mgr->PublishModuleConfiguration(
-            mgr->module_id,
-            nodeString,
-            "Vcom3D",
-            nodeName,
-            "00001",
-            "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/module_capabilities/serial_bridge_capabilities.xml")
-    );
-
-    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);*/
     std::thread ec(checkForExit);
 
     fd = serialport_init(serialport, BAUD);

@@ -9,12 +9,16 @@
             <capability name="monitor_modules">
                 <subscribed_topics>
                     <topic name="AMM_Command" />
-                    <topic name="AMM_Node_Data" />
+                    <topic name="AMM_Diagnostic_Log" />
+                    <topic name="AMM_Capability_Status" />
+                    <topic name="AMM_Capability_Configuration" />
                 </subscribed_topics>
             </capability>
             <capability name="marshal_scenario">
                 <published_topics>
                     <topic name="AMM_Command" />
+                    <topic name="AMM_Physiology_Modification" />
+                    <topic name="AMM_Render_Modification" />
                 </published_topics>
             </capability>
         </capabilities>

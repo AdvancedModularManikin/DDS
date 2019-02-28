@@ -56,7 +56,7 @@ namespace AMM {
         mgr->PublishModuleConfiguration(
                 mgr->module_id, nodeString, "Vcom3D", "Module_Manager", "00001", "0.0.1",
                 mgr->GetCapabilitiesAsString(
-                        "mule1/module_capabilities/module_manager_capabilities.xml"));
+                        "static/module_capabilities/module_manager_capabilities.xml"));
 
         // This announces that we're available for configuration
         mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);

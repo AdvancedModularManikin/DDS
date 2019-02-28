@@ -75,7 +75,7 @@ namespace AMM {
                 mgr->module_id, nodeString, "Vcom3D", "PhysiologyEngine", "00001",
                 "0.0.1",
                 mgr->GetCapabilitiesAsString(
-                        "mule1/module_capabilities/physiology_engine_capabilities.xml"));
+                        "static/module_capabilities/physiology_engine_capabilities.xml"));
 
         // Normally this would be set AFTER configuration is received
         mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);

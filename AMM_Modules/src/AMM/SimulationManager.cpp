@@ -31,7 +31,7 @@ namespace AMM {
                 mgr->module_id, nodeString, "Vcom3D", "SimulationManager", "00001",
                 "0.0.1",
                 mgr->GetCapabilitiesAsString(
-                        "mule1/module_capabilities/simulation_manager_capabilities.xml"));
+                        "static/module_capabilities/simulation_manager_capabilities.xml"));
 
         mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
     }

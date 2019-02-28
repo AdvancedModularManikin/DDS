@@ -153,7 +153,7 @@ void InitializeLabNodes() {
 }
 
 void sendConfig(Client *c, std::string clientType) {
-    std::ifstream t("mule1/current_scenario.txt");
+    std::ifstream t("static/current_scenario.txt");
     std::string scenario((std::istreambuf_iterator<char>(t)),
                          std::istreambuf_iterator<char>());
 
@@ -162,7 +162,7 @@ void sendConfig(Client *c, std::string clientType) {
     t.close();
 
     ostringstream static_filename;
-    static_filename << "mule1/module_configuration_static/" << scenario << "_"
+    static_filename << "static/module_configuration_static/" << scenario << "_"
                     << clientType << "_configuration.xml";
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
@@ -175,7 +175,7 @@ void sendConfig(Client *c, std::string clientType) {
 
 void sendConfigToAll(std::string scene) {
     std::ostringstream static_filename;
-    static_filename << "mule1/module_configuration_static/" << scene
+    static_filename << "static/module_configuration_static/" << scene
                     << "_virtual_patient_configuration.xml";
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
@@ -794,17 +794,6 @@ int main(int argc, const char *argv[]) {
     mgr->InitializeReliableSubscriber(
             AMM::DataTypes::physModTopic,
             &mgr->PhysiologyModificationType, phys_mod_listener);
-
-    // Publish module configuration once we've set all our publishers and
-    // listeners
-    // This announces that we're available for configuration
-    /*mgr->PublishModuleConfiguration(
-            mgr->module_id, nodeString, "Vcom3D", nodeName, "00001", "0.0.1",
-            mgr->GetCapabilitiesAsString(
-                    "mule1/module_capabilities/tcp_bridge_capabilities.xml"));
-
-    // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);*/
 
     LOG_INFO << "TCP Bridge ready.";
 

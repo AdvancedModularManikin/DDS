@@ -59,7 +59,7 @@ void ProcessConfig(const std::string &configContent) {
         } else break;
     }
     if (!entry4) {
-        perror("[FLUIDMGR] cfg data didn't contain <capability name=fluidics>");
+        LOG_ERROR << "cfg data didn't contain <capability name=fluidics>";
         return;
     }
 
@@ -81,7 +81,7 @@ void ProcessConfig(const std::string &configContent) {
     }
 
     if (!entry5) {
-        perror("[FLUIDMGR] cfg data didn't contain <data name=operating_pressure>");
+        LOG_ERROR << "cfg data didn't contain <data name=operating_pressure>";
     }
 
 }
@@ -101,7 +101,7 @@ class FluidListener : public ListenerInterface {
                 std::string scene = value.substr(loadScenarioPrefix.size());
                 boost::algorithm::to_lower(scene);
                 ostringstream static_filename;
-                static_filename << "mule1/module_configuration_static/" << scene << "_fluid_manager.xml";
+                static_filename << "static/module_configuration_static/" << scene << "_fluid_manager.xml";
                 std::ifstream ifs(static_filename.str());
                 std::string configContent((std::istreambuf_iterator<char>(ifs)),
                                           (std::istreambuf_iterator<char>()));
@@ -132,8 +132,6 @@ static void show_usage(const std::string &name) {
 void air_reservoir_control_task(void);
 
 int main(int argc, char *argv[]) {
-    plog::InitializeLogger();
-
     host_remote_init(&remote);
     std::thread remote_thread(remote_task);
     std::thread air_tank_thread(air_reservoir_control_task);
@@ -165,21 +163,13 @@ int main(int argc, char *argv[]) {
     FluidListener fl;
     command_sub_listener->SetUpstream(&fl);
     config_sub_listener->SetUpstream(&fl);
-
-    auto *pub_listener = new DDS_Listeners::PubListener();
-
     mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType,
                                       command_sub_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, &mgr->ConfigurationType,
                                       config_sub_listener);
 
-    Publisher *command_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::commandTopic,
-                                                                    &mgr->CommandType, pub_listener);
-
-
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
-
     mgr->PublishModuleConfiguration(
             mgr->module_id,
             nodeString,
@@ -187,13 +177,13 @@ int main(int argc, char *argv[]) {
             "fluid_manager",
             "00001",
             "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/module_capabilities/fluid_manager_capabilities.xml")
+            mgr->GetCapabilitiesAsString("static/module_capabilities/fluid_manager_capabilities.xml")
     );
 
     bool closed = 0;
     while (!closed) {
         if (send_status) {
-            cout << "[FluidManager] Setting status to " << current_status << endl;
+            LOG_INFO << "[FluidManager] Setting status to " << current_status;
             send_status = false;
             mgr->SetStatus(mgr->module_id, nodeString, current_status);
         }
