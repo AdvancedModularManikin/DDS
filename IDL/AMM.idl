@@ -12,42 +12,56 @@ struct UUID
 
 module AMM
 {
+    struct Version
+    {
+        unsigned short major;
+        unsigned short minor;
+        unsigned short patch;
+    }
+
     module Event
     {
-        struct Fragment
-        {
-            @Key UUID id;
-            float timestamp;
-            FMA_Location location;
-            string learner_id;
-            string fragment_type;
-            string payload;
-        };
-
-        struct FragmentAmendmentRequest
-        {
-            UUID id;
-            @Key UUID fragment_id;
-            float timestamp;
-            string status;  // Requesting, Accepted, Denied
-            // The values that can be amended
-            FMA_Location location;
-            string learner_id;
-            string fragment_type;
-            string payload;
-        };
-
         struct Record
         {
             @Key UUID id;
-            float timestamp;
+            unsigned long long timestamp;
             FMA_Location location;
-            string learner_id;
-            string record_type;
-            string payload;
+            string practitioner;
+            string type;
+            string data;
+        };
+
+        struct Fragment
+        {
+            @Key UUID id;
+            unsigned long long timestamp;
+            FMA_Location location;
+            string practitioner;
+            string type;
+            string data;
+        };
+
+        enum FAR_Status {
+            REQUESTING
+           ,ACCEPTED
+           ,DENIED
+        }
+
+        struct FragmentAmendmentRequest
+        {
+            @Key UUID id;
+            UUID fragment_id;
+            FAR_Status status;  // Requesting, Accepted, Denied
+            // The values that can be amended
+            unsigned long long timestamp;
+            FMA_Location location;
+            string practitioner;
+            string type;
+            string data;
         };
     };
 
+    /*
     module Environment
     {
         struct Settings
@@ -55,14 +69,22 @@ module AMM
             string description;
         };
     };
+    */
 
     module Simulation
     {
-        struct Tick
+        enum ControlType {
+            RUN
+           ,PAUSE
+           ,END
+           ,SAVE
+        }
+
+        struct Control
         {
-            @Key long long frame;
-            float time;
-        };
+            unsigned long long timestamp;
+            ControlType type;
+        }
     };
 
     struct InstrumentData
@@ -73,7 +95,34 @@ module AMM
 
     module Physiology
     {
+        struct Value
+        {
+            long long simulation_frame;
+            unsigned long long timestamp;
+            @Key string name;
+            string unit;
+            double dbl;
+            string str;
+        };
 
+        struct Waveform
+        {
+            long long simulation_frame;
+            unsigned long long timestamp;
+            @Key string name;
+            string unit;
+            double dbl;
+            string str;
+        };
+
+        struct Modification
+        {
+            @Key UUID id;
+            UUID event_id;
+            string data;    // TODO: Figure this out
+        };
+
+        /* FIXME: Standardize inputs to BioGears
         enum CMD {  // Known Pysiology Actions
           PainCommand
           ,SepsisCommand
@@ -125,36 +174,6 @@ module AMM
             string type;
             string payload;
         };
-
-        struct Node
-        {
-            @Key long long frame;
-            @Key string nodepath;
-            string unit;
-            double dbl;
-            string str;
-        };
-
-        struct HighFrequencyNode
-        {
-            @Key long long frame;
-            @Key string nodepath;
-            string unit;
-            double dbl;
-            string str;
-        };
-    };
-
-    module Render
-    {
-        struct Modification
-        {
-            UUID id;
-            FMA_Location location;
-            string practitioner;
-            string type;
-            string payload;
-        };
     };
 
     module PatientAction
@@ -166,152 +185,46 @@ module AMM
                 string message;
             };
         };
+        */ // End of FIXME
     };
 
-    module Performance
+    struct RenderModification
     {
-        struct xAPIModifier
-        {
-            string key;
-            string value;
-        };
-
-        typedef sequence<xAPIModifier> xAPI_Modifiers;
-
-        struct Statement
-        {
-            string noun;
-            xAPI_Modifiers noun_modifiers;
-            string verb;
-            xAPI_Modifiers verb_modifiers;
-            string obj;
-            xAPI_Modifiers obj_modifiers;
-        };
-
-        struct Assessment
-        {
-            string Timestamp;
-            string learner_id;
-            FMA_Location location;
-            string assessment_type;
-            string assessment_info;
-            string step;
-            string comment;
-        };
+        @Key UUID id;
+        UUID event_id;
+        string data;    // TODO: Standardize this
     };
 
-    module Resource
+    enum StatusValue {
+        OPERATIONAL
+       ,INOPERATIVE
+       ,EXIGENT
+    };
+
+    struct Status
     {
-        module Requirement
-        {
-            struct Power
-            {
-                double volts;
-                double amps;
-            };
+        @Key UUID module_id;
+        string module_name;
+        @Key string capability;
+        unsigned long long timestamp;
+        StatusValue value;
+        string message;
+    }
 
-            struct Blood
-            {
-                double volume;
-            };
+    enum LogLevel {
+        FATAL
+       ,ERROR
+       ,WARN
+       ,INFO
+       ,DEBUG
+       ,TRACE
+    }
 
-            struct Clear_Liquid
-            {
-                double volume;
-            };
-
-            struct Air
-            {
-
-                double volume;
-            };
-
-            struct Cleaning_Solution
-            {
-                double volume;
-            };
-        };
-
-        module Supply
-        {
-            struct Power
-            {
-                double volts;
-                double amps;
-            };
-
-            struct Blood
-            {
-                double volume;
-            };
-
-            struct Clear_Liquid
-            {
-                double volume;
-            };
-
-            struct Air
-            {
-                double volume;
-            };
-
-            struct Cleaning_Solution
-            {
-                double volume;
-            };
-        };
-    };
-
-    module Capability
+    struct Log
     {
-        enum status_values
-        {
-            OPERATIONAL,
-            HALTING_ERROR,
-            IMPENDING_ERROR
-        };
-
-        struct AMM_version
-        {
-            string software_version;
-            string hardware_version;
-            string specification_version;
-        };
-
-        struct Configuration
-        {
-            string module_id;
-            string module_name;
-            string manufacturer;
-            string model;
-            string serial_number;
-            string version;
-            AMM_version amm_version;
-            string capabilities;
-        };
-
-        struct Scenario
-        {
-            string id;
-        };
-
-        struct Status {
-            string module_id;
-            string module_name;
-            string capability;
-            status_values status_value;
-            sequence<string> message;
-        };
+        unsigned long long timestamp;
+        UUID module_id;
+        LogLevel level;
+        string message;
     };
-	
-	module Diagnostics
-	{
-		module Log {
-			struct Record {				
-				unsigned long long timestamp;				
-				string log_level;
-				string message;
-			};
-		};
-	};
 };
