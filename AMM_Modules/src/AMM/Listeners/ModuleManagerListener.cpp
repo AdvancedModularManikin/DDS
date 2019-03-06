@@ -66,8 +66,9 @@ void ModuleManagerListener::onNewCommandData(AMM::PatientAction::BioGears::Comma
 
         } else if (value.compare("RESET_SIM") == 0) {
 
-        } else if (value.compare("CLEAR_LOG") == 0) {
+        } else if (value.compare("CLEAR_LOGS") == 0) {
             ClearEventLog();
+            ClearDiagnosticLog();
         } else if (value.compare("CLEAR_EVENT_LOG") == 0) {
             ClearEventLog();
         } else if (value.compare("CLEAR_DIAGNOSTIC_LOG") == 0) {
@@ -83,13 +84,16 @@ void ModuleManagerListener::onNewTickData(AMM::Simulation::Tick t, SampleInfo_t 
 
 
 void ModuleManagerListener::onNewLogRecordData(AMM::Diagnostics::Log::Record r, SampleInfo_t *info) {
+    int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
     GUID_t changeGuid = info->sample_identity.writer_guid();
     std::ostringstream module_guid;
     module_guid << changeGuid.guidPrefix;
     mapmutex.lock();
+
     try {
         db << "insert into logs (module_guid, message, log_level, timestamp) values (?, ?,?,?);"
-           << module_guid.str() << r.message() << r.log_level() << r.timestamp();
+           << module_guid.str() << r.message() << r.log_level() << timestamp;
     } catch (exception &e) {
         LOG_ERROR << e.what();
     };
