@@ -138,6 +138,8 @@ namespace AMM {
 
         std::string module_id;
 
+        std::string module_name;
+
         AMM::Simulation::TickPubSubType TickType;
 
         // AMM Physiology types

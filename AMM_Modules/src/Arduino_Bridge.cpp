@@ -280,11 +280,6 @@ void readHandler() {
 
 class AMMListener : public ListenerInterface {
 public:
-    void onNewConfigData(AMM::Capability::Configuration cfg, SampleInfo_t *info) override {
-
-
-    }
-
     void onNewHighFrequencyNodeData(AMM::Physiology::HighFrequencyNode n, SampleInfo_t *info) override {
         std::string hfname = "HF_" + n.nodepath();
         if (std::find(subscribedTopics.begin(), subscribedTopics.end(), hfname) != subscribedTopics.end()) {
@@ -454,6 +449,16 @@ int main(int argc, char *argv[]) {
                                       render_mod_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic, &mgr->PhysiologyModificationType,
                                       phys_mod_listener);
+
+    mgr->PublishModuleConfiguration(
+            mgr->module_id,
+            nodeString,
+            "Vcom3D",
+            nodeName,
+            "00001",
+            "0.0.1",
+            mgr->GetCapabilitiesAsString("mule1/module_capabilities/serial_bridge_capabilities.xml")
+    );
 
     std::thread ec(checkForExit);
 

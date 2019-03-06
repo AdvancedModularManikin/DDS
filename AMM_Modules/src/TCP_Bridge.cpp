@@ -795,6 +795,11 @@ int main(int argc, const char *argv[]) {
             AMM::DataTypes::physModTopic,
             &mgr->PhysiologyModificationType, phys_mod_listener);
 
+    mgr->PublishModuleConfiguration(
+            mgr->module_id, nodeString, "Vcom3D", nodeName, "00001", "0.0.1",
+            mgr->GetCapabilitiesAsString(
+                    "mule1/module_capabilities/tcp_bridge_capabilities.xml"));
+
     LOG_INFO << "TCP Bridge ready.";
 
     std::thread t1(UdpDiscoveryThread);
