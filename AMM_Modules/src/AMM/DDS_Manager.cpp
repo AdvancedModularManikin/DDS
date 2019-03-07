@@ -190,7 +190,7 @@ namespace AMM {
     }
 
     void DDS_Manager::PublishLogRecord(const std::string &message, const std::string &log_level) {
-        long now = std::chrono::duration_cast<std::chrono::microseconds>(
+        long now = std::chrono::duration_cast<std::chrono::seconds>(
                 std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         AMM::Diagnostics::Log::Record logInstance;
         try {

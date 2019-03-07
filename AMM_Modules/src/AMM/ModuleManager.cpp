@@ -35,20 +35,16 @@ namespace AMM {
         rendermod_sub_listener->SetUpstream(mmL);
         command_sub_listener->SetUpstream(mmL);
 
-        mgr->InitializeReliableSubscriber(AMM::DataTypes::statusTopic, &mgr->StatusType,
-                                          status_sub_listener);
+        mgr->InitializeReliableSubscriber(AMM::DataTypes::statusTopic, &mgr->StatusType, status_sub_listener);
         mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, &mgr->ConfigurationType,
                                           config_sub_listener);
-        mgr->InitializeReliableSubscriber(AMM::DataTypes::logRecordTopic, &mgr->LogRecordType,
-                                          log_sub_listener);
+        mgr->InitializeReliableSubscriber(AMM::DataTypes::logRecordTopic, &mgr->LogRecordType, log_sub_listener);
         mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, &mgr->TickType, tick_sub_listener);
         mgr->InitializeReliableSubscriber(AMM::DataTypes::renderModTopic, &mgr->RenderModificationType,
                                           rendermod_sub_listener);
         mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic, &mgr->PhysiologyModificationType,
                                           physmod_sub_listener);
-        mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType,
-                                          command_sub_listener);
-
+        mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType, command_sub_listener);
 
         currentScenario = mgr->GetScenario();
 
@@ -60,7 +56,6 @@ namespace AMM {
 
         // This announces that we're available for configuration
         mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
-
 
 
         if (!m_runThread) {

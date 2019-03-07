@@ -574,7 +574,7 @@ void *Server::HandleClient(void *args) {
                         ServerThread::LockMutex(uuid);
                         c->SetName(moduleName);
                         ServerThread::UnlockMutex(uuid);
-                        LOG_INFO << "Client " << c->id
+                        LOG_DEBUG << "Client " << c->id
                                  << " module connected: " << moduleName;
                     } else if (str.substr(0, registerPrefix.size()) == registerPrefix) {
                         // Registering for data
@@ -591,7 +591,7 @@ void *Server::HandleClient(void *args) {
                             break;
                         }
 
-                        LOG_INFO << "Client " << c->id << " sent status: " << statusVal;
+                        LOG_DEBUG << "Client " << c->id << " sent status: " << statusVal;
                         HandleStatus(c, statusVal);
                     } else if (str.substr(0, capabilityPrefix.size()) ==
                                capabilityPrefix) {

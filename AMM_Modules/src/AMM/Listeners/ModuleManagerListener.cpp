@@ -47,14 +47,11 @@ void ModuleManagerListener::onNewConfigData(AMM::Capability::Configuration cfg,
 
 void ModuleManagerListener::onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
     // Listen for reset?
-    int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+    int64_t timestamp = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch()).count();
     GUID_t changeGuid = info->sample_identity.writer_guid();
     std::ostringstream module_guid;
     module_guid << changeGuid;
-
-    logEntry newLogEntry{module_guid.str(), "AMM::Command", lastTick, timestamp, c.message()};
-    WriteLogEntry(newLogEntry);
 
     if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
         std::string value = c.message().substr(sysPrefix.size());
@@ -66,15 +63,17 @@ void ModuleManagerListener::onNewCommandData(AMM::PatientAction::BioGears::Comma
 
         } else if (value.compare("RESET_SIM") == 0) {
 
-        } else if (value.compare("CLEAR_LOGS") == 0) {
-            ClearEventLog();
-            ClearDiagnosticLog();
-        } else if (value.compare("CLEAR_EVENT_LOG") == 0) {
-            ClearEventLog();
-        } else if (value.compare("CLEAR_DIAGNOSTIC_LOG") == 0) {
-            ClearDiagnosticLog();
         }
+    } else if (c.message().compare("CLEAR_LOGS") == 0) {
+        ClearEventLog();
+        ClearDiagnosticLog();
+    } else if (c.message().compare("CLEAR_EVENT_LOG") == 0) {
+        ClearEventLog();
+    } else if (c.message().compare("CLEAR_DIAGNOSTIC_LOG") == 0) {
+        ClearDiagnosticLog();
     }
+    logEntry newLogEntry{module_guid.str(), "AMM::Command", lastTick, timestamp, c.message()};
+    WriteLogEntry(newLogEntry);
 
 }
 
@@ -84,7 +83,7 @@ void ModuleManagerListener::onNewTickData(AMM::Simulation::Tick t, SampleInfo_t 
 
 
 void ModuleManagerListener::onNewLogRecordData(AMM::Diagnostics::Log::Record r, SampleInfo_t *info) {
-    int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+    int64_t timestamp = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch()).count();
     GUID_t changeGuid = info->sample_identity.writer_guid();
     std::ostringstream module_guid;
@@ -101,7 +100,7 @@ void ModuleManagerListener::onNewLogRecordData(AMM::Diagnostics::Log::Record r, 
 }
 
 void ModuleManagerListener::onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t *info) {
-    int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+    int64_t timestamp = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch()).count();
     GUID_t changeGuid = info->sample_identity.writer_guid();
     std::ostringstream module_guid;
@@ -116,7 +115,7 @@ void ModuleManagerListener::onNewRenderModificationData(AMM::Render::Modificatio
 
 void ModuleManagerListener::onNewPhysiologyModificationData(AMM::Physiology::Modification pm,
                                                             SampleInfo_t *info) {
-    int64_t timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+    int64_t timestamp = std::chrono::duration_cast<std::chrono::seconds>(
             std::chrono::system_clock::now().time_since_epoch()).count();
     GUID_t changeGuid = info->sample_identity.writer_guid();
     std::ostringstream module_guid;
