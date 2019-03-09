@@ -1,6 +1,6 @@
 struct FMA_Location
 {
-    long id;
+    long FMAID;
     string description;
 };
 
@@ -12,56 +12,69 @@ struct UUID
 
 module AMM
 {
-    struct Version
+    struct AMM_Version
     {
         unsigned short major;
         unsigned short minor;
         unsigned short patch;
     }
 
-    module Event
+    struct EventRecord
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local (In case of module disconnect/reconnect)
+         *  Liveliness: Automatic, 1 second lease
+         *  Partition: AMM
+         */
     {
-        struct Record
-        {
-            @Key UUID id;
-            unsigned long long timestamp;
-            FMA_Location location;
-            string practitioner;
-            string type;
-            string data;
-        };
-
-        struct Fragment
-        {
-            @Key UUID id;
-            unsigned long long timestamp;
-            FMA_Location location;
-            string practitioner;
-            string type;
-            string data;
-        };
-
-        enum FAR_Status {
-            REQUESTING
-           ,ACCEPTED
-           ,DENIED
-        }
-
-        struct FragmentAmendmentRequest
-        {
-            @Key UUID id;
-            UUID fragment_id;
-            FAR_Status status;  // Requesting, Accepted, Denied
-            // The values that can be amended
-            unsigned long long timestamp;
-            FMA_Location location;
-            string practitioner;
-            string type;
-            string data;
-        };
+        UUID id;
+        unsigned long long timestamp;
+        FMA_Location location;
+        string practitioner;
+        string type;
+        string data;
     };
 
-    /*
+    struct EventFragment
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Volatile
+         *  Partition: AMM
+         */
+    {
+        UUID id;
+        unsigned long long timestamp;
+        FMA_Location location;
+        string practitioner;
+        string type;
+        string data;
+    };
+
+    enum FAR_Status {
+        REQUESTING
+       ,ACCEPTED
+       ,DENIED
+    }
+
+    struct FragmentAmendmentRequest
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Volatile
+         *  Partition: AMM
+         */
+    {
+        UUID id;
+        UUID fragment_id;
+        FAR_Status status;  // Requesting, Accepted, Denied
+        // Values that can be amended
+        unsigned long long timestamp;
+        FMA_Location location;
+        string practitioner;
+        string type;
+        string data;
+    }
+
+    /* Included in BioGears?
     module Environment
     {
         struct Settings
@@ -71,58 +84,88 @@ module AMM
     };
     */
 
-    module Simulation
-    {
-        enum ControlType {
-            RUN
-           ,PAUSE
-           ,END
-           ,SAVE
-        }
+    enum ControlType {
+        RUN
+       ,PAUSE
+       ,END
+       ,SAVE
+    }
 
-        struct Control
-        {
-            unsigned long long timestamp;
-            ControlType type;
-        }
-    };
+    struct SimulationControl
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Liveliness: Automatic, 1 second lease
+         *  Partition: AMM
+         */
+    {
+        unsigned long long timestamp;
+        ControlType type;
+    }
 
     struct InstrumentData
+        /** QoS
+         *  Reliability: Reliable
+         *  Durability: Volatile
+         *  Partition: AMM
+         */
     {
         string instrument;
         string payload;
     };
 
+    struct PhysiologyValue
+        /** QoS:
+         *  Reliability: Best Effort
+         *  Durability: Transient Local
+         *  Ownership: Exclusive
+         *  Ownership Strength: Set via Configuration if non-zero
+         *  Presentation: Access Scope: Instance, Coherent Access: True, Order Access: False
+         *  Liveliness: Automatic, 1 second lease
+         *  Partition: AMM
+         */
+    {
+        long long simulation_frame;
+        unsigned long long timestamp;
+        @Key string name;   // BioGears node path
+        string unit;
+        double dbl;
+        string str;
+    };
+
+    struct PhysiologyWaveform // Reliable delivery
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Ownership: Exclusive
+         *  Ownership Strength: Set via Configuration if non-zero
+         *  Liveliness: Automatic, 1 second lease (Lower if feasible, requires testing)
+         *  Partition: AMM
+         */
+    {
+        long long simulation_frame;
+        unsigned long long timestamp;
+        @Key string name;   // BioGears node path
+        string unit;
+        double dbl;
+        string str;
+    };
+
+    struct PhysiologyModification
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Partition: AMM
+         */
+    {
+        UUID id;
+        UUID event_id;
+        string data;    // TODO: Figure this out
+    };
+
+    /* FIXME: Standardize inputs to BioGears
     module Physiology
     {
-        struct Value
-        {
-            long long simulation_frame;
-            unsigned long long timestamp;
-            @Key string name;
-            string unit;
-            double dbl;
-            string str;
-        };
-
-        struct Waveform
-        {
-            long long simulation_frame;
-            unsigned long long timestamp;
-            @Key string name;
-            string unit;
-            double dbl;
-            string str;
-        };
-
-        struct Modification
-        {
-            @Key UUID id;
-            UUID event_id;
-            string data;    // TODO: Figure this out
-        };
-
-        /* FIXME: Standardize inputs to BioGears
         enum CMD {  // Known Pysiology Actions
           PainCommand
           ,SepsisCommand
@@ -185,12 +228,17 @@ module AMM
                 string message;
             };
         };
-        */ // End of FIXME
     };
+    */ // End of FIXME
 
     struct RenderModification
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Partition: AMM
+         */
     {
-        @Key UUID id;
+        UUID id;
         UUID event_id;
         string data;    // TODO: Standardize this
     };
@@ -202,6 +250,12 @@ module AMM
     };
 
     struct Status
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Liveliness: Automatic, 1 second lease
+         *  Partition: AMM
+         */
     {
         @Key UUID module_id;
         string module_name;
@@ -221,9 +275,14 @@ module AMM
     }
 
     struct Log
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Partition: AMM
+         */
     {
         unsigned long long timestamp;
-        UUID module_id;
+        @Key UUID module_id;
         LogLevel level;
         string message;
     };
