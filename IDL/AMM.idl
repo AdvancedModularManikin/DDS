@@ -19,6 +19,24 @@ module AMM
         unsigned short patch;
     }
 
+    enum ControlType {
+        RUN
+       ,PAUSE
+       ,END
+       ,SAVE
+    }
+    struct SimulationControl
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Liveliness: Automatic, 1 second lease
+         *  Partition: AMM
+         */
+    {
+        unsigned long long timestamp;
+        ControlType type;
+    }
+
     struct EventRecord
         /** QoS:
          *  Reliability: Reliable
@@ -55,7 +73,6 @@ module AMM
        ,ACCEPTED
        ,DENIED
     }
-
     struct FragmentAmendmentRequest
         /** QoS:
          *  Reliability: Reliable
@@ -65,32 +82,13 @@ module AMM
     {
         UUID id;
         UUID fragment_id;
-        FAR_Status status;  // Requesting, Accepted, Denied
+        FAR_Status status;
         // Values that can be amended
         unsigned long long timestamp;
         FMA_Location location;
         string practitioner;
         string type;
         string data;
-    }
-
-    enum ControlType {
-        RUN
-       ,PAUSE
-       ,END
-       ,SAVE
-    }
-
-    struct SimulationControl
-        /** QoS:
-         *  Reliability: Reliable
-         *  Durability: Transient Local
-         *  Liveliness: Automatic, 1 second lease
-         *  Partition: AMM
-         */
-    {
-        unsigned long long timestamp;
-        ControlType type;
     }
 
     struct PhysiologyValue
@@ -108,8 +106,7 @@ module AMM
         unsigned long long timestamp;
         @Key string name;   // BioGears node path
         string unit;
-        double dbl;
-        string str;
+        double value;
     };
 
     struct PhysiologyWaveform // Reliable delivery
@@ -126,8 +123,7 @@ module AMM
         unsigned long long timestamp;
         @Key string name;   // BioGears node path
         string unit;
-        double dbl;
-        string str;
+        double value;
     };
 
     struct PhysiologyModification
@@ -156,12 +152,30 @@ module AMM
         string data;
     };
 
+    enum AssessmentValue {
+        OMISSION_ERROR
+       ,COMMISSION_ERROR
+       ,EXECUTION_ERROR
+       ,SUCCESS
+    }
+    struct Assessment
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Partition: AMM
+         */
+    {
+        UUID id;
+        UUID event_id;
+        AssessmentValue value;
+        string comment;
+    }
+
     enum StatusValue {
         OPERATIONAL
        ,INOPERATIVE
        ,EXIGENT
     };
-
     struct Status
         /** QoS:
          *  Reliability: Reliable
@@ -186,7 +200,6 @@ module AMM
        ,DEBUG
        ,TRACE
     }
-
     struct Log
         /** QoS:
          *  Reliability: Reliable
