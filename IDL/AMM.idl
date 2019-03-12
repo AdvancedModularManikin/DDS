@@ -74,16 +74,6 @@ module AMM
         string data;
     }
 
-    /* Included in BioGears?
-    module Environment
-    {
-        struct Settings
-        {
-            string description;
-        };
-    };
-    */
-
     enum ControlType {
         RUN
        ,PAUSE
@@ -102,17 +92,6 @@ module AMM
         unsigned long long timestamp;
         ControlType type;
     }
-
-    struct InstrumentData
-        /** QoS
-         *  Reliability: Reliable
-         *  Durability: Volatile
-         *  Partition: AMM
-         */
-    {
-        string instrument;
-        string payload;
-    };
 
     struct PhysiologyValue
         /** QoS:
@@ -160,76 +139,9 @@ module AMM
     {
         UUID id;
         UUID event_id;
-        string data;    // TODO: Figure this out
+        string type;
+        string data;
     };
-
-    /* FIXME: Standardize inputs to BioGears
-    module Physiology
-    {
-        enum CMD {  // Known Pysiology Actions
-          PainCommand
-          ,SepsisCommand
-        };
-
-        enum TissueCompartment {
-             BoneTissue
-            ,FatTissue
-            ,GutTissue
-            ,LeftKidneyTissue
-            ,LeftLungTissue
-            ,LiverTissue
-            ,MuscleTissue
-            ,MyocardiumTissue
-            ,RightKidneyTissue
-            ,RightLungTissue
-            ,SkinTissue
-            ,SpleenTissue
-        };
-        struct Command {  //Command structure to embeded specific event types
-           CMD type;
-           sequence<char> payload;
-        };
-
-
-        module PainStimulus
-        {
-            struct Data
-            {
-                FMA_Location location;
-                double severity;
-            };
-        };
-
-        module Sepsis
-        {
-            struct Data
-            {
-                TissueCompartment location;
-                double severity;
-            };
-        };
-
-        struct Modification
-        {
-            UUID id;
-            FMA_Location location;
-            string practitioner;
-            string type;
-            string payload;
-        };
-    };
-
-    module PatientAction
-    {
-        module BioGears
-        {
-            struct Command
-            {
-                string message;
-            };
-        };
-    };
-    */ // End of FIXME
 
     struct RenderModification
         /** QoS:
@@ -240,7 +152,8 @@ module AMM
     {
         UUID id;
         UUID event_id;
-        string data;    // TODO: Standardize this
+        string type;
+        string data;
     };
 
     enum StatusValue {
