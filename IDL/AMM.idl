@@ -17,7 +17,7 @@ module AMM
         unsigned short major;
         unsigned short minor;
         unsigned short patch;
-    }
+    };
     struct OperationalDescription
         /** QoS:
          *  Reliability: Reliable
@@ -28,12 +28,12 @@ module AMM
         string name;
         string description;
         @Key string manufacturer;
-        @key string model;
+        @Key string model;
         @Key string serial_number;
         string module_version;
         AMM_Version amm_version;
         string capabilities_schema;
-    }
+    };
 
     struct Configuration
         /** QoS:
@@ -44,20 +44,20 @@ module AMM
     {
         string name;
         @Key string manufacturer;
-        @key string model;
+        @Key string model;
         @Key string serial_number;
         UUID id;
         unsigned long long timestamp;
-        sequence<octet, 4> ip;
+        octet ip_address[4];
         string capabilities;
-    }
+    };
 
     enum ControlType {
         RUN
        ,PAUSE
        ,END
        ,SAVE
-    }
+    };
     struct SimulationControl
         /** QoS:
          *  Reliability: Reliable
@@ -68,7 +68,7 @@ module AMM
     {
         unsigned long long timestamp;
         ControlType type;
-    }
+    };
 
     struct EventRecord
         /** QoS:
@@ -105,7 +105,7 @@ module AMM
         REQUESTING
        ,ACCEPTED
        ,DENIED
-    }
+    };
     struct FragmentAmendmentRequest
         /** QoS:
          *  Reliability: Reliable
@@ -122,7 +122,7 @@ module AMM
         string practitioner;
         string type;
         string data;
-    }
+    };
 
     struct PhysiologyValue
         /** QoS:
@@ -190,7 +190,7 @@ module AMM
        ,COMMISSION_ERROR
        ,EXECUTION_ERROR
        ,SUCCESS
-    }
+    };
     struct Assessment
         /** QoS:
          *  Reliability: Reliable
@@ -202,7 +202,7 @@ module AMM
         UUID event_id;
         AssessmentValue value;
         string comment;
-    }
+    };
 
     enum StatusValue {
         OPERATIONAL
@@ -223,7 +223,7 @@ module AMM
         unsigned long long timestamp;
         StatusValue value;
         string message;
-    }
+    };
 
     enum LogLevel {
         FATAL
@@ -232,7 +232,7 @@ module AMM
        ,INFO
        ,DEBUG
        ,TRACE
-    }
+    };
     struct Log
         /** QoS:
          *  Reliability: Reliable
