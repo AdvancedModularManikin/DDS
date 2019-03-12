@@ -18,6 +18,39 @@ module AMM
         unsigned short minor;
         unsigned short patch;
     }
+    struct OperationalDescription
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Partition: AMM
+         */
+    {
+        string name;
+        string description;
+        @Key string manufacturer;
+        @key string model;
+        @Key string serial_number;
+        string module_version;
+        AMM_Version amm_version;
+        string capabilities_schema;
+    }
+
+    struct Configuration
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Partition: AMM
+         */
+    {
+        string name;
+        @Key string manufacturer;
+        @key string model;
+        @Key string serial_number;
+        UUID id;
+        unsigned long long timestamp;
+        sequence<octet, 4> ip;
+        string capabilities;
+    }
 
     enum ControlType {
         RUN
