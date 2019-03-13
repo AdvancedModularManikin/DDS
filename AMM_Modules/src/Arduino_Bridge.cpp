@@ -266,6 +266,8 @@ void readHandler() {
                 physMod.type(modType);
                 physMod.payload(modPayload);
                 mgr->PublishPhysiologyModification(physMod);
+            } else if (topic == "AMM_Diagnostics_Log_Record") {
+                mgr->PublishLogRecord(modPayload, modType);
             } else {
                 LOG_DEBUG << "Unknown topic: " << topic;
             }
