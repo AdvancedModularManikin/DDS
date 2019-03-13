@@ -12,27 +12,23 @@ struct UUID
 
 module AMM
 {
-    struct AMM_Version
-    {
-        unsigned short major;
-        unsigned short minor;
-        unsigned short patch;
+    enum AssessmentValue {
+        OMISSION_ERROR
+       ,COMMISSION_ERROR
+       ,EXECUTION_ERROR
+       ,SUCCESS
     };
-    struct OperationalDescription
+    struct Assessment
         /** QoS:
          *  Reliability: Reliable
          *  Durability: Transient Local
          *  Partition: AMM
          */
     {
-        string name;
-        string description;
-        @Key string manufacturer;
-        @Key string model;
-        @Key string serial_number;
-        string module_version;
-        AMM_Version amm_version;
-        string capabilities_schema;
+        UUID id;
+        UUID event_id;
+        AssessmentValue value;
+        string comment;
     };
 
     struct Configuration
@@ -52,29 +48,10 @@ module AMM
         string capabilities;
     };
 
-    enum ControlType {
-        RUN
-       ,PAUSE
-       ,END
-       ,SAVE
-    };
-    struct SimulationControl
+    struct EventFragment
         /** QoS:
          *  Reliability: Reliable
-         *  Durability: Transient Local
-         *  Liveliness: Automatic, 1 second lease
-         *  Partition: AMM
-         */
-    {
-        unsigned long long timestamp;
-        ControlType type;
-    };
-
-    struct EventRecord
-        /** QoS:
-         *  Reliability: Reliable
-         *  Durability: Transient Local (In case of module disconnect/reconnect)
-         *  Liveliness: Automatic, 1 second lease
+         *  Durability: Volatile
          *  Partition: AMM
          */
     {
@@ -86,10 +63,11 @@ module AMM
         string data;
     };
 
-    struct EventFragment
+    struct EventRecord
         /** QoS:
          *  Reliability: Reliable
-         *  Durability: Volatile
+         *  Durability: Transient Local (In case of module disconnect/reconnect)
+         *  Liveliness: Automatic, 1 second lease
          *  Partition: AMM
          */
     {
@@ -120,6 +98,62 @@ module AMM
         unsigned long long timestamp;
         FMA_Location location;
         string practitioner;
+        string type;
+        string data;
+    };
+
+    enum LogLevel {
+        FATAL
+       ,ERROR
+       ,WARN
+       ,INFO
+       ,DEBUG
+       ,TRACE
+    };
+    struct Log
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Partition: AMM
+         */
+    {
+        unsigned long long timestamp;
+        @Key UUID module_id;
+        LogLevel level;
+        string message;
+    };
+
+    struct AMM_Version {
+        unsigned short major;
+        unsigned short minor;
+        unsigned short patch;
+    };
+    struct OperationalDescription
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Partition: AMM
+         */
+    {
+        string name;
+        string description;
+        @Key string manufacturer;
+        @Key string model;
+        @Key string serial_number;
+        string module_version;
+        AMM_Version amm_version;
+        string capabilities_schema;
+    };
+
+    struct PhysiologyModification
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Partition: AMM
+         */
+    {
+        UUID id;
+        UUID event_id;
         string type;
         string data;
     };
@@ -159,19 +193,6 @@ module AMM
         double value;
     };
 
-    struct PhysiologyModification
-        /** QoS:
-         *  Reliability: Reliable
-         *  Durability: Transient Local
-         *  Partition: AMM
-         */
-    {
-        UUID id;
-        UUID event_id;
-        string type;
-        string data;
-    };
-
     struct RenderModification
         /** QoS:
          *  Reliability: Reliable
@@ -185,23 +206,22 @@ module AMM
         string data;
     };
 
-    enum AssessmentValue {
-        OMISSION_ERROR
-       ,COMMISSION_ERROR
-       ,EXECUTION_ERROR
-       ,SUCCESS
+    enum ControlType {
+        RUN
+       ,PAUSE
+       ,END
+       ,SAVE
     };
-    struct Assessment
+    struct SimulationControl
         /** QoS:
          *  Reliability: Reliable
          *  Durability: Transient Local
+         *  Liveliness: Automatic, 1 second lease
          *  Partition: AMM
          */
     {
-        UUID id;
-        UUID event_id;
-        AssessmentValue value;
-        string comment;
+        unsigned long long timestamp;
+        ControlType type;
     };
 
     enum StatusValue {
@@ -222,27 +242,6 @@ module AMM
         @Key string capability;
         unsigned long long timestamp;
         StatusValue value;
-        string message;
-    };
-
-    enum LogLevel {
-        FATAL
-       ,ERROR
-       ,WARN
-       ,INFO
-       ,DEBUG
-       ,TRACE
-    };
-    struct Log
-        /** QoS:
-         *  Reliability: Reliable
-         *  Durability: Transient Local
-         *  Partition: AMM
-         */
-    {
-        unsigned long long timestamp;
-        @Key UUID module_id;
-        LogLevel level;
         string message;
     };
 };
