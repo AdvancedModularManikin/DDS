@@ -91,8 +91,8 @@ void ModuleManagerListener::onNewLogRecordData(AMM::Diagnostics::Log::Record r, 
     mapmutex.lock();
 
     try {
-        db << "insert into logs (module_guid, message, log_level, timestamp) values (?, ?,?,?);"
-           << module_guid.str() << r.message() << r.log_level() << timestamp;
+        db << "insert into logs (module_guid, module_id, module_name, message, log_level, timestamp) values (?,?,?,?,?,?);"
+           << module_guid.str() << r.module_id() << r.module_name() << r.message() << r.log_level() << timestamp;
     } catch (exception &e) {
         LOG_ERROR << e.what();
     };

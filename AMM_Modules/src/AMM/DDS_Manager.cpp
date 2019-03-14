@@ -33,6 +33,7 @@ namespace AMM {
         LOG_INFO << "Generating ID";
 
         module_id = GenerateID();
+        module_name = nodeName;
     }
 
     Participant *DDS_Manager::GetParticipant() { return mp_participant; }
@@ -194,6 +195,8 @@ namespace AMM {
                 std::chrono::high_resolution_clock::now().time_since_epoch()).count();
         AMM::Diagnostics::Log::Record logInstance;
         try {
+            logInstance.module_id(module_id);
+            logInstance.module_name(module_name);
             logInstance.message(message);
             logInstance.log_level(log_level);
             logInstance.timestamp(now);

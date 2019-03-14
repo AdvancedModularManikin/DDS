@@ -786,23 +786,23 @@ private:
         writer.StartArray();
 
         db << "SELECT "
-              "module_capabilities.module_name, "
+              "logs.module_name, "
               "logs.module_guid, "
+              "logs.module_id, "
               "logs.message,"
               "logs.log_level,"
               "logs.timestamp "
               "FROM "
-              "logs "
-              "LEFT JOIN module_capabilities "
-              "ON "
-              "logs.module_guid = module_capabilities.module_guid" >>
-           [&](string module_name, string module_guid, string message, string log_level, int64_t timestamp) {
+              "logs " >>
+           [&](string module_name, string module_guid, string module_id, string message, string log_level, int64_t timestamp) {
 
                writer.StartObject();
                writer.Key("source");
                writer.String(module_name.c_str());
                writer.Key("module_guid");
                writer.String(module_guid.c_str());
+               writer.Key("module_id");
+               writer.String(module_id.c_str());
                writer.Key("timestamp");
                writer.Uint64(timestamp);
                writer.Key("log_level");

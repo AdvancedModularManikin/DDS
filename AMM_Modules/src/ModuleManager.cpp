@@ -35,6 +35,8 @@ void SetupTables() {
         LOG_INFO << "Creating event log table...";
         db << "create table if not exists events("
               "source text,"
+              "module_id text,"
+              "module_name text,"
               "event_guid text,"
               "topic text,"
               "tick bigint,"
@@ -79,6 +81,7 @@ void SetupTables() {
         db << "create table if not exists pubsubs("
               "module_id text,"
               "module_guid text,"
+              "module_name text,"
               "topic_type text,"
               "topic text"
               ");";
@@ -87,6 +90,7 @@ void SetupTables() {
         db << "create table if not exists logs("
               "module_id text,"
               "module_guid text,"
+              "module_name text,"
               "message text,"
               "log_level text,"
               "timestamp bigint"
