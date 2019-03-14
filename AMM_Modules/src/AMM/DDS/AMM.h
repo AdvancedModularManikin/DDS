@@ -6762,6 +6762,76 @@ namespace AMM
                 {
                     return m_message;
                 }
+                /*!
+                 * @brief This function copies the value in member module_name
+                 * @param _module_name New value to be copied in member module_name
+                 */
+                inline eProsima_user_DllExport void module_name(const std::string &_module_name)
+                {
+                    m_module_name = _module_name;
+                }
+
+                /*!
+                 * @brief This function moves the value in member module_name
+                 * @param _module_name New value to be moved in member module_name
+                 */
+                inline eProsima_user_DllExport void module_name(std::string &&_module_name)
+                {
+                    m_module_name = std::move(_module_name);
+                }
+
+                /*!
+                 * @brief This function returns a constant reference to member module_name
+                 * @return Constant reference to member module_name
+                 */
+                inline eProsima_user_DllExport const std::string& module_name() const
+                {
+                    return m_module_name;
+                }
+
+                /*!
+                 * @brief This function returns a reference to member module_name
+                 * @return Reference to member module_name
+                 */
+                inline eProsima_user_DllExport std::string& module_name()
+                {
+                    return m_module_name;
+                }
+                /*!
+                 * @brief This function copies the value in member module_id
+                 * @param _module_id New value to be copied in member module_id
+                 */
+                inline eProsima_user_DllExport void module_id(const std::string &_module_id)
+                {
+                    m_module_id = _module_id;
+                }
+
+                /*!
+                 * @brief This function moves the value in member module_id
+                 * @param _module_id New value to be moved in member module_id
+                 */
+                inline eProsima_user_DllExport void module_id(std::string &&_module_id)
+                {
+                    m_module_id = std::move(_module_id);
+                }
+
+                /*!
+                 * @brief This function returns a constant reference to member module_id
+                 * @return Constant reference to member module_id
+                 */
+                inline eProsima_user_DllExport const std::string& module_id() const
+                {
+                    return m_module_id;
+                }
+
+                /*!
+                 * @brief This function returns a reference to member module_id
+                 * @return Reference to member module_id
+                 */
+                inline eProsima_user_DllExport std::string& module_id()
+                {
+                    return m_module_id;
+                }
 
                 /*!
                  * @brief This function returns the maximum serialized size of an object
@@ -6817,6 +6887,8 @@ namespace AMM
                 uint64_t m_timestamp;
                 std::string m_log_level;
                 std::string m_message;
+                std::string m_module_name;
+                std::string m_module_id;
             };
         }
     }
