@@ -196,6 +196,13 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+#define RATE_LIMIT_MOD 2<<6
+int rate_limit_count = 1;
+bool rate_limiter(int modulus) {
+    rate_limit_count++;
+    return (rate_limit_count % modulus == 0);
+}
+
 //code from air_tank.cpp initially copied here
 struct pid_ctl {
     float p;
@@ -243,17 +250,17 @@ uint32_t val;
 void
 air_reservoir_control_task(void)
 {
-    int solenoid_0 = 7, motor_dac = 0;
+    int solenoid_0 = 7, motor_dac = 1;
     int solenoid_A = gpio_J4;
     int solenoid_B = gpio_J5;
     int solenoid_C = gpio_J6;
     int solenoid_AC = gpio_J10;
     int solenoid_AD = solenoid_0 + 7;
-    remote_set_gpio(solenoid_B, 1); // TODO turn off to vent, another control output
+    remote_set_gpio(solenoid_B, 0); // solenoid B off on startup
     remote_set_gpio(solenoid_A, 0); //solenoid A TODO to purge lines A off B on
     remote_set_gpio(solenoid_C, 0);
     int motor_enable = 16;//B1
-    remote_set_gpio(motor_enable, 1);
+    remote_set_gpio(motor_enable, 0); // motor disabled on startup
     //in order to purge: Turn B off, Turn A on, Turn AC & AD on
     //P1 pressure will slowly drop to atmospheric
     //p4 pressure should stay above 1 bar until the lines are clear of liquid
@@ -269,9 +276,9 @@ air_reservoir_control_task(void)
     //adcs
     int P1 = 0, P2 = 1, P3 = 2, P4 = 3;
 
-    pid.p = 24;
-    pid.i = 1.0 / 1024;
-    pid.d = 1.0 / 16;
+    pid.p = 48;   // adjusting for max speed of 1500 was p = 24;
+    pid.i = 0;    // too much windup, let's do this without i = 1.0 / 1024;
+    pid.d = 0;    // no need for differential here ..  was d = 1.0 / 16;
     pid.isum = 0;
 
     uint16_t dacVal;
@@ -292,7 +299,7 @@ air_reservoir_control_task(void)
         remote_set_gpio(solenoid_A, 0);
         remote_set_gpio(solenoid_C, 0);
         int not_pressurized = 1;
-        puts("entering startup!");
+        LOG_INFO << "Pressurizing";
 
         //pressurize, when done goto enter_state_operational;
         //TODO need to determine if pressure is really completed.
@@ -301,7 +308,7 @@ air_reservoir_control_task(void)
 
             pid.target = operating_pressure;
             float hold_isum = pid.isum;
-            uint32_t adcRead = remote_get_adc(0);
+            uint32_t adcRead = remote_get_adc(P1);
             float psi = ((float) adcRead) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
             ret = pi_supply(&pid, psi);
 
@@ -317,8 +324,12 @@ air_reservoir_control_task(void)
             //float psiP2 = ((float)remote_get_adc(P2))*(3.0/10280.0*16.0) - 15.0/8.0;
             //float psiP3 = ((float)remote_get_adc(P3))*(3.0/10280.0*16.0) - 15.0/8.0;
             float psiP4 = ((float) remote_get_adc(P4)) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
-            if (psiP4 > (operating_pressure - 0.1)) {
-                puts("pressurization complete!");
+            if (rate_limiter(RATE_LIMIT_MOD)) {
+                LOG_DEBUG << "P1: " << psi;
+                LOG_DEBUG << "P4: " << psiP4;
+            }
+            if (psi > (operating_pressure - 0.25)) {
+                LOG_INFO << "Pressurization complete";
                 current_status = OPERATIONAL;
                 send_status = true;
                 goto state_operational;
@@ -328,7 +339,7 @@ air_reservoir_control_task(void)
 
     state_operational:
     {
-        puts("entering operational state!");
+        LOG_INFO << "System Operational";
         remote_set_gpio(rail_24V, 1);
         remote_set_gpio(motor_enable, 1);
         remote_set_gpio(solenoid_B, 1);
@@ -340,8 +351,13 @@ air_reservoir_control_task(void)
             if (module_stopped) goto state_error;
             pid.target = operating_pressure;
             float hold_isum = pid.isum;
-            uint32_t adcRead = remote_get_adc(0);
+            uint32_t adcRead = remote_get_adc(P1);
             float psi = ((float) adcRead) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+            float psiP4 = ((float) remote_get_adc(P4)) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+	    if (rate_limiter(RATE_LIMIT_MOD)) {
+                LOG_DEBUG << "P1: " << psi;
+                LOG_DEBUG << "P4: " << psiP4;
+            }
             ret = pi_supply(&pid, psi);
 
             //convert back to 0-2^12 range for DAC
