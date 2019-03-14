@@ -311,6 +311,8 @@ module AMM
 				unsigned long long timestamp;				
 				string log_level;
 				string message;
+				string module_name;
+				string module_id;
 			};
 		};
 	};
