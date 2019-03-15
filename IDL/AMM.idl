@@ -123,6 +123,22 @@ module AMM
         string message;
     };
 
+    struct OmittedEvent
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local (In case of module disconnect/reconnect)
+         *  Liveliness: Automatic, 1 second lease
+         *  Partition: AMM
+         */
+    {
+        UUID id;
+        unsigned long long timestamp;   // When the omission was detected.
+        FMA_Location location;
+        string practitioner;
+        string type;
+        string data;
+    };
+
     struct AMM_Version {
         unsigned short major;
         unsigned short minor;
