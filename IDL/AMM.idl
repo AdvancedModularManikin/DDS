@@ -31,23 +31,6 @@ module AMM
         string comment;
     };
 
-    struct Configuration
-        /** QoS:
-         *  Reliability: Reliable
-         *  Durability: Transient Local
-         *  Partition: AMM
-         */
-    {
-        string name;
-        @Key string manufacturer;
-        @Key string model;
-        @Key string serial_number;
-        UUID id;
-        unsigned long long timestamp;
-        octet ip_address[4];
-        string capabilities;
-    };
-
     struct EventFragment
         /** QoS:
          *  Reliability: Reliable
@@ -121,6 +104,23 @@ module AMM
         @Key UUID module_id;
         LogLevel level;
         string message;
+    };
+
+    struct ModuleConfiguration
+        /** QoS:
+         *  Reliability: Reliable
+         *  Durability: Transient Local
+         *  Partition: AMM
+         */
+    {
+        string name;
+        @Key string manufacturer;
+        @Key string model;
+        @Key string serial_number;
+        UUID id;
+        unsigned long long timestamp;
+        octet ip_address[4];
+        string capabilities_configuration;
     };
 
     struct OmittedEvent
