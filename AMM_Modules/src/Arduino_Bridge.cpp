@@ -47,11 +47,11 @@ std::string actionPrefix = "[AMM_Command]";
 std::string genericTopicPrefix = "[";
 std::string xmlPrefix = "<?xml";
 
-std::vector<std::string> subscribedTopics;
-std::vector<std::string> publishedTopics;
-std::map<std::string, std::string> subMaps;
+std::vector <std::string> subscribedTopics;
+std::vector <std::string> publishedTopics;
+std::map <std::string, std::string> subMaps;
 
-std::queue<std::string> transmitQ;
+std::queue <std::string> transmitQ;
 
 // Set up DDS
 const char *nodeName = "AMM_Serial_Bridge";
@@ -73,7 +73,7 @@ void sendConfigInfo(std::string scene, std::string module) {
         LOG_ERROR << "Configuration empty.";
         return;
     }
-    std::vector<std::string> v = Utility::explode("\n", configContent);
+    std::vector <std::string> v = Utility::explode("\n", configContent);
     for (int i = 0; i < v.size(); i++) {
         std::string rsp = v[i] + "\n";
         transmitQ.push(rsp);
@@ -85,7 +85,7 @@ void readHandler() {
     if (!boost::algorithm::ends_with(globalInboundBuffer, "\n")) {
         return;
     }*/
-    std::vector<std::string> v = Utility::explode("\n", globalInboundBuffer);
+    std::vector <std::string> v = Utility::explode("\n", globalInboundBuffer);
     globalInboundBuffer.clear();
     for (int i = 0; i < v.size(); i++) {
         std::string rsp = v[i];
@@ -117,6 +117,7 @@ void readHandler() {
                 std::string serial_number = module->Attribute("serial_number");
                 std::string module_version = module->Attribute("module_version");
 
+                mgr->module_name = module_name;
                 mgr->PublishModuleConfiguration(
                         mgr->module_id,
                         module_name,
@@ -209,11 +210,11 @@ void readHandler() {
                             mgr->SetStatus(mgr->module_id, nodeName, capabilityName, OPERATIONAL);
                         } else if (statusVal == "HALTING_ERROR") {
                             std::string errorMessage = cap->Attribute("message");
-                            std::vector<std::string> errorMessages = {errorMessage};
+                            std::vector <std::string> errorMessages = {errorMessage};
                             mgr->SetStatus(mgr->module_id, nodeName, capabilityName, HALTING_ERROR, errorMessages);
                         } else if (statusVal == "IMPENDING_ERROR") {
                             std::string errorMessage = cap->Attribute("message");
-                            std::vector<std::string> errorMessages = {errorMessage};
+                            std::vector <std::string> errorMessages = {errorMessage};
                             mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR, errorMessages);
                         } else {
                             LOG_ERROR << "Invalid status value " << statusVal << " for capability " << capabilityName;
@@ -227,34 +228,33 @@ void readHandler() {
             unsigned last = rsp.find("]");
             topic = rsp.substr(first + 1, last - first - 1);
             message = rsp.substr(last + 1);
-            LOG_INFO << "Received a message for topic " << topic << " with a payload of: " << message;
 
-            std::list<std::string> tokenList;
+            std::list <std::string> tokenList;
             split(tokenList, message, boost::algorithm::is_any_of(";"), boost::token_compress_on);
-            std::map<std::string, std::string> kvp;
+            std::map <std::string, std::string> kvp;
 
             BOOST_FOREACH(std::string token, tokenList) {
-                            size_t sep_pos = token.find_first_of("=");
-                            std::string key = token.substr(0, sep_pos);
-                            std::string value = (sep_pos == std::string::npos ? "" : token.substr(sep_pos + 1,
-                                                                                                  std::string::npos));
-                            kvp[key] = value;
-                            LOG_DEBUG << "\t" << key << " => " << kvp[key];
-                            if (key == "type") {
-                                LOG_DEBUG << "  Type is " << kvp[key];
-                                modType = kvp[key];
-                            }
-                            if (key == "location") {
-                                LOG_DEBUG << "  Location is " << kvp[key];
-                                modLocation = kvp[key];
-                            }
+                size_t sep_pos = token.find_first_of("=");
+                std::string key = token.substr(0, sep_pos);
+                std::string value = (sep_pos == std::string::npos ? "" : token.substr(sep_pos + 1,
+                                                                                      std::string::npos));
+                kvp[key] = value;
+                // LOG_DEBUG << "\t" << key << " => " << kvp[key];
+                if (key == "type") {
+                    // LOG_DEBUG << "  Type is " << kvp[key];
+                    modType = kvp[key];
+                }
+                if (key == "location") {
+                    // LOG_DEBUG << "  Location is " << kvp[key];
+                    modLocation = kvp[key];
+                }
 
-                            if (key == "payload") {
-                                LOG_DEBUG << "  Payload is " << kvp[key];
-                                modPayload = kvp[key];
-                            }
+                if (key == "payload") {
+                    // LOG_DEBUG << "  Payload is " << kvp[key];
+                    modPayload = kvp[key];
+                }
 
-                        }
+            }
 
             if (topic == "AMM_Render_Modification") {
                 AMM::Render::Modification renderMod;
@@ -398,7 +398,7 @@ void checkForExit() {
 }
 
 
-void signalHandler( int signum ) {
+void signalHandler(int signum) {
     LOG_WARNING << "Interrupt signal (" << signum << ") received.";
 
     if (signum == 15) {
