@@ -32,7 +32,8 @@ void ModuleManagerListener::onNewConfigData(AMM::Capability::Configuration cfg,
     module_guid << changeGuid.guidPrefix;
     mapmutex.lock();
     try {
-        db << "replace into module_capabilities (module_id, module_guid, "
+        db << "delete from module_capabilities where module_name = ?" << cfg.module_name();
+        db << "insert into module_capabilities (module_id, module_guid, "
               "module_name, manufacturer, model, serial_number, version, "
               "capabilities) values (?,?,?,?,?,?,?,?);"
            << cfg.module_id() << module_guid.str() << cfg.module_name()
