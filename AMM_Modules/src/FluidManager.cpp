@@ -1,7 +1,7 @@
 
 
 #include <algorithm>
-
+#include <thread>
 #include <boost/algorithm/string.hpp>
 
 #include "AMM/DDS_Manager.h"
@@ -63,16 +63,18 @@ void ProcessConfig(const std::string &configContent) {
         return;
     }
 
+    
     //scan for data name=operating pressure
     tinyxml2::XMLElement *entry5 = entry4->FirstChildElement("configuration_data")->ToElement();
 
     while (entry5) {
         tinyxml2::XMLElement *entry5_1 = entry5->FirstChildElement("data")->ToElement();
         if (!strcmp(entry5_1->ToElement()->Attribute("name"), "operating_pressure")) {
-            operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
-            have_pressure = true;
-            //TODO used to send the pressure as a message here. Ensure it's getting where it needs to go in the local state
-            break;
+	  operating_pressure = entry5_1->ToElement()->FloatAttribute("value");
+	  have_pressure = true;
+	  LOG_INFO << "Setting operating pressure to " << operating_pressure;
+	  //TODO used to send the pressure as a message here. Ensure it's getting where it needs to go in the local state
+	  break;
         }
         auto v = entry5->ToElement()->NextSibling();
         if (v) {
@@ -96,9 +98,11 @@ class FluidListener : public ListenerInterface {
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
         // We received configuration which we need to push via SPI
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+
             std::string value = c.message().substr(sysPrefix.size());
             if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
                 std::string scene = value.substr(loadScenarioPrefix.size());
+		LOG_INFO << "Loading scene: " << scene;
                 boost::algorithm::to_lower(scene);
                 ostringstream static_filename;
                 static_filename << "static/module_configuration_static/" << scene << "_fluid_manager.xml";
@@ -129,72 +133,6 @@ static void show_usage(const std::string &name) {
          << "\t-h,--help\t\tShow this help message\n" << endl;
 }
 
-void air_reservoir_control_task(void);
-
-int main(int argc, char *argv[]) {
-    host_remote_init(&remote);
-    std::thread remote_thread(remote_task);
-    std::thread air_tank_thread(air_reservoir_control_task);
-
-    cout << "=== [FluidManager] Ready ..." << endl;
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-        if ((arg == "-h") || (arg == "--help")) {
-            show_usage(argv[0]);
-            return 0;
-        }
-
-        if (arg == "-d") {
-            daemonize = 1;
-        }
-    }
-
-    const char *nodeName = "AMM_FluidManager";
-    std::string nodeString(nodeName);
-    auto *mgr = new DDS_Manager(nodeName);
-
-    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
-    static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
-    plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
-
-    auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
-    auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
-
-    FluidListener fl;
-    command_sub_listener->SetUpstream(&fl);
-    config_sub_listener->SetUpstream(&fl);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType,
-                                      command_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, &mgr->ConfigurationType,
-                                      config_sub_listener);
-
-    // Publish module configuration once we've set all our publishers and listeners
-    // This announces that we're available for configuration
-    mgr->PublishModuleConfiguration(
-            mgr->module_id,
-            nodeString,
-            "Entropic",
-            "fluid_manager",
-            "00001",
-            "0.0.1",
-            mgr->GetCapabilitiesAsString("static/module_capabilities/fluid_manager_capabilities.xml")
-    );
-
-    bool closed = 0;
-    while (!closed) {
-        if (send_status) {
-            LOG_INFO << "[FluidManager] Setting status to " << current_status;
-            send_status = false;
-            mgr->SetStatus(mgr->module_id, nodeString, current_status);
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    }
-    remote_thread.join();
-    air_tank_thread.join();
-    cout << "=== [FluidManager] Simulation stopped." << endl;
-
-    return 0;
-}
 
 #define RATE_LIMIT_MOD 2<<6
 int rate_limit_count = 1;
@@ -247,10 +185,11 @@ bool should_pid_run = true;
 float ret;
 uint32_t val;
 
-void
-air_reservoir_control_task(void)
+void air_reservoir_control_task(void)
 {
-    int solenoid_0 = 7, motor_dac = 1;
+    LOG_INFO << "Thread for air reservoir control task";
+
+  int solenoid_0 = 7, motor_dac = 1;
     int solenoid_A = gpio_J4;
     int solenoid_B = gpio_J5;
     int solenoid_C = gpio_J6;
@@ -462,4 +401,74 @@ air_reservoir_control_task(void)
         module_stopped = false;
         goto state_startup;
     }
+}
+
+
+int main(int argc, char *argv[]) {
+    host_remote_init(&remote);
+    std::thread remote_thread;//(remote_task);
+    std::thread air_tank_thread;//(air_reservoir_control_task);
+
+    cout << "=== [FluidManager] Ready ..." << endl;
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if ((arg == "-h") || (arg == "--help")) {
+            show_usage(argv[0]);
+            return 0;
+        }
+
+        if (arg == "-d") {
+            daemonize = 1;
+        }
+    }
+
+    const char *nodeName = "AMM_FluidManager";
+    std::string nodeString(nodeName);
+    auto *mgr = new DDS_Manager(nodeName);
+
+    static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+    static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
+    plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
+
+    auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
+    auto *config_sub_listener = new DDS_Listeners::ConfigSubListener();
+
+    FluidListener fl;
+    command_sub_listener->SetUpstream(&fl);
+    config_sub_listener->SetUpstream(&fl);
+    mgr->InitializeSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType,
+                                      command_sub_listener);
+    mgr->InitializeSubscriber(AMM::DataTypes::configurationTopic, &mgr->ConfigurationType,
+                                      config_sub_listener);
+
+    // Publish module configuration once we've set all our publishers and listeners
+    // This announces that we're available for configuration
+    mgr->PublishModuleConfiguration(
+            mgr->module_id,
+            nodeString,
+            "Entropic",
+            "fluid_manager",
+            "00001",
+            "0.0.1",
+            mgr->GetCapabilitiesAsString("static/module_capabilities/fluid_manager_capabilities.xml")
+    );
+
+
+    remote_thread = std::thread{remote_task};
+    air_tank_thread = std::thread{air_reservoir_control_task};
+    
+    bool closed = 0;
+    while (!closed) {
+        if (send_status) {
+            LOG_INFO << "[FluidManager] Setting status to " << current_status;
+	                send_status = false;
+            mgr->SetStatus(mgr->module_id, nodeString, current_status);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    }
+    remote_thread.join();
+    air_tank_thread.join();
+    cout << "=== [FluidManager] Simulation stopped." << endl;
+
+    return 0;
 }
