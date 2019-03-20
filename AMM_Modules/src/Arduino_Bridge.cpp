@@ -267,13 +267,14 @@ void readHandler() {
                 physMod.payload(modPayload);
                 mgr->PublishPhysiologyModification(physMod);
             } else if (topic == "AMM_Diagnostics_Log_Record") {
-                mgr->PublishLogRecord(modPayload, modType);
+	      //                mgr->PublishLogRecord(modPayload, modType);
+	      LOG_DEBUG << modPayload;
             } else {
                 LOG_DEBUG << "Unknown topic: " << topic;
             }
         } else {
             if (!rsp.empty() && rsp != "\r") {
-                LOG_DEBUG << "Unknown message: " << rsp;
+                LOG_DEBUG << "Serial debug: " << rsp;
             }
         }
     }
