@@ -18,8 +18,8 @@ std::string get_filename_date(void) {
 namespace AMM {
     PhysiologyEngineManager::PhysiologyEngineManager() {
 
-        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
-        static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
+        static plog::ColorConsoleAppender <plog::TxtFormatter> consoleAppender;
+        static plog::DDS_Log_Appender <plog::TxtFormatter> DDSAppender(mgr);
         plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
 
         using namespace Capability;
@@ -48,7 +48,7 @@ namespace AMM {
                                                     &mgr->TickType,
                                                     tick_sub_listener);
 
-        command_subscriber = mgr->InitializeReliableSubscriber(
+        command_subscriber = mgr->InitializeSubscriber(
                 AMM::DataTypes::commandTopic, &mgr->CommandType,
                 command_sub_listener);
 
@@ -238,7 +238,7 @@ namespace AMM {
             } else if (pm.type() == "hemorrhage") {
                 LOG_INFO << "Hemorrhage location: " << pm.location().description();
                 LOG_INFO << "Hemorrhage payload received: " << pm.payload();
-                bg->SetHemorrhage(pm.location().description(),pm.payload());
+                bg->SetHemorrhage(pm.location().description(), pm.payload());
             } else {
                 LOG_INFO << "Physiology modification received: " << pm.payload();
                 bg->ExecuteXMLCommand(pm.payload());
@@ -257,7 +257,7 @@ namespace AMM {
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
+                bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
                     // Create variables for scenario
                     SEPainStimulus PainStimulus; // pain object
                     PainStimulus.SetLocation(command.location().description());
@@ -273,7 +273,7 @@ namespace AMM {
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
+                bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
                     // Create variables for scenario
                     SESepsis sepsis; // pain object
                     sepsis.BuildTissueResistorMap();
@@ -423,9 +423,9 @@ namespace AMM {
         std::string instrument(i.instrument());
         if (instrument == "ventilator") {
             bg->SetVentilator(i.payload());
-        }
-
-        if (instrument == "ivpump") {
+        } else if (instrument == "bvm_mask") {
+            bg->SetBVMMask(i.payload());
+        } else if (instrument == "ivpump") {
             bg->SetIVPump(i.payload());
         }
     }

@@ -129,7 +129,7 @@ namespace AMM {
         double GetNodePath(const std::string &nodePath);
 
         void SetVentilator(const std::string &ventilatorSettings);
-
+        void SetBVMMask(const std::string &ventilatorSettings);
         void SetIVPump(const std::string &pumpSettings);
 
         void SetPain(const std::string &painSettings);

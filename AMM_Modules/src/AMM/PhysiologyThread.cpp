@@ -937,6 +937,59 @@ namespace AMM {
         }
     }
 
+    void PhysiologyThread::SetBVMMask(const std::string &ventilatorSettings) {
+        std::vector<std::string> strings = Utility::explode("\n", ventilatorSettings);
+
+        biogears::SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
+        biogears::SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
+
+        //config.GetInletFlow().SetValue(2.0, biogears::VolumePerTimeUnit::L_Per_min);
+        //config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Nitrogen);
+        config.SetConnection(CDM::enumAnesthesiaMachineConnection::Mask);
+        //config.SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
+        //config.GetReliefValvePressure().SetValue(20.0, biogears::PressureUnit::cmH2O);
+
+        for (auto str : strings) {
+            std::vector<std::string> strs;
+            boost::split(strs, str, boost::is_any_of("="));
+            auto strs_size = strs.size();
+            // Check if it's not a key value pair
+            if (strs_size != 2) {
+                continue;
+            }
+            std::string kvp_k = strs[0];
+            // all settings for the ventilator are floats
+            double kvp_v = std::stod(strs[1]);
+            try {
+                if (kvp_k == "OxygenFraction") {
+                    config.GetOxygenFraction().SetValue(kvp_v);
+                } else if (kvp_k == "PositiveEndExpiredPressure") {
+                    config.GetPositiveEndExpiredPressure().SetValue(kvp_v * 100, biogears::PressureUnit::cmH2O);
+                } else if (kvp_k == "RespiratoryRate") {
+                    config.GetRespiratoryRate().SetValue(kvp_v, biogears::FrequencyUnit::Per_min);
+                } else if (kvp_k == "InspiratoryExpiratoryRatio") {
+                    config.GetInspiratoryExpiratoryRatio().SetValue(kvp_v);
+                } else if (kvp_k == "TidalVolume") {
+                    // empty
+                } else if (kvp_k == "VentilatorPressure") {
+                    config.GetVentilatorPressure().SetValue(kvp_v * 100, biogears::PressureUnit::cmH2O);
+                } else if (kvp_k == " ") {
+                    // empty
+                } else {
+                    LOG_INFO << "Unknown BVM setting: " << kvp_k << " = " << kvp_v;
+                }
+            } catch (std::exception &e) {
+                LOG_ERROR << "Issue with setting " << e.what();
+            }
+        }
+
+        try {
+            m_pe->ProcessAction(AMConfig);
+        } catch (std::exception &e) {
+            LOG_ERROR << "Error processing BVM action: " << e.what();
+        }
+    }
+
     void PhysiologyThread::Status() {
         m_pe->GetLogger()->Info("");
         m_pe->GetLogger()->Info(
