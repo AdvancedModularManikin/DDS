@@ -97,45 +97,45 @@ class FluidListener : public ListenerInterface {
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) override {
         // We received configuration which we need to push via SPI
-        if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
-
-            std::string value = c.message().substr(sysPrefix.size());
-            if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
-                std::string scene = value.substr(loadScenarioPrefix.size());
-		        LOG_INFO << "Loading scene: " << scene;
-                boost::algorithm::to_lower(scene);
-                ostringstream static_filename;
-                static_filename << "static/module_configuration_static/" << scene << "_fluid_manager.xml";
-                std::ifstream ifs(static_filename.str());
-                std::string configContent((std::istreambuf_iterator<char>(ifs)),
-                                          (std::istreambuf_iterator<char>()));
-
-                ifs.close();
-
-                ProcessConfig(configContent);
-
-                // These should be sent when a status change is received via spi.
-                // We'll force them for now.
-                //TODO confirm nothing else needs to happen //send_status = true;
-                current_status = OPERATIONAL;
-            }
-
-            if (value == "START_FLUIDICS") {
-                static_filename << "static/module_configuration_static/m1s1_fluid_manager.xml";
-                std::ifstream ifs(static_filename.str());
-                std::string configContent((std::istreambuf_iterator<char>(ifs)),
-                                          (std::istreambuf_iterator<char>()));
-
-                ifs.close();
-
-                ProcessConfig(configContent);
-
-                current_status = OPERATIONAL;
-            }
-            else if (value == "STOP_FLUIDICS") {
-                module_stopped = true;
-            }
-        }
+      if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
+	ostringstream static_filename;
+	std::string value = c.message().substr(sysPrefix.size());
+	if (!value.compare(0, loadScenarioPrefix.size(), loadScenarioPrefix)) {
+	  std::string scene = value.substr(loadScenarioPrefix.size());
+	  LOG_INFO << "Loading scene: " << scene;
+	  boost::algorithm::to_lower(scene);
+	  static_filename << "static/module_configuration_static/" << scene << "_fluid_manager.xml";
+	  std::ifstream ifs(static_filename.str());
+	  std::string configContent((std::istreambuf_iterator<char>(ifs)),
+				    (std::istreambuf_iterator<char>()));
+	  
+	  ifs.close();
+	  
+	  ProcessConfig(configContent);
+	  
+	  // These should be sent when a status change is received via spi.
+	  // We'll force them for now.
+	  //TODO confirm nothing else needs to happen //send_status = true;
+	  current_status = OPERATIONAL;
+	}
+	
+	if (value == "START_FLUIDICS") {
+	  LOG_DEBUG << "Received Start Fluidics command";
+	  static_filename << "static/module_configuration_static/m1s1_fluid_manager.xml";
+	  std::ifstream ifs(static_filename.str());
+	  std::string configContent((std::istreambuf_iterator<char>(ifs)),
+				    (std::istreambuf_iterator<char>()));
+	  
+	  ifs.close();
+	  
+	  ProcessConfig(configContent);
+	  
+	  current_status = OPERATIONAL;
+	} else if (value == "STOP_FLUIDICS") {
+	  LOG_DEBUG << "Received Stop Fluidics command";
+	  module_stopped = true;
+	}
+      }
     }
 };
 
