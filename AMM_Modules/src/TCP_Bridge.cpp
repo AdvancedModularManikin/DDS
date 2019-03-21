@@ -299,7 +299,7 @@ public:
 
     void onNewCommandData(AMM::PatientAction::BioGears::Command c,
                           SampleInfo_t *info) override {
-        LOG_DEBUG << "We got command data!   It is: " << c.message();
+        // LOG_DEBUG << "We got command data!   It is: " << c.message();
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
             if (value.compare("START_SIM") == 0) {

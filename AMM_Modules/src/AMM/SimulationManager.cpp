@@ -137,7 +137,7 @@ namespace AMM {
             AMM::PatientAction::BioGears::Command c, SampleInfo_t *info) {
         if (!c.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = c.message().substr(sysPrefix.size());
-            LOG_INFO << "We received a SYSTEM action: " << value;
+            // LOG_INFO << "We received a SYSTEM action: " << value;
             if (value.compare("START_SIM") == 0) {
                 LOG_INFO << "Started simulation";
                 StartSimulation();

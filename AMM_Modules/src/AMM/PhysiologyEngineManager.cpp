@@ -332,7 +332,7 @@ namespace AMM {
             AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) {
         if (!cm.message().compare(0, sysPrefix.size(), sysPrefix)) {
             std::string value = cm.message().substr(sysPrefix.size());
-            LOG_DEBUG << "We received a SYSTEM action: " << value;
+            // LOG_DEBUG << "We received a SYSTEM action: " << value;
             if (value.compare("START_ENGINE") == 0 || value.compare("START_SIM") == 0) {
                 LOG_DEBUG << "Started engine based on Tick Simulation";
                 StartTickSimulation();
