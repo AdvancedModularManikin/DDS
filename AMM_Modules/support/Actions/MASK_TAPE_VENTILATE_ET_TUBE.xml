@@ -6,6 +6,7 @@
 		<PatientFile>StandardMale.xml</PatientFile>
 	</InitialParameters>	           	  
 	<!-- MASK_TAPE_VENTILATE_ET_TUBE -->  
+	<Action xsi:type="IntubationData" Type="Tracheal"/>
 	<!-- Hook to ventilator -->        
 	<Action xsi:type="AnesthesiaMachineConfigurationData">
 		<Configuration>
@@ -27,5 +28,4 @@
 			</OxygenBottleTwo>
 		</Configuration>
 	</Action>  
-	<Action xsi:type="IntubationData" Type="Tracheal"/>
 </Scenario>
