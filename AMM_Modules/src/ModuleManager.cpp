@@ -65,6 +65,7 @@ void SetupTables() {
               "timestamp text,"
               "encounter_id text"
               ");";
+        db << "CREATE UNIQUE INDEX idx_module_capabilities_name ON module_capabilities (module_name);";
 
         LOG_INFO << "Creating module status table...";
         db << "create table if not exists module_status ("
