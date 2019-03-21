@@ -50,6 +50,7 @@ std::string xmlPrefix = "<?xml";
 std::vector <std::string> subscribedTopics;
 std::vector <std::string> publishedTopics;
 std::map <std::string, std::string> subMaps;
+std::map<std::string, std::map<std::string, std::string>> equipmentSettings;
 
 std::queue <std::string> transmitQ;
 
@@ -79,6 +80,21 @@ void sendConfigInfo(std::string scene, std::string module) {
         transmitQ.push(rsp);
     }
 };
+
+void PublishSettings(std::string const &equipmentType) {
+    std::ostringstream payload;
+    LOG_INFO << "Publishing equipment " << equipmentType << " settings";
+    for (auto &inner_map_pair : equipmentSettings[equipmentType]) {
+        payload << inner_map_pair.first << "=" << inner_map_pair.second
+                << std::endl;
+        LOG_DEBUG << "\t" << inner_map_pair.first << ": " << inner_map_pair.second;
+    }
+
+    AMM::InstrumentData i;
+    i.instrument(equipmentType);
+    i.payload(payload.str());
+    mgr->PublishInstrumentData(i);
+}
 
 void readHandler() {
     /*std::copy(buffer, sizeof(buffer), std::back_inserter(globalInboundBuffer));
@@ -149,6 +165,21 @@ void readHandler() {
                                 std::string settingValue = setting->Attribute("value");
                                 LOG_DEBUG << "[" << settingName << "] = " << settingValue;
                             }
+                        }
+
+                        tinyxml2::XMLElement *configEl =
+                                cap->FirstChildElement("configuration");
+                        if (configEl) {
+                            for (tinyxml2::XMLNode *settingNode =
+                                    configEl->FirstChildElement("setting");
+                                 settingNode; settingNode = settingNode->NextSibling()) {
+                                tinyxml2::XMLElement *setting = settingNode->ToElement();
+                                std::string settingName = setting->Attribute("name");
+                                std::string settingValue = setting->Attribute("value");
+                                equipmentSettings[capabilityName][settingName] =
+                                        settingValue;
+                            }
+                            PublishSettings(capabilityName);
                         }
 
                         // Store subscribed topics for this capability
