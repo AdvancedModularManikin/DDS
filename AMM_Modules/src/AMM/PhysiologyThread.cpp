@@ -944,7 +944,7 @@ namespace AMM {
         biogears::SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
 
         config.GetInletFlow().SetValue(2.0, biogears::VolumePerTimeUnit::L_Per_min);
-        config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Oxygen);
+        config.SetPrimaryGas(CDM::enumAnesthesiaMachinePrimaryGas::Air);
         config.SetConnection(CDM::enumAnesthesiaMachineConnection::Mask);
         config.SetOxygenSource(CDM::enumAnesthesiaMachineOxygenSource::Wall);
         config.GetReliefValvePressure().SetValue(20.0, biogears::PressureUnit::cmH2O);
