@@ -718,9 +718,6 @@ private:
                writer.Key("Module_Capabilities");
                writer.String(capabilities.c_str());
 
-               writer.Key("Status");
-               writer.String(capability_status.c_str());
-
                writer.EndObject();
            };
 
