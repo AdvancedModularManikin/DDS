@@ -31,17 +31,26 @@ void ModuleManagerListener::onNewConfigData(AMM::Capability::Configuration cfg,
     std::ostringstream module_guid;
     module_guid << changeGuid.guidPrefix;
     mapmutex.lock();
-    try {
-        db << "replace into module_capabilities (module_id, module_guid, "
-              "module_name, manufacturer, model, serial_number, version, "
-              "capabilities) values (?,?,?,?,?,?,?,?);"
-           << cfg.module_id() << module_guid.str() << cfg.module_name()
-           << cfg.manufacturer() << cfg.model() << cfg.serial_number()
-           << cfg.version() << cfg.capabilities();
-    } catch (exception &e) {
-        LOG_ERROR << e.what();
-    };
-    mapmutex.unlock();
+
+    if (cfg.module_name() == "disconnect") {
+        try {
+            db << "delete from module_capabilities where module_id = ?;" << cfg.module_id();
+        } catch (exception &e) {
+            LOG_ERROR << e.what();
+        };
+    } else {
+        try {
+            db << "replace into module_capabilities (module_id, module_guid, "
+                  "module_name, manufacturer, model, serial_number, version, "
+                  "capabilities) values (?,?,?,?,?,?,?,?);"
+               << cfg.module_id() << module_guid.str() << cfg.module_name()
+               << cfg.manufacturer() << cfg.model() << cfg.serial_number()
+               << cfg.version() << cfg.capabilities();
+        } catch (exception &e) {
+            LOG_ERROR << e.what();
+        };
+        mapmutex.unlock();
+    }
 }
 
 
@@ -91,8 +100,9 @@ void ModuleManagerListener::onNewLogRecordData(AMM::Diagnostics::Log::Record r, 
     mapmutex.lock();
 
     try {
-        db << "insert into logs (module_guid, module_id, module_name, message, log_level, timestamp) values (?,?,?,?,?,?);"
-           << module_guid.str() << r.module_id() << r.module_name() << r.message() << r.log_level() << timestamp;
+        db
+                << "insert into logs (module_guid, module_id, module_name, message, log_level, timestamp) values (?,?,?,?,?,?);"
+                << module_guid.str() << r.module_id() << r.module_name() << r.message() << r.log_level() << timestamp;
     } catch (exception &e) {
         LOG_ERROR << e.what();
     };
