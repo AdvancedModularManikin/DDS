@@ -49,8 +49,8 @@ void ModuleManagerListener::onNewConfigData(AMM::Capability::Configuration cfg,
         } catch (exception &e) {
             LOG_ERROR << e.what();
         };
-        mapmutex.unlock();
     }
+    mapmutex.unlock();
 }
 
 
