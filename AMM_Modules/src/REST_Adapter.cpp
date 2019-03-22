@@ -691,16 +691,12 @@ private:
               "module_capabilities.module_guid as module_guid,"
               "module_capabilities.module_name AS module_name,"
               "module_capabilities.capabilities as capabilities,"
-              "module_status.capability as capability,"
-              "module_status.status as capability_status,"
               "module_capabilities.manufacturer as manufacturer,"
               "module_capabilities.model as model "
               " FROM "
-              " module_capabilities "
-              " LEFT JOIN module_status ON module_capabilities.module_id = "
-              "module_status.module_id;" >>
+              " module_capabilities; "               >>
            [&](string module_id, string module_guid, string module_name,
-               string capabilities, string capability, string capability_status,
+               string capabilities,
                string manufacturer, string model) {
                writer.StartObject();
 
@@ -721,9 +717,6 @@ private:
 
                writer.Key("Module_Capabilities");
                writer.String(capabilities.c_str());
-
-               writer.Key("Capability_Status");
-               writer.String(capability.c_str());
 
                writer.Key("Status");
                writer.String(capability_status.c_str());
