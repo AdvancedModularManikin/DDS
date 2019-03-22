@@ -669,7 +669,7 @@ private:
         Writer<StringBuffer> writer(s);
 
         int count = 0;
-        db << "SELECT COUNT(DISTINCT module_id) FROM module_capabilities" >> count;
+        db << "SELECT COUNT(DISTINCT module_name) FROM module_capabilities" >> count;
         writer.StartObject();
 
         writer.Key("module_count");
