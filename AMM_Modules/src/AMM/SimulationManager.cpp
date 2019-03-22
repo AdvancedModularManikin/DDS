@@ -160,7 +160,7 @@ namespace AMM {
                 mgr->SetScenario(loadScenario);
             }
         } else {
-            LOG_WARNING << "Unknown command received: " << c.message();
+            // LOG_WARNING << "Unknown command received: " << c.message();
         }
     }
 }
