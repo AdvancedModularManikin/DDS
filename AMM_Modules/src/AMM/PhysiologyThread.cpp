@@ -700,15 +700,15 @@ namespace AMM {
             }
         }
 
-        LOG_DEBUG << "Done breaking out KVPs";
-
-
         try {
             if (type == "infusion") {
                 std::string concentrationsMass, concentrationsVol, rateUnit, massUnit, volUnit;
                 double rateVal, massVal, volVal, conVal;
 
-                if (substance == "Saline") {
+                if (substance == "Saline" || substance == "Whole Blood" || substance == "Blood") {
+                    if (substance == "Whole Blood") {
+                        substance = "Blood";
+                    }
                     biogears::SESubstanceCompound *subs = m_pe->GetSubstanceManager().GetCompound(substance);
                     biogears::SESubstanceCompoundInfusion infuse(*subs);
                     std::vector<std::string> bagvol = Utility::explode(" ", bagVolume);
