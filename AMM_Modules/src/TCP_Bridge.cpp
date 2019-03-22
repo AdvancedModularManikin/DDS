@@ -394,7 +394,7 @@ void HandleCapabilities(Client *c, std::string const &capabilityVal) {
     std::string serialNumber(serial);
     std::string moduleVersion(module_version);
 
-    mgr->PublishModuleConfiguration(c->uuid, nodeName, nodeManufacturer,
+    mgr->PublishModuleConfiguration(c->id, nodeName, nodeManufacturer,
                                     nodeModel, serialNumber,
                                     moduleVersion, capabilityVal);
 
@@ -480,9 +480,9 @@ void HandleStatus(Client *c, std::string const &statusVal) {
 
     std::size_t found = statusVal.find(haltingString);
     if (found != std::string::npos) {
-        mgr->SetStatus(c->uuid, nodeName, HALTING_ERROR);
+        mgr->SetStatus(c->id, nodeName, HALTING_ERROR);
     } else {
-        mgr->SetStatus(c->uuid, nodeName, OPERATIONAL);
+        mgr->SetStatus(c->id, nodeName, OPERATIONAL);
     }
 }
 
@@ -550,7 +550,6 @@ void *Server::HandleClient(void *args) {
 
             // Remove from our client/UUID map
             auto it = clientMap.find(c->id);
-            LOG_DEBUG << "Client " << it->first << " (" << it->second << ") disconnected.";
             mgr->PublishModuleConfiguration(it->first, "disconnect", "", "", "", "", "");
             clientMap.erase(it);
             ServerThread::UnlockMutex(uuid);

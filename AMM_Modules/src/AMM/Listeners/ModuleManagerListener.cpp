@@ -34,7 +34,7 @@ void ModuleManagerListener::onNewConfigData(AMM::Capability::Configuration cfg,
 
     if (cfg.module_name() == "disconnect") {
         try {
-            db << "delete from module_capabilities where module_id = ?;" << cfg.module_id();
+            db << "delete from module_capabilities where module_id = ? ;" << cfg.module_id();
         } catch (exception &e) {
             LOG_ERROR << e.what();
         };
