@@ -132,6 +132,11 @@ namespace AMM {
         }
     }
 
+    void PhysiologyEngineManager::TestHemo() {
+        std::string payload("flowrate = 391");
+        bg->SetHemorrhage("VenaCava", payload);
+    }
+
     void PhysiologyEngineManager::WriteHighFrequencyNodeData(std::string node) {
         AMM::Physiology::HighFrequencyNode dataInstance;
         try {
@@ -237,6 +242,9 @@ namespace AMM {
                 bg->SetPain(pm.payload());
             } else if (pm.type() == "hemorrhage") {
                 LOG_INFO << "Hemorrhage location: " << pm.location().description();
+                if (pm.location().description() == "") {
+                    pm.location().description("VenaCava");
+                }
                 LOG_INFO << "Hemorrhage payload received: " << pm.payload();
                 bg->SetHemorrhage(pm.location().description(), pm.payload());
             } else {

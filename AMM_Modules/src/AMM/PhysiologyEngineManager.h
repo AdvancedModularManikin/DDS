@@ -97,6 +97,7 @@ namespace AMM {
                                              SampleInfo_t *info) override;
 
         std::map<std::string, double (PhysiologyThread::*)()> *nodePathMap;
+        void TestHemo();
 
     protected:
         const char *nodeName = "AMM_PhysiologyEngine";

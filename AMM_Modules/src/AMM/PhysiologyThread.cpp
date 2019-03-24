@@ -811,21 +811,29 @@ namespace AMM {
     }
 
     void PhysiologyThread::SetHemorrhage(const std::string &location, const std::string &hemorrhageSettings) {
+        LOG_DEBUG << "Setting hemo with location " << location << " and settings: " << hemorrhageSettings;
         double flowRate;
         std::vector<std::string> strings = Utility::explode("\n", hemorrhageSettings);
         for (auto str : strings) {
             std::vector<std::string> strs;
-            boost::split(strs, str, boost::is_any_of("="));
+            boost::split(strs, str, boost::is_any_of("=, = "));
             auto strs_size = strs.size();
-            // Check if it's not a key value pair
-            if (strs_size != 2) {
+            LOG_DEBUG << " strs.size is " << strs_size;
+            std::string kvp_k = strs[0];
+            LOG_DEBUG << "kvp_k is " << kvp_k << " and strs[1] is " << strs[1] << " and strs[2] is " << strs[2] << " and strs[3] is " << strs[3];
+
+            if (strs_size != 2 && strs_size != 4) {
                 continue;
             }
-            std::string kvp_k = strs[0];
+
             // all settings for the ventilator are floats
             try {
                 if (kvp_k == "flowrate") {
-                    flowRate = std::stod(strs[1]);
+                    if (strs_size == 2) {
+                        flowRate = std::stod(strs[1]);
+                    } else if (strs_size == 4) {
+                        flowRate = std::stod(strs[3]);
+                    }
                 } else {
                     LOG_INFO << "Unknown hemorrhage setting: " << kvp_k << " = " << strs[1];
                 }
