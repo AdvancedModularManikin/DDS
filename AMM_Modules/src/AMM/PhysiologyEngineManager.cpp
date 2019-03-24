@@ -240,7 +240,7 @@ namespace AMM {
                 LOG_INFO << "Hemorrhage payload received: " << pm.payload();
                 bg->SetHemorrhage(pm.location().description(), pm.payload());
             } else {
-                LOG_INFO << "Physiology modification received: " << pm.payload();
+                LOG_INFO << "Physiology modification received (unknown type " << pm.type() << "): " << pm.payload();
                 bg->ExecuteXMLCommand(pm.payload());
             }
         }
