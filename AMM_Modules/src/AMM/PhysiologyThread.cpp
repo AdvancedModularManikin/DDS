@@ -822,6 +822,8 @@ namespace AMM {
             std::string kvp_k = strs[0];
             LOG_DEBUG << "kvp_k is " << kvp_k << " and strs[1] is " << strs[1] << " and strs[2] is " << strs[2] << " and strs[3] is " << strs[3];
 
+            continue;
+
             if (strs_size != 2 && strs_size != 4) {
                 continue;
             }
