@@ -63,315 +63,315 @@ namespace eprosima
     }
 }
 
-/*!
- * @brief This class represents the structure FMA_Location defined by the user in the IDL file.
- * @ingroup AMM
- */
-class FMA_Location
-{
-public:
-
-    /*!
-     * @brief Default constructor.
-     */
-    eProsima_user_DllExport FMA_Location();
-
-    /*!
-     * @brief Default destructor.
-     */
-    eProsima_user_DllExport ~FMA_Location();
-
-    /*!
-     * @brief Copy constructor.
-     * @param x Reference to the object FMA_Location that will be copied.
-     */
-    eProsima_user_DllExport FMA_Location(const FMA_Location &x);
-
-    /*!
-     * @brief Move constructor.
-     * @param x Reference to the object FMA_Location that will be copied.
-     */
-    eProsima_user_DllExport FMA_Location(FMA_Location &&x);
-
-    /*!
-     * @brief Copy assignment.
-     * @param x Reference to the object FMA_Location that will be copied.
-     */
-    eProsima_user_DllExport FMA_Location& operator=(const FMA_Location &x);
-
-    /*!
-     * @brief Move assignment.
-     * @param x Reference to the object FMA_Location that will be copied.
-     */
-    eProsima_user_DllExport FMA_Location& operator=(FMA_Location &&x);
-
-    /*!
-     * @brief This function sets a value in member id
-     * @param _id New value for member id
-     */
-    inline eProsima_user_DllExport void id(int32_t _id)
-    {
-        m_id = _id;
-    }
-
-    /*!
-     * @brief This function returns the value of member id
-     * @return Value of member id
-     */
-    inline eProsima_user_DllExport int32_t id() const
-    {
-        return m_id;
-    }
-
-    /*!
-     * @brief This function returns a reference to member id
-     * @return Reference to member id
-     */
-    inline eProsima_user_DllExport int32_t& id()
-    {
-        return m_id;
-    }
-    /*!
-     * @brief This function copies the value in member description
-     * @param _description New value to be copied in member description
-     */
-    inline eProsima_user_DllExport void description(const std::string &_description)
-    {
-        m_description = _description;
-    }
-
-    /*!
-     * @brief This function moves the value in member description
-     * @param _description New value to be moved in member description
-     */
-    inline eProsima_user_DllExport void description(std::string &&_description)
-    {
-        m_description = std::move(_description);
-    }
-
-    /*!
-     * @brief This function returns a constant reference to member description
-     * @return Constant reference to member description
-     */
-    inline eProsima_user_DllExport const std::string& description() const
-    {
-        return m_description;
-    }
-
-    /*!
-     * @brief This function returns a reference to member description
-     * @return Reference to member description
-     */
-    inline eProsima_user_DllExport std::string& description()
-    {
-        return m_description;
-    }
-
-    /*!
-     * @brief This function returns the maximum serialized size of an object
-     * depending on the buffer alignment.
-     * @param current_alignment Buffer alignment.
-     * @return Maximum serialized size.
-     */
-    eProsima_user_DllExport static size_t getMaxCdrSerializedSize(size_t current_alignment = 0);
-
-    /*!
-     * @brief This function returns the serialized size of a data depending on the buffer alignment.
-     * @param data Data which is calculated its serialized size.
-     * @param current_alignment Buffer alignment.
-     * @return Serialized size.
-     */
-    eProsima_user_DllExport static size_t getCdrSerializedSize(const FMA_Location& data, size_t current_alignment = 0);
-
-
-    /*!
-     * @brief This function serializes an object using CDR serialization.
-     * @param cdr CDR serialization object.
-     */
-    eProsima_user_DllExport void serialize(eprosima::fastcdr::Cdr &cdr) const;
-
-    /*!
-     * @brief This function deserializes an object using CDR serialization.
-     * @param cdr CDR serialization object.
-     */
-    eProsima_user_DllExport void deserialize(eprosima::fastcdr::Cdr &cdr);
-
-
-
-    /*!
-     * @brief This function returns the maximum serialized size of the Key of an object
-     * depending on the buffer alignment.
-     * @param current_alignment Buffer alignment.
-     * @return Maximum serialized size.
-     */
-    eProsima_user_DllExport static size_t getKeyMaxCdrSerializedSize(size_t current_alignment = 0);
-
-    /*!
-     * @brief This function tells you if the Key has been defined for this type
-     */
-    eProsima_user_DllExport static bool isKeyDefined();
-
-    /*!
-     * @brief This function serializes the key members of an object using CDR serialization.
-     * @param cdr CDR serialization object.
-     */
-    eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
-
-private:
-    int32_t m_id;
-    std::string m_description;
-};
-/*!
- * @brief This class represents the structure UUID defined by the user in the IDL file.
- * @ingroup AMM
- */
-class UUID
-{
-public:
-
-    /*!
-     * @brief Default constructor.
-     */
-    eProsima_user_DllExport UUID();
-
-    /*!
-     * @brief Default destructor.
-     */
-    eProsima_user_DllExport ~UUID();
-
-    /*!
-     * @brief Copy constructor.
-     * @param x Reference to the object UUID that will be copied.
-     */
-    eProsima_user_DllExport UUID(const UUID &x);
-
-    /*!
-     * @brief Move constructor.
-     * @param x Reference to the object UUID that will be copied.
-     */
-    eProsima_user_DllExport UUID(UUID &&x);
-
-    /*!
-     * @brief Copy assignment.
-     * @param x Reference to the object UUID that will be copied.
-     */
-    eProsima_user_DllExport UUID& operator=(const UUID &x);
-
-    /*!
-     * @brief Move assignment.
-     * @param x Reference to the object UUID that will be copied.
-     */
-    eProsima_user_DllExport UUID& operator=(UUID &&x);
-
-    /*!
-     * @brief This function sets a value in member UUID_MSB
-     * @param _UUID_MSB New value for member UUID_MSB
-     */
-    inline eProsima_user_DllExport void UUID_MSB(int64_t _UUID_MSB)
-    {
-        m_UUID_MSB = _UUID_MSB;
-    }
-
-    /*!
-     * @brief This function returns the value of member UUID_MSB
-     * @return Value of member UUID_MSB
-     */
-    inline eProsima_user_DllExport int64_t UUID_MSB() const
-    {
-        return m_UUID_MSB;
-    }
-
-    /*!
-     * @brief This function returns a reference to member UUID_MSB
-     * @return Reference to member UUID_MSB
-     */
-    inline eProsima_user_DllExport int64_t& UUID_MSB()
-    {
-        return m_UUID_MSB;
-    }
-    /*!
-     * @brief This function sets a value in member UUID_LSB
-     * @param _UUID_LSB New value for member UUID_LSB
-     */
-    inline eProsima_user_DllExport void UUID_LSB(int64_t _UUID_LSB)
-    {
-        m_UUID_LSB = _UUID_LSB;
-    }
-
-    /*!
-     * @brief This function returns the value of member UUID_LSB
-     * @return Value of member UUID_LSB
-     */
-    inline eProsima_user_DllExport int64_t UUID_LSB() const
-    {
-        return m_UUID_LSB;
-    }
-
-    /*!
-     * @brief This function returns a reference to member UUID_LSB
-     * @return Reference to member UUID_LSB
-     */
-    inline eProsima_user_DllExport int64_t& UUID_LSB()
-    {
-        return m_UUID_LSB;
-    }
-
-    /*!
-     * @brief This function returns the maximum serialized size of an object
-     * depending on the buffer alignment.
-     * @param current_alignment Buffer alignment.
-     * @return Maximum serialized size.
-     */
-    eProsima_user_DllExport static size_t getMaxCdrSerializedSize(size_t current_alignment = 0);
-
-    /*!
-     * @brief This function returns the serialized size of a data depending on the buffer alignment.
-     * @param data Data which is calculated its serialized size.
-     * @param current_alignment Buffer alignment.
-     * @return Serialized size.
-     */
-    eProsima_user_DllExport static size_t getCdrSerializedSize(const UUID& data, size_t current_alignment = 0);
-
-
-    /*!
-     * @brief This function serializes an object using CDR serialization.
-     * @param cdr CDR serialization object.
-     */
-    eProsima_user_DllExport void serialize(eprosima::fastcdr::Cdr &cdr) const;
-
-    /*!
-     * @brief This function deserializes an object using CDR serialization.
-     * @param cdr CDR serialization object.
-     */
-    eProsima_user_DllExport void deserialize(eprosima::fastcdr::Cdr &cdr);
-
-
-
-    /*!
-     * @brief This function returns the maximum serialized size of the Key of an object
-     * depending on the buffer alignment.
-     * @param current_alignment Buffer alignment.
-     * @return Maximum serialized size.
-     */
-    eProsima_user_DllExport static size_t getKeyMaxCdrSerializedSize(size_t current_alignment = 0);
-
-    /*!
-     * @brief This function tells you if the Key has been defined for this type
-     */
-    eProsima_user_DllExport static bool isKeyDefined();
-
-    /*!
-     * @brief This function serializes the key members of an object using CDR serialization.
-     * @param cdr CDR serialization object.
-     */
-    eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
-
-private:
-    int64_t m_UUID_MSB;
-    int64_t m_UUID_LSB;
-};
 namespace AMM
 {
+    /*!
+     * @brief This class represents the structure FMA_Location defined by the user in the IDL file.
+     * @ingroup AMM
+     */
+    class FMA_Location
+    {
+    public:
+
+        /*!
+         * @brief Default constructor.
+         */
+        eProsima_user_DllExport FMA_Location();
+
+        /*!
+         * @brief Default destructor.
+         */
+        eProsima_user_DllExport ~FMA_Location();
+
+        /*!
+         * @brief Copy constructor.
+         * @param x Reference to the object AMM::FMA_Location that will be copied.
+         */
+        eProsima_user_DllExport FMA_Location(const FMA_Location &x);
+
+        /*!
+         * @brief Move constructor.
+         * @param x Reference to the object AMM::FMA_Location that will be copied.
+         */
+        eProsima_user_DllExport FMA_Location(FMA_Location &&x);
+
+        /*!
+         * @brief Copy assignment.
+         * @param x Reference to the object AMM::FMA_Location that will be copied.
+         */
+        eProsima_user_DllExport FMA_Location& operator=(const FMA_Location &x);
+
+        /*!
+         * @brief Move assignment.
+         * @param x Reference to the object AMM::FMA_Location that will be copied.
+         */
+        eProsima_user_DllExport FMA_Location& operator=(FMA_Location &&x);
+
+        /*!
+         * @brief This function sets a value in member id
+         * @param _id New value for member id
+         */
+        inline eProsima_user_DllExport void id(int32_t _id)
+        {
+            m_id = _id;
+        }
+
+        /*!
+         * @brief This function returns the value of member id
+         * @return Value of member id
+         */
+        inline eProsima_user_DllExport int32_t id() const
+        {
+            return m_id;
+        }
+
+        /*!
+         * @brief This function returns a reference to member id
+         * @return Reference to member id
+         */
+        inline eProsima_user_DllExport int32_t& id()
+        {
+            return m_id;
+        }
+        /*!
+         * @brief This function copies the value in member description
+         * @param _description New value to be copied in member description
+         */
+        inline eProsima_user_DllExport void description(const std::string &_description)
+        {
+            m_description = _description;
+        }
+
+        /*!
+         * @brief This function moves the value in member description
+         * @param _description New value to be moved in member description
+         */
+        inline eProsima_user_DllExport void description(std::string &&_description)
+        {
+            m_description = std::move(_description);
+        }
+
+        /*!
+         * @brief This function returns a constant reference to member description
+         * @return Constant reference to member description
+         */
+        inline eProsima_user_DllExport const std::string& description() const
+        {
+            return m_description;
+        }
+
+        /*!
+         * @brief This function returns a reference to member description
+         * @return Reference to member description
+         */
+        inline eProsima_user_DllExport std::string& description()
+        {
+            return m_description;
+        }
+
+        /*!
+         * @brief This function returns the maximum serialized size of an object
+         * depending on the buffer alignment.
+         * @param current_alignment Buffer alignment.
+         * @return Maximum serialized size.
+         */
+        eProsima_user_DllExport static size_t getMaxCdrSerializedSize(size_t current_alignment = 0);
+
+        /*!
+         * @brief This function returns the serialized size of a data depending on the buffer alignment.
+         * @param data Data which is calculated its serialized size.
+         * @param current_alignment Buffer alignment.
+         * @return Serialized size.
+         */
+        eProsima_user_DllExport static size_t getCdrSerializedSize(const AMM::FMA_Location& data, size_t current_alignment = 0);
+
+
+        /*!
+         * @brief This function serializes an object using CDR serialization.
+         * @param cdr CDR serialization object.
+         */
+        eProsima_user_DllExport void serialize(eprosima::fastcdr::Cdr &cdr) const;
+
+        /*!
+         * @brief This function deserializes an object using CDR serialization.
+         * @param cdr CDR serialization object.
+         */
+        eProsima_user_DllExport void deserialize(eprosima::fastcdr::Cdr &cdr);
+
+
+
+        /*!
+         * @brief This function returns the maximum serialized size of the Key of an object
+         * depending on the buffer alignment.
+         * @param current_alignment Buffer alignment.
+         * @return Maximum serialized size.
+         */
+        eProsima_user_DllExport static size_t getKeyMaxCdrSerializedSize(size_t current_alignment = 0);
+
+        /*!
+         * @brief This function tells you if the Key has been defined for this type
+         */
+        eProsima_user_DllExport static bool isKeyDefined();
+
+        /*!
+         * @brief This function serializes the key members of an object using CDR serialization.
+         * @param cdr CDR serialization object.
+         */
+        eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
+
+    private:
+        int32_t m_id;
+        std::string m_description;
+    };
+    /*!
+     * @brief This class represents the structure UUID defined by the user in the IDL file.
+     * @ingroup AMM
+     */
+    class UUID
+    {
+    public:
+
+        /*!
+         * @brief Default constructor.
+         */
+        eProsima_user_DllExport UUID();
+
+        /*!
+         * @brief Default destructor.
+         */
+        eProsima_user_DllExport ~UUID();
+
+        /*!
+         * @brief Copy constructor.
+         * @param x Reference to the object AMM::UUID that will be copied.
+         */
+        eProsima_user_DllExport UUID(const UUID &x);
+
+        /*!
+         * @brief Move constructor.
+         * @param x Reference to the object AMM::UUID that will be copied.
+         */
+        eProsima_user_DllExport UUID(UUID &&x);
+
+        /*!
+         * @brief Copy assignment.
+         * @param x Reference to the object AMM::UUID that will be copied.
+         */
+        eProsima_user_DllExport UUID& operator=(const UUID &x);
+
+        /*!
+         * @brief Move assignment.
+         * @param x Reference to the object AMM::UUID that will be copied.
+         */
+        eProsima_user_DllExport UUID& operator=(UUID &&x);
+
+        /*!
+         * @brief This function sets a value in member UUID_MSB
+         * @param _UUID_MSB New value for member UUID_MSB
+         */
+        inline eProsima_user_DllExport void UUID_MSB(int64_t _UUID_MSB)
+        {
+            m_UUID_MSB = _UUID_MSB;
+        }
+
+        /*!
+         * @brief This function returns the value of member UUID_MSB
+         * @return Value of member UUID_MSB
+         */
+        inline eProsima_user_DllExport int64_t UUID_MSB() const
+        {
+            return m_UUID_MSB;
+        }
+
+        /*!
+         * @brief This function returns a reference to member UUID_MSB
+         * @return Reference to member UUID_MSB
+         */
+        inline eProsima_user_DllExport int64_t& UUID_MSB()
+        {
+            return m_UUID_MSB;
+        }
+        /*!
+         * @brief This function sets a value in member UUID_LSB
+         * @param _UUID_LSB New value for member UUID_LSB
+         */
+        inline eProsima_user_DllExport void UUID_LSB(int64_t _UUID_LSB)
+        {
+            m_UUID_LSB = _UUID_LSB;
+        }
+
+        /*!
+         * @brief This function returns the value of member UUID_LSB
+         * @return Value of member UUID_LSB
+         */
+        inline eProsima_user_DllExport int64_t UUID_LSB() const
+        {
+            return m_UUID_LSB;
+        }
+
+        /*!
+         * @brief This function returns a reference to member UUID_LSB
+         * @return Reference to member UUID_LSB
+         */
+        inline eProsima_user_DllExport int64_t& UUID_LSB()
+        {
+            return m_UUID_LSB;
+        }
+
+        /*!
+         * @brief This function returns the maximum serialized size of an object
+         * depending on the buffer alignment.
+         * @param current_alignment Buffer alignment.
+         * @return Maximum serialized size.
+         */
+        eProsima_user_DllExport static size_t getMaxCdrSerializedSize(size_t current_alignment = 0);
+
+        /*!
+         * @brief This function returns the serialized size of a data depending on the buffer alignment.
+         * @param data Data which is calculated its serialized size.
+         * @param current_alignment Buffer alignment.
+         * @return Serialized size.
+         */
+        eProsima_user_DllExport static size_t getCdrSerializedSize(const AMM::UUID& data, size_t current_alignment = 0);
+
+
+        /*!
+         * @brief This function serializes an object using CDR serialization.
+         * @param cdr CDR serialization object.
+         */
+        eProsima_user_DllExport void serialize(eprosima::fastcdr::Cdr &cdr) const;
+
+        /*!
+         * @brief This function deserializes an object using CDR serialization.
+         * @param cdr CDR serialization object.
+         */
+        eProsima_user_DllExport void deserialize(eprosima::fastcdr::Cdr &cdr);
+
+
+
+        /*!
+         * @brief This function returns the maximum serialized size of the Key of an object
+         * depending on the buffer alignment.
+         * @param current_alignment Buffer alignment.
+         * @return Maximum serialized size.
+         */
+        eProsima_user_DllExport static size_t getKeyMaxCdrSerializedSize(size_t current_alignment = 0);
+
+        /*!
+         * @brief This function tells you if the Key has been defined for this type
+         */
+        eProsima_user_DllExport static bool isKeyDefined();
+
+        /*!
+         * @brief This function serializes the key members of an object using CDR serialization.
+         * @param cdr CDR serialization object.
+         */
+        eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
+
+    private:
+        int64_t m_UUID_MSB;
+        int64_t m_UUID_LSB;
+    };
     namespace Event
     {
         /*!
@@ -420,7 +420,7 @@ namespace AMM
              * @brief This function copies the value in member id
              * @param _id New value to be copied in member id
              */
-            inline eProsima_user_DllExport void id(const UUID &_id)
+            inline eProsima_user_DllExport void id(const AMM::UUID &_id)
             {
                 m_id = _id;
             }
@@ -429,7 +429,7 @@ namespace AMM
              * @brief This function moves the value in member id
              * @param _id New value to be moved in member id
              */
-            inline eProsima_user_DllExport void id(UUID &&_id)
+            inline eProsima_user_DllExport void id(AMM::UUID &&_id)
             {
                 m_id = std::move(_id);
             }
@@ -438,7 +438,7 @@ namespace AMM
              * @brief This function returns a constant reference to member id
              * @return Constant reference to member id
              */
-            inline eProsima_user_DllExport const UUID& id() const
+            inline eProsima_user_DllExport const AMM::UUID& id() const
             {
                 return m_id;
             }
@@ -447,7 +447,7 @@ namespace AMM
              * @brief This function returns a reference to member id
              * @return Reference to member id
              */
-            inline eProsima_user_DllExport UUID& id()
+            inline eProsima_user_DllExport AMM::UUID& id()
             {
                 return m_id;
             }
@@ -481,7 +481,7 @@ namespace AMM
              * @brief This function copies the value in member location
              * @param _location New value to be copied in member location
              */
-            inline eProsima_user_DllExport void location(const FMA_Location &_location)
+            inline eProsima_user_DllExport void location(const AMM::FMA_Location &_location)
             {
                 m_location = _location;
             }
@@ -490,7 +490,7 @@ namespace AMM
              * @brief This function moves the value in member location
              * @param _location New value to be moved in member location
              */
-            inline eProsima_user_DllExport void location(FMA_Location &&_location)
+            inline eProsima_user_DllExport void location(AMM::FMA_Location &&_location)
             {
                 m_location = std::move(_location);
             }
@@ -499,7 +499,7 @@ namespace AMM
              * @brief This function returns a constant reference to member location
              * @return Constant reference to member location
              */
-            inline eProsima_user_DllExport const FMA_Location& location() const
+            inline eProsima_user_DllExport const AMM::FMA_Location& location() const
             {
                 return m_location;
             }
@@ -508,7 +508,7 @@ namespace AMM
              * @brief This function returns a reference to member location
              * @return Reference to member location
              */
-            inline eProsima_user_DllExport FMA_Location& location()
+            inline eProsima_user_DllExport AMM::FMA_Location& location()
             {
                 return m_location;
             }
@@ -669,9 +669,9 @@ namespace AMM
             eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
 
         private:
-            UUID m_id;
+            AMM::UUID m_id;
             float m_timestamp;
-            FMA_Location m_location;
+            AMM::FMA_Location m_location;
             std::string m_learner_id;
             std::string m_fragment_type;
             std::string m_payload;
@@ -722,7 +722,7 @@ namespace AMM
              * @brief This function copies the value in member id
              * @param _id New value to be copied in member id
              */
-            inline eProsima_user_DllExport void id(const UUID &_id)
+            inline eProsima_user_DllExport void id(const AMM::UUID &_id)
             {
                 m_id = _id;
             }
@@ -731,7 +731,7 @@ namespace AMM
              * @brief This function moves the value in member id
              * @param _id New value to be moved in member id
              */
-            inline eProsima_user_DllExport void id(UUID &&_id)
+            inline eProsima_user_DllExport void id(AMM::UUID &&_id)
             {
                 m_id = std::move(_id);
             }
@@ -740,7 +740,7 @@ namespace AMM
              * @brief This function returns a constant reference to member id
              * @return Constant reference to member id
              */
-            inline eProsima_user_DllExport const UUID& id() const
+            inline eProsima_user_DllExport const AMM::UUID& id() const
             {
                 return m_id;
             }
@@ -749,7 +749,7 @@ namespace AMM
              * @brief This function returns a reference to member id
              * @return Reference to member id
              */
-            inline eProsima_user_DllExport UUID& id()
+            inline eProsima_user_DllExport AMM::UUID& id()
             {
                 return m_id;
             }
@@ -757,7 +757,7 @@ namespace AMM
              * @brief This function copies the value in member fragment_id
              * @param _fragment_id New value to be copied in member fragment_id
              */
-            inline eProsima_user_DllExport void fragment_id(const UUID &_fragment_id)
+            inline eProsima_user_DllExport void fragment_id(const AMM::UUID &_fragment_id)
             {
                 m_fragment_id = _fragment_id;
             }
@@ -766,7 +766,7 @@ namespace AMM
              * @brief This function moves the value in member fragment_id
              * @param _fragment_id New value to be moved in member fragment_id
              */
-            inline eProsima_user_DllExport void fragment_id(UUID &&_fragment_id)
+            inline eProsima_user_DllExport void fragment_id(AMM::UUID &&_fragment_id)
             {
                 m_fragment_id = std::move(_fragment_id);
             }
@@ -775,7 +775,7 @@ namespace AMM
              * @brief This function returns a constant reference to member fragment_id
              * @return Constant reference to member fragment_id
              */
-            inline eProsima_user_DllExport const UUID& fragment_id() const
+            inline eProsima_user_DllExport const AMM::UUID& fragment_id() const
             {
                 return m_fragment_id;
             }
@@ -784,7 +784,7 @@ namespace AMM
              * @brief This function returns a reference to member fragment_id
              * @return Reference to member fragment_id
              */
-            inline eProsima_user_DllExport UUID& fragment_id()
+            inline eProsima_user_DllExport AMM::UUID& fragment_id()
             {
                 return m_fragment_id;
             }
@@ -853,7 +853,7 @@ namespace AMM
              * @brief This function copies the value in member location
              * @param _location New value to be copied in member location
              */
-            inline eProsima_user_DllExport void location(const FMA_Location &_location)
+            inline eProsima_user_DllExport void location(const AMM::FMA_Location &_location)
             {
                 m_location = _location;
             }
@@ -862,7 +862,7 @@ namespace AMM
              * @brief This function moves the value in member location
              * @param _location New value to be moved in member location
              */
-            inline eProsima_user_DllExport void location(FMA_Location &&_location)
+            inline eProsima_user_DllExport void location(AMM::FMA_Location &&_location)
             {
                 m_location = std::move(_location);
             }
@@ -871,7 +871,7 @@ namespace AMM
              * @brief This function returns a constant reference to member location
              * @return Constant reference to member location
              */
-            inline eProsima_user_DllExport const FMA_Location& location() const
+            inline eProsima_user_DllExport const AMM::FMA_Location& location() const
             {
                 return m_location;
             }
@@ -880,7 +880,7 @@ namespace AMM
              * @brief This function returns a reference to member location
              * @return Reference to member location
              */
-            inline eProsima_user_DllExport FMA_Location& location()
+            inline eProsima_user_DllExport AMM::FMA_Location& location()
             {
                 return m_location;
             }
@@ -1041,11 +1041,11 @@ namespace AMM
             eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
 
         private:
-            UUID m_id;
-            UUID m_fragment_id;
+            AMM::UUID m_id;
+            AMM::UUID m_fragment_id;
             float m_timestamp;
             std::string m_status;
-            FMA_Location m_location;
+            AMM::FMA_Location m_location;
             std::string m_learner_id;
             std::string m_fragment_type;
             std::string m_payload;
@@ -1096,7 +1096,7 @@ namespace AMM
              * @brief This function copies the value in member id
              * @param _id New value to be copied in member id
              */
-            inline eProsima_user_DllExport void id(const UUID &_id)
+            inline eProsima_user_DllExport void id(const AMM::UUID &_id)
             {
                 m_id = _id;
             }
@@ -1105,7 +1105,7 @@ namespace AMM
              * @brief This function moves the value in member id
              * @param _id New value to be moved in member id
              */
-            inline eProsima_user_DllExport void id(UUID &&_id)
+            inline eProsima_user_DllExport void id(AMM::UUID &&_id)
             {
                 m_id = std::move(_id);
             }
@@ -1114,7 +1114,7 @@ namespace AMM
              * @brief This function returns a constant reference to member id
              * @return Constant reference to member id
              */
-            inline eProsima_user_DllExport const UUID& id() const
+            inline eProsima_user_DllExport const AMM::UUID& id() const
             {
                 return m_id;
             }
@@ -1123,7 +1123,7 @@ namespace AMM
              * @brief This function returns a reference to member id
              * @return Reference to member id
              */
-            inline eProsima_user_DllExport UUID& id()
+            inline eProsima_user_DllExport AMM::UUID& id()
             {
                 return m_id;
             }
@@ -1157,7 +1157,7 @@ namespace AMM
              * @brief This function copies the value in member location
              * @param _location New value to be copied in member location
              */
-            inline eProsima_user_DllExport void location(const FMA_Location &_location)
+            inline eProsima_user_DllExport void location(const AMM::FMA_Location &_location)
             {
                 m_location = _location;
             }
@@ -1166,7 +1166,7 @@ namespace AMM
              * @brief This function moves the value in member location
              * @param _location New value to be moved in member location
              */
-            inline eProsima_user_DllExport void location(FMA_Location &&_location)
+            inline eProsima_user_DllExport void location(AMM::FMA_Location &&_location)
             {
                 m_location = std::move(_location);
             }
@@ -1175,7 +1175,7 @@ namespace AMM
              * @brief This function returns a constant reference to member location
              * @return Constant reference to member location
              */
-            inline eProsima_user_DllExport const FMA_Location& location() const
+            inline eProsima_user_DllExport const AMM::FMA_Location& location() const
             {
                 return m_location;
             }
@@ -1184,7 +1184,7 @@ namespace AMM
              * @brief This function returns a reference to member location
              * @return Reference to member location
              */
-            inline eProsima_user_DllExport FMA_Location& location()
+            inline eProsima_user_DllExport AMM::FMA_Location& location()
             {
                 return m_location;
             }
@@ -1345,9 +1345,9 @@ namespace AMM
             eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
 
         private:
-            UUID m_id;
+            AMM::UUID m_id;
             float m_timestamp;
-            FMA_Location m_location;
+            AMM::FMA_Location m_location;
             std::string m_learner_id;
             std::string m_record_type;
             std::string m_payload;
@@ -2042,7 +2042,7 @@ namespace AMM
                  * @brief This function copies the value in member location
                  * @param _location New value to be copied in member location
                  */
-                inline eProsima_user_DllExport void location(const FMA_Location &_location)
+                inline eProsima_user_DllExport void location(const AMM::FMA_Location &_location)
                 {
                     m_location = _location;
                 }
@@ -2051,7 +2051,7 @@ namespace AMM
                  * @brief This function moves the value in member location
                  * @param _location New value to be moved in member location
                  */
-                inline eProsima_user_DllExport void location(FMA_Location &&_location)
+                inline eProsima_user_DllExport void location(AMM::FMA_Location &&_location)
                 {
                     m_location = std::move(_location);
                 }
@@ -2060,7 +2060,7 @@ namespace AMM
                  * @brief This function returns a constant reference to member location
                  * @return Constant reference to member location
                  */
-                inline eProsima_user_DllExport const FMA_Location& location() const
+                inline eProsima_user_DllExport const AMM::FMA_Location& location() const
                 {
                     return m_location;
                 }
@@ -2069,7 +2069,7 @@ namespace AMM
                  * @brief This function returns a reference to member location
                  * @return Reference to member location
                  */
-                inline eProsima_user_DllExport FMA_Location& location()
+                inline eProsima_user_DllExport AMM::FMA_Location& location()
                 {
                     return m_location;
                 }
@@ -2151,7 +2151,7 @@ namespace AMM
                 eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
 
             private:
-                FMA_Location m_location;
+                AMM::FMA_Location m_location;
                 double m_severity;
             };
         }
@@ -2353,7 +2353,7 @@ namespace AMM
              * @brief This function copies the value in member id
              * @param _id New value to be copied in member id
              */
-            inline eProsima_user_DllExport void id(const UUID &_id)
+            inline eProsima_user_DllExport void id(const AMM::UUID &_id)
             {
                 m_id = _id;
             }
@@ -2362,7 +2362,7 @@ namespace AMM
              * @brief This function moves the value in member id
              * @param _id New value to be moved in member id
              */
-            inline eProsima_user_DllExport void id(UUID &&_id)
+            inline eProsima_user_DllExport void id(AMM::UUID &&_id)
             {
                 m_id = std::move(_id);
             }
@@ -2371,7 +2371,7 @@ namespace AMM
              * @brief This function returns a constant reference to member id
              * @return Constant reference to member id
              */
-            inline eProsima_user_DllExport const UUID& id() const
+            inline eProsima_user_DllExport const AMM::UUID& id() const
             {
                 return m_id;
             }
@@ -2380,7 +2380,7 @@ namespace AMM
              * @brief This function returns a reference to member id
              * @return Reference to member id
              */
-            inline eProsima_user_DllExport UUID& id()
+            inline eProsima_user_DllExport AMM::UUID& id()
             {
                 return m_id;
             }
@@ -2388,7 +2388,7 @@ namespace AMM
              * @brief This function copies the value in member location
              * @param _location New value to be copied in member location
              */
-            inline eProsima_user_DllExport void location(const FMA_Location &_location)
+            inline eProsima_user_DllExport void location(const AMM::FMA_Location &_location)
             {
                 m_location = _location;
             }
@@ -2397,7 +2397,7 @@ namespace AMM
              * @brief This function moves the value in member location
              * @param _location New value to be moved in member location
              */
-            inline eProsima_user_DllExport void location(FMA_Location &&_location)
+            inline eProsima_user_DllExport void location(AMM::FMA_Location &&_location)
             {
                 m_location = std::move(_location);
             }
@@ -2406,7 +2406,7 @@ namespace AMM
              * @brief This function returns a constant reference to member location
              * @return Constant reference to member location
              */
-            inline eProsima_user_DllExport const FMA_Location& location() const
+            inline eProsima_user_DllExport const AMM::FMA_Location& location() const
             {
                 return m_location;
             }
@@ -2415,7 +2415,7 @@ namespace AMM
              * @brief This function returns a reference to member location
              * @return Reference to member location
              */
-            inline eProsima_user_DllExport FMA_Location& location()
+            inline eProsima_user_DllExport AMM::FMA_Location& location()
             {
                 return m_location;
             }
@@ -2576,8 +2576,8 @@ namespace AMM
             eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
 
         private:
-            UUID m_id;
-            FMA_Location m_location;
+            AMM::UUID m_id;
+            AMM::FMA_Location m_location;
             std::string m_practitioner;
             std::string m_type;
             std::string m_payload;
@@ -3145,7 +3145,7 @@ namespace AMM
              * @brief This function copies the value in member id
              * @param _id New value to be copied in member id
              */
-            inline eProsima_user_DllExport void id(const UUID &_id)
+            inline eProsima_user_DllExport void id(const AMM::UUID &_id)
             {
                 m_id = _id;
             }
@@ -3154,7 +3154,7 @@ namespace AMM
              * @brief This function moves the value in member id
              * @param _id New value to be moved in member id
              */
-            inline eProsima_user_DllExport void id(UUID &&_id)
+            inline eProsima_user_DllExport void id(AMM::UUID &&_id)
             {
                 m_id = std::move(_id);
             }
@@ -3163,7 +3163,7 @@ namespace AMM
              * @brief This function returns a constant reference to member id
              * @return Constant reference to member id
              */
-            inline eProsima_user_DllExport const UUID& id() const
+            inline eProsima_user_DllExport const AMM::UUID& id() const
             {
                 return m_id;
             }
@@ -3172,7 +3172,7 @@ namespace AMM
              * @brief This function returns a reference to member id
              * @return Reference to member id
              */
-            inline eProsima_user_DllExport UUID& id()
+            inline eProsima_user_DllExport AMM::UUID& id()
             {
                 return m_id;
             }
@@ -3180,7 +3180,7 @@ namespace AMM
              * @brief This function copies the value in member location
              * @param _location New value to be copied in member location
              */
-            inline eProsima_user_DllExport void location(const FMA_Location &_location)
+            inline eProsima_user_DllExport void location(const AMM::FMA_Location &_location)
             {
                 m_location = _location;
             }
@@ -3189,7 +3189,7 @@ namespace AMM
              * @brief This function moves the value in member location
              * @param _location New value to be moved in member location
              */
-            inline eProsima_user_DllExport void location(FMA_Location &&_location)
+            inline eProsima_user_DllExport void location(AMM::FMA_Location &&_location)
             {
                 m_location = std::move(_location);
             }
@@ -3198,7 +3198,7 @@ namespace AMM
              * @brief This function returns a constant reference to member location
              * @return Constant reference to member location
              */
-            inline eProsima_user_DllExport const FMA_Location& location() const
+            inline eProsima_user_DllExport const AMM::FMA_Location& location() const
             {
                 return m_location;
             }
@@ -3207,7 +3207,7 @@ namespace AMM
              * @brief This function returns a reference to member location
              * @return Reference to member location
              */
-            inline eProsima_user_DllExport FMA_Location& location()
+            inline eProsima_user_DllExport AMM::FMA_Location& location()
             {
                 return m_location;
             }
@@ -3368,8 +3368,8 @@ namespace AMM
             eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
 
         private:
-            UUID m_id;
-            FMA_Location m_location;
+            AMM::UUID m_id;
+            AMM::FMA_Location m_location;
             std::string m_practitioner;
             std::string m_type;
             std::string m_payload;
@@ -4109,7 +4109,7 @@ namespace AMM
              * @brief This function copies the value in member location
              * @param _location New value to be copied in member location
              */
-            inline eProsima_user_DllExport void location(const FMA_Location &_location)
+            inline eProsima_user_DllExport void location(const AMM::FMA_Location &_location)
             {
                 m_location = _location;
             }
@@ -4118,7 +4118,7 @@ namespace AMM
              * @brief This function moves the value in member location
              * @param _location New value to be moved in member location
              */
-            inline eProsima_user_DllExport void location(FMA_Location &&_location)
+            inline eProsima_user_DllExport void location(AMM::FMA_Location &&_location)
             {
                 m_location = std::move(_location);
             }
@@ -4127,7 +4127,7 @@ namespace AMM
              * @brief This function returns a constant reference to member location
              * @return Constant reference to member location
              */
-            inline eProsima_user_DllExport const FMA_Location& location() const
+            inline eProsima_user_DllExport const AMM::FMA_Location& location() const
             {
                 return m_location;
             }
@@ -4136,7 +4136,7 @@ namespace AMM
              * @brief This function returns a reference to member location
              * @return Reference to member location
              */
-            inline eProsima_user_DllExport FMA_Location& location()
+            inline eProsima_user_DllExport AMM::FMA_Location& location()
             {
                 return m_location;
             }
@@ -4334,7 +4334,7 @@ namespace AMM
         private:
             std::string m_Timestamp;
             std::string m_learner_id;
-            FMA_Location m_location;
+            AMM::FMA_Location m_location;
             std::string m_assessment_type;
             std::string m_assessment_info;
             std::string m_step;

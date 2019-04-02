@@ -32,48 +32,48 @@
 #error Generated AMM is not compatible with current installed Fast-RTPS. Please, regenerate it with fastrtpsgen.
 #endif
 
-/*!
- * @brief This class represents the TopicDataType of the type FMA_Location defined by the user in the IDL file.
- * @ingroup AMM
- */
-class FMA_LocationPubSubType : public eprosima::fastrtps::TopicDataType {
-public:
-        typedef FMA_Location type;
-
-	FMA_LocationPubSubType();
-	virtual ~FMA_LocationPubSubType();
-	virtual bool serialize(void *data, eprosima::fastrtps::rtps::SerializedPayload_t *payload) override;
-	virtual bool deserialize(eprosima::fastrtps::rtps::SerializedPayload_t *payload, void *data) override;
-    virtual std::function<uint32_t()> getSerializedSizeProvider(void* data) override;
-	virtual bool getKey(void *data, eprosima::fastrtps::rtps::InstanceHandle_t *ihandle,
-		bool force_md5 = false) override;
-	virtual void* createData() override;
-	virtual void deleteData(void * data) override;
-	MD5 m_md5;
-	unsigned char* m_keyBuffer;
-};
-/*!
- * @brief This class represents the TopicDataType of the type UUID defined by the user in the IDL file.
- * @ingroup AMM
- */
-class UUIDPubSubType : public eprosima::fastrtps::TopicDataType {
-public:
-        typedef UUID type;
-
-	UUIDPubSubType();
-	virtual ~UUIDPubSubType();
-	virtual bool serialize(void *data, eprosima::fastrtps::rtps::SerializedPayload_t *payload) override;
-	virtual bool deserialize(eprosima::fastrtps::rtps::SerializedPayload_t *payload, void *data) override;
-    virtual std::function<uint32_t()> getSerializedSizeProvider(void* data) override;
-	virtual bool getKey(void *data, eprosima::fastrtps::rtps::InstanceHandle_t *ihandle,
-		bool force_md5 = false) override;
-	virtual void* createData() override;
-	virtual void deleteData(void * data) override;
-	MD5 m_md5;
-	unsigned char* m_keyBuffer;
-};
 namespace AMM
 {
+    /*!
+     * @brief This class represents the TopicDataType of the type FMA_Location defined by the user in the IDL file.
+     * @ingroup AMM
+     */
+    class FMA_LocationPubSubType : public eprosima::fastrtps::TopicDataType {
+    public:
+            typedef FMA_Location type;
+
+    	FMA_LocationPubSubType();
+    	virtual ~FMA_LocationPubSubType();
+    	virtual bool serialize(void *data, eprosima::fastrtps::rtps::SerializedPayload_t *payload) override;
+    	virtual bool deserialize(eprosima::fastrtps::rtps::SerializedPayload_t *payload, void *data) override;
+        virtual std::function<uint32_t()> getSerializedSizeProvider(void* data) override;
+    	virtual bool getKey(void *data, eprosima::fastrtps::rtps::InstanceHandle_t *ihandle,
+    		bool force_md5 = false) override;
+    	virtual void* createData() override;
+    	virtual void deleteData(void * data) override;
+    	MD5 m_md5;
+    	unsigned char* m_keyBuffer;
+    };
+    /*!
+     * @brief This class represents the TopicDataType of the type UUID defined by the user in the IDL file.
+     * @ingroup AMM
+     */
+    class UUIDPubSubType : public eprosima::fastrtps::TopicDataType {
+    public:
+            typedef UUID type;
+
+    	UUIDPubSubType();
+    	virtual ~UUIDPubSubType();
+    	virtual bool serialize(void *data, eprosima::fastrtps::rtps::SerializedPayload_t *payload) override;
+    	virtual bool deserialize(eprosima::fastrtps::rtps::SerializedPayload_t *payload, void *data) override;
+        virtual std::function<uint32_t()> getSerializedSizeProvider(void* data) override;
+    	virtual bool getKey(void *data, eprosima::fastrtps::rtps::InstanceHandle_t *ihandle,
+    		bool force_md5 = false) override;
+    	virtual void* createData() override;
+    	virtual void deleteData(void * data) override;
+    	MD5 m_md5;
+    	unsigned char* m_keyBuffer;
+    };
     namespace Event
     {
         /*!
