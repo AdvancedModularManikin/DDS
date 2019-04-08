@@ -5,6 +5,8 @@
 #include <sstream>
 #include <stdexcept>
 #include <thread>
+#include <iostream>
+#include <fstream>
 
 // Boost dependencies
 #include <boost/algorithm/string.hpp>

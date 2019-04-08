@@ -172,15 +172,20 @@ namespace AMM {
         rightLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::RightLung);
         bladder = m_pe->GetCompartments().GetLiquidCompartment(BGE::UrineCompartment::Bladder);
 
-        if (logging_enabled) {
-            InitializeLog();
-        }
-
+	if (logging_enabled) {
+	  InitializeLog();
+	}
+	
         return true;
     }
 
     void PhysiologyThread::InitializeLog() {
-        std::string logFilename = Utility::getTimestampedFilename("./logs/Output_", ".csv");
+        std::string logFilename = Utility::getTimestampedFilename("./logs/AMM_Output_", ".csv");
+	LOG_INFO << "Initializing log file: " << logFilename;
+	
+	std::fstream fs;
+	fs.open(logFilename, std::ios::out);
+	fs.close();
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
                                                                                           biogears::FrequencyUnit::Per_min);
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
@@ -200,22 +205,12 @@ namespace AMM {
         m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
                 BGE::PulmonaryCompartment::RightLung, "Volume");
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
-/*            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
-                    BGE::VascularCompartment::Aorta, *O2, "PartialPressure");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
-                    BGE::VascularCompartment::Aorta, *CO2, "PartialPressure");*/
         m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
                 BGE::PulmonaryCompartment::Carina, "InFlow");
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume",
                                                                                           biogears::VolumeUnit::mL);
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("ArterialBloodPH");
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("VenousBloodPH");
-        m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
-    }
-
-    bool PhysiologyThread::SaveState() {
-        m_pe->SaveState();
-        return true;
+	m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
     }
 
     bool PhysiologyThread::SaveState(const std::string &stateFile) {
