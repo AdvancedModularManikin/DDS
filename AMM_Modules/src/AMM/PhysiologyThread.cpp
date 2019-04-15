@@ -186,6 +186,7 @@ namespace AMM {
 	std::fstream fs;
 	fs.open(logFilename, std::ios::out);
 	fs.close();
+	
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
                                                                                           biogears::FrequencyUnit::Per_min);
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
@@ -210,6 +211,8 @@ namespace AMM {
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume",
                                                                                           biogears::VolumeUnit::mL);
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("ArterialBloodPH");
+	biogears::SESubstance* logLactate = m_pe->GetSubstanceManager().GetSubstance("Lactate");
+	m_pe->GetEngineTrack()->GetDataRequestManager().CreateSubstanceDataRequest().Set(*logLactate, "BloodConcentration", biogears::MassPerVolumeUnit::ug_Per_mL);
 	m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
     }
 

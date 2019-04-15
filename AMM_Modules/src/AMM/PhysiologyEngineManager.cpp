@@ -199,9 +199,9 @@ namespace AMM {
     void PhysiologyEngineManager::SetLogging(bool log) {
         logging_enabled = log;
         bg->logging_enabled = logging_enabled;
-        if (logging_enabled) {
+	/**        if (logging_enabled) {
             bg->InitializeLog();
-        }
+	    } **/
     }
 
     int PhysiologyEngineManager::GetTickCount() { return lastFrame; }
