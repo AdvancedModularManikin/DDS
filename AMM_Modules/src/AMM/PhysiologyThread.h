@@ -151,6 +151,8 @@ namespace AMM {
 
         double GetShutdownMessage();
 
+        double GetBloodLossPercentage();
+
         double GetHeartRate();
 
         double GetBloodVolume();
@@ -301,5 +303,11 @@ namespace AMM {
         double lung_vol_R, new_min_R, new_max_R, min_lung_vol_R, max_lung_vol_R;
         double chestrise_pct_R;
         double rightLungTidalVol;
+
+
+        double bloodPH = 0.0;
+        double lactateConcentration = 0.0;
+        double startingBloodVolume = 123456.0;
+        double currentBloodVolume = 0.0;
     };
 }

@@ -2,7 +2,7 @@
 
 namespace AMM {
     using namespace AMM::Physiology;
-    std::vector<std::string> PhysiologyThread::highFrequencyNodes;
+    std::vector <std::string> PhysiologyThread::highFrequencyNodes;
     std::map<std::string, double (PhysiologyThread::*)()> PhysiologyThread::nodePathTable;
 
     PhysiologyThread::PhysiologyThread(const std::string &logFile) {
@@ -26,11 +26,11 @@ namespace AMM {
         nodePathTable["ECG"] = &PhysiologyThread::GetECGWaveform;
         nodePathTable["HR"] = &PhysiologyThread::GetHeartRate;
         nodePathTable["SIM_TIME"] = &PhysiologyThread::GetSimulationTime;
-        // nodePathTable["EXIT"] = &PhysiologyThread::GetShutdownMessage;
 
         // Cardiovascular System
         nodePathTable["Cardiovascular_HeartRate"] = &PhysiologyThread::GetHeartRate;
         nodePathTable["Cardiovascular_BloodVolume"] = &PhysiologyThread::GetBloodVolume;
+        nodePathTable["Cardiovascular_BloodLossPercentage"] = &PhysiologyThread::GetBloodLossPercentage;
         nodePathTable["Cardiovascular_Arterial_Pressure"] = &PhysiologyThread::GetArterialPressure;
         nodePathTable["Cardiovascular_Arterial_Mean_Pressure"] = &PhysiologyThread::GetMeanArterialPressure;
         nodePathTable["Cardiovascular_Arterial_Systolic_Pressure"] = &PhysiologyThread::GetArterialSystolicPressure;
@@ -102,7 +102,6 @@ namespace AMM {
         nodePathTable["Renal_UrineOsmolarity"] = &PhysiologyThread::GetUrineOsmolarity;
         nodePathTable["Renal_BladderGlucose"] = &PhysiologyThread::GetBladderGlucose;
 
-
         // Label which nodes are high-frequency
         highFrequencyNodes = {
                 "ECG",
@@ -172,6 +171,9 @@ namespace AMM {
         rightLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::RightLung);
         bladder = m_pe->GetCompartments().GetLiquidCompartment(BGE::UrineCompartment::Bladder);
 
+        startingBloodVolume = 123456.0;
+        currentBloodVolume = 0.0;
+
         if (logging_enabled) {
             InitializeLog();
         }
@@ -180,7 +182,13 @@ namespace AMM {
     }
 
     void PhysiologyThread::InitializeLog() {
-        std::string logFilename = Utility::getTimestampedFilename("./logs/Output_", ".csv");
+        std::string logFilename = Utility::getTimestampedFilename("./logs/AMM_Output_", ".csv");
+        LOG_INFO << "Initializing log file: " << logFilename;
+
+        std::fstream fs;
+        fs.open(logFilename, std::ios::out);
+        fs.close();
+
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
                                                                                           biogears::FrequencyUnit::Per_min);
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
@@ -200,22 +208,16 @@ namespace AMM {
         m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
                 BGE::PulmonaryCompartment::RightLung, "Volume");
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
-/*            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
-                    BGE::VascularCompartment::Aorta, *O2, "PartialPressure");
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateLiquidCompartmentDataRequest().Set(
-                    BGE::VascularCompartment::Aorta, *CO2, "PartialPressure");*/
         m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
                 BGE::PulmonaryCompartment::Carina, "InFlow");
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume",
                                                                                           biogears::VolumeUnit::mL);
         m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("ArterialBloodPH");
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("VenousBloodPH");
+        biogears::SESubstance *logLactate = m_pe->GetSubstanceManager().GetSubstance("Lactate");
+        m_pe->GetEngineTrack()->GetDataRequestManager().CreateSubstanceDataRequest().Set(*logLactate,
+                                                                                         "BloodConcentration",
+                                                                                         biogears::MassPerVolumeUnit::ug_Per_mL);
         m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
-    }
-
-    bool PhysiologyThread::SaveState() {
-        m_pe->SaveState();
-        return true;
     }
 
     bool PhysiologyThread::SaveState(const std::string &stateFile) {
@@ -229,7 +231,7 @@ namespace AMM {
     }
 
     bool PhysiologyThread::Execute(std::function<std::unique_ptr<biogears::PhysiologyEngine>(
-            std::unique_ptr<biogears::PhysiologyEngine> &&)> func) {
+            std::unique_ptr < biogears::PhysiologyEngine > && )> func) {
         m_pe = func(std::move(m_pe));
         return true;
     }
@@ -285,10 +287,10 @@ namespace AMM {
             m_pe->AdvanceModelTime();
         } catch (std::exception &e) {
             LOG_ERROR << "Error advancing time: " << e.what();
-            // const boost::stacktrace::stacktrace* st = boost::get_error_info<traced>(e);
-            //if (st) {
-            //   std::cerr << *st << '\n';
-            //}
+            /*const boost::stacktrace::stacktrace* st = boost::get_error_info<traced>(e);
+            if (st) {
+               LOG_ERROR << *st;
+            }*/
         }
 
         if (logging_enabled) {
@@ -317,13 +319,21 @@ namespace AMM {
 
     }
 
-    double PhysiologyThread::GetHeartRate() {
-        return m_pe->GetCardiovascularSystem()->GetHeartRate(biogears::FrequencyUnit::Per_min);
+    double PhysiologyThread::GetBloodVolume() {
+        currentBloodVolume = m_pe->GetCardiovascularSystem()->GetBloodVolume(biogears::VolumeUnit::mL);
+        if (startingBloodVolume == 123456.0) {
+            startingBloodVolume = currentBloodVolume;
+        }
+        return currentBloodVolume;
     }
 
-// ?? - Blood Volume - mL
-    double PhysiologyThread::GetBloodVolume() {
-        return m_pe->GetCardiovascularSystem()->GetBloodVolume(biogears::VolumeUnit::mL);
+    double PhysiologyThread::GetBloodLossPercentage() {
+        double loss = (startingBloodVolume - currentBloodVolume) / startingBloodVolume;
+        return loss;
+    }
+
+    double PhysiologyThread::GetHeartRate() {
+        return m_pe->GetCardiovascularSystem()->GetHeartRate(biogears::FrequencyUnit::Per_min);
     }
 
 // SYS (ART) - Arterial Systolic Pressure - mmHg
@@ -363,7 +373,10 @@ namespace AMM {
 
 // BR - Respiration Rate - per minute
     double PhysiologyThread::GetRespirationRate() {
-        return m_pe->GetRespiratorySystem()->GetRespirationRate(biogears::FrequencyUnit::Per_min);
+        double rr = m_pe->GetRespiratorySystem()->GetRespirationRate(biogears::FrequencyUnit::Per_min);
+        double loss = GetBloodLossPercentage();
+        rr = rr * (1 + 3 * std::max(0.0, loss - 0.2));
+        return rr;
     }
 
 // T2 - Core Temperature - degrees C
@@ -413,11 +426,12 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetLactateConcentration() {
-        return lactate->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
+        lactateConcentration = lactate->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
+        return lactateConcentration;
     }
 
     double PhysiologyThread::GetLactateConcentrationMMOL() {
-        return (GetLactateConcentration() * 0.1110) * 1000;
+        return (lactateConcentration * 0.1110) * 1000;
     }
 
 
@@ -455,7 +469,9 @@ namespace AMM {
 
 // pH - Blood pH - unitless
     double PhysiologyThread::GetBloodPH() {
-        return m_pe->GetBloodChemistrySystem()->GetVenousBloodPH();
+        double venousbloodPH = m_pe->GetBloodChemistrySystem()->GetVenousBloodPH();
+        bloodPH = venousbloodPH + 0.02 * std::min((1.5 - lactateConcentration), 0.0);
+        return bloodPH;
     }
 
 // PaCO2 - Arterial Carbon Dioxide Pressure - mmHg
@@ -663,10 +679,10 @@ namespace AMM {
     void PhysiologyThread::SetIVPump(const std::string &pumpSettings) {
         LOG_DEBUG << "Got pump settings: " << pumpSettings;
         std::string type, concentration, rate, dose, substance, bagVolume;
-        std::vector<std::string> strings = Utility::explode("\n", pumpSettings);
+        std::vector <std::string> strings = Utility::explode("\n", pumpSettings);
 
         for (auto str : strings) {
-            std::vector<std::string> strs;
+            std::vector <std::string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair
@@ -711,7 +727,7 @@ namespace AMM {
                     }
                     biogears::SESubstanceCompound *subs = m_pe->GetSubstanceManager().GetCompound(substance);
                     biogears::SESubstanceCompoundInfusion infuse(*subs);
-                    std::vector<std::string> bagvol = Utility::explode(" ", bagVolume);
+                    std::vector <std::string> bagvol = Utility::explode(" ", bagVolume);
                     volVal = std::stod(bagvol[0]);
                     volUnit = bagvol[1];
                     LOG_DEBUG << "Setting bag volume to " << volVal << " / " << volUnit;
@@ -721,7 +737,7 @@ namespace AMM {
                         infuse.GetBagVolume().SetValue(volVal, biogears::VolumeUnit::L);
                     }
 
-                    std::vector<std::string> rateb = Utility::explode(" ", rate);
+                    std::vector <std::string> rateb = Utility::explode(" ", rate);
                     rateVal = std::stod(rateb[0]);
                     rateUnit = rateb[1];
 
@@ -736,14 +752,14 @@ namespace AMM {
                 } else {
                     biogears::SESubstance *subs = m_pe->GetSubstanceManager().GetSubstance(substance);
                     biogears::SESubstanceInfusion infuse(*subs);
-                    std::vector<std::string> concentrations = Utility::explode("/", concentration);
+                    std::vector <std::string> concentrations = Utility::explode("/", concentration);
                     concentrationsMass = concentrations[0];
                     concentrationsVol = concentrations[1];
 
-                    std::vector<std::string> conmass = Utility::explode(" ", concentrationsMass);
+                    std::vector <std::string> conmass = Utility::explode(" ", concentrationsMass);
                     massVal = std::stod(conmass[0]);
                     massUnit = conmass[1];
-                    std::vector<std::string> convol = Utility::explode(" ", concentrationsVol);
+                    std::vector <std::string> convol = Utility::explode(" ", concentrationsVol);
                     volVal = std::stod(convol[0]);
                     volUnit = convol[1];
                     conVal = massVal / volVal;
@@ -755,7 +771,7 @@ namespace AMM {
                         infuse.GetConcentration().SetValue(conVal, biogears::MassPerVolumeUnit::mg_Per_mL);
                     }
 
-                    std::vector<std::string> rateb = Utility::explode(" ", rate);
+                    std::vector <std::string> rateb = Utility::explode(" ", rate);
                     rateVal = std::stod(rateb[0]);
                     rateUnit = rateb[1];
 
@@ -773,19 +789,19 @@ namespace AMM {
 
                 std::string concentrationsMass, concentrationsVol, massUnit, volUnit, doseUnit;
                 double massVal, volVal, conVal, doseVal;
-                std::vector<std::string> concentrations = Utility::explode("/", concentration);
+                std::vector <std::string> concentrations = Utility::explode("/", concentration);
                 concentrationsMass = concentrations[0];
                 concentrationsVol = concentrations[1];
 
-                std::vector<std::string> conmass = Utility::explode(" ", concentrationsMass);
+                std::vector <std::string> conmass = Utility::explode(" ", concentrationsMass);
                 massVal = std::stod(conmass[0]);
                 massUnit = conmass[1];
-                std::vector<std::string> convol = Utility::explode(" ", concentrationsVol);
+                std::vector <std::string> convol = Utility::explode(" ", concentrationsVol);
                 volVal = std::stod(convol[0]);
                 volUnit = convol[1];
                 conVal = massVal / volVal;
 
-                std::vector<std::string> doseb = Utility::explode(" ", dose);
+                std::vector <std::string> doseb = Utility::explode(" ", dose);
                 doseVal = std::stod(doseb[0]);
                 doseUnit = doseb[1];
 
@@ -813,14 +829,15 @@ namespace AMM {
     void PhysiologyThread::SetHemorrhage(const std::string &location, const std::string &hemorrhageSettings) {
         LOG_DEBUG << "Setting hemo with location " << location << " and settings: " << hemorrhageSettings;
         double flowRate;
-        std::vector<std::string> strings = Utility::explode("\n", hemorrhageSettings);
+        std::vector <std::string> strings = Utility::explode("\n", hemorrhageSettings);
         for (auto str : strings) {
-            std::vector<std::string> strs;
+            std::vector <std::string> strs;
             boost::split(strs, str, boost::is_any_of("=, = "));
             auto strs_size = strs.size();
             LOG_DEBUG << " strs.size is " << strs_size;
             std::string kvp_k = strs[0];
-            LOG_DEBUG << "kvp_k is " << kvp_k << " and strs[1] is " << strs[1] << " and strs[2] is " << strs[2] << " and strs[3] is " << strs[3];
+            LOG_DEBUG << "kvp_k is " << kvp_k << " and strs[1] is " << strs[1] << " and strs[2] is " << strs[2]
+                      << " and strs[3] is " << strs[3];
 
             continue;
 
@@ -856,13 +873,13 @@ namespace AMM {
     }
 
     void PhysiologyThread::SetPain(const std::string &painSettings) {
-        std::vector<std::string> strings = Utility::explode("\n", painSettings);
+        std::vector <std::string> strings = Utility::explode("\n", painSettings);
 
         std::string location; //location of pain stimulus, examples "Arm", "Leg"
         double severity; //severity (scale 0-1)
 
         for (auto str : strings) {
-            std::vector<std::string> strs;
+            std::vector <std::string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair
@@ -895,7 +912,7 @@ namespace AMM {
     }
 
     void PhysiologyThread::SetVentilator(const std::string &ventilatorSettings) {
-        std::vector<std::string> strings = Utility::explode("\n", ventilatorSettings);
+        std::vector <std::string> strings = Utility::explode("\n", ventilatorSettings);
 
         biogears::SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
         biogears::SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
@@ -907,7 +924,7 @@ namespace AMM {
         config.GetReliefValvePressure().SetValue(20.0, biogears::PressureUnit::cmH2O);
 
         for (auto str : strings) {
-            std::vector<std::string> strs;
+            std::vector <std::string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair
@@ -948,7 +965,7 @@ namespace AMM {
     }
 
     void PhysiologyThread::SetBVMMask(const std::string &ventilatorSettings) {
-        std::vector<std::string> strings = Utility::explode("\n", ventilatorSettings);
+        std::vector <std::string> strings = Utility::explode("\n", ventilatorSettings);
 
         biogears::SEAnesthesiaMachineConfiguration AMConfig(m_pe->GetSubstanceManager());
         biogears::SEAnesthesiaMachine &config = AMConfig.GetConfiguration();
@@ -960,7 +977,7 @@ namespace AMM {
         config.GetReliefValvePressure().SetValue(20.0, biogears::PressureUnit::cmH2O);
 
         for (auto str : strings) {
-            std::vector<std::string> strs;
+            std::vector <std::string> strs;
             boost::split(strs, str, boost::is_any_of("="));
             auto strs_size = strs.size();
             // Check if it's not a key value pair
