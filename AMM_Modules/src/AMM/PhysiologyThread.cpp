@@ -442,7 +442,8 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetLactateConcentrationMMOL() {
-        return (lactateConcentration * 0.1110) * 1000;
+        lactateMMOL = (lactateConcentration * 0.1110) * 1000;
+        return lactateMMOL;
     }
 
 
@@ -484,9 +485,8 @@ namespace AMM {
         return rawBloodPH;
     }
 
-
     double PhysiologyThread::GetBloodPH() {
-        bloodPH = rawBloodPH + 0.02 * std::min((1.5 - lactateConcentration), 0.0);
+        bloodPH = rawBloodPH + 0.02 * std::min((1.5 - lactateMMOL), 0.0);
         return bloodPH;
     }
 
