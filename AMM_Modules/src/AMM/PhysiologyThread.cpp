@@ -374,14 +374,19 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetRawRespirationRate() {
-        double rawRespirationRate = m_pe->GetRespiratorySystem()->GetRespirationRate(biogears::FrequencyUnit::Per_min);
+        rawRespirationRate = m_pe->GetRespiratorySystem()->GetRespirationRate(biogears::FrequencyUnit::Per_min);
         return rawRespirationRate;
     }
 
 // BR - Respiration Rate - per minute
     double PhysiologyThread::GetRespirationRate() {
+        double rr;
         double loss = GetBloodLossPercentage();
-        double rr = rawRespirationRate * (1 + 3 * std::max(0.0, loss - 0.2));
+        if (loss > 0.0) {
+            rr = rawRespirationRate * (1 + 3 * std::max(0.0, loss - 0.2));
+        } else {
+            rr = rawRespirationRate;
+        }
         return rr;
     }
 
