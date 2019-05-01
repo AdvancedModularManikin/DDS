@@ -39,6 +39,7 @@ namespace AMM {
         nodePathTable["Cardiovascular_CardiacOutput"] = &PhysiologyThread::GetCardiacOutput;
 
         //  Respiratory System
+        nodePathTable["Respiratory_Respiration_Rate_RAW"] = &PhysiologyThread::GetRawRespirationRate;
         nodePathTable["Respiratory_Respiration_Rate"] = &PhysiologyThread::GetRespirationRate;
         nodePathTable["Respiration_EndTidalCarbonDioxide"] = &PhysiologyThread::GetEndTidalCarbonDioxideFraction;
         nodePathTable["Respiratory_Tidal_Volume"] = &PhysiologyThread::GetTidalVolume;
@@ -68,6 +69,7 @@ namespace AMM {
         nodePathTable["BloodChemistry_BloodUreaNitrogen_Concentration"] = &PhysiologyThread::GetBUN;
         nodePathTable["BloodChemistry_Oxygen_Saturation"] = &PhysiologyThread::GetOxygenSaturation;
         nodePathTable["BloodChemistry_Hemaocrit"] = &PhysiologyThread::GetHematocrit;
+        nodePathTable["BloodChemistry_BloodPH_RAW"] = &PhysiologyThread::GetRawBloodPH;
         nodePathTable["BloodChemistry_BloodPH"] = &PhysiologyThread::GetBloodPH;
         nodePathTable["BloodChemistry_Arterial_CarbonDioxide_Pressure"] = &PhysiologyThread::GetArterialCarbonDioxidePressure;
         nodePathTable["BloodChemistry_Arterial_Oxygen_Pressure"] = &PhysiologyThread::GetArterialOxygenPressure;
@@ -371,11 +373,15 @@ namespace AMM {
         return m_pe->GetBloodChemistrySystem()->GetOxygenSaturation() * 100;
     }
 
+    double PhysiologyThread::GetRawRespirationRate() {
+        double rawRespirationRate = m_pe->GetRespiratorySystem()->GetRespirationRate(biogears::FrequencyUnit::Per_min);
+        return rawRespirationRate;
+    }
+
 // BR - Respiration Rate - per minute
     double PhysiologyThread::GetRespirationRate() {
-        double rr = m_pe->GetRespiratorySystem()->GetRespirationRate(biogears::FrequencyUnit::Per_min);
         double loss = GetBloodLossPercentage();
-        rr = rr * (1 + 3 * std::max(0.0, loss - 0.2));
+        double rr = rawRespirationRate * (1 + 3 * std::max(0.0, loss - 0.2));
         return rr;
     }
 
@@ -468,9 +474,14 @@ namespace AMM {
     }
 
 // pH - Blood pH - unitless
+    double PhysiologyThread::GetRawBloodPH() {
+        rawBloodPH = m_pe->GetBloodChemistrySystem()->GetVenousBloodPH();
+        return rawBloodPH;
+    }
+
+
     double PhysiologyThread::GetBloodPH() {
-        double venousbloodPH = m_pe->GetBloodChemistrySystem()->GetVenousBloodPH();
-        bloodPH = venousbloodPH + 0.02 * std::min((1.5 - lactateConcentration), 0.0);
+        bloodPH = rawBloodPH + 0.02 * std::min((1.5 - lactateConcentration), 0.0);
         return bloodPH;
     }
 

@@ -173,6 +173,8 @@ namespace AMM {
 
         double GetOxygenSaturation();
 
+        double GetRawRespirationRate();
+
         double GetRespirationRate();
 
         double GetCoreTemperature();
@@ -196,6 +198,8 @@ namespace AMM {
         double GetHemoglobinConcentration();
 
         double GetHematocrit();
+
+        double GetRawBloodPH();
 
         double GetBloodPH();
 
@@ -308,8 +312,10 @@ namespace AMM {
 
 
         double bloodPH = 0.0;
+        double rawBloodPH = 0.0;
         double lactateConcentration = 0.0;
         double startingBloodVolume = 123456.0;
         double currentBloodVolume = 0.0;
+        double rawRespirationRate = 0.0;
     };
 }
