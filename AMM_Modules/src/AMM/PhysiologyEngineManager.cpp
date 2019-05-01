@@ -199,9 +199,6 @@ namespace AMM {
     void PhysiologyEngineManager::SetLogging(bool log) {
         logging_enabled = log;
         bg->logging_enabled = logging_enabled;
-	/**        if (logging_enabled) {
-            bg->InitializeLog();
-	    } **/
     }
 
     int PhysiologyEngineManager::GetTickCount() { return lastFrame; }
@@ -254,6 +251,27 @@ namespace AMM {
         }
     }
 
+    const std::map<std::string, std::string>& PhysiologyEngineManager::GetTissueResistorMap() const
+    {
+        return m_TissueResistorMap;
+    }
+
+    void PhysiologyEngineManager::BuildTissueResistorMap()
+    {
+        m_TissueResistorMap["BoneTissue"] = "BoneE1ToBoneE2";
+        m_TissueResistorMap["FatTissue"] = "FatE1ToFatE2";
+        m_TissueResistorMap["GutTissue"] = "GutE1ToGutE2";
+        m_TissueResistorMap["LeftKidneyTissue"] = "LeftKidneyE1ToLeftKidneyE2";
+        m_TissueResistorMap["LeftLungTissue"] = "LeftLungE1ToLeftLungE2";
+        m_TissueResistorMap["LiverTissue"] = "LiverE1ToLiverE2";
+        m_TissueResistorMap["MuscleTissue"] = "MuscleE1ToMuscleE2";
+        m_TissueResistorMap["MyocardiumTissue"] = "MyocardiumE1ToMyocardiumE2";
+        m_TissueResistorMap["RightKidneyTissue"] = "RightKidneyE1ToRightKidneyE2";
+        m_TissueResistorMap["RightLungTissue"] = "RightLungE1ToRightLungE2";
+        m_TissueResistorMap["SkinTissue"] = "SkinE1ToSkinE2";
+        m_TissueResistorMap["SpleenTissue"] = "SpleenE1ToSpleenE2";
+    }
+
     void PhysiologyEngineManager::onNewCommandData(AMM::Physiology::Command cm,
                                                    SampleInfo_t *info) {
         using namespace biogears;
@@ -282,10 +300,8 @@ namespace AMM {
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
                 bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
-                    // Create variables for scenario
-                    SESepsis sepsis; // pain object
-		    //		    sepsis.BuildTissueResistorMap();
-                    /**auto tissueMap = sepsis.GetTissueResistorMap();
+                    SESepsis sepsis;
+                    auto tissueMap = GetTissueResistorMap();
                     switch (command.location()) {
                         case AMM::Physiology::BoneTissue:
                             sepsis.SetCompartment(tissueMap["BoneTissue"]);
@@ -323,7 +339,7 @@ namespace AMM {
                         case AMM::Physiology::SpleenTissue:
                             sepsis.SetCompartment(tissueMap["SpleenTissue"]);
                             break;
-			    }**/
+			    }
                     sepsis.GetSeverity().SetValue(command.severity());
                     engine->ProcessAction(sepsis);
                     return engine;
@@ -424,8 +440,7 @@ namespace AMM {
         }
     }
 
-    void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i,
-                                                      SampleInfo_t *info) {
+    void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i, SampleInfo_t *info) {
         LOG_DEBUG << "Instrument data for " << i.instrument()
                   << " received with payload: " << i.payload();
         std::string instrument(i.instrument());
