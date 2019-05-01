@@ -199,9 +199,9 @@ namespace AMM {
     void PhysiologyEngineManager::SetLogging(bool log) {
         logging_enabled = log;
         bg->logging_enabled = logging_enabled;
-        if (logging_enabled) {
+	/**        if (logging_enabled) {
             bg->InitializeLog();
-        }
+	    } **/
     }
 
     int PhysiologyEngineManager::GetTickCount() { return lastFrame; }
@@ -284,8 +284,8 @@ namespace AMM {
                 bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
                     // Create variables for scenario
                     SESepsis sepsis; // pain object
-                    sepsis.BuildTissueResistorMap();
-                    auto tissueMap = sepsis.GetTissueResistorMap();
+		    //		    sepsis.BuildTissueResistorMap();
+                    /**auto tissueMap = sepsis.GetTissueResistorMap();
                     switch (command.location()) {
                         case AMM::Physiology::BoneTissue:
                             sepsis.SetCompartment(tissueMap["BoneTissue"]);
@@ -323,7 +323,7 @@ namespace AMM {
                         case AMM::Physiology::SpleenTissue:
                             sepsis.SetCompartment(tissueMap["SpleenTissue"]);
                             break;
-                    }
+			    }**/
                     sepsis.GetSeverity().SetValue(command.severity());
                     engine->ProcessAction(sepsis);
                     return engine;
