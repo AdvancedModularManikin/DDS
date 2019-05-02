@@ -113,7 +113,7 @@ namespace AMM {
         bool ExecuteCommand(const std::string &cmd);
 
         bool Execute(std::function<std::unique_ptr<biogears::PhysiologyEngine>(
-                std::unique_ptr<biogears::PhysiologyEngine> &&)>
+                std::unique_ptr < biogears::PhysiologyEngine > && )>
                      func);
 
         void Shutdown();
@@ -131,10 +131,13 @@ namespace AMM {
         double GetNodePath(const std::string &nodePath);
 
         void SetVentilator(const std::string &ventilatorSettings);
+
         void SetBVMMask(const std::string &ventilatorSettings);
+
         void SetIVPump(const std::string &pumpSettings);
 
         void SetPain(const std::string &painSettings);
+
         void SetHemorrhage(const std::string &location, const std::string &hemorrhageSettings);
 
         void Status();
@@ -142,7 +145,7 @@ namespace AMM {
         void InitializeLog();
 
         static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
-        static std::vector<std::string> highFrequencyNodes;
+        static std::vector <std::string> highFrequencyNodes;
 
         bool logging_enabled = false;
 
@@ -296,7 +299,7 @@ namespace AMM {
     protected:
         std::mutex m_mutex;
         bool m_runThread;
-        std::unique_ptr<biogears::PhysiologyEngine> m_pe;
+        std::unique_ptr <biogears::PhysiologyEngine> m_pe;
 
         double thresh = 1.0;
 
@@ -310,13 +313,15 @@ namespace AMM {
         double chestrise_pct_R;
         double rightLungTidalVol;
 
+        bool eventHandlerAttached = false;
 
         double bloodPH = 0.0;
         double rawBloodPH = 0.0;
         double lactateConcentration = 0.0;
         double lactateMMOL = 0.0;
-        double startingBloodVolume = 123456.0;
+        double startingBloodVolume = 5423.53;
         double currentBloodVolume = 0.0;
         double rawRespirationRate = 0.0;
+
     };
 }

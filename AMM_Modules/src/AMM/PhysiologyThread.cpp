@@ -1,15 +1,37 @@
 #include "PhysiologyThread.h"
+using namespace biogears;
+
+class PhysiologyEngineLogger : public LoggerForward {
+public:
+    virtual void ForwardDebug(const std::string& msg, const std::string& origin) {
+        LOG_DEBUG << msg;
+    }
+    virtual void ForwardInfo(const std::string& msg, const std::string& origin) {
+        LOG_INFO << msg;
+    }
+    virtual void ForwardWarning(const std::string& msg, const std::string& origin) {
+        LOG_WARNING << msg;
+    }
+    virtual void ForwardError(const std::string& msg, const std::string& origin) {
+        LOG_ERROR << msg;
+    }
+    virtual void ForwardFatal(const std::string& msg, const std::string& origin) {
+        LOG_FATAL << msg;
+    }
+};
 
 namespace AMM {
+
     using namespace AMM::Physiology;
+
     std::vector <std::string> PhysiologyThread::highFrequencyNodes;
     std::map<std::string, double (PhysiologyThread::*)()> PhysiologyThread::nodePathTable;
 
     PhysiologyThread::PhysiologyThread(const std::string &logFile) {
         m_pe = biogears::CreateBioGearsEngine(logFile);
 
-
         PopulateNodePathTable();
+
         m_runThread = false;
     }
 
@@ -145,12 +167,19 @@ namespace AMM {
         biogears::SEScalarTime startTime;
         startTime.SetValue(sec, biogears::TimeUnit::s);
 
+        if (!eventHandlerAttached) {
+            PhysiologyEngineLogger pl;
+            m_pe->GetLogger()->SetForward(&pl);
+            eventHandlerAttached = true;
+        }
+
         LOG_INFO << "Loading state file " << stateFile << " at position " << sec << " seconds";
         if (!m_pe->LoadState(stateFile, &startTime)) {
             LOG_ERROR << "Error initializing state";
             return false;
         }
 
+        LOG_DEBUG << "Preloading substances";
         // preload substances
         sodium = m_pe->GetSubstanceManager().GetSubstance("Sodium");
         glucose = m_pe->GetSubstanceManager().GetSubstance("Glucose");
@@ -173,8 +202,8 @@ namespace AMM {
         rightLung = m_pe->GetCompartments().GetGasCompartment(BGE::PulmonaryCompartment::RightLung);
         bladder = m_pe->GetCompartments().GetLiquidCompartment(BGE::UrineCompartment::Bladder);
 
-        startingBloodVolume = 123456.0;
-        currentBloodVolume = 0.0;
+        startingBloodVolume = 5400.00;
+        currentBloodVolume = startingBloodVolume;
 
         if (logging_enabled) {
             InitializeLog();
@@ -247,10 +276,21 @@ namespace AMM {
         return LoadScenarioFile(tmpname);
     }
 
+    bool file_exists(const char *fileName)
+    {
+        std::ifstream infile(fileName);
+        return infile.good();
+    }
 
     // Load a scenario from an XML file, apply conditions and iterate through the actions
 // This bypasses the standard BioGears ExecuteScenario method to avoid resetting the BioGears engine
     bool PhysiologyThread::LoadScenarioFile(const std::string &scenarioFile) {
+
+        if (!file_exists(scenarioFile.c_str())) {
+            LOG_WARNING << "Scenario file does not exist: " << scenarioFile;
+            return false;
+        }
+
         biogears::SEScenario sce(m_pe->GetSubstanceManager());
         sce.Load(scenarioFile);
 
@@ -287,17 +327,13 @@ namespace AMM {
         m_mutex.lock();
         try {
             m_pe->AdvanceModelTime();
+            if (logging_enabled) {
+                m_pe->GetEngineTrack()->TrackData(m_pe->GetSimulationTime(biogears::TimeUnit::s));
+            }
         } catch (std::exception &e) {
             LOG_ERROR << "Error advancing time: " << e.what();
-            /*const boost::stacktrace::stacktrace* st = boost::get_error_info<traced>(e);
-            if (st) {
-               LOG_ERROR << *st;
-            }*/
         }
 
-        if (logging_enabled) {
-            m_pe->GetEngineTrack()->TrackData(m_pe->GetSimulationTime(biogears::TimeUnit::s));
-        }
         m_mutex.unlock();
     }
 
@@ -323,9 +359,6 @@ namespace AMM {
 
     double PhysiologyThread::GetBloodVolume() {
         currentBloodVolume = m_pe->GetCardiovascularSystem()->GetBloodVolume(biogears::VolumeUnit::mL);
-        if (startingBloodVolume == 123456.0) {
-            startingBloodVolume = currentBloodVolume;
-        }
         return currentBloodVolume;
     }
 
