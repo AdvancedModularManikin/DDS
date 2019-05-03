@@ -76,11 +76,7 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
         std::cout << " == Done publishing " << pe->GetNodePathCount() << " items."
                   << std::endl;
     } else if (action == "6") {
-        if (logging) {
-            logging = false;
-        } else {
-            logging = true;
-        }
+        logging = !logging;
         pe->SetLogging(logging);
     } else if (action == "7") {
         if (!pe->isRunning()) {
