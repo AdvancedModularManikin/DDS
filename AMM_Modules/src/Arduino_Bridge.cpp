@@ -275,7 +275,7 @@ void readHandler() {
                             } else if (key == "location") {
                                 modLocation = kvp[key];
                             } else if (key == "info") {
-                                modInfo kvp[key];
+                                modInfo = kvp[key];
                             } else if (key == "payload") {
                                 modPayload = kvp[key];
                             }
