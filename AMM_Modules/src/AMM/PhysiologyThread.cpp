@@ -519,7 +519,7 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetBloodPH() {
-        bloodPH = rawBloodPH + 0.02 * std::min((1.5 - lactateMMOL), 0.0);
+        bloodPH = rawBloodPH + 0.04 * std::min((1.5 - lactateMMOL), 0.0);
         return bloodPH;
     }
 
