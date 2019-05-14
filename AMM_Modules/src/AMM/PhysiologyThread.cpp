@@ -32,11 +32,11 @@ namespace AMM {
 
         PopulateNodePathTable();
 
-        m_runThread = false;
+        running = false;
     }
 
     PhysiologyThread::~PhysiologyThread() {
-        m_runThread = false;
+        running = false;
         std::this_thread::sleep_for(std::chrono::seconds(2));
     }
 
@@ -48,6 +48,7 @@ namespace AMM {
         nodePathTable["ECG"] = &PhysiologyThread::GetECGWaveform;
         nodePathTable["HR"] = &PhysiologyThread::GetHeartRate;
         nodePathTable["SIM_TIME"] = &PhysiologyThread::GetSimulationTime;
+        nodePathTable["LOGGING_STATUS"] = &PhysiologyThread::GetLoggingStatus;
 
         // Cardiovascular System
         nodePathTable["Cardiovascular_HeartRate"] = &PhysiologyThread::GetHeartRate;
@@ -139,6 +140,9 @@ namespace AMM {
 
     }
 
+    double PhysiologyThread::GetLoggingStatus() {
+        return double(logging_enabled);
+    }
 
     std::map<std::string, double (PhysiologyThread::*)()> *PhysiologyThread::GetNodePathTable() {
         return &nodePathTable;
@@ -149,19 +153,16 @@ namespace AMM {
     }
 
     void PhysiologyThread::StartSimulation() {
-        if (!m_runThread) {
-            m_runThread = true;
-            //     m_thread = std::thread(&PhysiologyThread::AdvanceTime, this);
+        if (!running) {
+            running = true;
         }
     }
 
     void PhysiologyThread::StopSimulation() {
-        if (m_runThread) {
-            m_runThread = false;
-            //   m_thread.join();
+        if (running) {
+            running = false;
         }
     }
-
 
     bool PhysiologyThread::LoadState(const std::string &stateFile, double sec) {
         biogears::SEScalarTime startTime;
@@ -206,49 +207,50 @@ namespace AMM {
         currentBloodVolume = startingBloodVolume;
 
         if (logging_enabled) {
-            InitializeLog();
+            std::string logFilename = Utility::getTimestampedFilename("./logs/AMM_Output_", ".csv");
+            LOG_INFO << "Initializing log file: " << logFilename;
+
+            std::fstream fs;
+            fs.open(logFilename, std::ios::out);
+            fs.close();
+
+            m_pe->GetEngineTrack()->GetDataRequestManager().Clear();
+
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
+                                                                                              biogears::FrequencyUnit::Per_min);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
+                                                                                              biogears::PressureUnit::mmHg);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
+                    "SystolicArterialPressure", biogears::PressureUnit::mmHg);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
+                    "DiastolicArterialPressure", biogears::PressureUnit::mmHg);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("RespirationRate",
+                                                                                              biogears::FrequencyUnit::Per_min);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TidalVolume",
+                                                                                              biogears::VolumeUnit::mL);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TotalLungVolume",
+                                                                                              biogears::VolumeUnit::mL);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
+                    BGE::PulmonaryCompartment::LeftLung, "Volume");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
+                    BGE::PulmonaryCompartment::RightLung, "Volume");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
+                    BGE::PulmonaryCompartment::Carina, "InFlow");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume",
+                                                                                              biogears::VolumeUnit::mL);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("ArterialBloodPH");
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreateSubstanceDataRequest().Set(*lactate,
+                                                                                             "BloodConcentration",
+                                                                                             biogears::MassPerVolumeUnit::ug_Per_mL);
+            m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
         }
 
         return true;
     }
 
     void PhysiologyThread::InitializeLog() {
-        std::string logFilename = Utility::getTimestampedFilename("./logs/AMM_Output_", ".csv");
-        LOG_INFO << "Initializing log file: " << logFilename;
 
-        std::fstream fs;
-        fs.open(logFilename, std::ios::out);
-        fs.close();
-
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("HeartRate",
-                                                                                          biogears::FrequencyUnit::Per_min);
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("MeanArterialPressure",
-                                                                                          biogears::PressureUnit::mmHg);
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
-                "SystolicArterialPressure", biogears::PressureUnit::mmHg);
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set(
-                "DiastolicArterialPressure", biogears::PressureUnit::mmHg);
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("RespirationRate",
-                                                                                          biogears::FrequencyUnit::Per_min);
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TidalVolume",
-                                                                                          biogears::VolumeUnit::mL);
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("TotalLungVolume",
-                                                                                          biogears::VolumeUnit::mL);
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
-                BGE::PulmonaryCompartment::LeftLung, "Volume");
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
-                BGE::PulmonaryCompartment::RightLung, "Volume");
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("OxygenSaturation");
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreateGasCompartmentDataRequest().Set(
-                BGE::PulmonaryCompartment::Carina, "InFlow");
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("BloodVolume",
-                                                                                          biogears::VolumeUnit::mL);
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("ArterialBloodPH");
-        biogears::SESubstance *logLactate = m_pe->GetSubstanceManager().GetSubstance("Lactate");
-        m_pe->GetEngineTrack()->GetDataRequestManager().CreateSubstanceDataRequest().Set(*logLactate,
-                                                                                         "BloodConcentration",
-                                                                                         biogears::MassPerVolumeUnit::ug_Per_mL);
-        m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
     }
 
     bool PhysiologyThread::SaveState(const std::string &stateFile) {

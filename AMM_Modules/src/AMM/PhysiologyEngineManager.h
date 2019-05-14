@@ -116,6 +116,6 @@ namespace AMM {
         Subscriber *physmod_subscriber;
 
         std::mutex m_mutex;
-        bool m_runThread;
+        bool running = false;
     };
 }

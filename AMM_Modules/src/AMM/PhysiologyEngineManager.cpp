@@ -18,8 +18,8 @@ std::string get_filename_date(void) {
 namespace AMM {
     PhysiologyEngineManager::PhysiologyEngineManager() {
 
-        static plog::ColorConsoleAppender <plog::TxtFormatter> consoleAppender;
-        static plog::DDS_Log_Appender <plog::TxtFormatter> DDSAppender(mgr);
+        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
+        static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
         plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
 
         using namespace Capability;
@@ -80,13 +80,13 @@ namespace AMM {
         // Normally this would be set AFTER configuration is received
         mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
-        m_runThread = false;
+        running = false;
     }
 
-    bool PhysiologyEngineManager::isRunning() { return m_runThread; }
+    bool PhysiologyEngineManager::isRunning() { return running; }
 
     void PhysiologyEngineManager::TickLoop() {
-        while (m_runThread) {
+        while (running) {
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
         }
     }
@@ -176,14 +176,14 @@ namespace AMM {
             nodePathMap = bg->GetNodePathTable();
             m_mutex.unlock();
         }
-        m_runThread = true;
+        running = true;
         paused = false;
     }
 
     void PhysiologyEngineManager::StopTickSimulation() {
-        if (m_runThread) {
+        if (running) {
             m_mutex.lock();
-            m_runThread = false;
+            running = false;
             paused = false;
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
             m_mutex.unlock();
@@ -251,13 +251,11 @@ namespace AMM {
         }
     }
 
-    const std::map<std::string, std::string>& PhysiologyEngineManager::GetTissueResistorMap() const
-    {
+    const std::map<std::string, std::string> &PhysiologyEngineManager::GetTissueResistorMap() const {
         return m_TissueResistorMap;
     }
 
-    void PhysiologyEngineManager::BuildTissueResistorMap()
-    {
+    void PhysiologyEngineManager::BuildTissueResistorMap() {
         m_TissueResistorMap["BoneTissue"] = "BoneE1ToBoneE2";
         m_TissueResistorMap["FatTissue"] = "FatE1ToFatE2";
         m_TissueResistorMap["GutTissue"] = "GutE1ToGutE2";
@@ -283,7 +281,7 @@ namespace AMM {
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
+                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
                     // Create variables for scenario
                     SEPainStimulus PainStimulus; // pain object
                     PainStimulus.SetLocation(command.location().description());
@@ -299,7 +297,7 @@ namespace AMM {
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
+                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
                     SESepsis sepsis;
                     auto tissueMap = GetTissueResistorMap();
                     switch (command.location()) {
@@ -339,7 +337,7 @@ namespace AMM {
                         case AMM::Physiology::SpleenTissue:
                             sepsis.SetCompartment(tissueMap["SpleenTissue"]);
                             break;
-			    }
+                    }
                     sepsis.GetSeverity().SetValue(command.severity());
                     engine->ProcessAction(sepsis);
                     return engine;
@@ -387,7 +385,7 @@ namespace AMM {
             } else if (value.compare("RESET_SIM") == 0) {
                 LOG_DEBUG << "Reset simulation, clearing engine data.";
                 StopTickSimulation();
-                StopSimulation();
+                running = false;
             } else if (value.compare("SAVE_STATE") == 0) {
                 std::ostringstream ss;
                 ss << "./states/SavedState_" << get_filename_date() << "@"
@@ -396,6 +394,7 @@ namespace AMM {
                 bg->SaveState(ss.str());
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
                 StopTickSimulation();
+                StopSimulation();
                 stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
                 StartTickSimulation();
             }
@@ -406,24 +405,12 @@ namespace AMM {
     }
 
     void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {
-        if (m_runThread) {
-            if (ti.frame() == -1) {
-                StopTickSimulation();
-                SendShutdown();
-            } else if (ti.frame() == -2) {
-                paused = true;
-            } else if (ti.frame() > 0 || !paused) {
+        if (running) {
+            if (ti.frame() > 0 || !paused) {
                 if (paused) {
                     paused = false;
+                    return;
                 }
-
-                // Did we get a frame out of order?  Just mark it with an X for now.
-                /**
-                if (ti.frame() <= lastFrame) {
-                    cout << "x";
-                } else {
-                    cout << ".";
-                }**/
 
                 lastFrame = static_cast<int>(ti.frame());
 

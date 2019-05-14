@@ -154,6 +154,8 @@ namespace AMM {
 
         void PopulateNodePathTable();
 
+        double GetLoggingStatus();
+
         double GetShutdownMessage();
 
         double GetBloodLossPercentage();
@@ -298,7 +300,7 @@ namespace AMM {
 
     protected:
         std::mutex m_mutex;
-        bool m_runThread;
+        bool running = false;
         std::unique_ptr <biogears::PhysiologyEngine> m_pe;
 
         double thresh = 1.0;
