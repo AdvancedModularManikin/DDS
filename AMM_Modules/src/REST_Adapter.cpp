@@ -97,7 +97,8 @@ std::map<std::string, double> nodeDataStorage;
 
 std::map<std::string, std::string> statusStorage = {{"STATUS", "NOT RUNNING"},
                                                     {"TICK",   "0"},
-                                                    {"TIME",   "0"}};
+                                                    {"TIME",   "0"},
+                                                    {"SCENARIO", ""}};
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -140,6 +141,8 @@ class AMMListener : public ListenerInterface {
                 nodeDataStorage.clear();
             } else if (value.compare("CLEAR_LOG") == 0) {
 
+            } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
+                statusStorage["SCENARIO"] = value.substr(loadPrefix.size());
             }
         }
     }
