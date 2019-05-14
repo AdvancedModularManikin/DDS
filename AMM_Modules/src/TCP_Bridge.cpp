@@ -713,7 +713,9 @@ void *Server::HandleClient(void *args) {
                     } else if (str.substr(0, keepAlivePrefix.size()) == keepAlivePrefix) {
                         // keepalive, ignore it
                     } else {
-                        LOG_ERROR << "Client " << c->id << " unknown message:" << str;
+                        if (!boost::algorithm::ends_with(str, "Connected")) {
+                            LOG_ERROR << "Client " << c->id << " unknown message:" << str;
+                        }
                     }
                 }
             }
