@@ -386,6 +386,7 @@ namespace AMM {
                 LOG_DEBUG << "Reset simulation, clearing engine data.";
                 StopTickSimulation();
                 running = false;
+                paused = false;
             } else if (value.compare("SAVE_STATE") == 0) {
                 std::ostringstream ss;
                 ss << "./states/SavedState_" << get_filename_date() << "@"
