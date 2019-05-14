@@ -95,10 +95,11 @@ std::string patient_path = "./patients/";
 
 std::map<std::string, double> nodeDataStorage;
 
-std::map<std::string, std::string> statusStorage = {{"STATUS", "NOT RUNNING"},
-                                                    {"TICK",   "0"},
-                                                    {"TIME",   "0"},
-                                                    {"SCENARIO", ""}};
+std::map<std::string, std::string> statusStorage = {{"STATUS",   "NOT RUNNING"},
+                                                    {"TICK",     "0"},
+                                                    {"TIME",     "0"},
+                                                    {"SCENARIO", ""},
+                                                    {"STATE",    ""}};
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -142,7 +143,10 @@ class AMMListener : public ListenerInterface {
             } else if (value.compare("CLEAR_LOG") == 0) {
 
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
-                statusStorage["SCENARIO"] = value.substr(loadPrefix.size());
+                statusStorage["STATE"] = value.substr(loadPrefix.size());
+            } else if (!value.compare(0, loadScenarioPrefix.size(),
+                                      loadScenarioPrefix)) {
+                statusStorage["SCENARIO"] = value.substr(loadScenarioPrefix.size());
             }
         }
     }
@@ -696,7 +700,7 @@ private:
               "module_capabilities.manufacturer as manufacturer,"
               "module_capabilities.model as model "
               " FROM "
-              " module_capabilities; "               >>
+              " module_capabilities; " >>
            [&](string module_id, string module_guid, string module_name,
                string capabilities,
                string manufacturer, string model) {
@@ -786,7 +790,8 @@ private:
               "logs.timestamp "
               "FROM "
               "logs " >>
-           [&](string module_name, string module_guid, string module_id, string message, string log_level, int64_t timestamp) {
+           [&](string module_name, string module_guid, string module_id, string message, string log_level,
+               int64_t timestamp) {
 
                writer.StartObject();
                writer.Key("source");
