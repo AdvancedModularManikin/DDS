@@ -286,11 +286,13 @@ void readHandler() {
                 AMM::Render::Modification renderMod;
                 renderMod.type(modType);
                 renderMod.payload(modPayload);
+                renderMod.location().description(modLocation);
                 mgr->PublishRenderModification(renderMod);
             } else if (topic == "AMM_Physiology_Modification") {
                 AMM::Physiology::Modification physMod;
                 physMod.type(modType);
                 physMod.payload(modPayload);
+                physMod.location().description(modLocation);
                 mgr->PublishPhysiologyModification(physMod);
             } else if (topic == "AMM_Performance_Assessment") {
                 AMM::Performance::Assessment assessment;
