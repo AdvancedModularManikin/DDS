@@ -312,8 +312,7 @@ void readHandler() {
             }
         } else {
             if (!rsp.empty() && rsp != "\r") {
-                std::cout << "Serial debug: " << rsp << std::endl;
-                // LOG_DEBUG << "Serial debug: " << rsp;
+                LOG_DEBUG << "Serial debug: " << rsp;
             }
         }
     }
