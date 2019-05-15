@@ -298,7 +298,15 @@ void readHandler() {
                 assessment.assessment_type(modType);
                 mgr->PublishPerformanceData(assessment);
             } else if (topic == "AMM_Diagnostics_Log_Record") {
-                LOG_DEBUG << modPayload;
+                if (modType == "info") {
+                    LOG_INFO << modPayload;
+                } else if (modType == "warning") {
+                    LOG_WARNING << modPayload;
+                } else if (modType == "error") {
+                    LOG_ERROR << modPayload;
+                } else {
+                    LOG_DEBUG << modPayload;
+                }
             } else {
                 LOG_DEBUG << "Unknown topic: " << topic;
             }
