@@ -289,7 +289,7 @@ namespace AMM {
     bool PhysiologyThread::LoadScenarioFile(const std::string &scenarioFile) {
 
         if (!file_exists(scenarioFile.c_str())) {
-            LOG_WARNING << "Scenario file does not exist: " << scenarioFile;
+            // LOG_WARNING << "Scenario file does not exist: " << scenarioFile;
             return false;
         }
 
