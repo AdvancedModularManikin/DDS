@@ -2,7 +2,7 @@
 
 #include <plog/Log.h>
 #include <plog/Formatters/FuncMessageFormatter.h>
-
+#include <boost/algorithm/string.hpp>
 #include <AMM/DDS_Manager.h>
 
 using namespace AMM;
