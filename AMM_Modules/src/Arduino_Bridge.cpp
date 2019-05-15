@@ -312,7 +312,7 @@ void readHandler() {
             }
         } else {
             if (!rsp.empty() && rsp != "\r") {
-                LOG_DEBUG << "Serial debug: " << rsp;
+                // LOG_DEBUG << "Serial debug: " << rsp;
             }
         }
     }
