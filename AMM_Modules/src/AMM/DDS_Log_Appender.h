@@ -20,6 +20,10 @@ namespace plog {
             util::nstring message = record.getMessage();
             util::nstring severity = plog::severityToString(record.getSeverity());
             // util::nstring str = Formatter::format(record);
+            if (boost::starts_with(message, "Serial debug:")) {
+                return;
+            }
+
             try {
                 m_mgr->PublishLogRecord(message, severity);
             } catch (std::exception &e) {
