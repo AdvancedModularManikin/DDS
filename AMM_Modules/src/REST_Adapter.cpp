@@ -111,6 +111,16 @@ boost::asio::io_service io_service;
 database db("amm.db");
 
 class AMMListener : public ListenerInterface {
+    void onNewStatusData(AMM::Capability::Status st,
+                                                SampleInfo_t *info) override {
+        ostringstream statusValue;
+        statusValue << st.status_value();
+
+        LOG_DEBUG << "[" << st.module_id() << "][" << st.module_name() << "]["
+                  << st.capability() << "] Status = " << statusValue.str();
+
+    }
+
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) override {
         if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 &&
             t.frame() > lastTick) {
@@ -947,15 +957,18 @@ int main(int argc, char *argv[]) {
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
+    auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
 
     AMMListener rl;
     node_sub_listener->SetUpstream(&rl);
     command_sub_listener->SetUpstream(&rl);
     tick_sub_listener->SetUpstream(&rl);
+    status_sub_listener->SetUpstream(&rl);
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, &mgr->NodeType, node_sub_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType, command_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, &mgr->TickType, tick_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::statusTopic, &mgr->StatusType, status_sub_listener);
 
     std::thread udpD(UdpDiscoveryThread);
 
