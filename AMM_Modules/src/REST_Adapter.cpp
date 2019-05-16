@@ -95,11 +95,13 @@ std::string patient_path = "./patients/";
 
 std::map<std::string, double> nodeDataStorage;
 
-std::map<std::string, std::string> statusStorage = {{"STATUS",   "NOT RUNNING"},
-                                                    {"TICK",     "0"},
-                                                    {"TIME",     "0"},
-                                                    {"SCENARIO", ""},
-                                                    {"STATE",    ""}};
+std::map<std::string, std::string> statusStorage = {{"STATUS",       "NOT RUNNING"},
+                                                    {"TICK",         "0"},
+                                                    {"TIME",         "0"},
+                                                    {"SCENARIO",     ""},
+                                                    {"STATE",        ""},
+                                                    {"CLEAR_SUPPLY", ""},
+                                                    {"BLOOD_SUPPLY", ""}};
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -112,13 +114,20 @@ database db("amm.db");
 
 class AMMListener : public ListenerInterface {
     void onNewStatusData(AMM::Capability::Status st,
-                                                SampleInfo_t *info) override {
+                         SampleInfo_t *info) override {
         ostringstream statusValue;
         statusValue << st.status_value();
 
         LOG_DEBUG << "[" << st.module_id() << "][" << st.module_name() << "]["
                   << st.capability() << "] Status = " << statusValue.str();
 
+        if (st.module_name() == "AMM_FluidManager" && st.capability() == "clear_supply") {
+            statusStorage["CLEAR_SUPPLY"] = statusValue.str();
+        }
+
+        if (st.module_name() == "AMM_FluidManager" && st.capability() == "blood_supply") {
+            statusStorage["BLOOD_SUPPLY"] = statusValue.str();
+        }
     }
 
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) override {
