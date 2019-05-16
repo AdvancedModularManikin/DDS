@@ -101,7 +101,8 @@ std::map<std::string, std::string> statusStorage = {{"STATUS",       "NOT RUNNIN
                                                     {"SCENARIO",     ""},
                                                     {"STATE",        ""},
                                                     {"CLEAR_SUPPLY", ""},
-                                                    {"BLOOD_SUPPLY", ""}};
+                                                    {"BLOOD_SUPPLY", ""},
+                                                    {"FLUIDICS_STATE", ""}};
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -120,6 +121,10 @@ class AMMListener : public ListenerInterface {
 
         LOG_DEBUG << "[" << st.module_id() << "][" << st.module_name() << "]["
                   << st.capability() << "] Status = " << statusValue.str();
+
+        if (st.module_name() == "AMM_FluidManager" && st.capability() == "") {
+            statusStorage["FLUIDICS_STATE"] = statusValue.str();
+        }
 
         if (st.module_name() == "AMM_FluidManager" && st.capability() == "clear_supply") {
             statusStorage["CLEAR_SUPPLY"] = statusValue.str();
