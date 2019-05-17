@@ -23,6 +23,8 @@ using namespace AMM::Capability;
 // Daemonize by default
 int daemonize = 1;
 
+DDS_Manager* mgr;
+
 const string loadScenarioPrefix = "LOAD_SCENARIO:";
 const string haltingString = "HALTING_ERROR";
 
@@ -32,6 +34,8 @@ bool have_pressure = false;
 bool send_status = false;
 AMM::Capability::status_values current_status = HALTING_ERROR;
 bool module_stopped = false;
+bool blood_reservoir_empty = false;
+bool clear_reservoir_empty = false;
 
 void ProcessConfig(const std::string &configContent) {
 
@@ -201,7 +205,7 @@ void air_reservoir_control_task(void)
 {
     LOG_INFO << "Thread for air reservoir control task";
 
-  int solenoid_0 = 7, motor_dac = 1;
+    int solenoid_0 = 7, motor_dac = 1;
     int solenoid_A = gpio_J4;
     int solenoid_B = gpio_J5;
     int solenoid_C = gpio_J6;
@@ -219,10 +223,10 @@ void air_reservoir_control_task(void)
     //when purging control loop should work off of Pressure4, but pressure1 otherwise
 #if 0
     //temp. purge code. leave control loop where it is, need air to purge
-  remote_set_gpio(solenoid_AC, 1);
-  //remote_set_gpio(solenoid_AD, 1);
-  remote_set_gpio(solenoid_B, 0);
-  remote_set_gpio(solenoid_A, 1);
+    remote_set_gpio(solenoid_AC, 1);
+    //remote_set_gpio(solenoid_AD, 1);
+    remote_set_gpio(solenoid_B, 0);
+    remote_set_gpio(solenoid_A, 1);
 #endif
     //adcs
     int P1 = 0, P2 = 1, P3 = 2, P4 = 3;
@@ -272,16 +276,42 @@ void air_reservoir_control_task(void)
             dacVal = val > 0xfff ? 0xfff : val;
             remote_set_dac(motor_dac, dacVal);
 
-            //float psiP2 = ((float)remote_get_adc(P2))*(3.0/10280.0*16.0) - 15.0/8.0;
-            //float psiP3 = ((float)remote_get_adc(P3))*(3.0/10280.0*16.0) - 15.0/8.0;
             float psiP4 = ((float) remote_get_adc(P4)) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
             if (rate_limiter(RATE_LIMIT_MOD)) {
                 LOG_DEBUG << "P1: " << psi;
                 LOG_DEBUG << "P4: " << psiP4;
             }
+
+	    // check if air pressure has reached the operating pressure
             if (psi > (operating_pressure - 0.25)) {
                 LOG_INFO << "Pressurization complete";
-                current_status = OPERATIONAL;
+
+		// check fluid supply pressures
+                float psiP2 = ((float)remote_get_adc(P2))*(3.0/10280.0*16.0) - 15.0/8.0;
+		if ( psiP2 > (operating_pressure - 1.0) ) {
+			blood_reservoir_empty = false;
+			mgr->SetStatus(mgr->module_id, "AMM_FluidManager", "blood_supply", OPERATIONAL);
+		} else {
+			blood_reservoir_empty = true;
+			LOG_INFO << "P2 low; blood reservoir empty";
+			std::vector<std::string> status_messages;
+			status_messages.push_back("Blood supply empty");
+			mgr->SetStatus(mgr->module_id, "AMM_FluidManager", "bloody_supply", HALTING_ERROR, status_messages);
+		}
+
+		float psiP3 = ((float)remote_get_adc(P3))*(3.0/10280.0*16.0) - 15.0/8.0;
+                if ( psiP3 > (operating_pressure - 1.0) ) {
+                        clear_reservoir_empty = false;
+			mgr->SetStatus(mgr->module_id, "AMM_FluidManager", "clear_supply", OPERATIONAL);
+                } else {
+                        clear_reservoir_empty = true;
+			std::vector<std::string> status_messages;
+                        status_messages.push_back("Clear supply empty");
+                        mgr->SetStatus(mgr->module_id, "AMM_FluidManager", "clear_supply", HALTING_ERROR, status_messages);
+                        LOG_INFO << "P3 low; clear reservoir empty";
+                }
+
+		current_status = OPERATIONAL;
                 send_status = true;
                 goto state_operational;
             }
@@ -304,13 +334,28 @@ void air_reservoir_control_task(void)
             float hold_isum = pid.isum;
             uint32_t adcRead = remote_get_adc(P1);
             float psi = ((float) adcRead) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+            float psiP2 = ((float)remote_get_adc(P2))*(3.0/10280.0*16.0) - 15.0/8.0;
+            float psiP3 = ((float)remote_get_adc(P3))*(3.0/10280.0*16.0) - 15.0/8.0;
             float psiP4 = ((float) remote_get_adc(P4)) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
 	    if (rate_limiter(RATE_LIMIT_MOD)) {
-                LOG_DEBUG << "P1: " << psi;
-                LOG_DEBUG << "P4: " << psiP4;
+                LOG_DEBUG << "air supply (P1): " << psi;
+	    //	LOG_DEBUG << "P2: " << psiP2;
+	    //	LOG_DEBUG << "P3: " << psiP3;
+            //  LOG_DEBUG << "P4: " << psiP4;
             }
-            ret = pi_supply(&pid, psi);
 
+	    if ( psiP2 < (operating_pressure - 1.0) && !blood_reservoir_empty ) {
+            	blood_reservoir_empty = true;
+                LOG_INFO << "P2 low; blood reservoir empty";
+            }
+
+            if ( psiP3 < (operating_pressure - 1.0) && !clear_reservoir_empty ) {
+                clear_reservoir_empty = true;
+                LOG_INFO << "P3 low; clear reservoir empty";
+            }
+
+	    // determine if compressore needs to be run or not
+            ret = pi_supply(&pid, psi);
             //convert back to 0-2^12 range for DAC
             val = (uint32_t)(ret * 1000.0);
             should_motor_run = stall_val < val;
@@ -436,7 +481,7 @@ int main(int argc, char *argv[]) {
 
     const char *nodeName = "AMM_FluidManager";
     std::string nodeString(nodeName);
-    auto *mgr = new DDS_Manager(nodeName);
+    mgr = new DDS_Manager(nodeName);
 
     static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
     static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
