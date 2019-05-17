@@ -240,13 +240,23 @@ void readHandler() {
                         if (statusVal == "OPERATIONAL") {
                             mgr->SetStatus(mgr->module_id, nodeName, capabilityName, OPERATIONAL);
                         } else if (statusVal == "HALTING_ERROR") {
-                            std::string errorMessage = cap->Attribute("message");
-                            std::vector<std::string> errorMessages = {errorMessage};
-                            mgr->SetStatus(mgr->module_id, nodeName, capabilityName, HALTING_ERROR, errorMessages);
+                            if (cap->Attribute("message")) {
+                                std::string errorMessage = cap->Attribute("message");
+                                std::vector<std::string> errorMessages = {errorMessage};
+                                mgr->SetStatus(mgr->module_id, nodeName, capabilityName, HALTING_ERROR, errorMessages);
+                            } else {
+                                mgr->SetStatus(mgr->module_id, nodeName, capabilityName, HALTING_ERROR);
+                            }
                         } else if (statusVal == "IMPENDING_ERROR") {
-                            std::string errorMessage = cap->Attribute("message");
-                            std::vector<std::string> errorMessages = {errorMessage};
-                            mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR, errorMessages);
+                            if (cap->Attribute("message")) {
+                                std::string errorMessage = cap->Attribute("message");
+                                std::vector<std::string> errorMessages = {errorMessage};
+                                mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR,
+                                               errorMessages);
+                            } else {
+                                mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR,
+                                               errorMessages);
+                            }
                         } else {
                             LOG_ERROR << "Invalid status value " << statusVal << " for capability " << capabilityName;
                         }
