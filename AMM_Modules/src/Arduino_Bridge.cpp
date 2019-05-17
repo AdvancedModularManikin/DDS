@@ -254,8 +254,7 @@ void readHandler() {
                                 mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR,
                                                errorMessages);
                             } else {
-                                mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR,
-                                               errorMessages);
+                                mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR);
                             }
                         } else {
                             LOG_ERROR << "Invalid status value " << statusVal << " for capability " << capabilityName;
