@@ -102,7 +102,8 @@ std::map<std::string, std::string> statusStorage = {{"STATUS",       "NOT RUNNIN
                                                     {"STATE",        ""},
                                                     {"CLEAR_SUPPLY", ""},
                                                     {"BLOOD_SUPPLY", ""},
-                                                    {"FLUIDICS_STATE", ""}};
+                                                    {"FLUIDICS_STATE", ""},
+                                                    {"IVARM_STATE", ""}};
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -132,6 +133,10 @@ class AMMListener : public ListenerInterface {
 
         if (st.module_name() == "AMM_FluidManager" && st.capability() == "blood_supply") {
             statusStorage["BLOOD_SUPPLY"] = statusValue.str();
+        }
+
+        if (st.capability() == "iv_detection") {
+            statusStorage["IVARM_STATE"] = statusValue.str();
         }
     }
 
