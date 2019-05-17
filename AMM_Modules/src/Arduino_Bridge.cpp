@@ -47,12 +47,12 @@ std::string actionPrefix = "[AMM_Command]";
 std::string genericTopicPrefix = "[";
 std::string xmlPrefix = "<?xml";
 
-std::vector <std::string> subscribedTopics;
-std::vector <std::string> publishedTopics;
-std::map <std::string, std::string> subMaps;
+std::vector<std::string> subscribedTopics;
+std::vector<std::string> publishedTopics;
+std::map<std::string, std::string> subMaps;
 std::map<std::string, std::map<std::string, std::string>> equipmentSettings;
 
-std::queue <std::string> transmitQ;
+std::queue<std::string> transmitQ;
 
 // Set up DDS
 const char *nodeName = "AMM_Serial_Bridge";
@@ -74,7 +74,7 @@ void sendConfigInfo(std::string scene, std::string module) {
         LOG_ERROR << "Configuration empty.";
         return;
     }
-    std::vector <std::string> v = Utility::explode("\n", configContent);
+    std::vector<std::string> v = Utility::explode("\n", configContent);
     for (int i = 0; i < v.size(); i++) {
         std::string rsp = v[i] + "\n";
         transmitQ.push(rsp);
@@ -101,7 +101,7 @@ void readHandler() {
     if (!boost::algorithm::ends_with(globalInboundBuffer, "\n")) {
         return;
     }*/
-    std::vector <std::string> v = Utility::explode("\n", globalInboundBuffer);
+    std::vector<std::string> v = Utility::explode("\n", globalInboundBuffer);
     globalInboundBuffer.clear();
     for (int i = 0; i < v.size(); i++) {
         std::string rsp = v[i];
@@ -241,11 +241,11 @@ void readHandler() {
                             mgr->SetStatus(mgr->module_id, nodeName, capabilityName, OPERATIONAL);
                         } else if (statusVal == "HALTING_ERROR") {
                             std::string errorMessage = cap->Attribute("message");
-                            std::vector <std::string> errorMessages = {errorMessage};
+                            std::vector<std::string> errorMessages = {errorMessage};
                             mgr->SetStatus(mgr->module_id, nodeName, capabilityName, HALTING_ERROR, errorMessages);
                         } else if (statusVal == "IMPENDING_ERROR") {
                             std::string errorMessage = cap->Attribute("message");
-                            std::vector <std::string> errorMessages = {errorMessage};
+                            std::vector<std::string> errorMessages = {errorMessage};
                             mgr->SetStatus(mgr->module_id, nodeName, capabilityName, IMPENDING_ERROR, errorMessages);
                         } else {
                             LOG_ERROR << "Invalid status value " << statusVal << " for capability " << capabilityName;
@@ -254,52 +254,61 @@ void readHandler() {
                 }
             }
         } else if (!rsp.compare(0, genericTopicPrefix.size(), genericTopicPrefix)) {
-            std::string topic, message, modType, modLocation, modPayload;
+            std::string topic, message, modType, modLocation, modPayload, modInfo;
             unsigned first = rsp.find("[");
             unsigned last = rsp.find("]");
             topic = rsp.substr(first + 1, last - first - 1);
             message = rsp.substr(last + 1);
 
-            std::list <std::string> tokenList;
+            std::list<std::string> tokenList;
             split(tokenList, message, boost::algorithm::is_any_of(";"), boost::token_compress_on);
-            std::map <std::string, std::string> kvp;
+            std::map<std::string, std::string> kvp;
 
             BOOST_FOREACH(std::string token, tokenList) {
-                size_t sep_pos = token.find_first_of("=");
-                std::string key = token.substr(0, sep_pos);
-                std::string value = (sep_pos == std::string::npos ? "" : token.substr(sep_pos + 1,
-                                                                                      std::string::npos));
-                kvp[key] = value;
-                // LOG_DEBUG << "\t" << key << " => " << kvp[key];
-                if (key == "type") {
-                    // LOG_DEBUG << "  Type is " << kvp[key];
-                    modType = kvp[key];
-                }
-                if (key == "location") {
-                    // LOG_DEBUG << "  Location is " << kvp[key];
-                    modLocation = kvp[key];
-                }
+                            size_t sep_pos = token.find_first_of("=");
+                            std::string key = token.substr(0, sep_pos);
+                            std::string value = (sep_pos == std::string::npos ? "" : token.substr(sep_pos + 1,
+                                                                                                  std::string::npos));
+                            kvp[key] = value;
+                            if (key == "type") {
+                                modType = kvp[key];
+                            } else if (key == "location") {
+                                modLocation = kvp[key];
+                            } else if (key == "info") {
+                                modInfo = kvp[key];
+                            } else if (key == "payload") {
+                                modPayload = kvp[key];
+                            }
 
-                if (key == "payload") {
-                    // LOG_DEBUG << "  Payload is " << kvp[key];
-                    modPayload = kvp[key];
-                }
-
-            }
+                        }
 
             if (topic == "AMM_Render_Modification") {
                 AMM::Render::Modification renderMod;
                 renderMod.type(modType);
                 renderMod.payload(modPayload);
+                renderMod.location().description(modLocation);
                 mgr->PublishRenderModification(renderMod);
             } else if (topic == "AMM_Physiology_Modification") {
                 AMM::Physiology::Modification physMod;
                 physMod.type(modType);
                 physMod.payload(modPayload);
+                physMod.location().description(modLocation);
                 mgr->PublishPhysiologyModification(physMod);
+            } else if (topic == "AMM_Performance_Assessment") {
+                AMM::Performance::Assessment assessment;
+                assessment.assessment_info(modInfo);
+                assessment.assessment_type(modType);
+                mgr->PublishPerformanceData(assessment);
             } else if (topic == "AMM_Diagnostics_Log_Record") {
-	      //                mgr->PublishLogRecord(modPayload, modType);
-	      LOG_DEBUG << modPayload;
+                if (modType == "info") {
+                    LOG_INFO << modPayload;
+                } else if (modType == "warning") {
+                    LOG_WARNING << modPayload;
+                } else if (modType == "error") {
+                    LOG_ERROR << modPayload;
+                } else {
+                    LOG_DEBUG << modPayload;
+                }
             } else {
                 LOG_DEBUG << "Unknown topic: " << topic;
             }

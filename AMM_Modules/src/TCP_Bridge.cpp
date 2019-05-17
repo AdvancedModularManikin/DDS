@@ -641,7 +641,7 @@ void *Server::HandleClient(void *args) {
                         cmdInstance.message(action);
                         mgr->PublishCommand(cmdInstance);
                     } else if (!str.compare(0, genericTopicPrefix.size(), genericTopicPrefix)) {
-                        std::string topic, message, modType, modLocation, modPayload;
+                        std::string topic, message, modType, modLocation, modPayload, modInfo;
                         unsigned first = str.find("[");
                         unsigned last = str.find("]");
                         topic = str.substr(first + 1, last - first - 1);
@@ -683,6 +683,11 @@ void *Server::HandleClient(void *args) {
                             modPayload = type->second;
                         }
 
+                        auto info = kvp.find("info");
+                        if (info != kvp.end()) {
+                            modInfo = type->second;
+                        }
+
                         if (topic == "AMM_Render_Modification") {
                             AMM::Render::Modification renderMod;
                             renderMod.type(modType);
@@ -693,6 +698,11 @@ void *Server::HandleClient(void *args) {
                             physMod.type(modType);
                             physMod.payload(modPayload);
                             mgr->PublishPhysiologyModification(physMod);
+                        } else if (topic == "AMM_Performance_Assessment") {
+                            AMM::Performance::Assessment assessment;
+                            assessment.assessment_info(modInfo);
+                            assessment.assessment_type(modType);
+                            mgr->PublishPerformanceData(assessment);
                         } else if (topic == "AMM_Command") {
                             AMM::PatientAction::BioGears::Command cmdInstance;
                             cmdInstance.message(message);
@@ -703,7 +713,9 @@ void *Server::HandleClient(void *args) {
                     } else if (str.substr(0, keepAlivePrefix.size()) == keepAlivePrefix) {
                         // keepalive, ignore it
                     } else {
-                        LOG_ERROR << "Client " << c->id << " unknown message:" << str;
+                        if (!boost::algorithm::ends_with(str, "Connected")) {
+                            LOG_ERROR << "Client " << c->id << " unknown message:" << str;
+                        }
                     }
                 }
             }

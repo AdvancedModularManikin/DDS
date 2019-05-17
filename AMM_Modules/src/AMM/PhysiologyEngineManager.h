@@ -88,19 +88,23 @@ namespace AMM {
 
         void onNewCommandData(Physiology::Command cm, SampleInfo_t *info) override;
 
-        void onNewCommandData(PatientAction::BioGears::Command cm,
-                              SampleInfo_t *info) override;
+        void onNewCommandData(PatientAction::BioGears::Command cm, SampleInfo_t *info) override;
 
         void onNewInstrumentData(InstrumentData i, SampleInfo_t *info) override;
 
-        void onNewPhysiologyModificationData(Physiology::Modification,
-                                             SampleInfo_t *info) override;
+        void onNewPhysiologyModificationData(Physiology::Modification, SampleInfo_t *info) override;
 
         std::map<std::string, double (PhysiologyThread::*)()> *nodePathMap;
+
         void TestHemo();
+
+        const std::map <std::string, std::string> &GetTissueResistorMap() const;
+
+        void BuildTissueResistorMap();
 
     protected:
         const char *nodeName = "AMM_PhysiologyEngine";
+        std::map<std::string, std::string> m_TissueResistorMap;
 
         DDS_Manager *mgr = new DDS_Manager(nodeName);
 
@@ -112,6 +116,6 @@ namespace AMM {
         Subscriber *physmod_subscriber;
 
         std::mutex m_mutex;
-        bool m_runThread;
+        bool running = false;
     };
 }

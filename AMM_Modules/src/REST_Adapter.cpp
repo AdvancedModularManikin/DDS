@@ -92,13 +92,18 @@ char hostname[HOST_NAME_MAX];
 std::string action_path = "Actions/";
 std::string state_path = "./states/";
 std::string patient_path = "./patients/";
-std::string dataKey = "name";
 
 std::map<std::string, double> nodeDataStorage;
 
-std::map<std::string, std::string> statusStorage = {{"STATUS", "NOT RUNNING"},
-                                                    {"TICK",   "0"},
-                                                    {"TIME",   "0"}};
+std::map<std::string, std::string> statusStorage = {{"STATUS",       "NOT RUNNING"},
+                                                    {"TICK",         "0"},
+                                                    {"TIME",         "0"},
+                                                    {"SCENARIO",     ""},
+                                                    {"STATE",        ""},
+                                                    {"CLEAR_SUPPLY", ""},
+                                                    {"BLOOD_SUPPLY", ""},
+                                                    {"FLUIDICS_STATE", ""},
+                                                    {"IVARM_STATE", ""}};
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -110,6 +115,31 @@ boost::asio::io_service io_service;
 database db("amm.db");
 
 class AMMListener : public ListenerInterface {
+    void onNewStatusData(AMM::Capability::Status st,
+                         SampleInfo_t *info) override {
+        ostringstream statusValue;
+        statusValue << st.status_value();
+
+        LOG_DEBUG << "[" << st.module_id() << "][" << st.module_name() << "]["
+                  << st.capability() << "] Status = " << statusValue.str();
+
+        if (st.module_name() == "AMM_FluidManager" && st.capability() == "") {
+            statusStorage["FLUIDICS_STATE"] = statusValue.str();
+        }
+
+        if (st.module_name() == "AMM_FluidManager" && st.capability() == "clear_supply") {
+            statusStorage["CLEAR_SUPPLY"] = statusValue.str();
+        }
+
+        if (st.module_name() == "AMM_FluidManager" && st.capability() == "blood_supply") {
+            statusStorage["BLOOD_SUPPLY"] = statusValue.str();
+        }
+
+        if (st.capability() == "iv_detection") {
+            statusStorage["IVARM_STATE"] = statusValue.str();
+        }
+    }
+
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info) override {
         if (statusStorage["STATUS"].compare("NOT RUNNING") == 0 &&
             t.frame() > lastTick) {
@@ -141,6 +171,11 @@ class AMMListener : public ListenerInterface {
                 nodeDataStorage.clear();
             } else if (value.compare("CLEAR_LOG") == 0) {
 
+            } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
+                statusStorage["STATE"] = value.substr(loadPrefix.size());
+            } else if (!value.compare(0, loadScenarioPrefix.size(),
+                                      loadScenarioPrefix)) {
+                statusStorage["SCENARIO"] = value.substr(loadScenarioPrefix.size());
             }
         }
     }
@@ -694,7 +729,7 @@ private:
               "module_capabilities.manufacturer as manufacturer,"
               "module_capabilities.model as model "
               " FROM "
-              " module_capabilities; "               >>
+              " module_capabilities; " >>
            [&](string module_id, string module_guid, string module_name,
                string capabilities,
                string manufacturer, string model) {
@@ -784,7 +819,8 @@ private:
               "logs.timestamp "
               "FROM "
               "logs " >>
-           [&](string module_name, string module_guid, string module_id, string message, string log_level, int64_t timestamp) {
+           [&](string module_name, string module_guid, string module_id, string message, string log_level,
+               int64_t timestamp) {
 
                writer.StartObject();
                writer.Key("source");
@@ -940,15 +976,18 @@ int main(int argc, char *argv[]) {
     auto *node_sub_listener = new DDS_Listeners::NodeSubListener();
     auto *command_sub_listener = new DDS_Listeners::CommandSubListener();
     auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
+    auto *status_sub_listener = new DDS_Listeners::StatusSubListener();
 
     AMMListener rl;
     node_sub_listener->SetUpstream(&rl);
     command_sub_listener->SetUpstream(&rl);
     tick_sub_listener->SetUpstream(&rl);
+    status_sub_listener->SetUpstream(&rl);
 
     mgr->InitializeSubscriber(AMM::DataTypes::nodeTopic, &mgr->NodeType, node_sub_listener);
     mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType, command_sub_listener);
     mgr->InitializeSubscriber(AMM::DataTypes::tickTopic, &mgr->TickType, tick_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::statusTopic, &mgr->StatusType, status_sub_listener);
 
     std::thread udpD(UdpDiscoveryThread);
 

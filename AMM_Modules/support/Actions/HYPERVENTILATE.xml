@@ -12,7 +12,7 @@
 			<OxygenFraction value="1.0"/>
 			<OxygenSource>Wall</OxygenSource>
 			<PositiveEndExpiredPressure value="5.0" unit="cmH2O"/>
-			<PrimaryGas>Oxygen</PrimaryGas>
+			<PrimaryGas>Air</PrimaryGas>
 			<ReliefValvePressure value="20.0" unit="cmH2O"/>
 			<RespiratoryRate value="8.0" unit="1/min"/>
 			<VentilatorPressure value="22.0" unit="cmH2O"/>

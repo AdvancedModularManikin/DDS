@@ -55,11 +55,6 @@ set(SIM_MANAGER_SOURCES SimManager.cpp AMM/SimulationManager.cpp)
 set(SIM_MANAGER_EXE amm_sim_manager)
 add_executable(${SIM_MANAGER_EXE} ${SIM_MANAGER_SOURCES})
 add_dependencies(${SIM_MANAGER_EXE} versionFileTouchForRebuild )
-install(TARGETS ${SIM_MANAGER_EXE}
-        BUNDLE DESTINATION "."
-        RUNTIME DESTINATION bin)
-addRunAndDebugTargets(${SIM_MANAGER_EXE})
-add_custom_target(run DEPENDS ${SIM_MANAGER_EXE}-run)
 
 set(VIRTUAL_EQUIPMENT_SOURCES VirtualEquipment.cpp AMM/Listeners/VirtualEquipmentListener.cpp)
 set(VIRTUAL_EQUIPMENT_EXE amm_virtual_equipment)

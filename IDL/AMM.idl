@@ -1,17 +1,17 @@
-struct FMA_Location
-{
-    long id;
-    string description;
-};
-
-struct UUID
-{
-    long long UUID_MSB;
-    long long UUID_LSB;
-};
-
 module AMM
 {
+	struct FMA_Location
+	{
+		long id;
+		string description;
+	};
+
+	struct UUID
+	{
+		long long UUID_MSB;
+		long long UUID_LSB;
+	};
+
     module Event
     {
         struct Fragment
