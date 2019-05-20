@@ -38,6 +38,8 @@ public:
 
     void onNewPhysiologyModificationData(AMM::Physiology::Modification pm, SampleInfo_t *info) override;
 
+    void onNewPerformanceAssessmentData(AMM::Performance::Assessment a, SampleInfo_t *info) override;
+
     void onNewRenderModificationData(AMM::Render::Modification rm, SampleInfo_t *info) override;
 
     void onNewTickData(AMM::Simulation::Tick t, SampleInfo_t *info);

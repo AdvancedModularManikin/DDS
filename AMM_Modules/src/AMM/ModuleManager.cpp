@@ -24,6 +24,7 @@ namespace AMM {
         auto *tick_sub_listener = new DDS_Listeners::TickSubListener();
         auto *physmod_sub_listener = new DDS_Listeners::PhysiologyModificationListener();
         auto *rendermod_sub_listener = new DDS_Listeners::RenderModificationListener();
+        auto *perf_sub_listener = new DDS_Listeners::PerformanceAssessmentSubListener();
 
         auto *mmL = new ModuleManagerListener();
 
@@ -34,6 +35,7 @@ namespace AMM {
         physmod_sub_listener->SetUpstream(mmL);
         rendermod_sub_listener->SetUpstream(mmL);
         command_sub_listener->SetUpstream(mmL);
+        perf_sub_listener->SetUpstream(mmL);
 
         mgr->InitializeReliableSubscriber(AMM::DataTypes::statusTopic, &mgr->StatusType, status_sub_listener);
         mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, &mgr->ConfigurationType,
@@ -45,6 +47,7 @@ namespace AMM {
         mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic, &mgr->PhysiologyModificationType,
                                           physmod_sub_listener);
         mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType, command_sub_listener);
+        mgr->InitializeSubscriber(AMM::DataTypes::performanceTopic, &mgr->PerformanceAssessmentDataType, perf_sub_listener);
 
         currentScenario = mgr->GetScenario();
 

@@ -139,6 +139,24 @@ void ModuleManagerListener::onNewPhysiologyModificationData(AMM::Physiology::Mod
 };
 
 
+
+void ModuleManagerListener::onNewPerformanceAssessmentData(AMM::Performance::Assessment a, SampleInfo_t *info) {
+    int64_t timestamp = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    GUID_t changeGuid = info->sample_identity.writer_guid();
+    std::ostringstream module_guid;
+    module_guid << changeGuid;
+    std::string aType = a.assessment_type();
+    std::string aInfo = a.assessment_info();
+    std::string aLoc = a.location().description();
+    std::string aLearnerID = a.learner_id();
+    std::ostringstream logmessage;
+    logmessage << "Assessment Type: " << aType << "  -  Info: " << aInfo << " - Location: " << aLoc << " - Learner: " << aLearnerID;
+    logEntry newLogEntry{module_guid.str(), "AMM::Performance::Assessment",
+                         lastTick, timestamp, logmessage.str()};
+    WriteLogEntry(newLogEntry);
+}
+
 void ModuleManagerListener::ClearEventLog() {
     mapmutex.lock();
     try {

@@ -79,6 +79,8 @@ public:
 
     virtual void onNewLogRecordData(AMM::Diagnostics::Log::Record r, SampleInfo_t *info) {};
 
+    virtual void onNewPerformanceAssessmentData(AMM::Performance::Assessment a, SampleInfo_t *info) {};
+
     std::string sysPrefix = "[SYS]";
     std::string actPrefix = "[ACT]";
     std::string loadPrefix = "LOAD_STATE:";
