@@ -9,7 +9,7 @@
         <capabilities>
             <capability name="fluidics">
                 <configuration_data>
-                    <data name="operating_pressure" value="2.0" />
+                    <data name="operating_pressure" value="5.0" />
                 </configuration_data>
             </capability>
         </capabilities>
