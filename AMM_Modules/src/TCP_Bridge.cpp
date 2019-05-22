@@ -156,7 +156,7 @@ void sendConfig(Client *c, std::string scene, std::string clientType) {
     ostringstream static_filename;
     static_filename << "static/module_configuration_static/" << scene << "_"
                     << clientType << "_configuration.xml";
-    LOG_DEBUG << "Sending " << static_filename << " to " << c->id;
+    LOG_DEBUG << "Sending " << static_filename.str() << " to " << c->id;
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
