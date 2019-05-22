@@ -152,18 +152,11 @@ void InitializeLabNodes() {
     labNodes["CMP"]["MetabolicPanel_Protein"] = 0.0f;
 }
 
-void sendConfig(Client *c, std::string clientType) {
-    std::ifstream t("static/current_scenario.txt");
-    std::string scenario((std::istreambuf_iterator<char>(t)),
-                         std::istreambuf_iterator<char>());
-
-    scenario.erase(std::remove(scenario.begin(), scenario.end(), '\n'),
-                   scenario.end());
-    t.close();
-
+void sendConfig(Client *c, std::string scene, std::string clientType) {
     ostringstream static_filename;
-    static_filename << "static/module_configuration_static/" << scenario << "_"
+    static_filename << "static/module_configuration_static/" << scene << "_"
                     << clientType << "_configuration.xml";
+    LOG_DEBUG << "Sending " << static_filename << " to " << c->id;
     std::ifstream ifs(static_filename.str());
     std::string configContent((std::istreambuf_iterator<char>(ifs)),
                               (std::istreambuf_iterator<char>()));
@@ -174,6 +167,18 @@ void sendConfig(Client *c, std::string clientType) {
 }
 
 void sendConfigToAll(std::string scene) {
+    auto it = clientMap.begin();
+    while (it != clientMap.end()) {
+        std::string cid = it->first;
+            Client *c = Server::GetClientByIndex(cid);
+            if (c) {
+                std::string clientType = c->clientType;
+                sendConfig(c, scene, clientType);
+            }
+
+        ++it;
+    }
+    /**
     std::ostringstream static_filename;
     static_filename << "static/module_configuration_static/" << scene
                     << "_virtual_patient_configuration.xml";
@@ -185,6 +190,7 @@ void sendConfigToAll(std::string scene) {
 
     std::string loadScenarioPrefix = "LOAD_SCENARIO:";
     s->SendToAll(encodedConfig);
+     **/
 }
 
 /**
