@@ -368,14 +368,6 @@ namespace AMM {
                 LOG_DEBUG << "Paused engine";
                 StopTickSimulation();
                 paused = true;
-            } else if (value.compare("TOGGLE_LOGGING") == 0) {
-                LOG_DEBUG << "Toggling log";
-                this->SetLogging(!logging_enabled);
-                if (logging_enabled) {
-                    LOG_DEBUG << "Logging is now enabled";
-                } else {
-                    LOG_DEBUG << "Logging is now disabled";
-                }
             } else if (value.compare("ENABLE_LOGGING") == 0) {
                 LOG_DEBUG << "Enabling logging";
                 this->SetLogging(true);
@@ -383,10 +375,13 @@ namespace AMM {
                 LOG_DEBUG << "Disabling logging";
                 this->SetLogging(false);
             } else if (value.compare("RESET_SIM") == 0) {
-                LOG_DEBUG << "Reset simulation, clearing engine data.";
+                LOG_DEBUG << "Reset simulation, clearing engine data and preparing for next run.";
                 StopTickSimulation();
                 running = false;
                 paused = false;
+                bg->Shutdown();
+                bg = new PhysiologyThread("logs/biogears.log");
+                this->SetLogging(logging_enabled);
             } else if (value.compare("SAVE_STATE") == 0) {
                 std::ostringstream ss;
                 ss << "./states/SavedState_" << get_filename_date() << "@"
