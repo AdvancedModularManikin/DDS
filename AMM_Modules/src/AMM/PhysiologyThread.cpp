@@ -141,7 +141,11 @@ namespace AMM {
     }
 
     double PhysiologyThread::GetLoggingStatus() {
-        return double(logging_enabled);
+        if (logging_enabled) {
+            return double(1);
+        } else {
+            return double(0);
+        }
     }
 
     std::map<std::string, double (PhysiologyThread::*)()> *PhysiologyThread::GetNodePathTable() {
