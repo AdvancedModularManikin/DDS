@@ -16,7 +16,7 @@ public:
         LOG_ERROR << msg;
     }
     virtual void ForwardFatal(const std::string& msg, const std::string& origin) {
-        LOG_FATAL << msg;
+        LOG_ERROR << msg;
     }
 };
 

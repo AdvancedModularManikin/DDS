@@ -9,7 +9,7 @@ using namespace eprosima::fastrtps::rtps;
 namespace AMM {
 
     DDS_Manager::DDS_Manager(const char *nodeName) {
-        LOG_INFO << "Instantiating DDS manager";
+        LOG_DEBUG << "Instantiating DDS manager";
 
         ParticipantAttributes PParam;
         PParam.rtps.builtin.domainId = (uint32_t) domainId;
@@ -18,19 +18,19 @@ namespace AMM {
         mp_participant = Domain::createParticipant(PParam);
 
         if (mp_participant == nullptr) {
-            LOG_FATAL << "Unable to create FastRTPS domain participant.";
+            LOG_ERROR << "Unable to create FastRTPS domain participant.";
             return;
         }
 
-        LOG_INFO << "Registering types";
+        LOG_DEBUG << "Registering types";
 
         RegisterTypes();
 
-        LOG_INFO << "Making pub listener";
+        LOG_DEBUG << "Making pub listener";
 
         pub_listener = new DDS_Listeners::PubListener();
 
-        LOG_INFO << "Generating ID";
+        LOG_DEBUG << "Generating ID";
 
         module_id = GenerateID();
         module_name = nodeName;
@@ -169,17 +169,17 @@ namespace AMM {
     }
 
     void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
-        LOG_INFO << "Publishing module configuration";
+        LOG_DEBUG << "Publishing module configuration";
         try {
             AMM::Capability::ConfigurationPubSubType configType;
             if (!config_initialized) {
                 config_publisher = InitializeReliablePublisher(
                         AMM::DataTypes::configurationTopic,
                         &configType, pub_listener);
-                LOG_INFO << "Initialized publisher";
+                LOG_DEBUG << "Initialized publisher";
                 config_initialized = true;
             }
-            LOG_INFO << "Writing configuration";
+            LOG_DEBUG << "Writing configuration";
             config_publisher->write(&configInstance);
         } catch (std::exception &e) {
             LOG_ERROR << e.what();
