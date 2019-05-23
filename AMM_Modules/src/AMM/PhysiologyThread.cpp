@@ -879,6 +879,7 @@ namespace AMM {
 
     void PhysiologyThread::SetHemorrhage(const std::string &location, const std::string &hemorrhageSettings) {
         LOG_DEBUG << "Setting hemo with location " << location << " and settings: " << hemorrhageSettings;
+	
         double flowRate;
 	std::string s(hemorrhageSettings);
 	s.erase(
@@ -888,44 +889,46 @@ namespace AMM {
 	
         std::vector <std::string> strings = Utility::explode("\n", s);
         for (auto str : strings) {
-            std::vector <std::string> strs;
-            boost::split(strs, str, boost::is_any_of("=, = "));
-            auto strs_size = strs.size();
-
-            if (strs_size != 2 && strs_size != 4) {
-                continue;
-            }
-
-
-            LOG_DEBUG << " strs.size is " << strs_size;
-	    
-            LOG_DEBUG << "kvp_k is " << strs[0] << " and strs[1] is " << strs[1];
-	    if (strs_size == 4) {
-	      LOG_DEBUG << " and strs[2] is " << strs[2]                      << " and strs[3] is " << strs[3];
+	  std::vector <std::string> strs;
+	  boost::split(strs, str, boost::is_any_of("=, = "));
+	  auto strs_size = strs.size();
+	  
+	  if (strs_size != 2 && strs_size != 4) {
+	    continue;
+	  }
+	  
+	  std::string kvp_k = strs[0];
+	  
+	  
+	  try {
+	    if (kvp_k == "flowrate") {
+	      if (strs_size == 2) {
+		flowRate = std::stod(strs[1]);
+	      } else if (strs_size == 4) {
+		flowRate = std::stod(strs[3]);
+	      }
+	    } else {
+	      LOG_INFO << "Unknown hemorrhage setting: " << kvp_k << " = " << strs[1];
 	    }
-
-            std::string kvp_k = strs[0];
-
-
-            try {
-                if (kvp_k == "flowrate") {
-                    if (strs_size == 2) {
-                        flowRate = std::stod(strs[1]);
-                    } else if (strs_size == 4) {
-                        flowRate = std::stod(strs[3]);
-                    }
-                } else {
-                    LOG_INFO << "Unknown hemorrhage setting: " << kvp_k << " = " << strs[1];
-                }
-            } catch (std::exception &e) {
-                LOG_ERROR << "Issue with setting " << e.what();
-            }
+	  } catch (std::exception &e) {
+	    LOG_ERROR << "Issue with setting " << e.what();
+	  }
         }
 
-        biogears::SEHemorrhage hemorrhage;
-        hemorrhage.SetCompartment(location);
-        hemorrhage.GetInitialRate().SetValue(flowRate, biogears::VolumePerTimeUnit::mL_Per_min);
-
+	biogears::SEHemorrhage hemorrhage;
+	try {
+	  if (location == "spleen") {
+	    hemorrhage.SetCompartment("Spleen");
+	  } else if (location == "venacava") {
+	    hemorrhage.SetCompartment("VenaCava");
+	  } else {
+	    hemorrhage.SetCompartment(location);
+	  }
+	  hemorrhage.GetInitialRate().SetValue(flowRate, biogears::VolumePerTimeUnit::mL_Per_min);
+        } catch (std::exception &e) {
+	  LOG_ERROR << "Error processing hemorrhage action: " << e.what();
+        }
+	
         try {
             m_pe->ProcessAction(hemorrhage);
         } catch (std::exception &e) {
