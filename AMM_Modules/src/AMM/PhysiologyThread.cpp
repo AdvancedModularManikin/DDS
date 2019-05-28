@@ -173,8 +173,8 @@ namespace AMM {
         startTime.SetValue(sec, biogears::TimeUnit::s);
 
         if (!eventHandlerAttached) {
-            PhysiologyEngineLogger pl;
-            m_pe->GetLogger()->SetForward(&pl);
+           // PhysiologyEngineLogger pl;
+           // m_pe->GetLogger()->SetForward(&pl);
             eventHandlerAttached = true;
         }
 
@@ -297,6 +297,7 @@ namespace AMM {
             return false;
         }
 
+
         biogears::SEScenario sce(m_pe->GetSubstanceManager());
         sce.Load(scenarioFile);
 
@@ -315,7 +316,9 @@ namespace AMM {
                 double time_s = adv->GetTime(biogears::TimeUnit::s);
                 auto count = (int) (time_s / dT_s);
                 for (int i = 0; i <= count; i++) {
+                    m_mutex.lock();
                     m_pe->AdvanceModelTime();
+                    m_mutex.unlock();
                     currentSampleTime_s += dT_s;
                     if (currentSampleTime_s >= sampleTime_s) {
                         currentSampleTime_s = 0;
@@ -323,7 +326,15 @@ namespace AMM {
                 }
                 continue;
             } else {
-                m_pe->ProcessAction(*a);
+                m_mutex.lock();
+                try {
+                    if (!m_pe->ProcessAction(*a)) {
+                        LOG_ERROR << "Unable to process action.";
+                    }
+                } catch (std::exception &e) {
+                    LOG_ERROR << "Error processing action: " << e.what();
+                }
+                m_mutex.unlock();
             }
         }
         return true;
