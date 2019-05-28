@@ -118,8 +118,9 @@ int main(int argc, char *argv[]) {
     pe->SetLogging(logging);
 
     if (autostart == 1) {
-        LOG_INFO << "Auto-starting physiology simulation based on ticks";
-        pe->StartTickSimulation();
+        // LOG_INFO << "Auto-starting physiology simulation based on ticks";
+       // pe->StartTickSimulation();
+       LOG_INFO << "Physiology engine wrapper started.";
     }
 
     while (!closed) {

@@ -30,7 +30,7 @@ namespace AMM {
 
         virtual ~PhysiologyEngineManager() override = default;
 
-        PhysiologyThread *bg = new PhysiologyThread("logs/biogears.log");
+        PhysiologyThread *bg;
         std::string stateFile;
 
         void SetLogging(bool logging_enabled);
@@ -71,6 +71,7 @@ namespace AMM {
 
         bool closed = false;
         bool paused = false;
+        bool running = false;
         int lastFrame = 0;
         bool logging_enabled = false;
 
@@ -116,6 +117,6 @@ namespace AMM {
         Subscriber *physmod_subscriber;
 
         std::mutex m_mutex;
-        bool running = false;
+
     };
 }

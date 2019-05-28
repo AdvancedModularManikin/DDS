@@ -25,7 +25,7 @@ namespace AMM {
         using namespace Capability;
 
         if (bg == nullptr) {
-            LOG_ERROR << "BioGears thread did not load.";
+            // LOG_ERROR << "BioGears thread did not load.";
         }
         stateFile = "./states/StandardMale@0s.xml";
 
@@ -79,8 +79,6 @@ namespace AMM {
 
         // Normally this would be set AFTER configuration is received
         mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
-
-        running = false;
     }
 
     bool PhysiologyEngineManager::isRunning() { return running; }
@@ -134,7 +132,9 @@ namespace AMM {
 
     void PhysiologyEngineManager::TestHemo() {
         std::string payload("flowrate = 391");
+        m_mutex.lock();
         bg->SetHemorrhage("VenaCava", payload);
+        m_mutex.unlock();
     }
 
     void PhysiologyEngineManager::WriteHighFrequencyNodeData(std::string node) {
@@ -170,12 +170,22 @@ namespace AMM {
         std::string state3 = state2.substr(1, pos2 - 1);
         double startPosition = atof(state3.c_str());
 
-        if (!paused) {
+        if (!running) {
+            LOG_INFO << "We're not running, so time to fire up the thread";
             m_mutex.lock();
-            bg->LoadState(stateFile.c_str(), startPosition);
-            nodePathMap = bg->GetNodePathTable();
+            bg = new PhysiologyThread("logs/biogears.log");
             m_mutex.unlock();
+
+            this->SetLogging(logging_enabled);
+
+            m_mutex.lock();
+            LOG_INFO << "Loading " << stateFile << " at " << startPosition;
+            bg->LoadState(stateFile.c_str(), startPosition);
+            m_mutex.unlock();
+            nodePathMap = bg->GetNodePathTable();
+            running = true;
         }
+
         running = true;
         paused = false;
     }
@@ -186,7 +196,10 @@ namespace AMM {
             running = false;
             paused = false;
             std::this_thread::sleep_for(std::chrono::milliseconds(200));
+            bg->Shutdown();
             m_mutex.unlock();
+
+            delete bg;
         }
     }
 
@@ -198,7 +211,11 @@ namespace AMM {
 
     void PhysiologyEngineManager::SetLogging(bool log) {
         logging_enabled = log;
-        bg->logging_enabled = logging_enabled;
+        if (bg != nullptr) {
+            m_mutex.lock();
+            bg->logging_enabled = logging_enabled;
+            m_mutex.unlock();
+        }
     }
 
     int PhysiologyEngineManager::GetTickCount() { return lastFrame; }
@@ -232,21 +249,29 @@ namespace AMM {
         // Otherwise, the payload is considered to be XML to execute.
         if (pm.payload().empty()) {
             LOG_INFO << "Old-style Physiology modification received: " << pm.type();
+            m_mutex.lock();
             bg->ExecuteCommand(pm.type());
+            m_mutex.unlock();
         } else {
             if (pm.type() == "pain") {
                 LOG_INFO << "Pain payload received: " << pm.payload();
+                m_mutex.lock();
                 bg->SetPain(pm.payload());
+                m_mutex.unlock();
             } else if (pm.type() == "hemorrhage") {
                 LOG_INFO << "Hemorrhage location: " << pm.location().description();
                 if (pm.location().description() == "") {
                     pm.location().description("VenaCava");
                 }
                 LOG_INFO << "Hemorrhage payload received: " << pm.payload();
+                m_mutex.lock();
                 bg->SetHemorrhage(pm.location().description(), pm.payload());
+                m_mutex.unlock();
             } else {
-                LOG_INFO << "Physiology modification received (unknown type " << pm.type() << "): " << pm.payload();
+                LOG_INFO << "Physiology modification received (type " << pm.type() << "): " << pm.payload();
+                m_mutex.lock();
                 bg->ExecuteXMLCommand(pm.payload());
+                m_mutex.unlock();
             }
         }
     }
@@ -379,24 +404,25 @@ namespace AMM {
                 StopTickSimulation();
                 running = false;
                 paused = false;
-                bg->Shutdown();
-                bg = new PhysiologyThread("logs/biogears.log");
-                this->SetLogging(logging_enabled);
             } else if (value.compare("SAVE_STATE") == 0) {
                 std::ostringstream ss;
                 ss << "./states/SavedState_" << get_filename_date() << "@"
                    << (int) std::round(bg->GetSimulationTime()) << "s.xml";
                 LOG_DEBUG << "Saved state file: " << ss.str();
+                m_mutex.lock();
                 bg->SaveState(ss.str());
+                m_mutex.unlock();
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
                 StopTickSimulation();
-                StopSimulation();
+                // StopSimulation();
                 stateFile = "./states/" + value.substr(loadPrefix.size()) + ".xml";
-                StartTickSimulation();
+                // StartTickSimulation();
             }
         } else {
             LOG_DEBUG << "Command received: " << cm.message();
+            m_mutex.lock();
             bg->ExecuteCommand(cm.message());
+            m_mutex.unlock();
         }
     }
 
@@ -427,6 +453,7 @@ namespace AMM {
         LOG_DEBUG << "Instrument data for " << i.instrument()
                   << " received with payload: " << i.payload();
         std::string instrument(i.instrument());
+        m_mutex.lock();
         if (instrument == "ventilator") {
             bg->SetVentilator(i.payload());
         } else if (instrument == "bvm_mask") {
@@ -434,5 +461,6 @@ namespace AMM {
         } else if (instrument == "ivpump") {
             bg->SetIVPump(i.payload());
         }
+        m_mutex.unlock();
     }
 }
