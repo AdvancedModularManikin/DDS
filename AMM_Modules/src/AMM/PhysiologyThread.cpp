@@ -326,7 +326,6 @@ namespace AMM {
                 }
                 continue;
             } else {
-                m_mutex.lock();
                 try {
                     if (!m_pe->ProcessAction(*a)) {
                         LOG_ERROR << "Unable to process action.";
@@ -334,7 +333,6 @@ namespace AMM {
                 } catch (std::exception &e) {
                     LOG_ERROR << "Error processing action: " << e.what();
                 }
-                m_mutex.unlock();
             }
         }
         return true;

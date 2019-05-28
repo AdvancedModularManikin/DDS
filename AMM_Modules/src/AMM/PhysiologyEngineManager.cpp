@@ -249,9 +249,7 @@ namespace AMM {
         // Otherwise, the payload is considered to be XML to execute.
         if (pm.payload().empty()) {
             LOG_INFO << "Old-style Physiology modification received: " << pm.type();
-            m_mutex.lock();
             bg->ExecuteCommand(pm.type());
-            m_mutex.unlock();
         } else {
             if (pm.type() == "pain") {
                 LOG_INFO << "Pain payload received: " << pm.payload();
@@ -269,9 +267,7 @@ namespace AMM {
                 m_mutex.unlock();
             } else {
                 LOG_INFO << "Physiology modification received (type " << pm.type() << "): " << pm.payload();
-                m_mutex.lock();
                 bg->ExecuteXMLCommand(pm.payload());
-                m_mutex.unlock();
             }
         }
     }
@@ -420,9 +416,7 @@ namespace AMM {
             }
         } else {
             LOG_DEBUG << "Command received: " << cm.message();
-            m_mutex.lock();
             bg->ExecuteCommand(cm.message());
-            m_mutex.unlock();
         }
     }
 
