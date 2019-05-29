@@ -142,8 +142,6 @@ namespace AMM {
 
         void Status();
 
-        void InitializeLog();
-
         static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
         static std::vector <std::string> highFrequencyNodes;
 

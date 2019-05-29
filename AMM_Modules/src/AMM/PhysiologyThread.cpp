@@ -253,10 +253,6 @@ namespace AMM {
         return true;
     }
 
-    void PhysiologyThread::InitializeLog() {
-
-    }
-
     bool PhysiologyThread::SaveState(const std::string &stateFile) {
         m_pe->SaveState(stateFile);
         return true;
@@ -430,7 +426,9 @@ namespace AMM {
     double PhysiologyThread::GetRespirationRate() {
         double rr;
         double loss = GetBloodLossPercentage();
-        if (loss > 0.0) {
+        if (m_pe->GetAnesthesiaMachine()->HasConnection() && m_pe->GetAnesthesiaMachine()->GetConnection() != CDM::enumAnesthesiaMachineConnection::Off) {
+            rr = rawRespirationRate;
+        } else if (loss > 0.0) {
             rr = rawRespirationRate * (1 + 3 * std::max(0.0, loss - 0.2));
         } else {
             rr = rawRespirationRate;
