@@ -172,7 +172,7 @@ void sendConfigToAll(std::string scene) {
         std::string cid = it->first;
             Client *c = Server::GetClientByIndex(cid);
             if (c) {
-                std::string clientType = c->clientType;
+                std::string clientType = c->name;
                 sendConfig(c, scene, clientType);
             }
 
