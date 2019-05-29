@@ -387,7 +387,7 @@ namespace AMM {
             } else if (value.compare("PAUSE_ENGINE") == 0 ||
                        value.compare("PAUSE_SIM") == 0) {
                 LOG_DEBUG << "Paused engine";
-                StopTickSimulation();
+                // StopTickSimulation();
                 paused = true;
             } else if (value.compare("ENABLE_LOGGING") == 0) {
                 LOG_DEBUG << "Enabling logging";
@@ -402,12 +402,11 @@ namespace AMM {
                 paused = false;
             } else if (value.compare("SAVE_STATE") == 0) {
                 std::ostringstream ss;
-                ss << "./states/SavedState_" << get_filename_date() << "@"
-                   << (int) std::round(bg->GetSimulationTime()) << "s.xml";
-                LOG_DEBUG << "Saved state file: " << ss.str();
-                m_mutex.lock();
+                double simTime = bg->GetSimulationTime();
+                std::string filenamedate = get_filename_date();
+                ss << "./states/SavedState_" << filenamedate << "@" << (int) std::round(simTime) << "s.xml";
+                LOG_INFO << "Saved state to " << ss.str();
                 bg->SaveState(ss.str());
-                m_mutex.unlock();
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
                 StopTickSimulation();
                 // StopSimulation();
@@ -423,11 +422,6 @@ namespace AMM {
     void PhysiologyEngineManager::onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) {
         if (running) {
             if (ti.frame() > 0 || !paused) {
-                if (paused) {
-                    paused = false;
-                    return;
-                }
-
                 lastFrame = static_cast<int>(ti.frame());
 
                 // Per-frame stuff happens here
