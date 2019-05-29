@@ -92,7 +92,8 @@ void Server::SendToClient(Client *c, const std::string &message) {
 
 void Server::ListClients() {
     for (auto &client : clients) {
-        cout << client.name << endl;
+        cout << "|" << client.name << "|" << client.clientType << endl;
+
     }
 }
 
