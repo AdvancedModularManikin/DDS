@@ -400,6 +400,12 @@ void HandleCapabilities(Client *c, std::string const &capabilityVal) {
     std::string serialNumber(serial);
     std::string moduleVersion(module_version);
 
+    // Set the client's type
+    ServerThread::LockMutex(c->clientType);
+    c->SetClientType(nodeName);
+    ServerThread::UnlockMutex(c->clientType);
+
+    // Publish configuration
     mgr->PublishModuleConfiguration(c->id, nodeName, nodeManufacturer,
                                     nodeModel, serialNumber,
                                     moduleVersion, capabilityVal);
@@ -478,11 +484,6 @@ void HandleStatus(Client *c, std::string const &statusVal) {
             root->FirstChildElement("module")->ToElement();
     const char *name = module->Attribute("name");
     std::string nodeName(name);
-
-    // Set the client's type
-    ServerThread::LockMutex(c->clientType);
-    c->SetClientType(nodeName);
-    ServerThread::UnlockMutex(c->clientType);
 
     std::size_t found = statusVal.find(haltingString);
     if (found != std::string::npos) {

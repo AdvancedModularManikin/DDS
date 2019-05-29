@@ -176,10 +176,8 @@ namespace AMM {
                 config_publisher = InitializeReliablePublisher(
                         AMM::DataTypes::configurationTopic,
                         &configType, pub_listener);
-                LOG_DEBUG << "Initialized publisher";
                 config_initialized = true;
             }
-            LOG_DEBUG << "Writing configuration";
             config_publisher->write(&configInstance);
         } catch (std::exception &e) {
             LOG_ERROR << e.what();
