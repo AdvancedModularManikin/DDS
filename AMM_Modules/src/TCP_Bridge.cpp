@@ -683,22 +683,22 @@ void *Server::HandleClient(void *args) {
 
                         auto location = kvp.find("location");
                         if (location != kvp.end()) {
-                            modLocation = type->second;
+                            modLocation = location->second;
                         }
 
                         auto learner_id = kvp.find("learner_id");
                         if (learner_id != kvp.end()) {
-                            modLearner = type->second;
+                            modLearner = learner_id->second;
                         }
 
                         auto payload = kvp.find("payload");
                         if (payload != kvp.end()) {
-                            modPayload = type->second;
+                            modPayload = payload->second;
                         }
 
                         auto info = kvp.find("info");
                         if (info != kvp.end()) {
-                            modInfo = type->second;
+                            modInfo = info->second;
                         }
 
                         if (topic == "AMM_Render_Modification") {
