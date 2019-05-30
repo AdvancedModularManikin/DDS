@@ -649,7 +649,7 @@ void *Server::HandleClient(void *args) {
                         cmdInstance.message(action);
                         mgr->PublishCommand(cmdInstance);
                     } else if (!str.compare(0, genericTopicPrefix.size(), genericTopicPrefix)) {
-                        std::string topic, message, modType, modLocation, modPayload, modInfo;
+                        std::string topic, message, modType, modLocation, modPayload, modLearner, modInfo;
                         unsigned first = str.find("[");
                         unsigned last = str.find("]");
                         topic = str.substr(first + 1, last - first - 1);
@@ -686,6 +686,11 @@ void *Server::HandleClient(void *args) {
                             modLocation = type->second;
                         }
 
+                        auto learner_id = kvp.find("learner_id");
+                        if (learner_id != kvp.end()) {
+                            modLearner = type->second;
+                        }
+
                         auto payload = kvp.find("payload");
                         if (payload != kvp.end()) {
                             modPayload = type->second;
@@ -700,16 +705,19 @@ void *Server::HandleClient(void *args) {
                             AMM::Render::Modification renderMod;
                             renderMod.type(modType);
                             renderMod.payload(modPayload);
+                            renderMod.practitioner(modLearner);
                             mgr->PublishRenderModification(renderMod);
                         } else if (topic == "AMM_Physiology_Modification") {
                             AMM::Physiology::Modification physMod;
                             physMod.type(modType);
                             physMod.payload(modPayload);
+                            physMod.practitioner(modLearner);
                             mgr->PublishPhysiologyModification(physMod);
                         } else if (topic == "AMM_Performance_Assessment") {
                             AMM::Performance::Assessment assessment;
                             assessment.assessment_info(modInfo);
                             assessment.assessment_type(modType);
+                            assessment.practitioner(modLearner);
                             mgr->PublishPerformanceData(assessment);
                         } else if (topic == "AMM_Command") {
                             AMM::PatientAction::BioGears::Command cmdInstance;
