@@ -178,19 +178,6 @@ void sendConfigToAll(std::string scene) {
         }
         ++it;
     }
-    /**
-    std::ostringstream static_filename;
-    static_filename << "static/module_configuration_static/" << scene
-                    << "_virtual_patient_configuration.xml";
-    std::ifstream ifs(static_filename.str());
-    std::string configContent((std::istreambuf_iterator<char>(ifs)),
-                              (std::istreambuf_iterator<char>()));
-    std::string encodedConfigContent = Utility::encode64(configContent);
-    encodedConfig = configPrefix + encodedConfigContent + "\n";
-
-    std::string loadScenarioPrefix = "LOAD_SCENARIO:";
-    s->SendToAll(encodedConfig);
-     **/
 }
 
 /**
@@ -208,7 +195,7 @@ public:
                 Client *c = Server::GetClientByIndex(cid);
                 if (c) {
                     std::ostringstream messageOut;
-                    messageOut << n.nodepath() << "=" << n.dbl() << "|";
+                    messageOut << n.nodepath() << "=" << n.dbl() << "|" << std::endl;
                     string stringOut = messageOut.str();
                     Server::SendToClient(c, messageOut.str());
                 }
@@ -235,7 +222,7 @@ public:
                 Client *c = Server::GetClientByIndex(cid);
                 if (c) {
                     std::ostringstream messageOut;
-                    messageOut << n.nodepath() << "=" << n.dbl() << "|";
+                    messageOut << n.nodepath() << "=" << n.dbl() << "|" << std::endl;
                     string stringOut = messageOut.str();
                     Server::SendToClient(c, messageOut.str());
                 }
@@ -252,7 +239,8 @@ public:
                    << "type=" << pm.type() << ";"
                    << "location=" << pm.location().description() << ";"
                    << "learner_id=" << pm.practitioner() << ";"
-                   << "payload=" << pm.payload();
+                   << "payload=" << pm.payload()
+                   << std::endl;
         string stringOut = messageOut.str();
 
         LOG_DEBUG << "Received a phys mod: " << stringOut;
@@ -282,7 +270,8 @@ public:
                    << "type=" << rm.type() << ";"
                    << "location=" << rm.location().description() << ";"
                    << "learner_id=" << rm.practitioner() << ";"
-                   << "payload=" << rm.payload();
+                   << "payload=" << rm.payload()
+                << std::endl;
         string stringOut = messageOut.str();
 
         LOG_DEBUG << "Received a render mod: " << stringOut;
