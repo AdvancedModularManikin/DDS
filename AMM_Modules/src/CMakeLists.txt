@@ -119,7 +119,7 @@ if(Pistache_FOUND)
             ${RAPIDJSON_LIBRARIES}
             ${Pistache_LIBRARY}
             ${TINYXML2_LIBRARIES}
-            Boost::filesystem Boost::iostreams
+            Boost::system Boost::filesystem Boost::iostreams
             Threads::Threads
             sqlite3
             amm::datamodel
@@ -137,6 +137,7 @@ if (Biogears_FOUND)
             amm::logger
             Biogears::libbiogears
             Threads::Threads
+            Boost::system
             amm::datamodel
             )
 endif ()
@@ -190,6 +191,7 @@ target_link_libraries(${ARDUINO_BRIDGE_EXE}
         amm::logger
         Threads::Threads
         pthread
+        Boost::system
         ${TINYXML2_LIBRARIES}
         amm::datamodel
         )
@@ -197,6 +199,7 @@ target_link_libraries(${ARDUINO_BRIDGE_EXE}
 target_link_libraries(${TCP_BRIDGE_EXE}
         fastrtps fastcdr
         amm::logger
+        Boost::system
         Threads::Threads
         ${TINYXML2_LIBRARIES}
         amm::datamodel
