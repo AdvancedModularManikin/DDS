@@ -106,7 +106,7 @@ set(MODULE_MANAGER_EXE amm_module_manager)
 add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
 target_link_libraries(${MODULE_MANAGER_EXE}
         fastrtps fastcdr
-        amm_logger
+        amm_base_logger
         Threads::Threads
         ${TINYXML2_LIBRARIES}
         sqlite3
