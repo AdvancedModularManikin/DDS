@@ -76,9 +76,8 @@ find_package(fastcdr REQUIRED)
 find_package(fastrtps REQUIRED)
 find_package(Threads REQUIRED)
 
-
 find_package(TinyXML2 REQUIRED)
-find_package(SQLite3)
+find_package(SQLite3 REQUIRED)
 
 find_package(Biogears)
 message(STATUS "Biogears=${Biogears_FOUND}")

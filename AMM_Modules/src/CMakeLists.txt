@@ -104,12 +104,12 @@ add_executable(${TCP_BRIDGE_EXE} ${TCP_BRIDGE_SOURCES})
 set(MODULE_MANAGER_SOURCES ModuleManager.cpp AMM/ModuleManager.cpp AMM/Utility.cpp AMM/Listeners/ModuleManagerListener.cpp)
 set(MODULE_MANAGER_EXE amm_module_manager)
 add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
+target_include_directories(${MODULE_MANAGER_EXE} PUBLIC ${SQLITE3_INCLUDE_DIR} ${TinyXML2_INCLUDE_DIRS})
 target_link_libraries(${MODULE_MANAGER_EXE}
         fastrtps fastcdr
         amm_base_logger
         Threads::Threads
-        ${TINYXML2_LIBRARIES}
-        sqlite3
+        ${SQLITE3_LIBRARIES}
         amm_types
         )
 
@@ -118,15 +118,15 @@ set(REST_ADAPTER_EXE amm_rest_adapter)
 
 if (Pistache_FOUND)
     add_executable(${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES})
+    target_include_directories(${REST_ADAPTER_EXE} PUBLIC ${SQLITE3_INCLUDE_DIR} ${TinyXML2_INCLUDE_DIRS})
     target_link_libraries(${REST_ADAPTER_EXE}
             fastrtps fastcdr
             amm_base_logger
             ${RAPIDJSON_LIBRARIES}
             ${Pistache_LIBRARY}
-            ${TINYXML2_LIBRARIES}
             Boost::system Boost::filesystem Boost::iostreams
             Threads::Threads
-            sqlite3
+            ${SQLITE3_LIBRARIES}
             amm_types
             )
 endif ()
@@ -180,14 +180,12 @@ target_link_libraries(${CHEST_RISE_EXE}
 target_link_libraries(${FLUID_MANAGER_EXE}
         fastrtps fastcdr
         amm_base_logger
-        ${TINYXML2_LIBRARIES}
         amm_types
         )
 
 target_link_libraries(${IVC_MODULE_EXE}
         fastrtps fastcdr
         amm_base_logger
-        ${TINYXML2_LIBRARIES}
         amm_types
         )
 
@@ -197,7 +195,6 @@ target_link_libraries(${ARDUINO_BRIDGE_EXE}
         Threads::Threads
         pthread
         Boost::system
-        ${TINYXML2_LIBRARIES}
         amm_types
         )
 
@@ -206,7 +203,6 @@ target_link_libraries(${TCP_BRIDGE_EXE}
         amm_base_logger
         Boost::system
         Threads::Threads
-        ${TINYXML2_LIBRARIES}
         amm_types
         )
 
