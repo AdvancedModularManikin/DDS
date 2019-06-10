@@ -12,48 +12,53 @@ add_custom_target(versionFileTouchForRebuild
 
 add_library(plog INTERFACE)
 target_include_directories(plog INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
-add_library(plog::plog ALIAS plog)
 file(GLOB_RECURSE PLOG_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/plog/*.h)
-add_library(plog-headers STATIC ${PLOG_HEADERS})
+add_library(plog-headers SHARED ${PLOG_HEADERS})
 set_target_properties(plog-headers PROPERTIES LINKER_LANGUAGE CXX)
 set_target_properties(plog-headers PROPERTIES FOLDER Include)
 
 set(BASE_LOGGER amm_base_logger)
 set(BASE_LOGGER_SOURCES AMM/BaseLogger.cpp)
-add_library(amm_base_logger SHARED ${BASE_LOGGER_SOURCES})
-add_library(amm::logger ALIAS amm_base_logger)
+if (MSVC)
+    add_library(${BASE_LOGGER} STATIC ${BASE_LOGGER_SOURCES})
+else ()
+    add_library(${BASE_LOGGER} SHARED ${BASE_LOGGER_SOURCES})
+endif()
 
 target_link_libraries(
-  amm_base_logger
-  PUBLIC Threads::Threads
-  PUBLIC plog
+        amm_base_logger
+        PUBLIC Threads::Threads
+        PUBLIC plog
 )
 
-    set(VARS_1 "AMM/DDS/AMM.cxx")
-    set(VARS_2 "AMM/DDS/AMM.h")
-    set(VARS_3 "AMM/DDS/AMMPubSubTypes.cxx")
-    set(VARS_4 "AMM/DDS/AMMPubSubTypes.h")
-    set(DATAMODEL_SOURCES ${DATAMODEL_SOURCES} ${VARS_1} ${VARS_2} ${VARS_3} ${VARS_4})
+set(VARS_1 "AMM/DDS/AMM.cxx")
+set(VARS_2 "AMM/DDS/AMM.h")
+set(VARS_3 "AMM/DDS/AMMPubSubTypes.cxx")
+set(VARS_4 "AMM/DDS/AMMPubSubTypes.h")
+set(DATAMODEL_SOURCES ${DATAMODEL_SOURCES} ${VARS_1} ${VARS_2} ${VARS_3} ${VARS_4})
 
 set(DDS_MANAGER dds_manager)
 set(DDS_MANAGER_SOURCES AMM/DDS_Manager.cpp AMM/Listeners/DDS_Listeners.cpp AMM/Listeners/ListenerInterface.h)
 set(DDS_TYPE_SOURCES AMM/DataTypes.cpp AMM/DataTypes.h)
-add_library(amm_types SHARED ${DATAMODEL_SOURCES} ${DDS_TYPE_SOURCES} ${DDS_MANAGER_SOURCES})
-add_library(amm::datamodel ALIAS amm_types)
-add_dependencies(amm_types  versionFileTouchForRebuild )
+if (MSVC)
+    add_library(amm_types STATIC ${DATAMODEL_SOURCES} ${DDS_TYPE_SOURCES} ${DDS_MANAGER_SOURCES})
+else ()
+    add_library(amm_types SHARED ${DATAMODEL_SOURCES} ${DDS_TYPE_SOURCES} ${DDS_MANAGER_SOURCES})
+endif()
+add_dependencies(amm_types versionFileTouchForRebuild)
 target_link_libraries(
         amm_types
-        fastrtps fastcdr
-        amm::logger
+        PUBLIC fastrtps
+        PUBLIC fastcdr
+        PUBLIC amm_base_logger
+        ${Boost_LIBRARIES}
 )
-target_include_directories(amm_types PUBLIC
-  PUBLIC ${PROJECT_SOURCE_DIR}/src
-)
+target_include_directories(amm_types PUBLIC ${PROJECT_SOURCE_DIR}/src)
 
 set(SIM_MANAGER_SOURCES SimManager.cpp AMM/SimulationManager.cpp)
 set(SIM_MANAGER_EXE amm_sim_manager)
 add_executable(${SIM_MANAGER_EXE} ${SIM_MANAGER_SOURCES})
-add_dependencies(${SIM_MANAGER_EXE} versionFileTouchForRebuild )
+add_dependencies(${SIM_MANAGER_EXE} versionFileTouchForRebuild)
 
 set(VIRTUAL_EQUIPMENT_SOURCES VirtualEquipment.cpp AMM/Listeners/VirtualEquipmentListener.cpp)
 set(VIRTUAL_EQUIPMENT_EXE amm_virtual_equipment)
@@ -101,28 +106,28 @@ set(MODULE_MANAGER_EXE amm_module_manager)
 add_executable(${MODULE_MANAGER_EXE} ${MODULE_MANAGER_SOURCES})
 target_link_libraries(${MODULE_MANAGER_EXE}
         fastrtps fastcdr
-        amm::logger
+        amm_logger
         Threads::Threads
         ${TINYXML2_LIBRARIES}
         sqlite3
-        amm::datamodel
+        amm_types
         )
 
 set(REST_ADAPTER_SOURCES REST_Adapter.cpp AMM/Utility.cpp Net/UdpDiscoveryServer.cpp)
 set(REST_ADAPTER_EXE amm_rest_adapter)
 
-if(Pistache_FOUND)
+if (Pistache_FOUND)
     add_executable(${REST_ADAPTER_EXE} ${REST_ADAPTER_SOURCES})
     target_link_libraries(${REST_ADAPTER_EXE}
             fastrtps fastcdr
-            amm::logger
+            amm_base_logger
             ${RAPIDJSON_LIBRARIES}
             ${Pistache_LIBRARY}
             ${TINYXML2_LIBRARIES}
             Boost::system Boost::filesystem Boost::iostreams
             Threads::Threads
             sqlite3
-            amm::datamodel
+            amm_types
             )
 endif ()
 
@@ -134,75 +139,75 @@ if (Biogears_FOUND)
     add_dependencies(${PHYSIOLOGY_MANAGER_EXE} stage_biogears_schema stage_biogears_data)
     target_link_libraries(${PHYSIOLOGY_MANAGER_EXE}
             fastrtps fastcdr
-            amm::logger
+            amm_base_logger
             Biogears::libbiogears
             Threads::Threads
             Boost::system
-            amm::datamodel
+            amm_types
             )
 endif ()
 
 target_link_libraries(${SIM_MANAGER_EXE}
         fastrtps fastcdr
-        amm::logger
+        amm_base_logger
         Threads::Threads
-        amm::datamodel
+        amm_types
         )
 
 target_link_libraries(${VIRTUAL_EQUIPMENT_EXE}
         fastrtps fastcdr
-        amm::datamodel
+        amm_types
         )
 
 
 target_link_libraries(${COMMAND_EXECUTOR_EXE}
         fastrtps fastcdr
-        amm::datamodel
+        amm_types
         )
 
 target_link_libraries(${HEART_RATE_LED_EXE}
         fastrtps fastcdr
-        amm::logger
-        amm::datamodel
+        amm_base_logger
+        amm_types
         )
 
 target_link_libraries(${CHEST_RISE_EXE}
         fastrtps fastcdr
-        amm::logger
-        amm::datamodel
+        amm_base_logger
+        amm_types
         )
 
 target_link_libraries(${FLUID_MANAGER_EXE}
         fastrtps fastcdr
-        amm::logger
+        amm_base_logger
         ${TINYXML2_LIBRARIES}
-        amm::datamodel
+        amm_types
         )
 
 target_link_libraries(${IVC_MODULE_EXE}
         fastrtps fastcdr
-        amm::logger
+        amm_base_logger
         ${TINYXML2_LIBRARIES}
-        amm::datamodel
+        amm_types
         )
 
 target_link_libraries(${ARDUINO_BRIDGE_EXE}
         fastrtps fastcdr
-        amm::logger
+        amm_base_logger
         Threads::Threads
         pthread
         Boost::system
         ${TINYXML2_LIBRARIES}
-        amm::datamodel
+        amm_types
         )
 
 target_link_libraries(${TCP_BRIDGE_EXE}
         fastrtps fastcdr
-        amm::logger
+        amm_base_logger
         Boost::system
         Threads::Threads
         ${TINYXML2_LIBRARIES}
-        amm::datamodel
+        amm_types
         )
 
 # add_subdirectory(unittest)

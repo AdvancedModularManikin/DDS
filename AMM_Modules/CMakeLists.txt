@@ -42,19 +42,28 @@ endif ()
 
 # Enable helpfull warnings and C++14 for all files
 if (MSVC)
-    add_compile_options(/std:c++14 /W3 /WX)
+    add_compile_options(/std:c++14 /W3)
+    add_definitions(-DBOOST_ALL_DYN_LINK)
     set(Boost_DETAILED_FAILURE_MSG ON)
     set(Boost_THREADAPI win32)
-    set(Boost_COMPILER "-vc")
-    set(Boost_USE_STATIC_RUNTIME ON)
-    set(BOOST_DEBUG ON)
+    set(Boost_USE_STATIC_LIBS ON)
+    set(Boost_USE_DEBUG_LIBS OFF)
+    set(Boost_USE_RELEASE_LIBS ON)
+    set(Boost_USE_MULTITHREADED ON)
+    set(Boost_USE_STATIC_RUNTIME OFF)
 else ()
     # add_compile_options(-std=c++14 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wunused -pedantic)
     add_compile_options(-std=c++14)
     add_compile_options(-O0)
     set(Boost_USE_STATIC_LIBS OFF)
+    set(Boost_USE_MULTITHREADED ON)
 endif ()
-set(Boost_USE_MULTITHREADED ON)
+
+find_package(Boost REQUIRED COMPONENTS filesystem iostreams system thread)
+
+if (Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+endif ()
 
 if (DEFINED ENV{BIOGEARS_HOME})
     list(APPEND CMAKE_PREFIX_PATH $ENV{BIOGEARS_HOME})
@@ -66,7 +75,8 @@ endif ()
 find_package(fastcdr REQUIRED)
 find_package(fastrtps REQUIRED)
 find_package(Threads REQUIRED)
-find_package(Boost 1.58 COMPONENTS filesystem iostreams system signals thread)
+
+
 find_package(TinyXML2 REQUIRED)
 find_package(SQLite3)
 
