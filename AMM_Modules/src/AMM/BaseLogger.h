@@ -1,3 +1,5 @@
+#pragma once
+
 #include <../thirdparty/plog/Log.h>
 #include <../thirdparty/plog/Appenders/ColorConsoleAppender.h>
 
