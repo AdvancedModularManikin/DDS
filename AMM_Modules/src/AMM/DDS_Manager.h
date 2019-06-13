@@ -1,5 +1,8 @@
 #pragma once
 
+// Boost::uuid relies on an older version of Boost::integer_log2.  Ignore these warnings.
+#define BOOST_ALLOW_DEPRECATED_HEADERS TRUE
+
 #include <fstream>
 #include <sstream>
 #include <streambuf>
