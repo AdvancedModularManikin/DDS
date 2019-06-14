@@ -192,6 +192,7 @@ namespace AMM {
 
         double GetBUN();
 
+
         double GetCreatinineConcentration();
 
         double GetWhiteBloodCellCount();
@@ -199,6 +200,10 @@ namespace AMM {
         double GetRedBloodCellCount();
 
         double GetHemoglobinConcentration();
+        double GetOxyhemoglobinConcentration();
+        double GetCarbaminohemoglobinConcentration();
+        double GetOxyCarbaminohemoglobinConcentration();
+        double GetCarboxyhemoglobinConcentration();
 
         double GetHematocrit();
 
@@ -287,6 +292,11 @@ namespace AMM {
         biogears::SESubstance *N2;
         biogears::SESubstance *O2;
         biogears::SESubstance *CO;
+        biogears::SESubstance *Hb;
+        biogears::SESubstance *HbO2;
+        biogears::SESubstance *HbCO2;
+        biogears::SESubstance *HbCO;
+        biogears::SESubstance *HbO2CO2;
         biogears::SESubstance *potassium;
         biogears::SESubstance *chloride;
         biogears::SESubstance *lactate;

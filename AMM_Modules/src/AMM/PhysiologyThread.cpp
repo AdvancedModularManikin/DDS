@@ -107,9 +107,16 @@ namespace AMM {
         nodePathTable["Substance_BaseExcess"] = &PhysiologyThread::GetBaseExcess;
         nodePathTable["Substance_Glucose_Concentration"] = &PhysiologyThread::GetGlucoseConcentration;
         nodePathTable["Substance_Creatinine_Concentration"] = &PhysiologyThread::GetCreatinineConcentration;
+
         nodePathTable["Substance_Hemoglobin_Concentration"] = &PhysiologyThread::GetHemoglobinConcentration;
+        nodePathTable["Substance_Oxyhemoglobin_Concentration"] = &PhysiologyThread::GetOxyhemoglobinConcentration;
+        nodePathTable["Substance_Carbaminohemoglobin_Concentration"] = &PhysiologyThread::GetCarbaminohemoglobinConcentration;
+        nodePathTable["Substance_OxyCarbaminohemoglobin_Concentration"] = &PhysiologyThread::GetOxyCarbaminohemoglobinConcentration;
+        nodePathTable["Substance_Carboxyhemoglobin_Concentration"] = &PhysiologyThread::GetCarboxyhemoglobinConcentration;
+
         nodePathTable["Substance_Calcium_Concentration"] = &PhysiologyThread::GetCalciumConcentration;
         nodePathTable["Substance_Albumin_Concentration"] = &PhysiologyThread::GetAlbuminConcentration;
+
         nodePathTable["Substance_Lactate_Concentration"] = &PhysiologyThread::GetLactateConcentration;
         nodePathTable["Substance_Lactate_Concentration_mmol"] = &PhysiologyThread::GetLactateConcentrationMMOL;
 
@@ -190,13 +197,18 @@ namespace AMM {
         glucose = m_pe->GetSubstanceManager().GetSubstance("Glucose");
         creatinine = m_pe->GetSubstanceManager().GetSubstance("Creatinine");
         calcium = m_pe->GetSubstanceManager().GetSubstance("Calcium");
-        hemoglobin = m_pe->GetSubstanceManager().GetSubstance("Hemoglobin");
         bicarbonate = m_pe->GetSubstanceManager().GetSubstance("Bicarbonate");
         albumin = m_pe->GetSubstanceManager().GetSubstance("Albumin");
         CO2 = m_pe->GetSubstanceManager().GetSubstance("CarbonDioxide");
         N2 = m_pe->GetSubstanceManager().GetSubstance("Nitrogen");
         O2 = m_pe->GetSubstanceManager().GetSubstance("Oxygen");
         CO = m_pe->GetSubstanceManager().GetSubstance("CarbonMonoxide");
+        Hb = m_pe->GetSubstanceManager().GetSubstance("Hemoglobin");
+        HbO2 = m_pe->GetSubstanceManager().GetSubstance("Oxyhemoglobin");
+        HbCO2 = m_pe->GetSubstanceManager().GetSubstance("Carbaminohemoglobin");
+        HbCO = m_pe->GetSubstanceManager().GetSubstance("Carboxyhemoglobin");
+        HbO2CO2 = m_pe->GetSubstanceManager().GetSubstance("OxyCarbaminohemoglobin");
+
         potassium = m_pe->GetSubstanceManager().GetSubstance("Potassium");
         chloride = m_pe->GetSubstanceManager().GetSubstance("Chloride");
         lactate = m_pe->GetSubstanceManager().GetSubstance("Lactate");
@@ -448,6 +460,23 @@ namespace AMM {
         return ecgLead3_mV;
     }
 
+
+    double PhysiologyThread::GetOxyhemoglobinConcentration() {
+        return HbO2->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
+    }
+
+    double PhysiologyThread::GetCarbaminohemoglobinConcentration() {
+        return HbCO2->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
+    }
+
+    double PhysiologyThread::GetOxyCarbaminohemoglobinConcentration() {
+        return HbO2CO2->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
+    }
+
+    double PhysiologyThread::GetCarboxyhemoglobinConcentration() {
+        return HbCO->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
+    }
+
 // Na+ - Sodium Concentration - mg/dL
     double PhysiologyThread::GetSodiumConcentration() {
         return sodium->GetBloodConcentration(biogears::MassPerVolumeUnit::mg_Per_dL);
@@ -517,7 +546,7 @@ namespace AMM {
 
 // Hgb - Hemoglobin Concentration - g/dL
     double PhysiologyThread::GetHemoglobinConcentration() {
-        return hemoglobin->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
+        return Hb->GetBloodConcentration(biogears::MassPerVolumeUnit::g_Per_dL);
     }
 
 // Hct - Hematocrit - unitless
