@@ -95,15 +95,15 @@ std::string patient_path = "./patients/";
 
 std::map<std::string, double> nodeDataStorage;
 
-std::map<std::string, std::string> statusStorage = {{"STATUS",       "NOT RUNNING"},
-                                                    {"TICK",         "0"},
-                                                    {"TIME",         "0"},
-                                                    {"SCENARIO",     ""},
-                                                    {"STATE",        ""},
-                                                    {"CLEAR_SUPPLY", ""},
-                                                    {"BLOOD_SUPPLY", ""},
+std::map<std::string, std::string> statusStorage = {{"STATUS",         "NOT RUNNING"},
+                                                    {"TICK",           "0"},
+                                                    {"TIME",           "0"},
+                                                    {"SCENARIO",       ""},
+                                                    {"STATE",          ""},
+                                                    {"CLEAR_SUPPLY",   ""},
+                                                    {"BLOOD_SUPPLY",   ""},
                                                     {"FLUIDICS_STATE", ""},
-                                                    {"IVARM_STATE", ""}};
+                                                    {"IVARM_STATE",    ""}};
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -181,7 +181,9 @@ class AMMListener : public ListenerInterface {
     }
 
     void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override {
-        nodeDataStorage[n.nodepath()] = n.dbl();
+        if (!isnan(n.dbl())) {
+            nodeDataStorage[n.nodepath()] = n.dbl();
+        }
     }
 };
 
