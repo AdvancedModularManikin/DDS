@@ -130,13 +130,6 @@ namespace AMM {
         }
     }
 
-    void PhysiologyEngineManager::TestHemo() {
-        std::string payload("flowrate = 391");
-        m_mutex.lock();
-        bg->SetHemorrhage("VenaCava", payload);
-        m_mutex.unlock();
-    }
-
     void PhysiologyEngineManager::WriteHighFrequencyNodeData(std::string node) {
         AMM::Physiology::HighFrequencyNode dataInstance;
         try {

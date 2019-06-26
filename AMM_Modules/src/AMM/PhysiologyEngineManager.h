@@ -75,12 +75,6 @@ namespace AMM {
         int lastFrame = 0;
         bool logging_enabled = false;
 
-        void TestVentilator(const std::string &ventilatorSettings);
-
-        void TestPump(const std::string &pumpSettings);
-
-        void TestPain(const std::string &painSettings);
-
         void onNewNodeData(Physiology::Node n, SampleInfo_t *info) override;
 
         void onNewHighFrequencyNodeData(Physiology::HighFrequencyNode n, SampleInfo_t *info) override;
@@ -96,8 +90,6 @@ namespace AMM {
         void onNewPhysiologyModificationData(Physiology::Modification, SampleInfo_t *info) override;
 
         std::map<std::string, double (PhysiologyThread::*)()> *nodePathMap;
-
-        void TestHemo();
 
         const std::map <std::string, std::string> &GetTissueResistorMap() const;
 

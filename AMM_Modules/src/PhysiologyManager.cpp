@@ -86,8 +86,6 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
         pe->StopSimulation();
         pe->Shutdown();
         closed = true;
-    } else if (action == "8") {
-        pe->TestHemo();
     } else if (action == "LIST") {
         pe->PrintAvailableNodePaths();
     } else if (action == "PRINT") {
