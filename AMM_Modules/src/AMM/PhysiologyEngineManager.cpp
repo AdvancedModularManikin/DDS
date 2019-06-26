@@ -416,7 +416,7 @@ namespace AMM {
         if (running) {
             if (ti.frame() > 0 || !paused) {
                 lastFrame = static_cast<int>(ti.frame());
-
+                bg->lastFrame = lastFrame;
                 // Per-frame stuff happens here
                 try {
                     AdvanceTimeTick();

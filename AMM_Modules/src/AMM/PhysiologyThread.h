@@ -145,6 +145,11 @@ namespace AMM {
         static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
         static std::vector <std::string> highFrequencyNodes;
 
+        int lastFrame = 0;
+
+        // Log every 50th frame
+        int loggingFrequency = 50;
+
         bool logging_enabled = false;
 
     private:
