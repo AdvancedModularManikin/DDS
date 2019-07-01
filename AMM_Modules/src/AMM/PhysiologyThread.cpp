@@ -288,7 +288,7 @@ namespace AMM {
 
     bool PhysiologyThread::ExecuteXMLCommand(const std::string &cmd) {
         char *tmpname = strdup("/tmp/tmp_amm_xml_XXXXXX");
-        mkstemp(tmpname);
+        _mktemp(tmpname);
         std::ofstream out(tmpname);
         out << cmd;
         out.close();
