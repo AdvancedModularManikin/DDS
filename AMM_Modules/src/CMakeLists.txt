@@ -68,6 +68,10 @@ set(COMMAND_EXECUTOR_SOURCES CommandExecutor.cpp)
 set(COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 
+set(REST_SERVICE_SOURCES RestService.cpp)
+set(REST_SERVICE_EXE amm_rest_service)
+add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
+
 set(SPI_SOURCES spi_proto/src/crc16.c spi_proto/src/spi_proto.c spi_proto/src/spi_proto.h)
 #add_library(spi_proto ${SPI_PROTO_SOURCES})
 set(SPI_REMOTE_SOURCES spi_proto/src/spi_remote_host.c spi_proto/src/binary_semaphore.c spi_proto/src/spi_proto_master.cpp spi_proto/src/spi_chunks.cpp)
@@ -164,6 +168,12 @@ target_link_libraries(${COMMAND_EXECUTOR_EXE}
         fastrtps fastcdr
         amm_types
         )
+
+target_link_libraries(${REST_SERVICE_EXE}
+        fastrtps fastcdr
+        amm_types
+        )
+
 
 target_link_libraries(${HEART_RATE_LED_EXE}
         fastrtps fastcdr
