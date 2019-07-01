@@ -71,6 +71,7 @@ add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 set(REST_SERVICE_SOURCES RestService.cpp)
 set(REST_SERVICE_EXE amm_rest_service)
 add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
+target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES})
 
 set(SPI_SOURCES spi_proto/src/crc16.c spi_proto/src/spi_proto.c spi_proto/src/spi_proto.h)
 #add_library(spi_proto ${SPI_PROTO_SOURCES})
@@ -171,9 +172,13 @@ target_link_libraries(${COMMAND_EXECUTOR_EXE}
 
 target_link_libraries(${REST_SERVICE_EXE}
         fastrtps fastcdr
+        ${RAPIDJSON_LIBRARIES}
         amm_base_logger
         amm_types
         )
+target_link_libraries(${REST_SERVICE_EXE} ${Boost_LIBRARIES})
+target_link_libraries(${REST_SERVICE_EXE} ${CMAKE_THREAD_LIBS_INIT})
+
 
 target_link_libraries(${HEART_RATE_LED_EXE}
         fastrtps fastcdr

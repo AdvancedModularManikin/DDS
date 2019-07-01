@@ -2,10 +2,12 @@
 
 #include "AMM/DDS_Manager.h"
 
-#include "thirdparty/crow_all.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
 
 using namespace std;
 using namespace AMM;
+using namespace rapidjson;
 
 static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << " <option(s)>"
@@ -41,6 +43,7 @@ int main(int argc, char *argv[]) {
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     // Do something here
+
 
     return 0;
 }
