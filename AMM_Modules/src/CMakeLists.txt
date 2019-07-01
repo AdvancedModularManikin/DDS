@@ -171,9 +171,9 @@ target_link_libraries(${COMMAND_EXECUTOR_EXE}
 
 target_link_libraries(${REST_SERVICE_EXE}
         fastrtps fastcdr
+        amm_base_logger
         amm_types
         )
-
 
 target_link_libraries(${HEART_RATE_LED_EXE}
         fastrtps fastcdr
