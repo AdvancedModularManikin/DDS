@@ -55,6 +55,8 @@ target_link_libraries(
 )
 target_include_directories(amm_types PUBLIC ${PROJECT_SOURCE_DIR}/src)
 
+
+
 set(SIM_MANAGER_SOURCES SimManager.cpp AMM/SimulationManager.cpp)
 set(SIM_MANAGER_EXE amm_sim_manager)
 add_executable(${SIM_MANAGER_EXE} ${SIM_MANAGER_SOURCES})
@@ -68,7 +70,14 @@ set(COMMAND_EXECUTOR_SOURCES CommandExecutor.cpp)
 set(COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 
-set(REST_SERVICE_SOURCES RestService.cpp)
+# set(REST_SERVICE_SOURCES RestService.cpp)
+# set(REST_SERVICE_EXE amm_rest_service)
+# add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
+# target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES})
+
+file(GLOB REST_SOURCES REST/source/*.cpp)
+file(GLOB REST_HEADERS REST/headers/*.hxx)
+set(REST_SERVICE_SOURCES ${REST_SOURCES} ${REST_HEADERS})
 set(REST_SERVICE_EXE amm_rest_service)
 add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
 target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES})
@@ -91,6 +100,11 @@ set(IVC_MODULE_EXE amm_ivc_module)
 
 set(ARDUINO_BRIDGE_SOURCES Arduino_Bridge.cpp AMM/Utility.cpp)
 set(ARDUINO_BRIDGE_EXE amm_arduino_bridge)
+
+if(WIN32)
+  # find_library(ws2_32_LIBRARY_PATH ws2_32)
+  target_link_libraries(${REST_SERVICE_EXE} wsock32 ws2_32)
+endif()
 
 
 if (NOT MSVC)
