@@ -120,6 +120,7 @@ target_link_libraries(${MODULE_MANAGER_EXE}
         amm_base_logger
         Threads::Threads
         ${SQLITE3_LIBRARIES}
+        ${TinyXML2_LIBRARIES}
         amm_types
         )
 
@@ -188,24 +189,28 @@ if (NOT MSVC)
     target_link_libraries(${HEART_RATE_LED_EXE}
             fastrtps fastcdr
             amm_base_logger
+            ${TinyXML2_LIBRARIES}
             amm_types
             )
 
     target_link_libraries(${CHEST_RISE_EXE}
             fastrtps fastcdr
             amm_base_logger
+            ${TinyXML2_LIBRARIES}
             amm_types
             )
 
     target_link_libraries(${FLUID_MANAGER_EXE}
             fastrtps fastcdr
             amm_base_logger
+            ${TinyXML2_LIBRARIES}
             amm_types
             )
 
     target_link_libraries(${IVC_MODULE_EXE}
             fastrtps fastcdr
             amm_base_logger
+            ${TinyXML2_LIBRARIES}
             amm_types
             )
 
@@ -215,6 +220,7 @@ if (NOT MSVC)
             Threads::Threads
             pthread
             Boost::system
+            ${TinyXML2_LIBRARIES}
             amm_types
             )
 endif ()
@@ -224,6 +230,7 @@ target_link_libraries(${TCP_BRIDGE_EXE}
         amm_base_logger
         Boost::system
         Threads::Threads
+        ${TinyXML2_LIBRARIES}
         amm_types
         )
 
