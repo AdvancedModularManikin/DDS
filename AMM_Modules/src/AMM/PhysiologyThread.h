@@ -140,17 +140,14 @@ namespace AMM {
 
         void SetHemorrhage(const std::string &location, const std::string &hemorrhageSettings);
 
+        void SetLogging(bool log);
+        void SetLastFrame(int lastFrame);
+
         void Status();
 
         static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
         static std::vector <std::string> highFrequencyNodes;
 
-        int lastFrame = 0;
-
-        // Log every 50th frame
-        int loggingFrequency = 50;
-
-        bool logging_enabled = false;
 
     private:
         bool LoadScenarioFile(const std::string &scenarioFile);
@@ -338,5 +335,11 @@ namespace AMM {
         double currentBloodVolume = 0.0;
         double rawRespirationRate = 0.0;
 
+        int lastFrame = 0;
+
+        // Log every 50th frame
+        int loggingFrequency = 50;
+
+        bool logging_enabled = false;
     };
 }

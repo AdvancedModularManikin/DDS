@@ -206,7 +206,7 @@ namespace AMM {
         logging_enabled = log;
         if (bg != nullptr) {
             m_mutex.lock();
-            bg->logging_enabled = logging_enabled;
+            bg->SetLogging(logging_enabled);
             m_mutex.unlock();
         }
     }
@@ -416,7 +416,7 @@ namespace AMM {
         if (running) {
             if (ti.frame() > 0 || !paused) {
                 lastFrame = static_cast<int>(ti.frame());
-                bg->lastFrame = lastFrame;
+                bg->SetLastFrame(lastFrame);
                 // Per-frame stuff happens here
                 try {
                     AdvanceTimeTick();

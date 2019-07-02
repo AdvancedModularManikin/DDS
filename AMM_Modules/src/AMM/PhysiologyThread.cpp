@@ -103,7 +103,7 @@ namespace AMM {
         nodePathTable["BloodChemistry_Arterial_Oxygen_Pressure"] = &PhysiologyThread::GetArterialOxygenPressure;
         nodePathTable["BloodChemistry_VenousOxygenPressure"] = &PhysiologyThread::GetVenousOxygenPressure;
         nodePathTable["BloodChemistry_VenousCarbonDioxidePressure"] = &PhysiologyThread::GetVenousCarbonDioxidePressure;
-        https://travis-ci.org/AdvancedModularManikin/DDS
+
         // Substances
         nodePathTable["Substance_Sodium"] = &PhysiologyThread::GetSodium;
         nodePathTable["Substance_Sodium_Concentration"] = &PhysiologyThread::GetSodiumConcentration;
@@ -286,11 +286,20 @@ namespace AMM {
         return true;
     }
 
+    void PhysiologyThread::SetLastFrame(int lF) {
+        lastFrame = lF;
+    }
+
+    void PhysiologyThread::SetLogging(bool log) {
+        logging_enabled = log;
+    }
+
     bool PhysiologyThread::ExecuteXMLCommand(const std::string &cmd) {
-        char *tmpname = strdup("/tmp/tmp_amm_xml_XXXXXX");
 #ifdef _WIN32
+        char *tmpname = _strdup("/tmp/tmp_amm_xml_XXXXXX");
         _mktemp(tmpname);
 #else
+        char *tmpname = strdup("/tmp/tmp_amm_xml_XXXXXX");
         mkstemp(tmpname);
 #endif
         std::ofstream out(tmpname);
