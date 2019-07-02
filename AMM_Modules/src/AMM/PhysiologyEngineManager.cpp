@@ -203,6 +203,10 @@ namespace AMM {
     void PhysiologyEngineManager::AdvanceTimeTick() { bg->AdvanceTimeTick(); }
 
     void PhysiologyEngineManager::SetLogging(bool log) {
+        #ifdef _WIN32
+            return;
+        #endif
+
         logging_enabled = log;
         if (bg != nullptr) {
             m_mutex.lock();
