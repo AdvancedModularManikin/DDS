@@ -80,7 +80,7 @@ file(GLOB REST_HEADERS REST/headers/*.hxx)
 set(REST_SERVICE_SOURCES RestService.cpp ${REST_SOURCES} ${REST_HEADERS})
 set(REST_SERVICE_EXE amm_rest_service)
 add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
-target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES})
+target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES} ${SQLITE3_INCLUDE_DIR} ${TinyXML2_INCLUDE_DIRS})
 
 set(SPI_SOURCES spi_proto/src/crc16.c spi_proto/src/spi_proto.c spi_proto/src/spi_proto.h)
 set(SPI_REMOTE_SOURCES spi_proto/src/spi_remote_host.c spi_proto/src/binary_semaphore.c spi_proto/src/spi_proto_master.cpp spi_proto/src/spi_chunks.cpp)
@@ -193,6 +193,8 @@ target_link_libraries(${COMMAND_EXECUTOR_EXE}
 target_link_libraries(${REST_SERVICE_EXE}
         fastrtps fastcdr
         ${RAPIDJSON_LIBRARIES}
+        ${SQLITE3_LIBRARIES}
+        ${TinyXML2_LIBRARIES}
         amm_base_logger
         amm_types
         )
