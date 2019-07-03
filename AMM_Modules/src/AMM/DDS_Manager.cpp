@@ -13,7 +13,7 @@ namespace AMM {
 
         ParticipantAttributes PParam;
         PParam.rtps.builtin.domainId = (uint32_t) domainId;
-        PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
+        // PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
         PParam.rtps.setName(nodeName);
         mp_participant = Domain::createParticipant(PParam);
 
