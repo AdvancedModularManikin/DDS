@@ -77,7 +77,7 @@ add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 
 file(GLOB REST_SOURCES REST/source/*.cpp)
 file(GLOB REST_HEADERS REST/headers/*.hxx)
-set(REST_SERVICE_SOURCES ${REST_SOURCES} ${REST_HEADERS})
+set(REST_SERVICE_SOURCES RestService.cpp ${REST_SOURCES} ${REST_HEADERS})
 set(REST_SERVICE_EXE amm_rest_service)
 add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
 target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES})
@@ -196,8 +196,6 @@ target_link_libraries(${REST_SERVICE_EXE}
         amm_base_logger
         amm_types
         )
-target_link_libraries(${REST_SERVICE_EXE} ${Boost_LIBRARIES})
-target_link_libraries(${REST_SERVICE_EXE} ${CMAKE_THREAD_LIBS_INIT})
 
 if (NOT MSVC)
     target_link_libraries(${HEART_RATE_LED_EXE}

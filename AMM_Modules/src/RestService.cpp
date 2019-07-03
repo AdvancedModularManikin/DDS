@@ -2,6 +2,8 @@
 
 #include "AMM/DDS_Manager.h"
 
+#include "REST/headers/WebServer.hxx"
+
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 
@@ -42,7 +44,14 @@ int main(int argc, char *argv[]) {
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
-    // Do something here
+	WebServer webServer("0.0.0.0", 8080);
+    if (webServer.Init() != 0)
+    {
+        return 0;
+    }
+
+    webServer.Run();
+
 
 
     return 0;
