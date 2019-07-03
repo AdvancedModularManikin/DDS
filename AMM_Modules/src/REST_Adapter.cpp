@@ -265,7 +265,7 @@ public:
     void init(int thr = 2) {
         auto opts = Http::Endpoint::options()
                 .threads(thr)
-                .flags(Tcp::Options::InstallSignalHandler | Tcp::Options::ReuseAddr)
+                .flags(Tcp::Options::ReuseAddr)
                 .maxPayload(65536);
         httpEndpoint->init(opts);
         setupRoutes();
