@@ -12,7 +12,6 @@
 #include <fastrtps/rtps/RTPSDomain.h>
 #include <fastrtps/rtps/builtin/data/WriterProxyData.h>
 
-#include <fastrtps/rtps/builtin/discovery/endpoint/EDPSimple.h>
 #include <fastrtps/rtps/reader/ReaderListener.h>
 
 #include <fastrtps/utils/eClock.h>
@@ -21,13 +20,8 @@
 #include <fastrtps/participant/ParticipantListener.h>
 #include <fastrtps/rtps/builtin/data/ReaderProxyData.h>
 
-#include <fastrtps/rtps/builtin/discovery/participant/PDPSimple.h>
-#include <fastrtps/rtps/builtin/discovery/participant/PDPSimpleListener.h>
-
 #include <fastrtps/rtps/builtin/BuiltinProtocols.h>
 #include <fastrtps/rtps/builtin/liveliness/WLP.h>
-
-#include <fastrtps/rtps/builtin/discovery/endpoint/EDPStatic.h>
 
 #include <fastrtps/rtps/resources/AsyncWriterThread.h>
 
