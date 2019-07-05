@@ -79,8 +79,11 @@ file(GLOB REST_SOURCES REST/source/*.cpp)
 file(GLOB REST_HEADERS REST/headers/*.hxx)
 set(REST_SERVICE_SOURCES RestService.cpp ${REST_SOURCES} ${REST_HEADERS})
 set(REST_SERVICE_EXE amm_rest_service)
+
+if (MSVC)
 add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
 target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES} ${SQLITE3_INCLUDE_DIR} ${TinyXML2_INCLUDE_DIRS})
+endif()
 
 set(SPI_SOURCES spi_proto/src/crc16.c spi_proto/src/spi_proto.c spi_proto/src/spi_proto.h)
 set(SPI_REMOTE_SOURCES spi_proto/src/spi_remote_host.c spi_proto/src/binary_semaphore.c spi_proto/src/spi_proto_master.cpp spi_proto/src/spi_chunks.cpp)
@@ -190,14 +193,17 @@ target_link_libraries(${COMMAND_EXECUTOR_EXE}
         amm_types
         )
 
+if (MSVC)
 target_link_libraries(${REST_SERVICE_EXE}
         fastrtps fastcdr
         ${RAPIDJSON_LIBRARIES}
         ${SQLITE3_LIBRARIES}
         ${TinyXML2_LIBRARIES}
+        Boost::system Boost::filesystem Boost::iostreams
         amm_base_logger
         amm_types
         )
+endif()
 
 if (NOT MSVC)
     target_link_libraries(${HEART_RATE_LED_EXE}
