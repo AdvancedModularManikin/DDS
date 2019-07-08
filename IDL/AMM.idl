@@ -271,7 +271,7 @@ module AMM
             IMPENDING_ERROR
         };
 
-        struct AMM_version
+        struct AMM_versions
         {
             string software_version;
             string hardware_version;
@@ -286,7 +286,7 @@ module AMM
             string model;
             string serial_number;
             string version;
-            AMM_version amm_version;
+            AMM_versions amm_version;
             string capabilities;
         };
 
