@@ -30,13 +30,17 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
 
    /// Request outputs
    // for (int i = 0; i < parsed.size(); i++) {
-   //    std::cout << "Element: " + parsed[i] + "\n" << std::endl;
+   //    std::cout << "Element: " + parsed[i] << std::endl;
    // }
 
-   HttpRequest request {
-      ParseMethodFromText(parsed[0]),
-      parsed[1],
-   };
+   HttpRequest request;
+   {
+      int err = ParseMethodFromText(parsed[0], request.method);
+      if (err != 0) {
+         /// Handle error here.
+      }
+   }
+   request.url = parsed[1];
 
 
    /// MAGIC HAPPENS HERE!!
@@ -44,24 +48,18 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
    /// Init routes (by comparing the string literal of the url to call a function.)
 
    std::ostringstream oss;
-   if (request.url == "/test") {
-      oss << "HTTP/1.1 200 OK\r\n";
-      oss << "Cache-Control: no-cache, private\r\n";
-      oss << "Content-Type: text/plain\r\n";
-      oss << "Content-Length: 16\r\n";
-      oss << "\r\n";
-      oss << "Test successful!";
+   if (CompareURLWithEndPointMatch(request.url, "/test/:var") == 0) {
+      test(oss, request, "/test/:var");
 
    } else if (request.url == "/instance") {
 
-      getInstance(&oss);
+      getInstance(oss, request, "/instance");
 
 
    } else if (request.url == "/nodes") {
 
 
-      /// TODO: Need variable binding for name.
-   } else if (request.url == "/node/:name") {
+   } else if (CompareURLWithEndPointMatch(request.url, "/node/:name") == 0) {
 
 
    } else if (request.url == "/ready") {
@@ -99,7 +97,7 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
       }
 
    /// TODO: Need variable binding for id.
-   } else if (request.url == "/action/:name") {
+   } else if (CompareURLWithEndPointMatch(request.url, "/action/:name") == 0) {
 
       switch (request.method) {
          case Method::PUT: {
@@ -142,9 +140,9 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
 
    } else if (request.url == "/states") {
 
-      // getStates
+      getStates(oss, request, "/states");
 
-   } else if (request.url == "/states/:name/delete") {
+   } else if (CompareURLWithEndPointMatch(request.url, "/states/:name/delete") == 0) {
 
       switch (request.method) {
          case Method::REMOVE: {
@@ -159,7 +157,7 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
 
 
    /// TODO: Need variable binding for id.
-   } else if (request.url == "/execute/:name/delete") {
+   } else if (CompareURLWithEndPointMatch(request.url, "/execute/:name/delete") == 0) {
 
 
    } else if (request.url == "/topic/physiology_modification") {
@@ -205,7 +203,7 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
 
 
    /// TODO: Need variable binding for mod_type.
-   } else if (request.url == "/topic/:mod_type") {
+   } else if (CompareURLWithEndPointMatch(request.url, "/topic/:mod_type") == 0) {
 
       switch (request.method) {
          case Method::OPTIONS: {
@@ -222,20 +220,16 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
    } else if (request.url == "/modules/count") {
 
 
-   /// TODO: Need variable binding for id.
-   } else if (request.url == "/module/id/:id") {
+   } else if (CompareURLWithEndPointMatch(request.url, "/module/id/:id") == 0) {
 
 
-   /// TODO: Need variable binding for name.
-   } else if (request.url == "/command/:name") {
+   } else if (CompareURLWithEndPointMatch(request.url, "/command/:name") == 0) {
 
 
-   /// TODO: Need variable binding for id.
-   } else if (request.url == "/command/id/:id") {
+   } else if (CompareURLWithEndPointMatch(request.url, "/command/id/:id") == 0) {
 
 
-   /// TODO: Need variable binding for name.
-   } else if (request.url == "/command/:name") {
+   } else if (CompareURLWithEndPointMatch(request.url, "/command/:name") == 0) {
 
    } else {
       oss << "HTTP/1.1 404 Not Found\r\n";

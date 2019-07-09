@@ -7,6 +7,8 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 
+// #include "REST/headers/ammRestVars.hxx"
+
 using namespace std;
 using namespace AMM;
 using namespace rapidjson;
@@ -44,7 +46,7 @@ int main(int argc, char *argv[]) {
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
-	WebServer webServer("0.0.0.0", 8080);
+	WebServer webServer("0.0.0.0", 9080);
     if (webServer.Init() != 0)
     {
         return 0;
