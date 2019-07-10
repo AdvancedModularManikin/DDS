@@ -91,19 +91,19 @@ std::string action_path = "Actions/";
 std::string state_path = "./states/";
 std::string patient_path = "./patients/";
 
-// std::map<std::string, double> nodeDataStorage;
+std::map<std::string, double> nodeDataStorage;
 
-// std::map<std::string, std::string> statusStorage = {
-//    {"STATUS",         "NOT RUNNING"},
-//    {"TICK",           "0"},
-//    {"TIME",           "0"},
-//    {"SCENARIO",       ""},
-//    {"STATE",          ""},
-//    {"CLEAR_SUPPLY",   ""},
-//    {"BLOOD_SUPPLY",   ""},
-//    {"FLUIDICS_STATE", ""},
-//    {"IVARM_STATE",    ""}
-// };
+std::map<std::string, std::string> statusStorage = {
+   {"STATUS",         "NOT RUNNING"},
+   {"TICK",           "0"},
+   {"TIME",           "0"},
+   {"SCENARIO",       ""},
+   {"STATE",          ""},
+   {"CLEAR_SUPPLY",   ""},
+   {"BLOOD_SUPPLY",   ""},
+   {"FLUIDICS_STATE", ""},
+   {"IVARM_STATE",    ""}
+};
 
 // bool m_runThread = false;
 // int64_t lastTick = 0;
@@ -160,8 +160,6 @@ void getInstance (std::ostringstream& oss, HttpRequest &request, std::string url
    writer.String(scenario.c_str());
    writer.EndObject();
 
-   // response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-   // response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
    std::string str = s.GetString();
    oss << "HTTP/1.1 200 Ok\r\n";
    oss << "Access-Control-Allow-Origin: *\r\n";
@@ -268,8 +266,83 @@ void getStates(std::ostringstream& oss, HttpRequest &request, std::string urlTem
 
 void getNodes (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
 
+   using namespace rapidjson;
+
+   StringBuffer s;
+   Writer<StringBuffer> writer(s);
+   writer.StartArray();
+
+   auto nit = nodeDataStorage.begin();
+   while (nit != nodeDataStorage.end()) {
+      writer.StartObject();
+      writer.Key(nit->first.c_str());
+      writer.Double(nit->second);
+      writer.EndObject();
+      ++nit;
+   }
+
+   auto sit = statusStorage.begin();
+   while (sit != statusStorage.end()) {
+      writer.StartObject();
+      writer.Key(sit->first.c_str());
+      writer.String(sit->second.c_str());
+      writer.EndObject();
+      ++sit;
+   }
+
+   writer.EndArray();
+
+   std::string str = s.GetString();
+   oss << "HTTP/1.1 200 Ok\r\n";
+   oss << "Access-Control-Allow-Origin: *\r\n";
+   oss << "Cache-Control: no-cache, private\r\n";
+   oss << "Content-Type: application/json\r\n";
+   oss << "Content-Length: ";
+   oss << str.length();
+   oss << "\r\n\r\n";
+   oss << s.GetString();
 }
 
-void getNodesByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+void getNodeByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
 
+   UrlParam up;
+   int err = ParseURLParam(request.url, urlTemplate, up);
+   {
+      if (err != 0) {
+         /// Handle error here.
+      }
+   }
+
+   using namespace rapidjson;
+
+   std::string name = up.param;
+   // auto name = request.param(":name").as<std::string>();
+   auto it = nodeDataStorage.find(name);
+   if (it != nodeDataStorage.end()) {
+       StringBuffer s;
+       Writer<StringBuffer> writer(s);
+       writer.StartObject();
+       writer.Key(it->first.c_str());
+       writer.Double(it->second);
+       writer.EndObject();
+
+       std::string str = s.GetString();
+       oss << "HTTP/1.1 200 Ok\r\n";
+       oss << "Access-Control-Allow-Origin: *\r\n";
+       oss << "Cache-Control: no-cache, private\r\n";
+       oss << "Content-Type: application/json\r\n";
+       oss << "Content-Length: ";
+       oss << str.length();
+       oss << "\r\n\r\n";
+       oss << s.GetString();
+   } else {
+       std::string str = "Node data does not exist";
+       oss << "HTTP/1.1 404 Not found\r\n";
+       oss << "Access-Control-Allow-Origin: *\r\n";
+       oss << "Cache-Control: no-cache, private\r\n";
+       oss << "Content-Type: application/json\r\n";
+       oss << "Content-Length: ";
+       oss << str.length();
+       oss << "\r\n\r\n";
+   }
 }

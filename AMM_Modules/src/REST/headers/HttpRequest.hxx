@@ -22,6 +22,7 @@ enum Method {
 
 struct HttpRequest {
    Method method;
+   int contentLength;
    std::string url;
    std::string body;
 };
@@ -33,6 +34,10 @@ struct UrlParam {
    int paramStartPos;
    int paramEndPos;
 };
+
+int ParseRequest (const char* msg, int length, HttpRequest& request);
+
+void PrintHttpRequest (HttpRequest& r);
 
 void PrintUrlParam (UrlParam& up);
 
