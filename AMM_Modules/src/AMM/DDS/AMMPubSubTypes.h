@@ -689,27 +689,6 @@ namespace AMM
     {
 
         /*!
-         * @brief This class represents the TopicDataType of the type AMM_versions defined by the user in the IDL file.
-         * @ingroup AMM
-         */
-        class AMM_versionsPubSubType : public eprosima::fastrtps::TopicDataType {
-        public:
-            typedef AMM_versions type;
-
-            eProsima_user_DllExport AMM_versionsPubSubType();
-
-            eProsima_user_DllExport virtual ~AMM_versionsPubSubType();
-            eProsima_user_DllExport virtual bool serialize(void *data, eprosima::fastrtps::rtps::SerializedPayload_t *payload) override;
-            eProsima_user_DllExport virtual bool deserialize(eprosima::fastrtps::rtps::SerializedPayload_t *payload, void *data) override;
-            eProsima_user_DllExport virtual std::function<uint32_t()> getSerializedSizeProvider(void* data) override;
-            eProsima_user_DllExport virtual bool getKey(void *data, eprosima::fastrtps::rtps::InstanceHandle_t *ihandle,
-                bool force_md5 = false) override;
-            eProsima_user_DllExport virtual void* createData() override;
-            eProsima_user_DllExport virtual void deleteData(void * data) override;
-            MD5 m_md5;
-            unsigned char* m_keyBuffer;
-        };
-        /*!
          * @brief This class represents the TopicDataType of the type Configuration defined by the user in the IDL file.
          * @ingroup AMM
          */

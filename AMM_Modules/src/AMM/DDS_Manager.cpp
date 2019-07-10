@@ -171,11 +171,10 @@ namespace AMM {
     void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
         LOG_DEBUG << "Publishing module configuration";
         try {
-            AMM::Capability::ConfigurationPubSubType configType;
             if (!config_initialized) {
                 config_publisher = InitializeReliablePublisher(
                         AMM::DataTypes::configurationTopic,
-                        &configType, pub_listener);
+                        &ConfigurationType, pub_listener);
                 config_initialized = true;
             }
             config_publisher->write(&configInstance);

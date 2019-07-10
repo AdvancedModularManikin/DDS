@@ -6228,236 +6228,8 @@ void AMM::Resource::Supply::Cleaning_Solution::serializeKey(eprosima::fastcdr::C
 
 
 
-AMM::Capability::AMM_versions::AMM_versions()
-{
-
-
-
-
-}
-
-AMM::Capability::AMM_versions::~AMM_versions()
-{
-
-
-
-}
-
-AMM::Capability::AMM_versions::AMM_versions(const AMM_versions &x)
-{
-    m_software_version = x.m_software_version;
-    m_hardware_version = x.m_hardware_version;
-    m_specification_version = x.m_specification_version;
-}
-
-AMM::Capability::AMM_versions::AMM_versions(AMM_versions &&x)
-{
-    m_software_version = std::move(x.m_software_version);
-    m_hardware_version = std::move(x.m_hardware_version);
-    m_specification_version = std::move(x.m_specification_version);
-}
-
-AMM::Capability::AMM_versions& AMM::Capability::AMM_versions::operator=(const AMM_versions &x)
-{
-
-    m_software_version = x.m_software_version;
-    m_hardware_version = x.m_hardware_version;
-    m_specification_version = x.m_specification_version;
-
-    return *this;
-}
-
-AMM::Capability::AMM_versions& AMM::Capability::AMM_versions::operator=(AMM_versions &&x)
-{
-
-    m_software_version = std::move(x.m_software_version);
-    m_hardware_version = std::move(x.m_hardware_version);
-    m_specification_version = std::move(x.m_specification_version);
-
-    return *this;
-}
-
-size_t AMM::Capability::AMM_versions::getMaxCdrSerializedSize(size_t current_alignment)
-{
-    size_t initial_alignment = current_alignment;
-
-
-    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
-
-    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
-
-    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
-
-
-    return current_alignment - initial_alignment;
-}
-
-size_t AMM::Capability::AMM_versions::getCdrSerializedSize(const AMM::Capability::AMM_versions& data, size_t current_alignment)
-{
-    (void)data;
-    size_t initial_alignment = current_alignment;
-
-
-    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.software_version().size() + 1;
-
-    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.hardware_version().size() + 1;
-
-    current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.specification_version().size() + 1;
-
-
-    return current_alignment - initial_alignment;
-}
-
-void AMM::Capability::AMM_versions::serialize(eprosima::fastcdr::Cdr &scdr) const
-{
-
-    scdr << m_software_version;
-    scdr << m_hardware_version;
-    scdr << m_specification_version;
-}
-
-void AMM::Capability::AMM_versions::deserialize(eprosima::fastcdr::Cdr &dcdr)
-{
-
-    dcdr >> m_software_version;
-    dcdr >> m_hardware_version;
-    dcdr >> m_specification_version;
-}
-
-/*!
- * @brief This function copies the value in member software_version
- * @param _software_version New value to be copied in member software_version
- */
-void AMM::Capability::AMM_versions::software_version(const std::string &_software_version)
-{
-m_software_version = _software_version;
-}
-
-/*!
- * @brief This function moves the value in member software_version
- * @param _software_version New value to be moved in member software_version
- */
-void AMM::Capability::AMM_versions::software_version(std::string &&_software_version)
-{
-m_software_version = std::move(_software_version);
-}
-
-/*!
- * @brief This function returns a constant reference to member software_version
- * @return Constant reference to member software_version
- */
-const std::string& AMM::Capability::AMM_versions::software_version() const
-{
-    return m_software_version;
-}
-
-/*!
- * @brief This function returns a reference to member software_version
- * @return Reference to member software_version
- */
-std::string& AMM::Capability::AMM_versions::software_version()
-{
-    return m_software_version;
-}
-/*!
- * @brief This function copies the value in member hardware_version
- * @param _hardware_version New value to be copied in member hardware_version
- */
-void AMM::Capability::AMM_versions::hardware_version(const std::string &_hardware_version)
-{
-m_hardware_version = _hardware_version;
-}
-
-/*!
- * @brief This function moves the value in member hardware_version
- * @param _hardware_version New value to be moved in member hardware_version
- */
-void AMM::Capability::AMM_versions::hardware_version(std::string &&_hardware_version)
-{
-m_hardware_version = std::move(_hardware_version);
-}
-
-/*!
- * @brief This function returns a constant reference to member hardware_version
- * @return Constant reference to member hardware_version
- */
-const std::string& AMM::Capability::AMM_versions::hardware_version() const
-{
-    return m_hardware_version;
-}
-
-/*!
- * @brief This function returns a reference to member hardware_version
- * @return Reference to member hardware_version
- */
-std::string& AMM::Capability::AMM_versions::hardware_version()
-{
-    return m_hardware_version;
-}
-/*!
- * @brief This function copies the value in member specification_version
- * @param _specification_version New value to be copied in member specification_version
- */
-void AMM::Capability::AMM_versions::specification_version(const std::string &_specification_version)
-{
-m_specification_version = _specification_version;
-}
-
-/*!
- * @brief This function moves the value in member specification_version
- * @param _specification_version New value to be moved in member specification_version
- */
-void AMM::Capability::AMM_versions::specification_version(std::string &&_specification_version)
-{
-m_specification_version = std::move(_specification_version);
-}
-
-/*!
- * @brief This function returns a constant reference to member specification_version
- * @return Constant reference to member specification_version
- */
-const std::string& AMM::Capability::AMM_versions::specification_version() const
-{
-    return m_specification_version;
-}
-
-/*!
- * @brief This function returns a reference to member specification_version
- * @return Reference to member specification_version
- */
-std::string& AMM::Capability::AMM_versions::specification_version()
-{
-    return m_specification_version;
-}
-
-size_t AMM::Capability::AMM_versions::getKeyMaxCdrSerializedSize(size_t current_alignment)
-{
-	size_t current_align = current_alignment;
-
-
-
-
-
-
-    return current_align;
-}
-
-bool AMM::Capability::AMM_versions::isKeyDefined()
-{
-   return false;
-}
-
-void AMM::Capability::AMM_versions::serializeKey(eprosima::fastcdr::Cdr &scdr) const
-{
-	(void) scdr;
-	 
-	 
-	 
-}
-
 AMM::Capability::Configuration::Configuration()
 {
-
 
 
 
@@ -6477,7 +6249,6 @@ AMM::Capability::Configuration::~Configuration()
 
 
 
-
 }
 
 AMM::Capability::Configuration::Configuration(const Configuration &x)
@@ -6488,7 +6259,6 @@ AMM::Capability::Configuration::Configuration(const Configuration &x)
     m_model = x.m_model;
     m_serial_number = x.m_serial_number;
     m_version = x.m_version;
-    m_amm_version = x.m_amm_version;
     m_capabilities = x.m_capabilities;
 }
 
@@ -6500,7 +6270,6 @@ AMM::Capability::Configuration::Configuration(Configuration &&x)
     m_model = std::move(x.m_model);
     m_serial_number = std::move(x.m_serial_number);
     m_version = std::move(x.m_version);
-    m_amm_version = std::move(x.m_amm_version);
     m_capabilities = std::move(x.m_capabilities);
 }
 
@@ -6513,7 +6282,6 @@ AMM::Capability::Configuration& AMM::Capability::Configuration::operator=(const 
     m_model = x.m_model;
     m_serial_number = x.m_serial_number;
     m_version = x.m_version;
-    m_amm_version = x.m_amm_version;
     m_capabilities = x.m_capabilities;
 
     return *this;
@@ -6528,7 +6296,6 @@ AMM::Capability::Configuration& AMM::Capability::Configuration::operator=(Config
     m_model = std::move(x.m_model);
     m_serial_number = std::move(x.m_serial_number);
     m_version = std::move(x.m_version);
-    m_amm_version = std::move(x.m_amm_version);
     m_capabilities = std::move(x.m_capabilities);
 
     return *this;
@@ -6551,7 +6318,6 @@ size_t AMM::Capability::Configuration::getMaxCdrSerializedSize(size_t current_al
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
-    current_alignment += AMM::Capability::AMM_versions::getMaxCdrSerializedSize(current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + 255 + 1;
 
 
@@ -6576,7 +6342,6 @@ size_t AMM::Capability::Configuration::getCdrSerializedSize(const AMM::Capabilit
 
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.version().size() + 1;
 
-    current_alignment += AMM::Capability::AMM_versions::getCdrSerializedSize(data.amm_version(), current_alignment);
     current_alignment += 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4) + data.capabilities().size() + 1;
 
 
@@ -6592,7 +6357,6 @@ void AMM::Capability::Configuration::serialize(eprosima::fastcdr::Cdr &scdr) con
     scdr << m_model;
     scdr << m_serial_number;
     scdr << m_version;
-    scdr << m_amm_version;
     scdr << m_capabilities;
 }
 
@@ -6605,7 +6369,6 @@ void AMM::Capability::Configuration::deserialize(eprosima::fastcdr::Cdr &dcdr)
     dcdr >> m_model;
     dcdr >> m_serial_number;
     dcdr >> m_version;
-    dcdr >> m_amm_version;
     dcdr >> m_capabilities;
 }
 
@@ -6820,41 +6583,6 @@ std::string& AMM::Capability::Configuration::version()
     return m_version;
 }
 /*!
- * @brief This function copies the value in member amm_version
- * @param _amm_version New value to be copied in member amm_version
- */
-void AMM::Capability::Configuration::amm_version(const AMM::Capability::AMM_versions &_amm_version)
-{
-m_amm_version = _amm_version;
-}
-
-/*!
- * @brief This function moves the value in member amm_version
- * @param _amm_version New value to be moved in member amm_version
- */
-void AMM::Capability::Configuration::amm_version(AMM::Capability::AMM_versions &&_amm_version)
-{
-m_amm_version = std::move(_amm_version);
-}
-
-/*!
- * @brief This function returns a constant reference to member amm_version
- * @return Constant reference to member amm_version
- */
-const AMM::Capability::AMM_versions& AMM::Capability::Configuration::amm_version() const
-{
-    return m_amm_version;
-}
-
-/*!
- * @brief This function returns a reference to member amm_version
- * @return Reference to member amm_version
- */
-AMM::Capability::AMM_versions& AMM::Capability::Configuration::amm_version()
-{
-    return m_amm_version;
-}
-/*!
  * @brief This function copies the value in member capabilities
  * @param _capabilities New value to be copied in member capabilities
  */
@@ -6903,7 +6631,6 @@ size_t AMM::Capability::Configuration::getKeyMaxCdrSerializedSize(size_t current
 
 
 
-
     return current_align;
 }
 
@@ -6915,7 +6642,6 @@ bool AMM::Capability::Configuration::isKeyDefined()
 void AMM::Capability::Configuration::serializeKey(eprosima::fastcdr::Cdr &scdr) const
 {
 	(void) scdr;
-	 
 	 
 	 
 	 
