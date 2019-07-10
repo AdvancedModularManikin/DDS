@@ -4,8 +4,8 @@ module AMM
 	{
 		long id;
 		string description;
-	};
-
+	};	
+		
 	struct UUID
 	{
 		long long UUID_MSB;
@@ -263,21 +263,14 @@ module AMM
     };
 
     module Capability
-    {
-        enum status_values
-        {
+    { 
+		enum status_values
+		{
             OPERATIONAL,
             HALTING_ERROR,
             IMPENDING_ERROR
-        };
-
-        struct AMM_versions
-        {
-            string software_version;
-            string hardware_version;
-            string specification_version;
-        };
-
+		};	
+		
         struct Configuration
         {
             string module_id;
@@ -285,8 +278,7 @@ module AMM
             string manufacturer;
             string model;
             string serial_number;
-            string version;
-            AMM_versions amm_version;
+            string version;            
             string capabilities;
         };
 
