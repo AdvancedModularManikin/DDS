@@ -1,11 +1,11 @@
 #include <string>
-#include <istream>
-#include <sstream>
-#include <fstream>
+// #include <istream>
+// #include <sstream>
+// #include <fstream>
 #include <iostream>
-#include <streambuf>
-#include <vector>
-#include <iterator>
+// #include <streambuf>
+// #include <vector>
+// #include <iterator>
 
 #include "REST/headers/WebServer.hxx"
 #include "REST/headers/HttpRequest.hxx"
@@ -23,24 +23,18 @@ void WebServer::MethodNotAllowedResp (std::ostringstream* oss) {
 
 void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length) {
 
-   /// GET /index.html HTTP/1.1
-
-   std::istringstream iss(msg);
-   std::vector<std::string> parsed((std::istream_iterator<std::string>(iss)), std::istream_iterator<std::string>());
-
-   /// Request outputs
-   // for (int i = 0; i < parsed.size(); i++) {
-   //    std::cout << "Element: " + parsed[i] << std::endl;
-   // }
+   /// Error code for error handling.
+   /// 0 = no error;
+   int err;
 
    HttpRequest request;
+   err = ParseRequest(msg, length, request);
    {
-      int err = ParseMethodFromText(parsed[0], request.method);
       if (err != 0) {
          /// Handle error here.
       }
    }
-   request.url = parsed[1];
+
 
 
    /// MAGIC HAPPENS HERE!!
@@ -51,15 +45,17 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
    if (CompareURLWithEndPointMatch(request.url, "/test/:var") == 0) {
       test(oss, request, "/test/:var");
 
-   } else if (request.url == "/instance") {
 
+   } else if (request.url == "/instance") {
       getInstance(oss, request, "/instance");
 
 
    } else if (request.url == "/nodes") {
+      getNodes(oss, request, "/nodes");
 
 
    } else if (CompareURLWithEndPointMatch(request.url, "/node/:name") == 0) {
+      
 
 
    } else if (request.url == "/ready") {
@@ -233,6 +229,7 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
 
    } else {
       oss << "HTTP/1.1 404 Not Found\r\n";
+      oss << "Access-Control-Allow-Origin: *\r\n";
       oss << "Cache-Control: no-cache, private\r\n";
       oss << "Content-Type: text/plain\r\n";
       oss << "Content-Length: 16\r\n";
@@ -245,7 +242,6 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
    std::string output = oss.str();
    int size = output.size() + 1;
    SendToClient(clientSocket, output.c_str(), size);
-
 }
 
 
