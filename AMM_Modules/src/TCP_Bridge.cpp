@@ -706,7 +706,6 @@ void *Server::HandleClient(void *args) {
                             AMM::Performance::Assessment assessment;
                             assessment.assessment_info(modInfo);
                             assessment.assessment_type(modType);
-                            assessment.learner_id(modLearner);
                             mgr->PublishPerformanceData(assessment);
                         } else if (topic == "AMM_Command") {
                             AMM::PatientAction::BioGears::Command cmdInstance;
