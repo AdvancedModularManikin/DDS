@@ -264,7 +264,7 @@ namespace AMM {
             m_pe->GetEngineTrack()->GetDataRequestManager().CreateSubstanceDataRequest().Set(*lactate,
                                                                                              "BloodConcentration",
                                                                                              biogears::MassPerVolumeUnit::ug_Per_mL);
-            m_pe->GetEngineTrack()->GetDataRequestManager().CreateSubstanceDataRequest().Set("UrineProductionRate", VolumePerTimeUnit::mL_Per_min);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("UrineProductionRate", biogears::VolumePerTimeUnit::mL_Per_min);
             m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
         }
 
