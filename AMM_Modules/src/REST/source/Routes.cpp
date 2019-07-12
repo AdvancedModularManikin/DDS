@@ -119,17 +119,26 @@ std::map<std::string, std::string> statusStorage = {
 
 void test (std::ostringstream& oss, HttpRequest &request, std::string urlTemplate) {
 
-   UrlParam up;
-   {
-      int err = ParseURLParam(request.url, urlTemplate, up);
-      if (err != 0) {
-         /// Handle error here.
-      }
+   std::string param;
+   int err = ParseURLParam(request.url, urlTemplate, param);
+   if (err != 0) {
+      /// Handle error here.
    }
+
+   return;
 
    std::string body;
    body += "Test successful!\n";
-   body += "URL param: " + up.param;
+   body += "Method: ";
+   body += request.method;
+   body += "\n";
+   body += "URL: ";
+   body += request.url;
+   body += "\n";
+   body += "URL param: ";
+   body += param;
+
+   std::cout << "\n" << body << std::endl;
 
    oss << "HTTP/1.1 200 OK\r\n";
    oss << "Access-Control-Allow-Origin: *\r\n";
@@ -142,7 +151,9 @@ void test (std::ostringstream& oss, HttpRequest &request, std::string urlTemplat
    oss << body;
 }
 
-void getInstance (std::ostringstream& oss, HttpRequest &request, std::string urlTemplate) {
+void handleGetInstance (std::ostringstream& oss, HttpRequest &request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+   return;
 
    using namespace rapidjson;
 
@@ -171,7 +182,9 @@ void getInstance (std::ostringstream& oss, HttpRequest &request, std::string url
    oss << s.GetString();
 }
 
-void getStates(std::ostringstream& oss, HttpRequest &request, std::string urlTemplate) {
+void handleGetStates(std::ostringstream& oss, HttpRequest &request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+   return;
 
    std::cout << "Enter getStates." << std::endl;
 
@@ -248,23 +261,9 @@ void getStates(std::ostringstream& oss, HttpRequest &request, std::string urlTem
    oss << s.GetString();
 }
 
-// void deleteStates (std::ostringstream* oss) {
-//
-//    auto name =
-//
-//    std::string str = s.GetString();
-//    *oss << "HTTP/1.1 200 Ok\r\n";
-//    *oss << "Access-Control-Allow-Origin: *\r\n";
-//    *oss << "Cache-Control: no-cache, private\r\n";
-//    *oss << "Content-Type: application/json\r\n";
-//    *oss << "Content-Length: ";
-//    *oss << str.length();
-//    *oss << "\r\n\r\n";
-//    *oss << s.GetString();
-// }
-
-
-void getNodes (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+void handleGetNodes (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+   return;
 
    using namespace rapidjson;
 
@@ -303,46 +302,150 @@ void getNodes (std::ostringstream& oss, HttpRequest& request, std::string urlTem
    oss << s.GetString();
 }
 
-void getNodeByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+void handleGetNodeByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+   return;
 
-   UrlParam up;
-   int err = ParseURLParam(request.url, urlTemplate, up);
-   {
-      if (err != 0) {
-         /// Handle error here.
-      }
+   std::string param;
+   int err = ParseURLParam(request.url, urlTemplate, param);
+   if (err != 0) {
+      /// Handle error here.
    }
 
    using namespace rapidjson;
 
-   std::string name = up.param;
+   std::string name = param;
    // auto name = request.param(":name").as<std::string>();
    auto it = nodeDataStorage.find(name);
    if (it != nodeDataStorage.end()) {
-       StringBuffer s;
-       Writer<StringBuffer> writer(s);
-       writer.StartObject();
-       writer.Key(it->first.c_str());
-       writer.Double(it->second);
-       writer.EndObject();
+      StringBuffer s;
+      Writer<StringBuffer> writer(s);
+      writer.StartObject();
+      writer.Key(it->first.c_str());
+      writer.Double(it->second);
+      writer.EndObject();
 
-       std::string str = s.GetString();
-       oss << "HTTP/1.1 200 Ok\r\n";
-       oss << "Access-Control-Allow-Origin: *\r\n";
-       oss << "Cache-Control: no-cache, private\r\n";
-       oss << "Content-Type: application/json\r\n";
-       oss << "Content-Length: ";
-       oss << str.length();
-       oss << "\r\n\r\n";
-       oss << s.GetString();
+      std::string str = s.GetString();
+      oss << "HTTP/1.1 200 Ok\r\n";
+      oss << "Access-Control-Allow-Origin: *\r\n";
+      oss << "Cache-Control: no-cache, private\r\n";
+      oss << "Content-Type: application/json\r\n";
+      oss << "Content-Length: ";
+      oss << str.length();
+      oss << "\r\n\r\n";
+      oss << s.GetString();
    } else {
-       std::string str = "Node data does not exist";
-       oss << "HTTP/1.1 404 Not found\r\n";
-       oss << "Access-Control-Allow-Origin: *\r\n";
-       oss << "Cache-Control: no-cache, private\r\n";
-       oss << "Content-Type: application/json\r\n";
-       oss << "Content-Length: ";
-       oss << str.length();
-       oss << "\r\n\r\n";
+      std::string str = "Node data does not exist";
+      oss << "HTTP/1.1 404 Not found\r\n";
+      oss << "Access-Control-Allow-Origin: *\r\n";
+      oss << "Cache-Control: no-cache, private\r\n";
+      oss << "Content-Type: application/json\r\n";
+      oss << "Content-Length: ";
+      oss << str.length();
+      oss << "\r\n\r\n";
+      oss << str;
    }
+}
+
+void handleGetReady (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+   return;
+
+   std::string str = "1";
+   oss << "HTTP/1.1 200 Ok\r\n";
+   oss << "Access-Control-Allow-Origin: *\r\n";
+   oss << "Cache-Control: no-cache, private\r\n";
+   oss << "Content-Type: text/plain\r\n";
+   oss << "Content-Length: ";
+   oss << str.length();
+   oss << "\r\n\r\n";
+   oss << str;
+}
+
+void handleGetDebug (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetEvents (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetLogs (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetModulesCount (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetModules (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetModuleById (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetModuleByGuid (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetShutdown (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetActions (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetActionByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handlePostAction (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handlePutActionByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleDeleteActionByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handlePostExecute (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleOptionsExecute (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handlePostPhysMod (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handlePostRendMod (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handlePostPerfAss (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handlePostModType (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetPatients (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetDeletedStateByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
+}
+
+void handleGetCommandByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+   test(oss, request, urlTemplate);
 }
