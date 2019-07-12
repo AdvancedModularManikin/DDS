@@ -5,8 +5,6 @@
 class WebServer : public TcpListener {
 
    public:
-      static void MethodNotAllowedResp (std::ostringstream* oss);
-
 
    public:
       WebServer (const char* ipAddr, int port) :
@@ -19,8 +17,4 @@ class WebServer : public TcpListener {
 
       virtual void OnMessageReceived (int clientSocket, const char* msg, int length);
 
-   private:
-
-      /// Returns 0 if URL with variable is a valid match
-      int TranslateURLWithVar (std::string url, std::string endpointMatch);
 };

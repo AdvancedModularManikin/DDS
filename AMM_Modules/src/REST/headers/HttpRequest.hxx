@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <sstream>
 
 enum Method {
    GET = 0,
@@ -39,14 +40,11 @@ int ParseRequest (const char* msg, int length, HttpRequest& request);
 
 void PrintHttpRequest (HttpRequest& r);
 
-void PrintUrlParam (UrlParam& up);
-
-/// Sets `method` and returns 0 if a valid method was parsed.
-int ParseMethodFromText (std::string strMethod, Method& method);
-
 /// Sets `up` and returns 0 if there is a valid param in the url.
-int ParseURLParam (std::string url, std::string endpointMatch, UrlParam& up);
+int ParseURLParam (std::string url, std::string endpointMatch, std::string& param);
 
 /// Returns 0 if the url with param matches the endpoint template.
 /// Only use when url endpoint contains a param that needs to be parsed.
 int CompareURLWithEndPointMatch (std::string url, std::string endpointMatch);
+
+void MethodNotAllowedResp (std::ostringstream& oss);
