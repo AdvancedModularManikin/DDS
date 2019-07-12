@@ -82,6 +82,92 @@ Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
 
+void ResetLabs() {
+    labsStorage.clear();
+    std::ostringstream labRow;
+
+    labRow << "Time,";
+
+// POCT
+    labRow << "POCT,";
+    labRow <<  "Sodium (Na),";
+    labRow <<  "Potassium (K),";
+    labRow <<  "Chloride (Cl),";
+    labRow << "TCO2,";
+    labRow << "Anion Gap,"; // Anion Gap
+    labRow << "Ionized Calcium (iCa),"; // Ionized Calcium (iCa)
+    labRow << "Glucose (Glu),";
+    labRow << "Urea Nitrogen (BUN)/Urea,";
+    labRow << "Creatinine (Crea),";
+
+// Hematology
+    labRow << "Hematology,";
+    labRow << "Hematocrit (Hct),";
+    labRow << "Hemoglobin (Hgb),";
+
+//ABG
+    labRow << "ABG,";
+    labRow << "Lactate,";
+    labRow << "pH,";
+    labRow << "PCO2,";
+    labRow << "PO2,";
+    labRow << "TCO2,";
+    labRow << "HCO3,";
+    labRow << "Base Excess (BE),";
+    labRow << "SpO2,";
+    labRow << "COHb,";
+
+// VBG
+    labRow << "VBG,";
+    labRow << "Lactate,";
+    labRow << "pH,";
+    labRow << "PCO2,";
+    labRow << "TCO2,";
+    labRow << "HCO3,";
+    labRow << "Base Excess (BE),";
+    labRow << "COHb,";
+
+
+    // BMP
+    labRow << "BMP,";
+    labRow << "Sodium (Na),";
+    labRow << "Potassium (K),";
+    labRow << "Chloride (Cl),";
+    labRow << "TCO2,";
+    labRow << "Anion Gap,"; // Anion Gap
+    labRow << "Ionized Calcium (iCa),"; // Ionized Calcium (iCa)
+    labRow << "Glucose (Glu),";
+    labRow << "Urea Nitrogen (BUN)/Urea,";
+    labRow << "Creatinine (Crea),";
+
+
+    // CBC
+    labRow << "CBC,";
+    labRow << "WBC,";
+    labRow << "RBC,";
+    labRow << "Hgb,";
+    labRow << "Hct,";
+    labRow << "Plt,";
+
+// CMP
+    labRow << "CMP,";
+    labRow << "Albumin,";
+    labRow << "ALP,"; // ALP
+    labRow << "ALT,"; // ALT
+    labRow << "AST,"; // AST
+    labRow << "BUN,";
+    labRow << "Calcium,";
+    labRow << "Chloride,";
+    labRow << "CO2,";
+    labRow << "Creatinine (men),";
+    labRow << "Creatinine (women),";
+    labRow << "Glucose,";
+    labRow << "Potassium,";
+    labRow << "Sodium,";
+    labRow << "Total bilirubin,";
+    labRow << "Total protein";
+    labsStorage.push_back(labRow.str());
+}
 
 void AppendLabRow() {
     std::ostringstream labRow;
@@ -224,7 +310,7 @@ class AMMListener : public ListenerInterface {
                 statusStorage["TICK"] = "0";
                 statusStorage["TIME"] = "0";
                 nodeDataStorage.clear();
-                labsStorage.clear();
+                ResetLabs();
             } else if (value.compare("APPEND_LABS") == 0) {
                 AppendLabRow();
             } else if (value.compare("CLEAR_LOG") == 0) {
@@ -1037,6 +1123,8 @@ int main(int argc, char *argv[]) {
     std::string nodeString(nodeName);
     mgr = new DDS_Manager(nodeName);
     mp_participant = mgr->GetParticipant();
+
+    ResetLabs();
 
     static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
     static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
