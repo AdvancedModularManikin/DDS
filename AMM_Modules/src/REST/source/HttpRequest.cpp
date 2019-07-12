@@ -198,3 +198,19 @@ void MethodNotAllowedResp (std::ostringstream& oss) {
    std::cout << "\n" << resp << std::endl;
    oss << resp;
 }
+
+void WriteResponse (std::ostringstream& oss, std::string body, std::string code, std::string mime) {
+
+   oss << "HTTP/1.1";
+   oss << code;
+   oss << "\r\n";
+   oss << "Access-Control-Allow-Origin: *\r\n";
+   oss << "Cache-Control: no-cache, private\r\n";
+   oss << "Content-Type:";
+   oss << mime;
+   oss << "\r\n";
+   oss << "Content-Length: ";
+   oss << body.length();
+   oss << "\r\n\r\n";
+   oss << body;
+}

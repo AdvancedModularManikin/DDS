@@ -4,50 +4,50 @@
 #include <iostream>
 #include <typeinfo>
 
-// #include "stdafx.h"
+#include "stdafx.h"
 
-// #include <fastrtps/fastrtps_fwd.h>
+#include <fastrtps/fastrtps_fwd.h>
 
-// #include <fastrtps/Domain.h>
+#include <fastrtps/Domain.h>
 
-// #include <fastrtps/participant/Participant.h>
-// #include <fastrtps/participant/ParticipantListener.h>
+#include <fastrtps/participant/Participant.h>
+#include <fastrtps/participant/ParticipantListener.h>
 
-// #include <fastrtps/publisher/Publisher.h>
-// #include <fastrtps/publisher/PublisherListener.h>
-// #include <fastrtps/subscriber/SampleInfo.h>
-// #include <fastrtps/subscriber/Subscriber.h>
-// #include <fastrtps/subscriber/SubscriberListener.h>
+#include <fastrtps/publisher/Publisher.h>
+#include <fastrtps/publisher/PublisherListener.h>
+#include <fastrtps/subscriber/SampleInfo.h>
+#include <fastrtps/subscriber/Subscriber.h>
+#include <fastrtps/subscriber/SubscriberListener.h>
 
-// #include <fastrtps/rtps/RTPSDomain.h>
-// #include <fastrtps/rtps/builtin/data/WriterProxyData.h>
-// #include <fastrtps/rtps/builtin/discovery/endpoint/EDPSimple.h>
-// #include <fastrtps/rtps/builtin/data/ReaderProxyData.h>
-// #include <fastrtps/rtps/builtin/discovery/participant/PDPSimple.h>
-// #include <fastrtps/rtps/builtin/discovery/participant/PDPSimpleListener.h>
-// #include <fastrtps/rtps/builtin/BuiltinProtocols.h>
-// #include <fastrtps/rtps/builtin/liveliness/WLP.h>
-// #include <fastrtps/rtps/builtin/discovery/endpoint/EDPStatic.h>
-// #include <fastrtps/rtps/resources/AsyncWriterThread.h>
-// #include <fastrtps/rtps/writer/StatelessWriter.h>
-// #include <fastrtps/rtps/reader/StatelessReader.h>
-// #include <fastrtps/rtps/reader/ReaderListener.h>
-// #include <fastrtps/rtps/reader/WriterProxy.h>
-// #include <fastrtps/rtps/history/ReaderHistory.h>
-// #include <fastrtps/rtps/history/WriterHistory.h>
-// #include <fastrtps/rtps/participant/RTPSParticipant.h>
+#include <fastrtps/rtps/RTPSDomain.h>
+#include <fastrtps/rtps/builtin/data/WriterProxyData.h>
+#include <fastrtps/rtps/builtin/discovery/endpoint/EDPSimple.h>
+#include <fastrtps/rtps/builtin/data/ReaderProxyData.h>
+#include <fastrtps/rtps/builtin/discovery/participant/PDPSimple.h>
+#include <fastrtps/rtps/builtin/discovery/participant/PDPSimpleListener.h>
+#include <fastrtps/rtps/builtin/BuiltinProtocols.h>
+#include <fastrtps/rtps/builtin/liveliness/WLP.h>
+#include <fastrtps/rtps/builtin/discovery/endpoint/EDPStatic.h>
+#include <fastrtps/rtps/resources/AsyncWriterThread.h>
+#include <fastrtps/rtps/writer/StatelessWriter.h>
+#include <fastrtps/rtps/reader/StatelessReader.h>
+#include <fastrtps/rtps/reader/ReaderListener.h>
+#include <fastrtps/rtps/reader/WriterProxy.h>
+#include <fastrtps/rtps/history/ReaderHistory.h>
+#include <fastrtps/rtps/history/WriterHistory.h>
+#include <fastrtps/rtps/participant/RTPSParticipant.h>
 
-// #include <fastrtps/utils/eClock.h>
-// #include <fastrtps/utils/TimeConversion.h>
+#include <fastrtps/utils/eClock.h>
+#include <fastrtps/utils/TimeConversion.h>
 
-// #include <Net/UdpDiscoveryServer.h>
-// #include "tinyxml2.h"
-// #include <thirdparty/sqlite_modern_cpp.h>
+#include <Net/UdpDiscoveryServer.h>
+#include "tinyxml2.h"
+#include <thirdparty/sqlite_modern_cpp.h>
 
-// #include "AMM/BaseLogger.h"
-// #include "AMM/DDS_Log_Appender.h"
-// #include "AMM/DDS_Manager.h"
-// #include "AMM/Utility.h"
+#include "AMM/BaseLogger.h"
+#include "AMM/DDS_Log_Appender.h"
+#include "AMM/DDS_Manager.h"
+#include "AMM/Utility.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -105,14 +105,14 @@ std::map<std::string, std::string> statusStorage = {
    {"IVARM_STATE",    ""}
 };
 
-// bool m_runThread = false;
+bool m_runThread = false;
 // int64_t lastTick = 0;
 
 
 // DDS_Manager *mgr;
 // Participant *mp_participant;
 // boost::asio::io_service io_service;
-// sqlite::database db("amm.db");
+sqlite::database db("amm.db");
 
 
 /// All the following route-binded functions mutate ostringstream that then get written out to the client.
@@ -150,8 +150,6 @@ void test (std::ostringstream& oss, HttpRequest &request, std::string urlTemplat
 }
 
 void handleGetInstance (std::ostringstream& oss, HttpRequest &request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
-   return;
 
    using namespace rapidjson;
 
@@ -181,8 +179,6 @@ void handleGetInstance (std::ostringstream& oss, HttpRequest &request, std::stri
 }
 
 void handleGetStates(std::ostringstream& oss, HttpRequest &request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
-   return;
 
    std::cout << "Enter getStates." << std::endl;
 
@@ -236,8 +232,6 @@ void handleGetStates(std::ostringstream& oss, HttpRequest &request, std::string 
 }
 
 void handleGetNodes (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
-   return;
 
    using namespace rapidjson;
 
@@ -277,8 +271,6 @@ void handleGetNodes (std::ostringstream& oss, HttpRequest& request, std::string 
 }
 
 void handleGetNodeByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
-   return;
 
    std::string param;
    int err = ParseURLParam(request.url, urlTemplate, param);
@@ -322,8 +314,6 @@ void handleGetNodeByName (std::ostringstream& oss, HttpRequest& request, std::st
 }
 
 void handleGetReady (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
-   return;
 
    std::string str = "1";
    oss << "HTTP/1.1 200 Ok\r\n";
@@ -337,35 +327,281 @@ void handleGetReady (std::ostringstream& oss, HttpRequest& request, std::string 
 }
 
 void handleGetDebug (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+
+   string body;
+   body += "TODO: Implement cookie parsing";
+   WriteResponse(oss, body, "200 OK", "text/plain");
+
 }
 
 void handleGetEvents (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+   StringBuffer s;
+   Writer<StringBuffer> writer(s);
+   writer.StartArray();
+
+   db << "SELECT "
+      "module_capabilities.module_name,"
+      "events.source,"
+      "events.topic,"
+      "events.tick,"
+      "events.timestamp,"
+      "events.data "
+      "FROM "
+      "events "
+      "LEFT JOIN module_capabilities "
+      "ON "
+      "events.source = module_capabilities.module_guid" >>
+      [&](string module_name, string source, string topic, int64_t tick, int64_t timestamp, string data) {
+         writer.StartObject();
+         writer.Key("source");
+         writer.String(module_name.c_str());
+         writer.Key("module_guid");
+         writer.String(source.c_str());
+         writer.Key("tick");
+         writer.Uint64(tick);
+         writer.Key("timestamp");
+         writer.Uint64(timestamp);
+         writer.Key("topic");
+         writer.String(topic.c_str());
+         writer.Key("message");
+         writer.String(data.c_str());
+         writer.EndObject();
+      };
+
+      writer.EndArray();
+
+      WriteResponse(oss, s.GetString(), "200 OK", "application/json");
 }
 
 void handleGetLogs (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+   StringBuffer s;
+   Writer<StringBuffer> writer(s);
+   writer.StartArray();
+
+   db << "SELECT "
+              "logs.module_name, "
+              "logs.module_guid, "
+              "logs.module_id, "
+              "logs.message,"
+              "logs.log_level,"
+              "logs.timestamp "
+              "FROM "
+              "logs " >>
+           [&](string module_name, string module_guid, string module_id, string message, string log_level,
+               int64_t timestamp) {
+
+               writer.StartObject();
+               writer.Key("source");
+               writer.String(module_name.c_str());
+               writer.Key("module_guid");
+               writer.String(module_guid.c_str());
+               writer.Key("module_id");
+               writer.String(module_id.c_str());
+               writer.Key("timestamp");
+               writer.Uint64(timestamp);
+               writer.Key("log_level");
+               writer.String(log_level.c_str());
+               writer.Key("message");
+               writer.String(message.c_str());
+               writer.EndObject();
+           };
+
+        writer.EndArray();
+
+        WriteResponse(oss, s.GetString(), "200 OK", "application/json");
 }
 
 void handleGetModulesCount (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+   StringBuffer s;
+        Writer<StringBuffer> writer(s);
+
+        int count = 0;
+        db << "SELECT COUNT(DISTINCT module_name) FROM module_capabilities" >> count;
+        writer.StartObject();
+
+        writer.Key("module_count");
+        writer.Int(count);
+
+        writer.EndObject();
+
+        WriteResponse(oss, s.GetString(), "200 OK", "application/json");
 }
 
 void handleGetModules (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+   StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+
+        db << "SELECT "
+              "module_capabilities.module_id AS module_id,"
+              "module_capabilities.module_guid as module_guid,"
+              "module_capabilities.module_name AS module_name,"
+              "module_capabilities.capabilities as capabilities,"
+              "module_capabilities.manufacturer as manufacturer,"
+              "module_capabilities.model as model "
+              " FROM "
+              " module_capabilities; " >>
+           [&](string module_id, string module_guid, string module_name,
+               string capabilities,
+               string manufacturer, string model) {
+               writer.StartObject();
+
+               writer.Key("Module_ID");
+               writer.String(module_id.c_str());
+
+               writer.Key("Module_GUID");
+               writer.String(module_guid.c_str());
+
+               writer.Key("Module_Name");
+               writer.String(module_name.c_str());
+
+               writer.Key("Manufacturer");
+               writer.String(manufacturer.c_str());
+
+               writer.Key("Model");
+               writer.String(model.c_str());
+
+               writer.Key("Module_Capabilities");
+               writer.String(capabilities.c_str());
+
+               writer.EndObject();
+           };
+
+        writer.EndArray();
+
+        WriteResponse(oss, s.GetString(), "200 OK", "application/json");
 }
 
 void handleGetModuleById (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+   string id;
+   int err = ParseURLParam(request.url, urlTemplate, id);
+   if (err != 0) {
+      /// Handle error here.
+   }
+
+   // auto id = request.param(":id").as<std::string>();
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        db << "SELECT "
+              "module_id AS module_id,"
+              "module_guid as module_guid,"
+              "module_name AS module_name,"
+              "capabilities as capabilities,"
+              "manufacturer as manufacturer,"
+              "model as model "
+              " FROM "
+              " module_capabilities "
+              " WHERE module_id = ?"
+           << id >>
+           [&](string module_id, string module_guid, string module_name,
+               string capabilities, string manufacturer, string model) {
+               writer.StartObject();
+
+               writer.Key("Module_ID");
+               writer.String(module_id.c_str());
+
+               writer.Key("Module_GUID");
+               writer.String(module_guid.c_str());
+
+               writer.Key("Module_Name");
+               writer.String(module_name.c_str());
+
+               writer.Key("Manufacturer");
+               writer.String(manufacturer.c_str());
+
+               writer.Key("Model");
+               writer.String(model.c_str());
+
+               writer.Key("Module_Capabilities");
+               writer.String(capabilities.c_str());
+
+               writer.EndObject();
+           };
+
+           WriteResponse(oss, s.GetString(), "200 OK", "application/json");
 }
 
 void handleGetModuleByGuid (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+   string guid;
+   int err = ParseURLParam(request.url, urlTemplate, guid);
+   if (err != 0) {
+      /// Handle error here.
+   }
+
+   // auto guid = request.param(":guid").as<std::string>();
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        db << "SELECT "
+              "module_id AS module_id,"
+              "module_guid as module_guid,"
+              "module_name AS module_name,"
+              "capabilities as capabilities,"
+              "manufacturer as manufacturer,"
+              "model as model "
+              " FROM "
+              " module_capabilities "
+              " WHERE module_guid = ?"
+           << guid >>
+           [&](string module_id, string module_guid, string module_name,
+               string capabilities, string manufacturer, string model) {
+               writer.StartObject();
+
+               writer.Key("Module_ID");
+               writer.String(module_id.c_str());
+
+               writer.Key("Module_GUID");
+               writer.String(module_guid.c_str());
+
+               writer.Key("Module_Name");
+               writer.String(module_name.c_str());
+
+               writer.Key("Manufacturer");
+               writer.String(manufacturer.c_str());
+
+               writer.Key("Model");
+               writer.String(model.c_str());
+
+               writer.Key("Module_Capabilities");
+               writer.String(capabilities.c_str());
+
+               writer.EndObject();
+           };
+
+           WriteResponse(oss, s.GetString(), "200 OK", "application/json");
+
 }
 
 void handleGetShutdown (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+   m_runThread = false;
+   std::string body;
+   body += "TODO: implement cookie parsing.";
+   WriteResponse(oss, body, "200 OK", "text/plain");
 }
 
 void handleGetActions (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
