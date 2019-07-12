@@ -1,5 +1,12 @@
 #include "stdafx.h"
 
+#include <mutex>
+#include <chrono>
+#include <thread>
+#include <iostream>
+#include <functional>
+#include <condition_variable>
+
 #include "AMM/BaseLogger.h"
 #include "AMM/DDS_Log_Appender.h"
 
@@ -16,6 +23,7 @@
 #include <Net/UdpDiscoveryServer.h>
 
 #include "boost/filesystem.hpp"
+#include <boost/algorithm/string/join.hpp>
 
 #include "tinyxml2.h"
 
@@ -63,6 +71,7 @@ std::map<std::string, std::string> statusStorage = {{"STATUS",         "NOT RUNN
                                                     {"BLOOD_SUPPLY",   ""},
                                                     {"FLUIDICS_STATE", ""},
                                                     {"IVARM_STATE",    ""}};
+std::vector<std::string> labsStorage;
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -72,6 +81,86 @@ DDS_Manager *mgr;
 Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
+
+
+void AppendLabRow() {
+    std::ostringstream labRow;
+
+    labRow << statusStorage["TIME"] << ",";
+
+// POCT
+    labRow << nodeDataStorage["Substance_Sodium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << ","; // Anion Gap
+    labRow << ","; // Ionized Calcium (iCa)
+    labRow << nodeDataStorage["Substance_Glucose_Concentration"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodUreaNitrogen_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+
+// Hematology
+    labRow << nodeDataStorage["BloodChemistry_Hemaocrit"] << ",";
+    labRow << nodeDataStorage["Substance_Hemoglobin_Concentration"] << ",";
+
+//ABG
+    labRow << nodeDataStorage["Substance_Lactate_Concentration_mmol"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodPH"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Arterial_CarbonDioxide_Pressure"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Arterial_Oxygen_Pressure"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << nodeDataStorage["Substance_Bicarbonate"] << ",";
+    labRow << nodeDataStorage["Substance_BaseExcess"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Oxygen_Saturation"] << ",";
+    labRow << nodeDataStorage["Substance_Carboxyhemoglobin_Concentration"] << ",";
+
+// VBG
+    labRow << nodeDataStorage["Substance_Lactate_Concentration_mmol"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodPH"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_VenousCarbonDioxidePressure"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << nodeDataStorage["Substance_Bicarbonate"] << ",";
+    labRow << nodeDataStorage["Substance_BaseExcess"] << ",";
+    labRow << nodeDataStorage["Substance_Carboxyhemoglobin_Concentration"] << ",";
+
+
+    // BMP
+    labRow << nodeDataStorage["Substance_Sodium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << ","; // Anion Gap
+    labRow << ","; // Ionized Calcium (iCa)
+    labRow << nodeDataStorage["Substance_Glucose_Concentration"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodUreaNitrogen_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+
+
+    // CBC
+    labRow << nodeDataStorage["BloodChemistry_WhiteBloodCell_Count"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_RedBloodCell_Count"] << ",";
+    labRow << nodeDataStorage["Substance_Hemoglobin_Concentration"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Hemaocrit"] << ",";
+    labRow << nodeDataStorage["CompleteBloodCount_Platelet"] << ",";
+
+// CMP
+    labRow << nodeDataStorage["Substance_Albumin_Concentration"] << ",";
+    labRow << ","; // ALP
+    labRow << ","; // ALT
+    labRow << ","; // AST
+    labRow << nodeDataStorage["BloodChemistry_BloodUreaNitrogen_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Calcium_Concentration"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Glucose_Concentration"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
+    labRow << nodeDataStorage["Substance_Sodium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Bilirubin"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Protein"] << ",";
+    labsStorage.push_back(labRow.str());
+}
 
 class AMMListener : public ListenerInterface {
     void onNewStatusData(AMM::Capability::Status st,
@@ -128,6 +217,9 @@ class AMMListener : public ListenerInterface {
                 statusStorage["TICK"] = "0";
                 statusStorage["TIME"] = "0";
                 nodeDataStorage.clear();
+                labsStorage.clear();
+            } else if (value.compare("APPEND_LABS") == 0) {
+                AppendLabRow();
             } else if (value.compare("CLEAR_LOG") == 0) {
 
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
@@ -250,6 +342,8 @@ private:
                     Routes::bind(&DDSEndpoint::issueCommand, this));
         Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
         Routes::Get(router, "/debug", Routes::bind(&DDSEndpoint::doDebug, this));
+
+        Routes::Get(router, "/labs", Routes::bind(&DDSEndpoint::getLabsReport, this));
 
         Routes::Get(router, "/events",
                     Routes::bind(&DDSEndpoint::getEventLog, this));
@@ -830,6 +924,13 @@ private:
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getLabsReport(const Rest::Request &request, Http::ResponseWriter response) {
+        std::string labReport = boost::algorithm::join(labsStorage, "\n");
+        auto mime = Http::Mime::MediaType::fromString("text/csv");
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, labReport, mime);
     }
 
     void getNode(const Rest::Request &request, Http::ResponseWriter response) {
