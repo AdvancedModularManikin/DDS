@@ -125,30 +125,28 @@ void test (std::ostringstream& oss, HttpRequest &request, std::string urlTemplat
       /// Handle error here.
    }
 
-   return;
-
    std::string body;
    body += "Test successful!\n";
-   body += "Method: ";
-   body += request.method;
-   body += "\n";
-   body += "URL: ";
-   body += request.url;
-   body += "\n";
-   body += "URL param: ";
-   body += param;
+   // body += "Method: ";
+   // body += request.method;
+   // body += "\n";
+   // body += "URL: ";
+   // body += request.url;
+   // body += "\n";
+   // body += "URL param: ";
+   // body += param;
 
-   std::cout << "\n" << body << std::endl;
+   // std::cout << "\n" << body << std::endl;
 
    oss << "HTTP/1.1 200 OK\r\n";
-   oss << "Access-Control-Allow-Origin: *\r\n";
-   oss << "Cache-Control: no-cache, private\r\n";
+   // oss << "Access-Control-Allow-Origin: *\r\n";
+   // oss << "Cache-Control: no-cache, private\r\n";
    oss << "Content-Type: text/plain\r\n";
    oss << "Content-Length: ";
    oss << body.length();
-   oss << "\r\n";
-   oss << "\r\n";
+   oss << "\r\n\r\n";
    oss << body;
+
 }
 
 void handleGetInstance (std::ostringstream& oss, HttpRequest &request, std::string urlTemplate) {
@@ -222,31 +220,7 @@ void handleGetStates(std::ostringstream& oss, HttpRequest &request, std::string 
       }
    }
 
-   /// ORIGINAL CODE
-   // if (exists(state_path) && is_directory(state_path)) {
-   //    path p(state_path);
-   //    if (is_directory(p)) {
-   //       directory_iterator end_iter;
-   //       for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
-   //          if (is_regular_file(dir_itr->status())) {
-   //             writer.StartObject();
-   //             writer.Key("name");
-   //             // std::cout << dir_itr->path().filename().c_str() << std::endl;
-   //             // writer.String(dir_itr->path().filename().c_str());
-   //             writer.Key("description");
-   //             stringstream writeTime;
-   //             writeTime << last_write_time(dir_itr->path());
-   //             writer.String(writeTime.str().c_str());
-   //             writer.EndObject();
-   //          }
-   //       }
-   //    }
-   // }
-
    writer.EndArray();
-
-   // response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
-   // response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
 
    std::cout << "Writing response." << std::endl;
 

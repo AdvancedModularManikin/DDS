@@ -260,6 +260,7 @@ void WebServer::OnMessageReceived (int clientSocket, const char* msg, int length
       resp += "HTTP/1.1 404 Not Found\r\n";
       resp += "Access-Control-Allow-Origin: *\r\n";
       resp += "Cache-Control: no-cache, private\r\n";
+      resp += "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n";
       resp += "Content-Type: text/plain\r\n";
       resp += "Content-Length: 16\r\n";
       resp += "\r\n";

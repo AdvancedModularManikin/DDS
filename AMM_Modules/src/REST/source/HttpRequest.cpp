@@ -27,6 +27,7 @@ int ParseRequest (const char* msg, int length, HttpRequest& request) {
       httprequest.push_back(newline);
    }
 
+   std::cout << "Send to server:" << std::endl;
    for (int i = 0; i < httprequest.size(); i++) {
       std::cout << i << ":  " << httprequest[i] << std::endl;
    }

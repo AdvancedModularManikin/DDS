@@ -162,6 +162,12 @@ int TcpListener::Run () {
 
 
 void TcpListener::SendToClient (int clientSocket, const char* msg, int length) {
+   using namespace std;
+
+   cout << "\n" << endl;
+   cout << "Send to client" << endl;
+   cout << msg << endl;
+
    send(clientSocket, msg, length, 0);
 }
 
