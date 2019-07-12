@@ -86,7 +86,7 @@ database db("amm.db");
 void AppendLabRow() {
     std::ostringstream labRow;
 
-    labRow << nodeStorage["SIM_TIME"] << ",";
+    labRow << nodeDataStorage["SIM_TIME"] << ",";
 
 // POCT
     labRow << "POCT,";
