@@ -89,6 +89,7 @@ void AppendLabRow() {
     labRow << statusStorage["TIME"] << ",";
 
 // POCT
+    labRow << "POCT,";
     labRow << nodeDataStorage["Substance_Sodium"] << ",";
     labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
     labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
@@ -100,10 +101,12 @@ void AppendLabRow() {
     labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
 
 // Hematology
+    labRow << "Hematology,";
     labRow << nodeDataStorage["BloodChemistry_Hemaocrit"] << ",";
     labRow << nodeDataStorage["Substance_Hemoglobin_Concentration"] << ",";
 
 //ABG
+    labRow << "ABG,";
     labRow << nodeDataStorage["Substance_Lactate_Concentration_mmol"] << ",";
     labRow << nodeDataStorage["BloodChemistry_BloodPH"] << ",";
     labRow << nodeDataStorage["BloodChemistry_Arterial_CarbonDioxide_Pressure"] << ",";
@@ -115,6 +118,7 @@ void AppendLabRow() {
     labRow << nodeDataStorage["Substance_Carboxyhemoglobin_Concentration"] << ",";
 
 // VBG
+    labRow << "VBG,";
     labRow << nodeDataStorage["Substance_Lactate_Concentration_mmol"] << ",";
     labRow << nodeDataStorage["BloodChemistry_BloodPH"] << ",";
     labRow << nodeDataStorage["BloodChemistry_VenousCarbonDioxidePressure"] << ",";
@@ -125,6 +129,7 @@ void AppendLabRow() {
 
 
     // BMP
+    labRow << "BMP,";
     labRow << nodeDataStorage["Substance_Sodium"] << ",";
     labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
     labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
@@ -137,6 +142,7 @@ void AppendLabRow() {
 
 
     // CBC
+    labRow << "CBC,";
     labRow << nodeDataStorage["BloodChemistry_WhiteBloodCell_Count"] << ",";
     labRow << nodeDataStorage["BloodChemistry_RedBloodCell_Count"] << ",";
     labRow << nodeDataStorage["Substance_Hemoglobin_Concentration"] << ",";
@@ -144,6 +150,7 @@ void AppendLabRow() {
     labRow << nodeDataStorage["CompleteBloodCount_Platelet"] << ",";
 
 // CMP
+    labRow << "CMP,";
     labRow << nodeDataStorage["Substance_Albumin_Concentration"] << ",";
     labRow << ","; // ALP
     labRow << ","; // ALT
@@ -158,7 +165,7 @@ void AppendLabRow() {
     labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
     labRow << nodeDataStorage["Substance_Sodium"] << ",";
     labRow << nodeDataStorage["MetabolicPanel_Bilirubin"] << ",";
-    labRow << nodeDataStorage["MetabolicPanel_Protein"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Protein"];
     labsStorage.push_back(labRow.str());
 }
 
