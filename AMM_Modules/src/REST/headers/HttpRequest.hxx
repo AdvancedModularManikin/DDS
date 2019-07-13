@@ -49,4 +49,7 @@ int CompareURLWithEndPointMatch (std::string url, std::string endpointMatch);
 
 void MethodNotAllowedResp (std::ostringstream& oss);
 
+void MethodNotImplementedResp (std::ostringstream& oss);
+
+
 void WriteResponse (std::ostringstream& oss, std::string body, std::string code, std::string mime);

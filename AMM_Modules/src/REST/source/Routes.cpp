@@ -1,48 +1,14 @@
+#include "stdafx.h"
+
 #include <fstream>
 #include <istream>
 #include <sstream>
 #include <iostream>
-#include <typeinfo>
-
-#include "stdafx.h"
-
-#include <fastrtps/fastrtps_fwd.h>
-
-#include <fastrtps/Domain.h>
-
-#include <fastrtps/participant/Participant.h>
-#include <fastrtps/participant/ParticipantListener.h>
-
-#include <fastrtps/publisher/Publisher.h>
-#include <fastrtps/publisher/PublisherListener.h>
-#include <fastrtps/subscriber/SampleInfo.h>
-#include <fastrtps/subscriber/Subscriber.h>
-#include <fastrtps/subscriber/SubscriberListener.h>
-
-#include <fastrtps/rtps/RTPSDomain.h>
-#include <fastrtps/rtps/builtin/data/WriterProxyData.h>
-#include <fastrtps/rtps/builtin/discovery/endpoint/EDPSimple.h>
-#include <fastrtps/rtps/builtin/data/ReaderProxyData.h>
-#include <fastrtps/rtps/builtin/discovery/participant/PDPSimple.h>
-#include <fastrtps/rtps/builtin/discovery/participant/PDPSimpleListener.h>
-#include <fastrtps/rtps/builtin/BuiltinProtocols.h>
-#include <fastrtps/rtps/builtin/liveliness/WLP.h>
-#include <fastrtps/rtps/builtin/discovery/endpoint/EDPStatic.h>
-#include <fastrtps/rtps/resources/AsyncWriterThread.h>
-#include <fastrtps/rtps/writer/StatelessWriter.h>
-#include <fastrtps/rtps/reader/StatelessReader.h>
-#include <fastrtps/rtps/reader/ReaderListener.h>
-#include <fastrtps/rtps/reader/WriterProxy.h>
-#include <fastrtps/rtps/history/ReaderHistory.h>
-#include <fastrtps/rtps/history/WriterHistory.h>
-#include <fastrtps/rtps/participant/RTPSParticipant.h>
-
-#include <fastrtps/utils/eClock.h>
-#include <fastrtps/utils/TimeConversion.h>
-
-#include <Net/UdpDiscoveryServer.h>
-#include "tinyxml2.h"
-#include <thirdparty/sqlite_modern_cpp.h>
+#include <mutex>
+#include <chrono>
+#include <thread>
+#include <functional>
+#include <condition_variable>
 
 #include "AMM/BaseLogger.h"
 #include "AMM/DDS_Log_Appender.h"
@@ -52,26 +18,23 @@
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 
+#include <Net/UdpDiscoveryServer.h>
+
+
+#include "tinyxml2.h"
+
+#include <thirdparty/sqlite_modern_cpp.h>
+
 // #include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ip/host_name.hpp>
+#include <boost/algorithm/string/join.hpp>
 
 #include <experimental/filesystem>
 #include <filesystem>
 
 #include "REST/headers/HttpRequest.hxx"
 #include "REST/headers/Routes.hxx"
-
-// using namespace std;
-// using namespace std::chrono;
-// using namespace boost::filesystem;
-// using namespace rapidjson;
-// using namespace eprosima;
-// using namespace eprosima::fastrtps;
-// using namespace sqlite;
-// using namespace tinyxml2;
-// using namespace AMM;
-// using namespace AMM::Capability;
 
 
 // UDP discovery port
@@ -92,6 +55,7 @@ std::string state_path = "./states/";
 std::string patient_path = "./patients/";
 
 std::map<std::string, double> nodeDataStorage;
+std::vector<std::string> labsStorage;
 
 std::map<std::string, std::string> statusStorage = {
    {"STATUS",         "NOT RUNNING"},
@@ -106,11 +70,11 @@ std::map<std::string, std::string> statusStorage = {
 };
 
 bool m_runThread = false;
-// int64_t lastTick = 0;
+int64_t lastTick = 0;
 
 
-// DDS_Manager *mgr;
-// Participant *mp_participant;
+AMM::DDS_Manager *mgr;
+Participant *mp_participant;
 // boost::asio::io_service io_service;
 sqlite::database db("amm.db");
 
@@ -202,10 +166,9 @@ void handleGetStates(std::ostringstream& oss, HttpRequest &request, std::string 
                writer.Key("name");
 
                /// TODO:
-               /// - Fix cast error on `filename` going into `writer.String()`
                /// - Fix `<<` operator error on `writeTime`
 
-               // writer.String(filename);
+               writer.String(dir_itr->path().filename().string().c_str());
                writer.Key("description");
                std::stringstream writeTime;
                // writeTime << last_write_time(dir_itr->path());
@@ -605,57 +568,484 @@ void handleGetShutdown (std::ostringstream& oss, HttpRequest& request, std::stri
 }
 
 void handleGetActions (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace std::chrono;
+   using namespace rapidjson;
+   using namespace std::experimental::filesystem::v1;
+
+   StringBuffer s;
+      Writer<StringBuffer> writer(s);
+
+      writer.StartArray();
+      if (exists(action_path) && is_directory(action_path)) {
+           path p(action_path);
+           if (is_directory(p)) {
+               directory_iterator end_iter;
+               for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
+                   if (is_regular_file(dir_itr->status())) {
+                       writer.StartObject();
+                       writer.Key("name");
+                       writer.String(dir_itr->path().filename().string().c_str());
+                       writer.Key("description");
+                       stringstream writeTime;
+
+                       /// TODO:
+                       /// Fix cast error on return of last_write_time.
+                       // writeTime << last_write_time(dir_itr->path());
+
+                       writer.String(writeTime.str().c_str());
+                       writer.EndObject();
+                   }
+               }
+           }
+      }
+      writer.EndArray();
+
+      WriteResponse(oss, s.GetString(), "200 OK", "application/json");
 }
 
 void handleGetActionByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+   MethodNotImplementedResp(oss);
 }
 
 void handlePostAction (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+   MethodNotImplementedResp(oss);
 }
 
 void handlePutActionByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+   MethodNotImplementedResp(oss);
 }
 
 void handleDeleteActionByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+   MethodNotImplementedResp(oss);
 }
 
 void handlePostExecute (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+
+   Document document;
+        document.Parse(request.body.c_str());
+        std::string payload = document["payload"].GetString();
+        SendPhysiologyModification(payload, "", "", "");
+        WriteResponse(oss, "{\"message\":\"Command executed\"}", "200 OK", "text/plain");
 }
 
 void handleOptionsExecute (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+   MethodNotImplementedResp(oss);
 }
 
 void handlePostPhysMod (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+   string type, location, practitioner, payload;
+        Document document;
+        document.Parse(request.body.c_str());
+        if (document.HasMember("type")) {
+            type = document["type"].GetString();
+        }
+        if (document.HasMember("location")) {
+            location = document["location"].GetString();
+        }
+        if (document.HasMember("practitioner")) {
+            practitioner = document["practitioner"].GetString();
+        }
+        if (document.HasMember("payload")) {
+            payload = document["payload"].GetString();
+        }
+        SendPhysiologyModification(type, location, practitioner, payload);
+
+        WriteResponse(oss, "{\"message\":\"Physiology modification published\"}", "200 OK", "text/plain");
+
 }
 
 void handlePostRendMod (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+   string type, location, practitioner, payload;
+        Document document;
+        document.Parse(request.body.c_str());
+        if (document.HasMember("type")) {
+            type = document["type"].GetString();
+        }
+        if (document.HasMember("location")) {
+            location = document["location"].GetString();
+        }
+        if (document.HasMember("practitioner")) {
+            practitioner = document["practitioner"].GetString();
+        }
+        if (document.HasMember("payload")) {
+            payload = document["payload"].GetString();
+        }
+        SendRenderModification(type, location, practitioner, payload);
+        WriteResponse(oss, "{\"message\":\"Render modification published\"}", "200 OK", "text/plain");
 }
 
 void handlePostPerfAss (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+   string type, location, practitioner, payload, info, step, comment;
+        Document document;
+        document.Parse(request.body.c_str());
+        if (document.HasMember("type")) {
+            type = document["type"].GetString();
+        }
+        if (document.HasMember("location")) {
+            location = document["location"].GetString();
+        }
+        if (document.HasMember("practitioner")) {
+            practitioner = document["practitioner"].GetString();
+        }
+        if (document.HasMember("info")) {
+            info = document["info"].GetString();
+        }
+        if (document.HasMember("step")) {
+            step = document["step"].GetString();
+        }
+        if (document.HasMember("comment")) {
+            comment = document["comment"].GetString();
+        }
+        SendPerformanceAssessment(type, location, practitioner, info, step, comment);
+
+        WriteResponse(oss, "{\"message\":\"Performance assessment published\"}", "200 OK", "text/plain");
 }
 
 void handlePostModType (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+   MethodNotImplementedResp(oss);
 }
 
 void handleGetPatients (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+   using namespace std::experimental::filesystem::v1;
+
+   StringBuffer s;
+        Writer<StringBuffer> writer(s);
+
+        writer.StartArray();
+        if (exists(patient_path) && is_directory(patient_path)) {
+            path p(patient_path);
+            if (is_directory(p)) {
+                directory_iterator end_iter;
+                for (directory_iterator dir_itr(p); dir_itr != end_iter; ++dir_itr) {
+                    if (is_regular_file(dir_itr->status())) {
+                        writer.StartObject();
+                        writer.Key("name");
+                        writer.String(dir_itr->path().filename().string().c_str());
+                        writer.Key("description");
+                        stringstream writeTime;
+                        // writeTime << last_write_time(dir_itr->path());
+                        writer.String(writeTime.str().c_str());
+                        writer.EndObject();
+                    }
+                }
+            }
+        }
+        writer.EndArray();
+
+        WriteResponse(oss, s.GetString(), "200 OK", "application/json");
 }
 
 void handleGetDeletedStateByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+   using namespace std::experimental::filesystem::v1;
+
+   string name;
+   int err = ParseURLParam(request.url, urlTemplate, name);
+   if (err != 0) {
+      /// Handle error here.
+   }
+
+   /// BUG:
+   /// Something here is causing an error in record.h.
+
+      // if (name != "StandardMale@0s.xml") {
+      //      ostringstream deleteFile;
+      //      deleteFile << state_path << "/" << name;
+      //      path deletePath(deleteFile.str().c_str());
+      //      if (exists(deletePath) && is_regular_file(deletePath)) {
+      //          LOG_INFO << "Deleting " << deletePath;
+      //          remove(deletePath);
+      //          WriteResponse(oss, "Deleted", "200 OK", "text/plain");
+      //      } else {
+      //        WriteResponse(oss, "Unable to delete state file", "403 Forbidden", "text/plain");
+      //      }
+      // } else {
+      //    WriteResponse(oss, "Can not delete default state file", "403 Forbidden", "text/plain");
+      // }
 }
 
 void handleGetCommandByName (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
-   test(oss, request, urlTemplate);
+
+   using namespace std;
+   using namespace rapidjson;
+
+   string name;
+   int err = ParseURLParam(request.url, urlTemplate, name);
+   if (err != 0) {
+      /// Handle error here.
+   }
+
+        SendCommand(name);
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartObject();
+        writer.Key("Sent command");
+        writer.String(name.c_str());
+        writer.EndObject();
+
+        WriteResponse(oss, s.GetString(), "200 OK", "text/plain");
+
+}
+
+void handleGetLabs (std::ostringstream& oss, HttpRequest& request, std::string urlTemplate) {
+
+   using namespace std;
+   using namespace rapidjson;
+
+   string labReport = boost::algorithm::join(labsStorage, "\n");
+   WriteResponse(oss, labReport, "200 OK", "text/csv");
+}
+
+/// CORE FUNCTIONS
+
+void SendPhysiologyModification(const std::string &type,
+                                const std::string &location,
+                                const std::string &practitioner,
+                                const std::string &payload) {
+   using namespace AMM;
+   using namespace AMM::Capability;
+    LOG_DEBUG << "Publishing a phys mod: " << type;
+    AMM::Physiology::Modification modInstance;
+    modInstance.type(type);
+    //  modInstance.location.description(location);
+    modInstance.practitioner(practitioner);
+    modInstance.payload(payload);
+    mgr->PublishPhysiologyModification(modInstance);
+}
+
+void SendRenderModification(const std::string &type,
+                            const std::string &location,
+                            const std::string &practitioner,
+                            const std::string &payload) {
+   using namespace AMM;
+   using namespace AMM::Capability;
+    LOG_DEBUG << "Publishing a render mod: " << type;
+    AMM::Render::Modification modInstance;
+    modInstance.type(type);
+    FMA_Location fma_location;
+    fma_location.description(location);
+    modInstance.location(fma_location);
+    modInstance.practitioner(practitioner);
+    modInstance.payload(payload);
+    mgr->PublishRenderModification(modInstance);
+}
+
+void SendPerformanceAssessment(const std::string &assessment_type,
+                               const std::string &location,
+                               const std::string &practitioner,
+                               const std::string &assessment_info,
+                               const std::string &step,
+                               const std::string &comment) {
+    LOG_INFO << "Publishing an assessment: " << assessment_type;
+    AMM::Performance::Assessment assessInstance;
+    assessInstance.assessment_type(assessment_type);
+    // location
+    assessInstance.learner_id(practitioner);
+    assessInstance.assessment_info(assessment_info);
+    assessInstance.step(step);
+    assessInstance.comment(comment);
+    mgr->PublishPerformanceData(assessInstance);
+}
+
+void SendCommand(const std::string &command) {
+    LOG_INFO << "Publishing a command:" << command;
+    AMM::PatientAction::BioGears::Command cmdInstance;
+    cmdInstance.message(command);
+    mgr->PublishCommand(cmdInstance);
+}
+
+void ResetLabs() {
+    labsStorage.clear();
+    std::ostringstream labRow;
+
+    labRow << "Time,";
+
+// POCT
+    labRow << "POCT,";
+    labRow <<  "Sodium (Na),";
+    labRow <<  "Potassium (K),";
+    labRow <<  "Chloride (Cl),";
+    labRow << "TCO2,";
+    labRow << "Anion Gap,"; // Anion Gap
+    labRow << "Ionized Calcium (iCa),"; // Ionized Calcium (iCa)
+    labRow << "Glucose (Glu),";
+    labRow << "Urea Nitrogen (BUN)/Urea,";
+    labRow << "Creatinine (Crea),";
+
+// Hematology
+    labRow << "Hematology,";
+    labRow << "Hematocrit (Hct),";
+    labRow << "Hemoglobin (Hgb),";
+
+//ABG
+    labRow << "ABG,";
+    labRow << "Lactate,";
+    labRow << "pH,";
+    labRow << "PCO2,";
+    labRow << "PO2,";
+    labRow << "TCO2,";
+    labRow << "HCO3,";
+    labRow << "Base Excess (BE),";
+    labRow << "SpO2,";
+    labRow << "COHb,";
+
+// VBG
+    labRow << "VBG,";
+    labRow << "Lactate,";
+    labRow << "pH,";
+    labRow << "PCO2,";
+    labRow << "TCO2,";
+    labRow << "HCO3,";
+    labRow << "Base Excess (BE),";
+    labRow << "COHb,";
+
+
+    // BMP
+    labRow << "BMP,";
+    labRow << "Sodium (Na),";
+    labRow << "Potassium (K),";
+    labRow << "Chloride (Cl),";
+    labRow << "TCO2,";
+    labRow << "Anion Gap,"; // Anion Gap
+    labRow << "Ionized Calcium (iCa),"; // Ionized Calcium (iCa)
+    labRow << "Glucose (Glu),";
+    labRow << "Urea Nitrogen (BUN)/Urea,";
+    labRow << "Creatinine (Crea),";
+
+
+    // CBC
+    labRow << "CBC,";
+    labRow << "WBC,";
+    labRow << "RBC,";
+    labRow << "Hgb,";
+    labRow << "Hct,";
+    labRow << "Plt,";
+
+// CMP
+    labRow << "CMP,";
+    labRow << "Albumin,";
+    labRow << "ALP,"; // ALP
+    labRow << "ALT,"; // ALT
+    labRow << "AST,"; // AST
+    labRow << "BUN,";
+    labRow << "Calcium,";
+    labRow << "Chloride,";
+    labRow << "CO2,";
+    labRow << "Creatinine (men),";
+    labRow << "Creatinine (women),";
+    labRow << "Glucose,";
+    labRow << "Potassium,";
+    labRow << "Sodium,";
+    labRow << "Total bilirubin,";
+    labRow << "Total protein";
+    labsStorage.push_back(labRow.str());
+}
+
+void AppendLabRow() {
+    std::ostringstream labRow;
+
+    labRow << nodeDataStorage["SIM_TIME"] << ",";
+
+// POCT
+    labRow << "POCT,";
+    labRow << nodeDataStorage["Substance_Sodium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << ","; // Anion Gap
+    labRow << ","; // Ionized Calcium (iCa)
+    labRow << nodeDataStorage["Substance_Glucose_Concentration"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodUreaNitrogen_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+
+// Hematology
+    labRow << "Hematology,";
+    labRow << nodeDataStorage["BloodChemistry_Hemaocrit"] << ",";
+    labRow << nodeDataStorage["Substance_Hemoglobin_Concentration"] << ",";
+
+//ABG
+    labRow << "ABG,";
+    labRow << nodeDataStorage["Substance_Lactate_Concentration_mmol"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodPH"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Arterial_CarbonDioxide_Pressure"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Arterial_Oxygen_Pressure"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << nodeDataStorage["Substance_Bicarbonate"] << ",";
+    labRow << nodeDataStorage["Substance_BaseExcess"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Oxygen_Saturation"] << ",";
+    labRow << nodeDataStorage["Substance_Carboxyhemoglobin_Concentration"] << ",";
+
+// VBG
+    labRow << "VBG,";
+    labRow << nodeDataStorage["Substance_Lactate_Concentration_mmol"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodPH"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_VenousCarbonDioxidePressure"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << nodeDataStorage["Substance_Bicarbonate"] << ",";
+    labRow << nodeDataStorage["Substance_BaseExcess"] << ",";
+    labRow << nodeDataStorage["Substance_Carboxyhemoglobin_Concentration"] << ",";
+
+
+    // BMP
+    labRow << "BMP,";
+    labRow << nodeDataStorage["Substance_Sodium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << ","; // Anion Gap
+    labRow << ","; // Ionized Calcium (iCa)
+    labRow << nodeDataStorage["Substance_Glucose_Concentration"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodUreaNitrogen_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+
+
+    // CBC
+    labRow << "CBC,";
+    labRow << nodeDataStorage["BloodChemistry_WhiteBloodCell_Count"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_RedBloodCell_Count"] << ",";
+    labRow << nodeDataStorage["Substance_Hemoglobin_Concentration"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Hemaocrit"] << ",";
+    labRow << nodeDataStorage["CompleteBloodCount_Platelet"] << ",";
+
+// CMP
+    labRow << "CMP,";
+    labRow << nodeDataStorage["Substance_Albumin_Concentration"] << ",";
+    labRow << ","; // ALP
+    labRow << ","; // ALT
+    labRow << ","; // AST
+    labRow << nodeDataStorage["BloodChemistry_BloodUreaNitrogen_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Calcium_Concentration"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Glucose_Concentration"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
+    labRow << nodeDataStorage["Substance_Sodium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Bilirubin"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Protein"];
+    labsStorage.push_back(labRow.str());
 }
