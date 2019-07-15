@@ -199,12 +199,33 @@ void MethodNotAllowedResp (std::ostringstream& oss) {
    oss << resp;
 }
 
+void MethodNotImplementedResp (std::ostringstream& oss) {
+
+   std::stringstream ss;
+   std::string body;
+   std::string resp;
+
+   body = "501 -- Not Implemented";
+   ss << body.length();
+
+   resp += "HTTP/1.1 501 Not Implemented\r\n";
+   resp += "Cache-Control: no-cache, private\r\n";
+   resp += "Content-Type: text/plain\r\n";
+   resp += "Content-Length:";
+   resp += ss.str();
+   resp += "\r\n\r\n";
+   resp += body;
+
+   oss << resp;
+}
+
 void WriteResponse (std::ostringstream& oss, std::string body, std::string code, std::string mime) {
 
    oss << "HTTP/1.1";
    oss << code;
    oss << "\r\n";
    oss << "Access-Control-Allow-Origin: *\r\n";
+   oss << "Access-Control-Allow-Headers: *\r\n";
    oss << "Cache-Control: no-cache, private\r\n";
    oss << "Content-Type:";
    oss << mime;
