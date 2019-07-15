@@ -13,7 +13,7 @@ namespace AMM {
 
         ParticipantAttributes PParam;
         PParam.rtps.builtin.domainId = (uint32_t) domainId;
-        PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
+        // PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
         PParam.rtps.setName(nodeName);
         mp_participant = Domain::createParticipant(PParam);
 
@@ -22,15 +22,9 @@ namespace AMM {
             return;
         }
 
-        LOG_DEBUG << "Registering types";
-
         RegisterTypes();
 
-        LOG_DEBUG << "Making pub listener";
-
         pub_listener = new DDS_Listeners::PubListener();
-
-        LOG_DEBUG << "Generating ID";
 
         module_id = GenerateID();
         module_name = nodeName;
@@ -86,6 +80,20 @@ namespace AMM {
         Domain::registerType(mp_participant, (TopicDataType *) &PerformanceAssessmentDataType);
 
         Domain::registerType(mp_participant, (TopicDataType *) &LogRecordType);
+    }
+
+    Publisher *DDS_Manager::InitializeConfigPublisher(const std::string &topicName,
+                                                TopicDataType *topicType,
+                                                PublisherListener *pub_listener) {
+        PublisherAttributes wparam;
+        wparam.topic.topicDataType = topicType->getName();
+        wparam.topic.topicName = topicName;
+        wparam.topic.topicKind = NO_KEY;
+        wparam.qos.m_publishMode.kind = ASYNCHRONOUS_PUBLISH_MODE;
+        wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
+        Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        return gen_publisher;
     }
 
     Publisher *DDS_Manager::InitializePublisher(const std::string &topicName,
@@ -171,11 +179,10 @@ namespace AMM {
     void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
         LOG_DEBUG << "Publishing module configuration";
         try {
-            AMM::Capability::ConfigurationPubSubType configType;
             if (!config_initialized) {
-                config_publisher = InitializeReliablePublisher(
+                config_publisher = InitializeConfigPublisher(
                         AMM::DataTypes::configurationTopic,
-                        &configType, pub_listener);
+                        &ConfigurationType, pub_listener);
                 config_initialized = true;
             }
             config_publisher->write(&configInstance);

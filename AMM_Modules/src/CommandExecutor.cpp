@@ -31,13 +31,13 @@ int main(int argc, char *argv[]) {
             mgr->InitializePublisher(AMM::DataTypes::commandTopic,
                                      &mgr->CommandType, pub_listener);
 
+
     // Publish module configuration once we've set all our publishers and
     // listeners
     // This announces that we're available for configuration
     mgr->PublishModuleConfiguration(
             mgr->module_id, nodeString, "Vcom3D", "CommandExecutor", "00001", "0.0.1",
-            mgr->GetCapabilitiesAsString(
-                    "static/module_capabilities/command_executor_capabilities.xml"));
+            "command_executor_capabilities");
 
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
@@ -53,6 +53,14 @@ int main(int argc, char *argv[]) {
         transform(action.begin(), action.end(), action.begin(), ::toupper);
         if (action == "EXIT") {
             closed = true;
+        } else if (action == "C") {
+            LOG_INFO << "Republishing config...";
+            mgr->PublishModuleConfiguration(
+                    mgr->module_id, nodeString, "Vcom3D", "CommandExecutor", "00001", "0.0.1",
+                    "command_executor_capabilities");
+        } else if (action == "S") {
+            LOG_INFO << "Republishing status...";
+            mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
         } else {
             if (action.empty()) {
                 continue;

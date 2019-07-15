@@ -264,6 +264,7 @@ namespace AMM {
             m_pe->GetEngineTrack()->GetDataRequestManager().CreateSubstanceDataRequest().Set(*lactate,
                                                                                              "BloodConcentration",
                                                                                              biogears::MassPerVolumeUnit::ug_Per_mL);
+            m_pe->GetEngineTrack()->GetDataRequestManager().CreatePhysiologyDataRequest().Set("UrineProductionRate", biogears::VolumePerTimeUnit::mL_Per_min);
             m_pe->GetEngineTrack()->GetDataRequestManager().SetResultsFilename(logFilename);
         }
 
@@ -286,9 +287,22 @@ namespace AMM {
         return true;
     }
 
+    void PhysiologyThread::SetLastFrame(int lF) {
+        lastFrame = lF;
+    }
+
+    void PhysiologyThread::SetLogging(bool log) {
+        logging_enabled = log;
+    }
+
     bool PhysiologyThread::ExecuteXMLCommand(const std::string &cmd) {
+#ifdef _WIN32
+        char *tmpname = _strdup("/tmp/tmp_amm_xml_XXXXXX");
+        _mktemp(tmpname);
+#else
         char *tmpname = strdup("/tmp/tmp_amm_xml_XXXXXX");
         mkstemp(tmpname);
+#endif
         std::ofstream out(tmpname);
         out << cmd;
         out.close();

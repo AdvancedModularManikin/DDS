@@ -23,7 +23,7 @@ if (MSVC)
     add_library(${BASE_LOGGER} STATIC ${BASE_LOGGER_SOURCES})
 else ()
     add_library(${BASE_LOGGER} SHARED ${BASE_LOGGER_SOURCES})
-endif()
+endif ()
 
 target_link_libraries(
         amm_base_logger
@@ -44,7 +44,7 @@ if (MSVC)
     add_library(amm_types STATIC ${DATAMODEL_SOURCES} ${DDS_TYPE_SOURCES} ${DDS_MANAGER_SOURCES})
 else ()
     add_library(amm_types SHARED ${DATAMODEL_SOURCES} ${DDS_TYPE_SOURCES} ${DDS_MANAGER_SOURCES})
-endif()
+endif ()
 add_dependencies(amm_types versionFileTouchForRebuild)
 target_link_libraries(
         amm_types
@@ -54,6 +54,8 @@ target_link_libraries(
         ${Boost_LIBRARIES}
 )
 target_include_directories(amm_types PUBLIC ${PROJECT_SOURCE_DIR}/src)
+
+
 
 set(SIM_MANAGER_SOURCES SimManager.cpp AMM/SimulationManager.cpp)
 set(SIM_MANAGER_EXE amm_sim_manager)
@@ -68,34 +70,59 @@ set(COMMAND_EXECUTOR_SOURCES CommandExecutor.cpp)
 set(COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 
+# set(REST_SERVICE_SOURCES RestService.cpp)
+# set(REST_SERVICE_EXE amm_rest_service)
+# add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
+# target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES})
+
+file(GLOB REST_SOURCES REST/source/*.cpp)
+file(GLOB REST_HEADERS REST/headers/*.hxx)
+set(REST_SERVICE_SOURCES RestService.cpp ${REST_SOURCES} ${REST_HEADERS})
+set(REST_SERVICE_EXE amm_rest_service)
+
+if (MSVC)
+add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
+target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES} ${SQLITE3_INCLUDE_DIR} ${TinyXML2_INCLUDE_DIRS})
+endif()
+
 set(SPI_SOURCES spi_proto/src/crc16.c spi_proto/src/spi_proto.c spi_proto/src/spi_proto.h)
-#add_library(spi_proto ${SPI_PROTO_SOURCES})
 set(SPI_REMOTE_SOURCES spi_proto/src/spi_remote_host.c spi_proto/src/binary_semaphore.c spi_proto/src/spi_proto_master.cpp spi_proto/src/spi_chunks.cpp)
 set(SPI_DATAGRAM_SOURCES spi_proto/src/spi_proto_master_datagram.cpp)
 
 set(HEART_RATE_LED_SOURCES HeartRateLED.cpp)
 set(HEART_RATE_LED_EXE amm_heartrate_led)
-add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${SPI_SOURCES} ${SPI_DATAGRAM_SOURCES})
-target_include_directories(${HEART_RATE_LED_EXE} PUBLIC spi_proto/src)
 
 set(CHEST_RISE_SOURCES ChestRise.cpp)
 set(CHEST_RISE_EXE amm_chest_rise)
-add_executable(${CHEST_RISE_EXE} ${CHEST_RISE_SOURCES} ${SPI_SOURCES} ${SPI_DATAGRAM_SOURCES})
-target_include_directories(${CHEST_RISE_EXE} PUBLIC spi_proto/src)
 
 set(FLUID_MANAGER_SOURCES FluidManager.cpp)
 set(FLUID_MANAGER_EXE amm_fluid_manager)
-add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
-target_include_directories(${FLUID_MANAGER_EXE} PUBLIC spi_proto/src)
 
 set(IVC_MODULE_SOURCES IVC.cpp)
 set(IVC_MODULE_EXE amm_ivc_module)
-add_executable(${IVC_MODULE_EXE} ${IVC_MODULE_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
-target_include_directories(${IVC_MODULE_EXE} PUBLIC spi_proto/src)
 
 set(ARDUINO_BRIDGE_SOURCES Arduino_Bridge.cpp AMM/Utility.cpp)
 set(ARDUINO_BRIDGE_EXE amm_arduino_bridge)
-add_executable(${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES})
+
+if(WIN32)
+  # find_library(ws2_32_LIBRARY_PATH ws2_32)
+  target_link_libraries(${REST_SERVICE_EXE} wsock32 ws2_32)
+endif()
+
+
+if (NOT MSVC)
+    add_executable(${HEART_RATE_LED_EXE} ${HEART_RATE_LED_SOURCES} ${SPI_SOURCES} ${SPI_DATAGRAM_SOURCES})
+    target_include_directories(${HEART_RATE_LED_EXE} PUBLIC spi_proto/src)
+    add_executable(${CHEST_RISE_EXE} ${CHEST_RISE_SOURCES} ${SPI_SOURCES} ${SPI_DATAGRAM_SOURCES})
+    target_include_directories(${CHEST_RISE_EXE} PUBLIC spi_proto/src)
+    add_executable(${FLUID_MANAGER_EXE} ${FLUID_MANAGER_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
+    target_include_directories(${FLUID_MANAGER_EXE} PUBLIC spi_proto/src)
+    add_executable(${IVC_MODULE_EXE} ${IVC_MODULE_SOURCES} ${SPI_SOURCES} ${SPI_REMOTE_SOURCES})
+    target_include_directories(${IVC_MODULE_EXE} PUBLIC spi_proto/src)
+    add_executable(${ARDUINO_BRIDGE_EXE} ${ARDUINO_BRIDGE_SOURCES})
+
+
+endif ()
 
 set(TCP_BRIDGE_SOURCES TCP_Bridge.cpp AMM/Utility.cpp Net/Server.cpp Net/ServerThread.cpp Net/Client.cpp Net/UdpDiscoveryServer.cpp)
 set(TCP_BRIDGE_EXE amm_tcp_bridge)
@@ -110,6 +137,7 @@ target_link_libraries(${MODULE_MANAGER_EXE}
         amm_base_logger
         Threads::Threads
         ${SQLITE3_LIBRARIES}
+        ${TinyXML2_LIBRARIES}
         amm_types
         )
 
@@ -165,44 +193,64 @@ target_link_libraries(${COMMAND_EXECUTOR_EXE}
         amm_types
         )
 
-target_link_libraries(${HEART_RATE_LED_EXE}
+if (MSVC)
+target_link_libraries(${REST_SERVICE_EXE}
         fastrtps fastcdr
+        ${RAPIDJSON_LIBRARIES}
+        ${SQLITE3_LIBRARIES}
+        ${TinyXML2_LIBRARIES}
+        Boost::system Boost::filesystem Boost::iostreams
         amm_base_logger
         amm_types
         )
+endif()
 
-target_link_libraries(${CHEST_RISE_EXE}
-        fastrtps fastcdr
-        amm_base_logger
-        amm_types
-        )
+if (NOT MSVC)
+    target_link_libraries(${HEART_RATE_LED_EXE}
+            fastrtps fastcdr
+            amm_base_logger
+            ${TinyXML2_LIBRARIES}
+            amm_types
+            )
 
-target_link_libraries(${FLUID_MANAGER_EXE}
-        fastrtps fastcdr
-        amm_base_logger
-        amm_types
-        )
+    target_link_libraries(${CHEST_RISE_EXE}
+            fastrtps fastcdr
+            amm_base_logger
+            ${TinyXML2_LIBRARIES}
+            amm_types
+            )
 
-target_link_libraries(${IVC_MODULE_EXE}
-        fastrtps fastcdr
-        amm_base_logger
-        amm_types
-        )
+    target_link_libraries(${FLUID_MANAGER_EXE}
+            fastrtps fastcdr
+            amm_base_logger
+            ${TinyXML2_LIBRARIES}
+            amm_types
+            )
 
-target_link_libraries(${ARDUINO_BRIDGE_EXE}
-        fastrtps fastcdr
-        amm_base_logger
-        Threads::Threads
-        pthread
-        Boost::system
-        amm_types
-        )
+    target_link_libraries(${IVC_MODULE_EXE}
+            fastrtps fastcdr
+            amm_base_logger
+            ${TinyXML2_LIBRARIES}
+            amm_types
+            )
+
+    target_link_libraries(${ARDUINO_BRIDGE_EXE}
+            fastrtps fastcdr
+            amm_base_logger
+            Threads::Threads
+            pthread
+            Boost::system
+            ${TinyXML2_LIBRARIES}
+            amm_types
+            )
+endif ()
 
 target_link_libraries(${TCP_BRIDGE_EXE}
         fastrtps fastcdr
         amm_base_logger
         Boost::system
         Threads::Threads
+        ${TinyXML2_LIBRARIES}
         amm_types
         )
 

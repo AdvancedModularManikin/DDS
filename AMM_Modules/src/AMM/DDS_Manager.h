@@ -90,9 +90,6 @@ namespace AMM {
 
         void PublishLogRecord(const std::string &message, const std::string &log_level);
 
-        Publisher *InitializeReliablePublisher(const std::string &topicName,
-                                               TopicDataType *topicType,
-                                               PublisherListener *pub_listener);
 
         /**
          * Generic publisher initialization
@@ -105,6 +102,14 @@ namespace AMM {
         Publisher *InitializePublisher(const std::string &topicName,
                                        TopicDataType *topicType,
                                        PublisherListener *pub_listener);
+
+        Publisher *InitializeReliablePublisher(const std::string &topicName,
+                                               TopicDataType *topicType,
+                                               PublisherListener *pub_listener);
+
+        Publisher *InitializeConfigPublisher(const std::string &topicName,
+                                             TopicDataType *topicType,
+                                             PublisherListener *pub_listener);
 
         /**
          * Generic subscriber initialization

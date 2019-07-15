@@ -1,45 +1,11 @@
 #include "stdafx.h"
 
-#include <fastrtps/Domain.h>
-#include <fastrtps/participant/Participant.h>
-#include <fastrtps/publisher/Publisher.h>
-#include <fastrtps/publisher/PublisherListener.h>
-#include <fastrtps/subscriber/SampleInfo.h>
-#include <fastrtps/subscriber/Subscriber.h>
-#include <fastrtps/subscriber/SubscriberListener.h>
-
-#include <fastrtps/rtps/RTPSDomain.h>
-#include <fastrtps/rtps/builtin/data/WriterProxyData.h>
-
-#include <fastrtps/rtps/builtin/discovery/endpoint/EDPSimple.h>
-#include <fastrtps/rtps/reader/ReaderListener.h>
-
-#include <fastrtps/utils/eClock.h>
-
-#include <fastrtps/fastrtps_fwd.h>
-#include <fastrtps/participant/ParticipantListener.h>
-#include <fastrtps/rtps/builtin/data/ReaderProxyData.h>
-
-#include <fastrtps/rtps/builtin/discovery/participant/PDPSimple.h>
-#include <fastrtps/rtps/builtin/discovery/participant/PDPSimpleListener.h>
-
-#include <fastrtps/rtps/builtin/BuiltinProtocols.h>
-#include <fastrtps/rtps/builtin/liveliness/WLP.h>
-
-#include <fastrtps/rtps/builtin/discovery/endpoint/EDPStatic.h>
-
-#include <fastrtps/rtps/resources/AsyncWriterThread.h>
-
-#include <fastrtps/rtps/reader/StatelessReader.h>
-#include <fastrtps/rtps/reader/WriterProxy.h>
-#include <fastrtps/rtps/writer/StatelessWriter.h>
-
-#include <fastrtps/rtps/history/ReaderHistory.h>
-#include <fastrtps/rtps/history/WriterHistory.h>
-
-#include <fastrtps/utils/TimeConversion.h>
-
-#include <fastrtps/rtps/participant/RTPSParticipant.h>
+#include <mutex>
+#include <chrono>
+#include <thread>
+#include <iostream>
+#include <functional>
+#include <condition_variable>
 
 #include "AMM/BaseLogger.h"
 #include "AMM/DDS_Log_Appender.h"
@@ -57,6 +23,7 @@
 #include <Net/UdpDiscoveryServer.h>
 
 #include "boost/filesystem.hpp"
+#include <boost/algorithm/string/join.hpp>
 
 #include "tinyxml2.h"
 
@@ -104,6 +71,7 @@ std::map<std::string, std::string> statusStorage = {{"STATUS",         "NOT RUNN
                                                     {"BLOOD_SUPPLY",   ""},
                                                     {"FLUIDICS_STATE", ""},
                                                     {"IVARM_STATE",    ""}};
+std::vector<std::string> labsStorage;
 
 bool m_runThread = false;
 int64_t lastTick = 0;
@@ -113,6 +81,179 @@ DDS_Manager *mgr;
 Participant *mp_participant;
 boost::asio::io_service io_service;
 database db("amm.db");
+
+void ResetLabs() {
+    labsStorage.clear();
+    std::ostringstream labRow;
+
+    labRow << "Time,";
+
+// POCT
+    labRow << "POCT,";
+    labRow <<  "Sodium (Na),";
+    labRow <<  "Potassium (K),";
+    labRow <<  "Chloride (Cl),";
+    labRow << "TCO2,";
+    labRow << "Anion Gap,"; // Anion Gap
+    labRow << "Ionized Calcium (iCa),"; // Ionized Calcium (iCa)
+    labRow << "Glucose (Glu),";
+    labRow << "Urea Nitrogen (BUN)/Urea,";
+    labRow << "Creatinine (Crea),";
+
+// Hematology
+    labRow << "Hematology,";
+    labRow << "Hematocrit (Hct),";
+    labRow << "Hemoglobin (Hgb),";
+
+//ABG
+    labRow << "ABG,";
+    labRow << "Lactate,";
+    labRow << "pH,";
+    labRow << "PCO2,";
+    labRow << "PO2,";
+    labRow << "TCO2,";
+    labRow << "HCO3,";
+    labRow << "Base Excess (BE),";
+    labRow << "SpO2,";
+    labRow << "COHb,";
+
+// VBG
+    labRow << "VBG,";
+    labRow << "Lactate,";
+    labRow << "pH,";
+    labRow << "PCO2,";
+    labRow << "TCO2,";
+    labRow << "HCO3,";
+    labRow << "Base Excess (BE),";
+    labRow << "COHb,";
+
+
+    // BMP
+    labRow << "BMP,";
+    labRow << "Sodium (Na),";
+    labRow << "Potassium (K),";
+    labRow << "Chloride (Cl),";
+    labRow << "TCO2,";
+    labRow << "Anion Gap,"; // Anion Gap
+    labRow << "Ionized Calcium (iCa),"; // Ionized Calcium (iCa)
+    labRow << "Glucose (Glu),";
+    labRow << "Urea Nitrogen (BUN)/Urea,";
+    labRow << "Creatinine (Crea),";
+
+
+    // CBC
+    labRow << "CBC,";
+    labRow << "WBC,";
+    labRow << "RBC,";
+    labRow << "Hgb,";
+    labRow << "Hct,";
+    labRow << "Plt,";
+
+// CMP
+    labRow << "CMP,";
+    labRow << "Albumin,";
+    labRow << "ALP,"; // ALP
+    labRow << "ALT,"; // ALT
+    labRow << "AST,"; // AST
+    labRow << "BUN,";
+    labRow << "Calcium,";
+    labRow << "Chloride,";
+    labRow << "CO2,";
+    labRow << "Creatinine (men),";
+    labRow << "Creatinine (women),";
+    labRow << "Glucose,";
+    labRow << "Potassium,";
+    labRow << "Sodium,";
+    labRow << "Total bilirubin,";
+    labRow << "Total protein";
+    labsStorage.push_back(labRow.str());
+}
+
+void AppendLabRow() {
+    std::ostringstream labRow;
+
+    labRow << nodeDataStorage["SIM_TIME"] << ",";
+
+// POCT
+    labRow << "POCT,";
+    labRow << nodeDataStorage["Substance_Sodium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << ","; // Anion Gap
+    labRow << ","; // Ionized Calcium (iCa)
+    labRow << nodeDataStorage["Substance_Glucose_Concentration"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodUreaNitrogen_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+
+// Hematology
+    labRow << "Hematology,";
+    labRow << nodeDataStorage["BloodChemistry_Hemaocrit"] << ",";
+    labRow << nodeDataStorage["Substance_Hemoglobin_Concentration"] << ",";
+
+//ABG
+    labRow << "ABG,";
+    labRow << nodeDataStorage["Substance_Lactate_Concentration_mmol"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodPH"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Arterial_CarbonDioxide_Pressure"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Arterial_Oxygen_Pressure"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << nodeDataStorage["Substance_Bicarbonate"] << ",";
+    labRow << nodeDataStorage["Substance_BaseExcess"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Oxygen_Saturation"] << ",";
+    labRow << nodeDataStorage["Substance_Carboxyhemoglobin_Concentration"] << ",";
+
+// VBG
+    labRow << "VBG,";
+    labRow << nodeDataStorage["Substance_Lactate_Concentration_mmol"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodPH"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_VenousCarbonDioxidePressure"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << nodeDataStorage["Substance_Bicarbonate"] << ",";
+    labRow << nodeDataStorage["Substance_BaseExcess"] << ",";
+    labRow << nodeDataStorage["Substance_Carboxyhemoglobin_Concentration"] << ",";
+
+
+    // BMP
+    labRow << "BMP,";
+    labRow << nodeDataStorage["Substance_Sodium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << ","; // Anion Gap
+    labRow << ","; // Ionized Calcium (iCa)
+    labRow << nodeDataStorage["Substance_Glucose_Concentration"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_BloodUreaNitrogen_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+
+
+    // CBC
+    labRow << "CBC,";
+    labRow << nodeDataStorage["BloodChemistry_WhiteBloodCell_Count"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_RedBloodCell_Count"] << ",";
+    labRow << nodeDataStorage["Substance_Hemoglobin_Concentration"] << ",";
+    labRow << nodeDataStorage["BloodChemistry_Hemaocrit"] << ",";
+    labRow << nodeDataStorage["CompleteBloodCount_Platelet"] << ",";
+
+// CMP
+    labRow << "CMP,";
+    labRow << nodeDataStorage["Substance_Albumin_Concentration"] << ",";
+    labRow << ","; // ALP
+    labRow << ","; // ALT
+    labRow << ","; // AST
+    labRow << nodeDataStorage["BloodChemistry_BloodUreaNitrogen_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Calcium_Concentration"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Chloride"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_CarbonDioxide"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Creatinine_Concentration"] << ",";
+    labRow << nodeDataStorage["Substance_Glucose_Concentration"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Potassium"] << ",";
+    labRow << nodeDataStorage["Substance_Sodium"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Bilirubin"] << ",";
+    labRow << nodeDataStorage["MetabolicPanel_Protein"];
+    labsStorage.push_back(labRow.str());
+}
 
 class AMMListener : public ListenerInterface {
     void onNewStatusData(AMM::Capability::Status st,
@@ -169,6 +310,9 @@ class AMMListener : public ListenerInterface {
                 statusStorage["TICK"] = "0";
                 statusStorage["TIME"] = "0";
                 nodeDataStorage.clear();
+                ResetLabs();
+            } else if (value.compare("APPEND_LABS") == 0) {
+                AppendLabRow();
             } else if (value.compare("CLEAR_LOG") == 0) {
 
             } else if (!value.compare(0, loadPrefix.size(), loadPrefix)) {
@@ -265,7 +409,7 @@ public:
     void init(int thr = 2) {
         auto opts = Http::Endpoint::options()
                 .threads(thr)
-                .flags(Tcp::Options::InstallSignalHandler | Tcp::Options::ReuseAddr)
+                .flags(Tcp::Options::ReuseAddr)
                 .maxPayload(65536);
         httpEndpoint->init(opts);
         setupRoutes();
@@ -291,6 +435,8 @@ private:
                     Routes::bind(&DDSEndpoint::issueCommand, this));
         Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
         Routes::Get(router, "/debug", Routes::bind(&DDSEndpoint::doDebug, this));
+
+        Routes::Get(router, "/labs", Routes::bind(&DDSEndpoint::getLabsReport, this));
 
         Routes::Get(router, "/events",
                     Routes::bind(&DDSEndpoint::getEventLog, this));
@@ -873,6 +1019,13 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
+    void getLabsReport(const Rest::Request &request, Http::ResponseWriter response) {
+        std::string labReport = boost::algorithm::join(labsStorage, "\n");
+        auto mime = Http::Mime::MediaType::fromString("text/csv");
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, labReport, mime);
+    }
+
     void getNode(const Rest::Request &request, Http::ResponseWriter response) {
 
         auto name = request.param(":name").as<std::string>();
@@ -970,6 +1123,8 @@ int main(int argc, char *argv[]) {
     std::string nodeString(nodeName);
     mgr = new DDS_Manager(nodeName);
     mp_participant = mgr->GetParticipant();
+
+    ResetLabs();
 
     static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
     static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
