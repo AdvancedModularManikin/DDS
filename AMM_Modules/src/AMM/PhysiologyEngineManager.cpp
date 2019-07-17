@@ -164,7 +164,7 @@ namespace AMM {
         double startPosition = atof(state3.c_str());
 
         if (!running) {
-            LOG_INFO << "We're not running, so time to fire up the thread";
+            LOG_INFO << "Initializing Biogears thread";
             m_mutex.lock();
             bg = new PhysiologyThread("logs/biogears.log");
             m_mutex.unlock();
@@ -173,13 +173,14 @@ namespace AMM {
 
             m_mutex.lock();
             LOG_INFO << "Loading " << stateFile << " at " << startPosition;
-            bg->LoadState(stateFile.c_str(), startPosition);
+            if (bg->LoadState(stateFile.c_str(), startPosition))
+            {
+                running = true;
+			}
             m_mutex.unlock();
-            nodePathMap = bg->GetNodePathTable();
-            running = true;
+            nodePathMap = bg->GetNodePathTable();            
         }
-
-        running = true;
+        
         paused = false;
     }
 
