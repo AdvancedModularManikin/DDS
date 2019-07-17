@@ -63,8 +63,7 @@ bool m_runThread = false;
 int64_t lastTick = 0;
 
 
-AMM::DDS_Manager *mgr;
-Participant *mp_participant;
+
 // boost::asio::io_service io_service;
 sqlite::database db("amm.db");
 
@@ -816,7 +815,7 @@ void SendPhysiologyModification(const std::string &type,
     //  modInstance.location.description(location);
     modInstance.practitioner(practitioner);
     modInstance.payload(payload);
-    mgr->PublishPhysiologyModification(modInstance);
+    AMMData::mgr->PublishPhysiologyModification(modInstance);
 }
 
 void SendRenderModification(const std::string &type,
@@ -833,7 +832,7 @@ void SendRenderModification(const std::string &type,
     modInstance.location(fma_location);
     modInstance.practitioner(practitioner);
     modInstance.payload(payload);
-    mgr->PublishRenderModification(modInstance);
+    AMMData::mgr->PublishRenderModification(modInstance);
 }
 
 void SendPerformanceAssessment(const std::string &assessment_type,
@@ -850,14 +849,14 @@ void SendPerformanceAssessment(const std::string &assessment_type,
     assessInstance.assessment_info(assessment_info);
     assessInstance.step(step);
     assessInstance.comment(comment);
-    mgr->PublishPerformanceData(assessInstance);
+    AMMData::mgr->PublishPerformanceData(assessInstance);
 }
 
 void SendCommand(const std::string &command) {
     LOG_INFO << "Publishing a command:" << command;
     AMM::PatientAction::BioGears::Command cmdInstance;
     cmdInstance.message(command);
-    mgr->PublishCommand(cmdInstance);
+    AMMData::mgr->PublishCommand(cmdInstance);
 }
 
 void ResetLabs() {

@@ -3,11 +3,10 @@
 #include "AMM/DDS_Manager.h"
 
 #include "REST/headers/WebServer.hxx"
+#include "REST/headers/Routes.hxx"
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
-
-// #include "REST/headers/ammRestVars.hxx"
 
 using namespace std;
 using namespace AMM;
@@ -19,6 +18,8 @@ static void show_usage(const std::string &name) {
          << "\t-h,--help\t\tShow this help message\n"
          << endl;
 }
+
+DDS_Manager* AMMData::mgr;
 
 int main(int argc, char *argv[]) {
     plog::InitializeLogger();
@@ -33,18 +34,18 @@ int main(int argc, char *argv[]) {
     }
     const char *nodeName = "AMM_RESTService";
     std::string nodeString(nodeName);
-    auto *mgr = new DDS_Manager(nodeName);
+    AMMData::mgr = new DDS_Manager(nodeName);
 
     // Publish module configuration once we've set all our publishers and
     // listeners
     // This announces that we're available for configuration
-    mgr->PublishModuleConfiguration(
-            mgr->module_id, nodeString, "Vcom3D", "REST_Service", "00001", "0.0.1",
-            mgr->GetCapabilitiesAsString(
+    AMMData::mgr->PublishModuleConfiguration(
+            AMMData::mgr->module_id, nodeString, "Vcom3D", "REST_Service", "00001", "0.0.1",
+            AMMData::mgr->GetCapabilitiesAsString(
                     "static/module_capabilities/command_executor_capabilities.xml"));
 
     // Normally this would be set AFTER configuration is received
-    mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
+    AMMData::mgr->SetStatus(AMMData::mgr->module_id, nodeString, OPERATIONAL);
 
 	WebServer webServer("0.0.0.0", 9080);
     if (webServer.Init() != 0)
