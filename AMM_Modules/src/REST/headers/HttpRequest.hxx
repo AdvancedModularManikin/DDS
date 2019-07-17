@@ -28,14 +28,6 @@ struct HttpRequest {
    std::string body;
 };
 
-struct UrlParam {
-   std::string beforeParam;
-   std::string param;
-   std::string afterParam;
-   int paramStartPos;
-   int paramEndPos;
-};
-
 int ParseRequest (const char* msg, int length, HttpRequest& request);
 
 void PrintHttpRequest (HttpRequest& r);
