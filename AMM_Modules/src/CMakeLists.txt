@@ -70,25 +70,21 @@ set(COMMAND_EXECUTOR_SOURCES CommandExecutor.cpp)
 set(COMMAND_EXECUTOR_EXE amm_command_executor)
 add_executable(${COMMAND_EXECUTOR_EXE} ${COMMAND_EXECUTOR_SOURCES})
 
-# set(REST_SERVICE_SOURCES RestService.cpp)
-# set(REST_SERVICE_EXE amm_rest_service)
-# add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
-# target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES})
-
 file(GLOB REST_SOURCES REST/source/*.cpp)
 file(GLOB REST_HEADERS REST/headers/*.hxx)
 set(REST_SERVICE_SOURCES RestService.cpp ${REST_SOURCES} ${REST_HEADERS})
 set(REST_SERVICE_EXE amm_rest_service)
+if (MSVC)
+   add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
+   target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES} ${SQLITE3_INCLUDE_DIR} ${TinyXML2_INCLUDE_DIRS})
+endif()
 
 file(GLOB LOGGER_SOURCES LOGGER/source/*.cpp)
 file(GLOB LOGGER_HEADERS LOGGER/headers/*.hpp)
-set(LOGGER_SOURCES LoggerModule.cpp ${LOGGER_SOURCES} ${LOGGER_HEADERS})
+set(LOGGER_MODULE_SOURCES LoggerModule.cpp ${LOGGER_SOURCES} ${LOGGER_HEADERS})
 set(LOGGER_EXE amm_logger_module)
+add_executable(${LOGGER_EXE} ${LOGGER_MODULE_SOURCES})
 
-if (MSVC)
-add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
-target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES} ${SQLITE3_INCLUDE_DIR} ${TinyXML2_INCLUDE_DIRS})
-endif()
 
 set(SPI_SOURCES spi_proto/src/crc16.c spi_proto/src/spi_proto.c spi_proto/src/spi_proto.h)
 set(SPI_REMOTE_SOURCES spi_proto/src/spi_remote_host.c spi_proto/src/binary_semaphore.c spi_proto/src/spi_proto_master.cpp spi_proto/src/spi_chunks.cpp)
@@ -195,6 +191,12 @@ target_link_libraries(${VIRTUAL_EQUIPMENT_EXE}
 
 target_link_libraries(${COMMAND_EXECUTOR_EXE}
         fastrtps fastcdr
+        amm_types
+        )
+
+target_link_libraries(${LOGGER_EXE}
+        fastrtps fastcdr
+        amm_base_logger
         amm_types
         )
 
