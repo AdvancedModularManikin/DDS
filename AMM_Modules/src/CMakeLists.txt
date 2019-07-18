@@ -80,6 +80,11 @@ file(GLOB REST_HEADERS REST/headers/*.hxx)
 set(REST_SERVICE_SOURCES RestService.cpp ${REST_SOURCES} ${REST_HEADERS})
 set(REST_SERVICE_EXE amm_rest_service)
 
+file(GLOB LOGGER_SOURCES LOGGER/source/*.cpp)
+file(GLOB LOGGER_HEADERS LOGGER/headers/*.hpp)
+set(LOGGER_SOURCES LoggerModule.cpp ${LOGGER_SOURCES} ${LOGGER_HEADERS})
+set(LOGGER_EXE amm_logger_module)
+
 if (MSVC)
 add_executable(${REST_SERVICE_EXE} ${REST_SERVICE_SOURCES})
 target_include_directories(${REST_SERVICE_EXE} PUBLIC ${RAPIDJSON_INCLUDES} ${SQLITE3_INCLUDE_DIR} ${TinyXML2_INCLUDE_DIRS})
