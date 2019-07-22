@@ -1,7 +1,18 @@
 #pragma once
 
 #include <sstream>
+
 #include "REST/headers/HttpRequest.hxx"
+#include "AMM/BaseLogger.h"
+#include "AMM/DDS_Log_Appender.h"
+#include "AMM/DDS_Manager.h"
+#include "AMM/Utility.h"
+
+/// Global data that needs random access.
+class AMMData {
+public:
+   static AMM::DDS_Manager* mgr;
+};
 
 
 /// HANDLERS
