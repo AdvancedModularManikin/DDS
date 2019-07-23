@@ -14,6 +14,7 @@
 	  <data name="temp_probe_attached" value="true"/>
 	  <data name="nibp_attached" value="true"/>
 	  <data name="art_line_attached" value="true"/>
+	  <data name="et_tube_attached" value="true"/>		 
 	</configuration_data>
       </capability>
     </capabilities>
