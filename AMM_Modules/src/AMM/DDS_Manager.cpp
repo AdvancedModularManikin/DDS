@@ -174,7 +174,7 @@ namespace AMM {
         configInstance.model(model);
         configInstance.serial_number(serial_number);
         configInstance.version(version);
-        configInstance.capabilities(capabilities);
+        // configInstance.capabilities(capabilities);
         PublishModuleConfiguration(configInstance);
     }
 
