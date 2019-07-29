@@ -92,7 +92,7 @@ namespace AMM {
         wparam.qos.m_publishMode.kind = ASYNCHRONOUS_PUBLISH_MODE;
         wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
         Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         return gen_publisher;
     }
 
@@ -102,8 +102,9 @@ namespace AMM {
         PublisherAttributes wparam;
         wparam.topic.topicDataType = topicType->getName();
         wparam.topic.topicName = topicName;
-        // wparam.topic.topicKind = NO_KEY;
+        wparam.topic.topicKind = NO_KEY;
         Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         return gen_publisher;
     }
 
@@ -114,9 +115,10 @@ namespace AMM {
         PublisherAttributes wparam;
         wparam.topic.topicDataType = topicType->getName();
         wparam.topic.topicName = topicName;
-        // wparam.topic.topicKind = NO_KEY;
+        wparam.topic.topicKind = NO_KEY;
         wparam.qos.m_reliability.kind = RELIABLE_RELIABILITY_QOS;
         Publisher *gen_publisher = Domain::createPublisher(mp_participant, wparam, pub_listener);
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
         return gen_publisher;
     }
 
@@ -172,7 +174,7 @@ namespace AMM {
         configInstance.model(model);
         configInstance.serial_number(serial_number);
         configInstance.version(version);
-        configInstance.capabilities(capabilities);
+        // configInstance.capabilities(capabilities);
         PublishModuleConfiguration(configInstance);
     }
 

@@ -502,7 +502,7 @@ int main(int argc, char *argv[]) {
     mgr->InitializeReliableSubscriber(AMM::DataTypes::physModTopic, &mgr->PhysiologyModificationType,
                                       phys_mod_listener);
 
-    mgr->PublishModuleConfiguration(
+    /*mgr->PublishModuleConfiguration(
             mgr->module_id,
             nodeString,
             "Vcom3D",
@@ -510,7 +510,7 @@ int main(int argc, char *argv[]) {
             "00001",
             "0.0.1",
             mgr->GetCapabilitiesAsString("mule1/module_capabilities/serial_bridge_capabilities.xml")
-    );
+    );*/
 
     std::thread ec(checkForExit);
 
