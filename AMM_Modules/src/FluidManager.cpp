@@ -34,6 +34,7 @@ bool have_pressure = false;
 bool send_status = false;
 AMM::Capability::status_values current_status = HALTING_ERROR;
 bool module_stopped = false;
+bool module_purging = false;
 bool blood_reservoir_empty = false;
 bool clear_reservoir_empty = false;
 
@@ -138,6 +139,12 @@ class FluidListener : public ListenerInterface {
 	} else if (value == "STOP_FLUIDICS") {
 	  LOG_DEBUG << "Received Stop Fluidics command";
 	  module_stopped = true;
+	} else if ( value == "START_PURGE") {
+	  LOG_DEBUG << "Received Start Purge command";
+	  module_purging = true;
+	} else if ( value == "STOP_PURGE") {
+	  LOG_DEBUG << "Received Stop Purge command";
+	  module_purging = false;
 	}
       }
     }
@@ -247,6 +254,7 @@ void air_reservoir_control_task(void)
         LOG_INFO << "Awaiting configuration";
         while (!have_pressure) {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            if ( module_purging ) goto state_purge; 
         }
         remote_set_gpio(rail_24V, 1);
         remote_set_gpio(motor_enable, 1);
@@ -260,6 +268,10 @@ void air_reservoir_control_task(void)
         //TODO need to determine if pressure is really completed.
         while (not_pressurized) {
             if (module_stopped) goto state_error;
+            if ( module_purging ) {
+                LOG_DEBUG << "Please STOP FLUIDICS and connect flushing adapter before starting purge";
+                module_purging = false;
+            }
 
             pid.target = operating_pressure;
             float hold_isum = pid.isum;
@@ -330,6 +342,10 @@ void air_reservoir_control_task(void)
         int stay_operational = 1; //TODO change in response to DDS commands
         while (stay_operational) {
             if (module_stopped) goto state_error;
+	    if ( module_purging ) {
+		LOG_DEBUG << "Please STOP FLUIDICS and connect flushing adapter before starting purge";
+		module_purging = false;
+	    }
             pid.target = operating_pressure;
             float hold_isum = pid.isum;
             uint32_t adcRead = remote_get_adc(P1);
@@ -375,70 +391,43 @@ void air_reservoir_control_task(void)
     }
 
     state_purge:
-    {
-        //TODO purge does not quite complete, issues detecting if the lines are clear
-        //the five lines following purge both (although having both open causes an issue similar to blowing your nose)
-        remote_set_gpio(solenoid_C, 0);
-        remote_set_gpio(solenoid_A, 1);
-        remote_set_gpio(solenoid_B, 1);
-        //remote_set_gpio(solenoid_AD, 1);
-        //remote_set_gpio(solenoid_AC, 1);
-        //std::this_thread::sleep_for(std::chrono::milliseconds(60*1000));
+     {
+        remote_set_gpio(solenoid_A, 0);
+        remote_set_gpio(solenoid_B, 0);		// turn off air enable valve to let reservoir pressur ebleed off
+        remote_set_gpio(motor_enable, 0);	// turn off compressor
+	remote_set_dac(motor_dac, 0x0);
 
-        //control loop off of P4, for AC then AD, a purge is done when P1 hits 0.01psi above atmo
-        const int purge_states = 2;
-        for (int purge_ix = 0; purge_ix < purge_states; purge_ix++) {
-            switch (purge_ix) {
-                case 0:
-                    remote_set_gpio(solenoid_AC, 1);
-                    remote_set_gpio(solenoid_AD, 0);
-                    puts("Purging AC!");
-                    break;
-                case 1:
-                    remote_set_gpio(solenoid_AC, 0);
-                    remote_set_gpio(solenoid_AD, 1);
-                    puts("Purging AD!");
-                    break;
-                default:
-                    printf("unhandled case in purge_ix: %d\n", purge_ix);
-            }
-            bool purge_not_complete = 1;
-            while (purge_not_complete) {
-                if (module_stopped) goto state_error;
+        bool purge_not_complete = 1;
+        while (purge_not_complete) {
+        	if (module_stopped) goto state_error;
+                if ( !module_purging ) goto state_error;
 
-                pid.target = purge_pressure;
-                float hold_isum = pid.isum;
-                uint32_t adcRead = remote_get_adc(P3);
-                float psi = ((float) adcRead) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
-                ret = pi_supply(&pid, psi);
+		// wait for pressure P1 (air reservoir) to bleed off
+	        float psiP1 = ((float) remote_get_adc(P1)) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+                float psiP2 = ((float) remote_get_adc(P2)) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+                float psiP3 = ((float) remote_get_adc(P3)) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
+   		float psiP4 = ((float) remote_get_adc(P4)) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
 
-                //convert back to 0-2^12 range for DAC
-                val = (uint32_t)(ret * 1000.0);
-                should_motor_run = stall_val < val;
-                if (!should_motor_run) {
-                    pid.isum = hold_isum;
+		if ( psiP1 < 0.1 ) {
+			remote_set_gpio(solenoid_A, 1);		// turn on valve A to allow air into the fluid channels
+			remote_set_gpio(motor_enable, 1);	// enable compressor
+			remote_set_dac(motor_dac, 0xfff);	// turn compressor on full speed
+		}
+
+		// once the pressure P1 has dropped below 0.1 psi and purging is running, it should not come up again 
+		// if it does, turn the compressor off
+                if ( psiP1 > 0.5 ) {
+                        remote_set_dac(motor_dac, 0x0);       // turn compressor speed to 0
                 }
-                dacVal = val > 0xfff ? 0xfff : val;
-                remote_set_dac(motor_dac, dacVal);
 
-                int adcP1 = remote_get_adc(P1);
-                int adcP2 = remote_get_adc(P2);
-                int adcP3 = remote_get_adc(P3);
-                int adcP4 = remote_get_adc(P4);
-                float psi1 = ((float) adcP1) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
-                float psi2 = ((float) adcP2) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
-                float psi3 = ((float) adcP3) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
-                float psi4 = ((float) adcP4) * (3.0 / 10280.0 * 16.0) - 15.0 / 8.0;
-                printf("psi1: %f\tpsi2: %f\tpsi3: %f\tpsi4: %f\n", psi1, psi2, psi3, psi4);
-                if (purge_ix == 0) {
-                    purge_not_complete = psi2 > 0.22;
-                } else {
-                    purge_not_complete = psi1 > 0.22;
-                }
-            }
-        }
-        remote_set_gpio(solenoid_AC, 0);
-        remote_set_gpio(solenoid_AD, 0);
+            	if (rate_limiter(RATE_LIMIT_MOD)) {
+                	LOG_DEBUG << "P1: " << psiP1;
+			LOG_DEBUG << "P2: " << psiP2;
+                        LOG_DEBUG << "P3: " << psiP3;
+                 	LOG_DEBUG << "P4: " << psiP4;
+            	}
+
+	}
     }
     goto state_error;
 
@@ -447,6 +436,7 @@ void air_reservoir_control_task(void)
         //turn off motor, close all solenoids, turn off 24V rail
         LOG_INFO << "Disabling motor, resetting valves";
         remote_set_gpio(motor_enable, 0);
+	remote_set_gpio(motor_dac, 0x0);
         remote_set_gpio(rail_24V, 0);
         remote_set_gpio(solenoid_B, 0);
         remote_set_gpio(solenoid_A, 0);
@@ -456,6 +446,7 @@ void air_reservoir_control_task(void)
 
         have_pressure = false;
         module_stopped = false;
+	module_purging = false;
         goto state_startup;
     }
 }
