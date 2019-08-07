@@ -851,13 +851,22 @@ private:
         StringBuffer s;
         Writer<StringBuffer> writer(s);
 
-        int count = 0;
-        db << "SELECT COUNT(DISTINCT module_name) FROM module_capabilities" >> count;
+        int totalCount = 0;
+        int coreCount = 0;
+        int otherCount = 0;
+
+        db << "SELECT COUNT(DISTINCT module_name) FROM module_capabilities" >> totalCount;
+        db << "SELECT COUNT(DISTINCT module_name) FROM module_capabilities where module_name LIKE 'AMM_%'" >> coreCount;
+
+        otherCount = totalCount - coreCount;
+
         writer.StartObject();
-
         writer.Key("module_count");
-        writer.Int(count);
-
+        writer.Int(totalCount);
+        writer.Key("core_count");
+        writer.Int(coreCount);
+        writer.Key("other_count");
+        writer.Int(otherCount);
         writer.EndObject();
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
