@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>NRB_CHANGE_ENVIRONMENT</Name>
+	<Description>Mimics the adminstration of supplemental oxygen (100% FiO2 via NRB)to a burn patient who was exposed to carbon monoxide. The air composition in the ambient environment changes to 0% carbon monoxide, 0.04%CO2, 0.96% nitrogren and 99% oxygen. This removes the CO present in the IMPACTT starting state and circumvents using the BioGears anesthesia machine.</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	      	
+	<Action xsi:type="EnvironmentChangeData">
+		<Conditions>
+			<AmbientSubstance Name="Nitrogen">
+				<FractionAmount value="0.0096"/>
+			</AmbientSubstance>
+			<AmbientSubstance Name="Oxygen">
+				<FractionAmount value="0.99"/>
+			</AmbientSubstance>
+			<AmbientSubstance Name="CarbonDioxide">
+				<FractionAmount value="0.0004"/>
+			</AmbientSubstance>
+			<AmbientSubstance Name="CarbonMonoxide">
+				<FractionAmount value="0.0"/>
+			</AmbientSubstance>
+		</Conditions>
+	</Action>
+</Scenario>
