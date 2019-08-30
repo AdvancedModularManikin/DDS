@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scenario xmlns="uri:/mil/tatrc/physiology/datamodel" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" contentVersion="BioGears_6.1.0-beta" xsi:schemaLocation="">
+	<Name>BVM_MASK_ASSISTED_VENTILATE</Name>
+	<Description>Assisted Ventilation with BVM.</Description>
+	<InitialParameters>
+		<PatientFile>StandardMale.xml</PatientFile>
+	</InitialParameters>	  
+	<Action xsi:type="AnesthesiaMachineConfigurationData">
+		<Configuration>			
+			<Connection>Mask</Connection>
+			<InletFlow value="15.0" unit="L/min"/>
+			<InspiratoryExpiratoryRatio value="0.5"/>
+			<OxygenFraction value="1.0"/>
+			<OxygenSource>Wall</OxygenSource>
+			<PositiveEndExpiredPressure value="5.0" unit="cmH2O"/>
+			<PrimaryGas>Nitrogen</PrimaryGas>
+			<ReliefValvePressure value="20.0" unit="cmH2O"/>
+			<RespiratoryRate value="16.0" unit="1/min"/>
+			<VentilatorPressure value="22.0" unit="cmH2O"/>
+		</Configuration>
+	</Action>  
+</Scenario>
