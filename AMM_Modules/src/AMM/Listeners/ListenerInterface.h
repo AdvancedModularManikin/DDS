@@ -26,7 +26,6 @@
 #include <fastrtps/rtps/resources/AsyncWriterThread.h>
 
 #include <fastrtps/rtps/reader/StatelessReader.h>
-#include <fastrtps/rtps/reader/WriterProxy.h>
 #include <fastrtps/rtps/writer/StatelessWriter.h>
 
 #include <fastrtps/rtps/history/ReaderHistory.h>
