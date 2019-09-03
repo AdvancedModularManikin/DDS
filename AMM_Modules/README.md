@@ -8,7 +8,7 @@ This repository is the pre-AMM 1.0 standard repo for AMM core modules.  New libr
 This is a series of proof-of-concept AMM modules utilizing DDS.  These can be used as a reference to build your own AMM-compliant modules.
 
 #### Requirements:
-* [FastRTPS](https://github.com/eProsima/Fast-RTPS) built and installed, version 1.7.x or higher.  Versions newer than 1.9 require additional dependancies which must be installed separately.  Please see the FastRTPS repo for instructions.
+* [FastRTPS](https://github.com/eProsima/Fast-RTPS) built and installed, version 1.7.x or higher.  Versions newer than 1.9 require additional dependancies which must be installed separately.  FastCDR versions should match the version of FastRTPS you choose: please see the FastRTPS repo for instructions.
    
    ```
    git clone https://github.com/eProsima/Fast-RTPS
