@@ -1,18 +1,21 @@
+# DEPRECATED
+
+This repository is the pre-AMM 1.0 standard repo for AMM core modules.  New libraries will be released soon which supercede this version and include improved building and development processes.  This will be updated when the new repositories are ready.
+
 
 # AMM Modules using DDS
 
 This is a series of proof-of-concept AMM modules utilizing DDS.  These can be used as a reference to build your own AMM-compliant modules.
 
 #### Requirements:
-* [FastRTPS](https://github.com/eProsima/Fast-RTPS) built and installed. 
-   * We depend on fastrtpsgen so be sure to enable Java with -DBUILD_JAVA=ON. Gradle and the JDK must already be installed on your system.
+* [FastRTPS](https://github.com/eProsima/Fast-RTPS) built and installed, version 1.7.x or higher.  Versions newer than 1.9 require additional dependancies which must be installed separately.  Please see the FastRTPS repo for instructions.
    
    ```
    git clone https://github.com/eProsima/Fast-RTPS
    cd Fast-RTPS
    mkdir build
    cd build
-   cmake -DTHIRDPARTY=ON -DBUILD_JAVA=ON .. 
+   cmake -DTHIRDPARTY=ON -DBUILD_JAVA=OFF .. 
    make
    make install
    ```
@@ -39,13 +42,11 @@ make
 This will build into the `bin` directory.  You will have a few binaries:
 
 **CORE Software**:
-* amm_module_manager - Maintains track of all 
+* amm_module_manager - Maintains track of all modules and their capabilities
 * amm_sim_manager - outputs ticks at 50hz, start/pause/stop simulation
 * amm_physiology_manager - interface for physiology engine, publishes some node_paths
 * amm_rest_adapter - Accept HTTP requests and return data from the DDS bus
 * amm_tcp_bridge - Connector from the DDS bus to TCP, including a UDP auto-discovery server.  Used for Unity3D connectivity.
-* amm_capture
-* amm_logger
 
 **Example modules**:
 * amm_virtual_equipment - command line tool, accepts a node_path to listen for
@@ -55,7 +56,7 @@ This will build into the `bin` directory.  You will have a few binaries:
 * amm_heartrate_led - [BLT](https://github.com/AdvancedModularManikin/development-kit/wiki/AMMDK-Overview) test to flash LED at heart rate
 * amm_ivc_module
 * amm_fluid_manager
-* amm_serial_bridge - Connector to devices (Arduino, etc) that communicate via serial / USB. 
+* amm_arduino_bridge - Connector to devices (Arduino, etc) that communicate via serial / USB. 
 
 ### REST Adapter routes
 The REST adapter exposes the following routes:
