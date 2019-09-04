@@ -1047,7 +1047,9 @@ void PhysiologyThread::SetIVPump(const std::string& pumpSettings)
             std::string concentrationsMass, concentrationsVol, rateUnit, massUnit, volUnit;
             double rateVal, massVal, volVal, conVal;
 
-            if (substance == "Saline" || substance == "Whole Blood" || substance == "Blood")
+            if (substance == "Saline" || substance == "Whole Blood" ||
+            substance == "Blood" || substance == "RingersLactate" || substance == "PRBC"
+            )
             {
                 if (substance == "Whole Blood")
                 {
