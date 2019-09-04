@@ -1,4 +1,5 @@
 #include "PhysiologyEngineManager.h"
+#include "PhysiologyThread.h"
 
 std::string get_filename_date(void) {
     time_t now;
@@ -18,8 +19,8 @@ std::string get_filename_date(void) {
 namespace AMM {
     PhysiologyEngineManager::PhysiologyEngineManager() {
 
-        static plog::ColorConsoleAppender<plog::TxtFormatter> consoleAppender;
-        static plog::DDS_Log_Appender<plog::TxtFormatter> DDSAppender(mgr);
+        static plog::ColorConsoleAppender <plog::TxtFormatter> consoleAppender;
+        static plog::DDS_Log_Appender <plog::TxtFormatter> DDSAppender(mgr);
         plog::init(plog::verbose, &consoleAppender).addAppender(&DDSAppender);
 
         using namespace Capability;
@@ -173,14 +174,13 @@ namespace AMM {
 
             m_mutex.lock();
             LOG_INFO << "Loading " << stateFile << " at " << startPosition;
-            if (bg->LoadState(stateFile.c_str(), startPosition))
-            {
+            if (bg->LoadState(stateFile.c_str(), startPosition)) {
                 running = true;
-			}
+            }
             m_mutex.unlock();
-            nodePathMap = bg->GetNodePathTable();            
+            nodePathMap = bg->GetNodePathTable();
         }
-        
+
         paused = false;
     }
 
@@ -204,9 +204,9 @@ namespace AMM {
     void PhysiologyEngineManager::AdvanceTimeTick() { bg->AdvanceTimeTick(); }
 
     void PhysiologyEngineManager::SetLogging(bool log) {
-        #ifdef _WIN32
-            return;
-        #endif
+#ifdef _WIN32
+        return;
+#endif
 
         logging_enabled = log;
         if (bg != nullptr) {
@@ -270,7 +270,7 @@ namespace AMM {
         }
     }
 
-    const std::map<std::string, std::string> &PhysiologyEngineManager::GetTissueResistorMap() const {
+    const std::map <std::string, std::string> &PhysiologyEngineManager::GetTissueResistorMap() const {
         return m_TissueResistorMap;
     }
 
@@ -300,7 +300,7 @@ namespace AMM {
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
+                bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
                     // Create variables for scenario
                     SEPainStimulus PainStimulus; // pain object
                     PainStimulus.SetLocation(command.location().description());
@@ -316,7 +316,7 @@ namespace AMM {
                 eprosima::fastcdr::FastBuffer buffer{&cm.payload()[0], cm.payload().size()};
                 eprosima::fastcdr::Cdr cdr{buffer};
                 cdr >> command;
-                bg->Execute([=](std::unique_ptr<biogears::PhysiologyEngine> engine) {
+                bg->Execute([=](std::unique_ptr <biogears::PhysiologyEngine> engine) {
                     SESepsis sepsis;
                     auto tissueMap = GetTissueResistorMap();
                     switch (command.location()) {
@@ -446,6 +446,13 @@ namespace AMM {
             bg->SetBVMMask(i.payload());
         } else if (instrument == "ivpump") {
             bg->SetIVPump(i.payload());
+            if (bg->paralyzed && !bg->paralyzedSent) {
+                AMM::Render::Modification renderMod;
+                renderMod.type("PATIENT_STATE_PARALYZED");
+                renderMod.payload("PATIENT_STATE_PARALYZED");
+                mgr->PublishRenderModification(renderMod);
+                bg->paralyzedSent = true;
+            }
         }
         m_mutex.unlock();
     }

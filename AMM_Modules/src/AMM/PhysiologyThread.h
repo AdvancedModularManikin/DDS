@@ -148,6 +148,9 @@ namespace AMM {
         static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
         static std::vector <std::string> highFrequencyNodes;
 
+        bool paralyzed = false;
+        bool paralyzedSent = false;
+
 
     private:
         bool LoadScenarioFile(const std::string &scenarioFile);
