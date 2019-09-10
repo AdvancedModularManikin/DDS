@@ -7,9 +7,9 @@
             <data name="amm_specification" value="0.0.1"/>
         </versions>
         <capabilities>
-            <capability name="virtual_patient">
+            <capability name="urimeter">
                 <configuration_data>
-                    <data name="scene" value="er_litter"/>
+                    <data name="fill_offscreen" value="false"/>
                 </configuration_data>
             </capability>
         </capabilities>

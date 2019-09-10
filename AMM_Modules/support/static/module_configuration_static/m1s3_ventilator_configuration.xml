@@ -7,14 +7,9 @@
             <data name="amm_specification" value="0.0.1"/>
         </versions>
         <capabilities>
-            <capability name="propaq">
+            <capability name="virtual_ventilator">
                 <configuration_data>
-                    <data name="ecg_attached" value="true"/>
-                    <data name="pulse_ox_attached" value="true"/>
-                    <data name="temp_probe_attached" value="true"/>
-                    <data name="nibp_attached" value="true"/>
-                    <data name="art_line_attached" value="true"/>
-                    <data name="et_tube_attached" value="true"/>
+                    <data name="ventilator_sound" value="false"/>
                 </configuration_data>
             </capability>
         </capabilities>

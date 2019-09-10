@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <AMMConfiguration>
-  <scenario id="m1s1" name="Mule 1 / Scene 1 / PoI">
+  <scenario id="m1s1" name="ACS / Scene 1 / PoIs">
     <versions>
       <data name="scenario" value="1.0.0" />
       <data name="amm_core" value="0.0.1" />

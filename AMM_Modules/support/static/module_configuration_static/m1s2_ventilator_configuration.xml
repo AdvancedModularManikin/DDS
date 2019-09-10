@@ -7,9 +7,9 @@
             <data name="amm_specification" value="0.0.1"/>
         </versions>
         <capabilities>
-            <capability name="virtual_patient">
+            <capability name="virtual_ventilator">
                 <configuration_data>
-                    <data name="scene" value="er_litter"/>
+                    <data name="ventilator_sound" value="false"/>
                 </configuration_data>
             </capability>
         </capabilities>

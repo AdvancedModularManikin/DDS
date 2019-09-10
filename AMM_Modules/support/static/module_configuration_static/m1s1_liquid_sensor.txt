@@ -1,4 +1,4 @@
-[Scenario]m1s1=mule1_scene1
+[Scenario]m1s1=acs_scene1
 [Capability]monitor_level=true
 [Config_Data]sound_alarm=false
 [/Capability]
