@@ -991,6 +991,8 @@ private:
 
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        auto csvHeader = Http::Header::Raw("Content-Disposition","attachment;filename=amm_timeline_log.csv");
+        response.headers().addRaw(csvHeader);
         response.send(Http::Code::Ok, s.str(), Http::Mime::MediaType::fromString("text/csv"));
     }
 
@@ -1054,6 +1056,8 @@ private:
            };
 
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        auto csvHeader = Http::Header::Raw("Content-Disposition","attachment;filename=amm_diagnostic_log.csv");
+        response.headers().addRaw(csvHeader);
         response.send(Http::Code::Ok, s.str(), Http::Mime::MediaType::fromString("text/csv"));
     }
 
