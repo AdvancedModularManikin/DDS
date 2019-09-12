@@ -440,9 +440,14 @@ private:
 
         Routes::Get(router, "/events",
                     Routes::bind(&DDSEndpoint::getEventLog, this));
+        Routes::Get(router, "/events/csv",
+                    Routes::bind(&DDSEndpoint::getEventLogCSV, this));
 
         Routes::Get(router, "/logs",
                     Routes::bind(&DDSEndpoint::getDiagnosticLog, this));
+
+        Routes::Get(router, "/logs/csv",
+                    Routes::bind(&DDSEndpoint::getDiagnosticLogCSV, this));
 
         Routes::Get(router, "/modules/count",
                     Routes::bind(&DDSEndpoint::getModuleCount, this));
@@ -961,6 +966,34 @@ private:
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
 
+    void getEventLogCSV(const Rest::Request &request,
+                     Http::ResponseWriter response) {
+        std::ostringstream s;
+
+        db << "SELECT "
+              "module_capabilities.module_name,"
+              "events.source,"
+              "events.topic,"
+              "events.tick,"
+              "events.timestamp,"
+              "events.data "
+              "FROM "
+              "events "
+              "LEFT JOIN module_capabilities "
+              "ON "
+              "events.source = module_capabilities.module_guid" >>
+           [&](string module_name, string source, string topic, int64_t tick, int64_t timestamp,
+               string data) {
+               std::time_t temp = timestamp;
+               std::tm* t = std::gmtime(&temp);
+               s << std::put_time(t, "%Y-%m-%d %I:%M:%S %p") << "," << module_name << "," << source << "," << topic << "," << data << std::endl;
+           };
+
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.str(), Http::Mime::MediaType::fromString("text/csv"));
+    }
+
     void getDiagnosticLog(const Rest::Request &request,
                           Http::ResponseWriter response) {
         StringBuffer s;
@@ -998,6 +1031,30 @@ private:
         writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getDiagnosticLogCSV(const Rest::Request &request,
+                          Http::ResponseWriter response) {
+        std::ostringstream s;
+
+        db << "SELECT "
+              "logs.module_name, "
+              "logs.module_guid, "
+              "logs.module_id, "
+              "logs.message,"
+              "logs.log_level,"
+              "logs.timestamp "
+              "FROM "
+              "logs " >>
+           [&](string module_name, string module_guid, string module_id, string message, string log_level,
+               int64_t timestamp) {
+               std::time_t temp = timestamp;
+               std::tm* t = std::gmtime(&temp);
+                s << std::put_time(t, "%Y-%m-%d %I:%M:%S %p") << "," << log_level << "," << module_name << "," << message << std::endl;
+           };
+
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.str(), Http::Mime::MediaType::fromString("text/csv"));
     }
 
     void getNodes(const Rest::Request &request, Http::ResponseWriter response) {
