@@ -446,12 +446,16 @@ namespace AMM {
             bg->SetBVMMask(i.payload());
         } else if (instrument == "ivpump") {
             bg->SetIVPump(i.payload());
-            if (bg->paralyzed && !bg->paralyzedSent) {
-                AMM::Render::Modification renderMod;
-                renderMod.type("PATIENT_STATE_PARALYZED");
-                renderMod.payload("PATIENT_STATE_PARALYZED");
-                mgr->PublishRenderModification(renderMod);
-                bg->paralyzedSent = true;
+            if (bg->paralyzed == true) {
+                LOG_DEBUG << "Patient is paralyzed.";
+                if (bg->paralyzedSent == false) {
+                    LOG_DEBUG << "...but we haven't sent the render mod.";
+                    AMM::Render::Modification renderMod;
+                    renderMod.type("PATIENT_STATE_PARALYZED");
+                    renderMod.payload("PATIENT_STATE_PARALYZED");
+                    mgr->PublishRenderModification(renderMod);
+                    bg->paralyzedSent = true;
+                }
             }
         }
         m_mutex.unlock();

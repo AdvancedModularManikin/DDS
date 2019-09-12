@@ -887,6 +887,11 @@ namespace AMM {
             }
         }
 
+        if (substance == "Succinylcholine") {
+            LOG_DEBUG << "Setting paralyzed to TRUE from succs infusion";
+            paralyzed = true;
+        }
+
         try {
             if (type == "infusion") {
                 std::string concentrationsMass, concentrationsVol, rateUnit, massUnit, volUnit;
@@ -997,11 +1002,8 @@ namespace AMM {
                     bolus.GetDose().SetValue(doseVal, biogears::VolumeUnit::uL);
                 }
                 bolus.SetAdminRoute(CDM::enumBolusAdministration::Intravenous);
-                m_pe->ProcessAction(bolus);
-            }
 
-            if (substance == "Succinylcholine") {
-                paralyzed = true;
+                m_pe->ProcessAction(bolus);
             }
         }
         catch (std::exception &e) {
