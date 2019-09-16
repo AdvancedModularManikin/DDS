@@ -86,8 +86,13 @@ void show_menu(AMM::PhysiologyEngineManager *pe) {
         pe->StopSimulation();
         pe->Shutdown();
         closed = true;
+    } else if (action == "8") {
+        std::cout << "Testing pump settings";
+        // std::string payload = "bagVolume=250 mL\nrate=46.26 mL/hr\nconcentration=200 mg/20 mL\nsubstance=Propofol\ntype=infusion";
+        std::string payload = "bagVolume=250 mL\nconcentration=400 mg/20 mL\nrate=600 mL/hr\nsubstance=Succinylcholine\ntype=infusion";
+        pe->TestPump(payload);
     } else if (action == "LIST") {
-        pe->PrintAvailableNodePaths();
+            pe->PrintAvailableNodePaths();
     } else if (action == "PRINT") {
         pe->PrintAllCurrentData();
     }

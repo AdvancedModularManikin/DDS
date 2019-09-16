@@ -75,6 +75,8 @@ namespace AMM {
         int lastFrame = 0;
         bool logging_enabled = false;
 
+        void TestPump(const std::string &pumpSettings);
+
         void onNewNodeData(Physiology::Node n, SampleInfo_t *info) override;
 
         void onNewHighFrequencyNodeData(Physiology::HighFrequencyNode n, SampleInfo_t *info) override;

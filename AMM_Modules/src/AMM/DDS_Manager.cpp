@@ -305,7 +305,9 @@ namespace AMM {
             render_initialized = true;
         }
         try {
+            LOG_DEBUG << "Trying write";
             render_publisher->write(&modInstance);
+            LOG_DEBUG << "Write success!";
         } catch (std::exception &e) {
             LOG_ERROR << e.what();
         }

@@ -201,7 +201,22 @@ namespace AMM {
 
     void PhysiologyEngineManager::StopSimulation() { bg->StopSimulation(); }
 
-    void PhysiologyEngineManager::AdvanceTimeTick() { bg->AdvanceTimeTick(); }
+    void PhysiologyEngineManager::AdvanceTimeTick() {
+        if (bg->paralyzed == true) {
+            LOG_DEBUG << "Patient is paralyzed.";
+            if (bg->paralyzedSent == false) {
+                LOG_DEBUG << "...but we haven't sent the render mod.";
+                AMM::Render::Modification renderMod;
+                renderMod.type("PATIENT_STATE_PARALYZED");
+                renderMod.payload("PATIENT_STATE_PARALYZED");
+                LOG_DEBUG << "Preparing to publish render modification";
+                mgr->PublishRenderModification(renderMod);
+                LOG_DEBUG << "Published!";
+                bg->paralyzedSent = true;
+            }
+        }
+        bg->AdvanceTimeTick();
+    }
 
     void PhysiologyEngineManager::SetLogging(bool log) {
 #ifdef _WIN32
@@ -435,6 +450,10 @@ namespace AMM {
         }
     }
 
+    void PhysiologyEngineManager::TestPump(const std::string &pumpSettings) {
+        bg->SetIVPump(pumpSettings);
+    }
+
     void PhysiologyEngineManager::onNewInstrumentData(AMM::InstrumentData i, SampleInfo_t *info) {
         LOG_DEBUG << "Instrument data for " << i.instrument()
                   << " received with payload: " << i.payload();
@@ -448,19 +467,5 @@ namespace AMM {
             bg->SetIVPump(i.payload());
         }
         m_mutex.unlock();
-
-        if (bg->paralyzed == true) {
-            LOG_DEBUG << "Patient is paralyzed.";
-            if (bg->paralyzedSent == false) {
-                LOG_DEBUG << "...but we haven't sent the render mod.";
-                AMM::Render::Modification renderMod;
-                renderMod.type("PATIENT_STATE_PARALYZED");
-                renderMod.payload("PATIENT_STATE_PARALYZED");
-                LOG_DEBUG << "Preparing to publish render modification";
-                mgr->PublishRenderModification(renderMod);
-                LOG_DEBUG << "Published!";
-                bg->paralyzedSent = true;
-            }
-        }
     }
 }
