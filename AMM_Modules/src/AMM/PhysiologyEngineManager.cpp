@@ -202,16 +202,12 @@ namespace AMM {
     void PhysiologyEngineManager::StopSimulation() { bg->StopSimulation(); }
 
     void PhysiologyEngineManager::AdvanceTimeTick() {
-        if (bg->paralyzed == true) {
-            LOG_DEBUG << "Patient is paralyzed.";
-            if (bg->paralyzedSent == false) {
-                LOG_DEBUG << "...but we haven't sent the render mod.";
+        if (bg->paralyzed == true && bg->paralyzedSent == false) {
+                LOG_DEBUG << "Patient is paralyzed but we haven't sent the render mod.";
                 AMM::Render::Modification renderMod;
                 renderMod.type("PATIENT_STATE_PARALYZED");
                 renderMod.payload("PATIENT_STATE_PARALYZED");
-                LOG_DEBUG << "Preparing to publish render modification";
                 mgr->PublishRenderModification(renderMod);
-                LOG_DEBUG << "Published!";
                 bg->paralyzedSent = true;
             }
         }
