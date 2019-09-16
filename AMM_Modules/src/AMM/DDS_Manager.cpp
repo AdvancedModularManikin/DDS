@@ -28,6 +28,41 @@ namespace AMM {
 
         module_id = GenerateID();
         module_name = nodeName;
+
+        if (!render_initialized) {
+            render_publisher = InitializeReliablePublisher(
+                    AMM::DataTypes::renderModTopic,
+                    &RenderModificationType, pub_listener);
+            render_initialized = true;
+        }
+
+        if (!physmod_initialized) {
+            physmod_publisher = InitializeReliablePublisher(
+                    AMM::DataTypes::physModTopic,
+                    &PhysiologyModificationType, pub_listener);
+            physcommand_initialized = true;
+        }
+
+        if (!config_initialized) {
+            config_publisher = InitializeConfigPublisher(
+                    AMM::DataTypes::configurationTopic,
+                    &ConfigurationType, pub_listener);
+            config_initialized = true;
+        }
+
+        if (!status_initialized) {
+            status_publisher = InitializeReliablePublisher(
+                    AMM::DataTypes::statusTopic, &StatusType,
+                    pub_listener);
+            status_initialized = true;
+        }
+
+        if (!log_initialized) {
+            log_publisher = InitializeReliablePublisher(
+                    AMM::DataTypes::logRecordTopic, &LogRecordType,
+                    pub_listener);
+            log_initialized = true;
+        }
     }
 
     Participant *DDS_Manager::GetParticipant() { return mp_participant; }
@@ -181,12 +216,6 @@ namespace AMM {
     void DDS_Manager::PublishModuleConfiguration(AMM::Capability::Configuration configInstance) {
         LOG_DEBUG << "Publishing module configuration";
         try {
-            if (!config_initialized) {
-                config_publisher = InitializeConfigPublisher(
-                        AMM::DataTypes::configurationTopic,
-                        &ConfigurationType, pub_listener);
-                config_initialized = true;
-            }
             config_publisher->write(&configInstance);
         } catch (std::exception &e) {
             LOG_ERROR << e.what();
@@ -207,12 +236,6 @@ namespace AMM {
             logInstance.message(message);
             logInstance.log_level(log_level);
             logInstance.timestamp(now);
-            if (!log_initialized) {
-                log_publisher = InitializeReliablePublisher(
-                        AMM::DataTypes::logRecordTopic, &LogRecordType,
-                        pub_listener);
-                log_initialized = true;
-            }
             log_publisher->write(&logInstance);
         } catch (std::exception &e) {
             LOG_ERROR << e.what();
@@ -269,12 +292,6 @@ namespace AMM {
 
     void DDS_Manager::SetStatus(AMM::Capability::Status statusInstance) {
         try {
-            if (!status_initialized) {
-                status_publisher = InitializeReliablePublisher(
-                        AMM::DataTypes::statusTopic, &StatusType,
-                        pub_listener);
-                status_initialized = true;
-            }
             status_publisher->write(&statusInstance);
         } catch (std::exception &e) {
             LOG_ERROR << e.what();
@@ -298,12 +315,6 @@ namespace AMM {
 
     void DDS_Manager::PublishRenderModification(
             AMM::Render::Modification modInstance) {
-        if (!render_initialized) {
-            render_publisher = InitializeReliablePublisher(
-                    AMM::DataTypes::renderModTopic,
-                    &RenderModificationType, pub_listener);
-            render_initialized = true;
-        }
         try {
             LOG_DEBUG << "Trying write";
             render_publisher->write(&modInstance);
@@ -315,12 +326,6 @@ namespace AMM {
 
     void DDS_Manager::PublishPhysiologyModification(
             AMM::Physiology::Modification modInstance) {
-        if (!physmod_initialized) {
-            physmod_publisher = InitializeReliablePublisher(
-                    AMM::DataTypes::physModTopic,
-                    &PhysiologyModificationType, pub_listener);
-            physcommand_initialized = true;
-        }
         try {
             physmod_publisher->write(&modInstance);
         } catch (std::exception &e) {
