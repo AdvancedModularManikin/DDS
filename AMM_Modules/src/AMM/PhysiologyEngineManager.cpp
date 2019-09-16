@@ -209,7 +209,6 @@ namespace AMM {
                 renderMod.payload("PATIENT_STATE_PARALYZED");
                 mgr->PublishRenderModification(renderMod);
                 bg->paralyzedSent = true;
-            }
         }
         bg->AdvanceTimeTick();
     }
