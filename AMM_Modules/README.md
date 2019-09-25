@@ -12,17 +12,18 @@ This is a series of proof-of-concept AMM modules utilizing DDS.  These can be us
    
    ```
    git clone https://github.com/eProsima/Fast-RTPS
-   cd Fast-RTPS
-   mkdir build
-   cd build
+   cd Fast-RTPS   
+   git fetch && git fetch --tags
+   git checkout v1.8.1
+   git submodule update --init
+   mkdir build && cd build
    cmake -DTHIRDPARTY=ON -DBUILD_JAVA=OFF .. 
    make
-   make install
+   sudo make install
    ```
-
     
 * [BioGears](https://github.com/BioGearsEngine/Engine) or [Pulse](https://gitlab.kitware.com/physiology/engine) Physiology Engine SDK built and installed. 
-* [libboost](http://www.boost.org) 1.5.1 or higher installed. On Debian : sudo apt install libboost-all-dev 
+* [libboost](http://www.boost.org) 1.5.8 or higher installed. On Debian : sudo apt install libboost-all-dev 
 * [libtinyxml2](http://www.grinninglizard.com/tinyxml2/) installed.  On Debian: sudo apt install libtinyxml2-dev
 
 #### Optional:
@@ -45,6 +46,8 @@ This will build into the `bin` directory.  You will have a few binaries:
 * amm_module_manager - Maintains track of all modules and their capabilities
 * amm_sim_manager - outputs ticks at 50hz, start/pause/stop simulation
 * amm_physiology_manager - interface for physiology engine, publishes some node_paths
+
+**Extended Core**
 * amm_rest_adapter - Accept HTTP requests and return data from the DDS bus
 * amm_tcp_bridge - Connector from the DDS bus to TCP, including a UDP auto-discovery server.  Used for Unity3D connectivity.
 
