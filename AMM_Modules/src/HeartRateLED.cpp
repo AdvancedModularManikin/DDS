@@ -1,20 +1,11 @@
-
 #include "AMM/DDS_Manager.h"
 
-#include <sys/ioctl.h>
-#include <linux/types.h>
-#include <linux/spi/spidev.h>
-
-#include <fcntl.h>    /* For O_RDWR */
-
 // Standard includes for SPI datagram library.
-extern "C" {
-#include "spi_proto.h"
-}
-#include "spi_proto_master_datagram.h"
+#include "spi_datagram.h"
 
 using namespace std;
 using namespace AMM;
+using namespace AMM::Capability;
 
 // Daemonize by default
 int daemonize = 1;
@@ -70,8 +61,8 @@ static void show_usage(const std::string &name) {
     cerr << "Usage: " << name << "\nOptions:\n"
          << "\t-h,--help\t\tShow this help message\n" << endl;
 }
-void delay_ms(unsigned int ms)
-{
+
+void delay_ms(unsigned int ms) {
     std::this_thread::sleep_for(std::chrono::milliseconds(ms));
 }
 
@@ -86,12 +77,12 @@ void spi_message_handler_callback(struct spi_packet *p /* this pointer is to mem
     // Mark flag indicating spi_recv_msg has fresh data
     spi_recv_fresh = true;
 }
+
 // Register message handler callback with SPI library.
 void (*spi_callback)(struct spi_packet *p) = spi_message_handler_callback;
 
 // Task containing business logic loop for this module.
-void heartrate_led_task(void)
-{
+void heartrate_led_task(void) {
     int count = 0;  // Debug variable
     while (!closed) {
 
@@ -150,12 +141,8 @@ int main(int argc, char *argv[]) {
     HeartRateListener vel;
     node_sub_listener->SetUpstream(&vel);
     command_sub_listener->SetUpstream(&vel);
-    auto *pub_listener = new DDS_Listeners::PubListener();
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(), node_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-    Publisher *command_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::commandTopic,
-                                                            AMM::DataTypes::getCommandType(), pub_listener);
-
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::nodeTopic, &mgr->NodeType, node_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType, command_sub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
@@ -167,15 +154,15 @@ int main(int argc, char *argv[]) {
             "00001", // versions
             "0.0.1", // versions
             // This is currently a bad example; I'm not sure where this file is supposed to live
-            mgr->GetCapabilitiesAsString("mule1/module_capabilities/heart_rate_led_capabilities.xml")
+            mgr->GetCapabilitiesAsString("static/module_capabilities/heart_rate_led_capabilities.xml")
     );
 
     // Normally this would be set AFTER configuration is received
     mgr->SetStatus(mgr->module_id, nodeString, OPERATIONAL);
 
     //TODO idler loop here
-    while(!closed)
-	  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    while (!closed)
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
     cout << "=== [HeartRateLED] Simulation stopped." << endl;
 

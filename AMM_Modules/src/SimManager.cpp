@@ -10,25 +10,28 @@ using namespace AMM;
 bool closed = false;
 
 static void show_usage(const std::string &name) {
-    cerr << "Usage: " << name << " <option(s)>" <<
-         "\nOptions:\n" <<
-         "\t-r,--rate <sample_rate>\tSpecify the sample rate to run at (samples per second)\n" <<
-         "\t-a\t\t\tAuto-start ticks\n" <<
-         "\t-d\t\t\tDaemonize\n" <<
-         "\t-h,--help\t\t\tShow this help message\n" <<
-         endl;
+    cerr << "Usage: " << name << " <option(s)>"
+         << "\nOptions:\n"
+         << "\t-r,--rate <sample_rate>\tSpecify the sample rate to run at "
+            "(samples per second)\n"
+         << "\t-a\t\t\tAuto-start ticks\n"
+         << "\t-d\t\t\tDaemonize\n"
+         << "\t-h,--help\t\t\tShow this help message\n"
+         << endl;
 }
 
-void show_menu(SimulationManager* simManager) {
+void show_menu(SimulationManager *simManager) {
+    using namespace AMM::Physiology;
     string action;
 
-    cout << endl;
-    cout << " [1]Status " << endl;
-    cout << " [2]Run/Resume" << endl;
-    cout << " [3]Pause/Stop" << endl;
-    cout << " [4]Shutdown" << endl;
-    cout << " [5]Command console" << endl;
-    cout << " >> ";
+    // std::endl is an automatic flush and should be avoided unless required.
+    cout << "\n"
+            " [1]Status\n"
+            " [2]Run/Resume\n"
+            " [3]Pause/Stop\n"
+            " [4]Shutdown\n"
+            " [5]Command console\n"
+            " >> ";
     getline(cin, action);
     transform(action.begin(), action.end(), action.begin(), ::toupper);
 
@@ -39,7 +42,8 @@ void show_menu(SimulationManager* simManager) {
             cout << " == Not currently running, paused at tick count: ";
         }
         cout << simManager->GetTickCount() << endl;
-        cout << "  = Operating at " << simManager->GetSampleRate() << " frames per second." << endl;
+        cout << "  = Operating at " << simManager->GetSampleRate()
+             << " frames per second." << endl;
     } else if (action == "2") {
         if (!simManager->isRunning()) {
             cout << " == Starting simulation..." << endl;
@@ -61,7 +65,8 @@ void show_menu(SimulationManager* simManager) {
             cout << " == Stopping simulation and sending shutdown notice..." << endl;
         }
         simManager->StopSimulation();
-        cout << " == Exited after " << simManager->GetTickCount() << " ticks." << endl;
+        cout << " == Exited after " << simManager->GetTickCount() << " ticks."
+             << endl;
         cout << "=== [SimManager] Shutting down Simulation Manager." << endl;
         closed = true;
         simManager->Shutdown();
@@ -87,11 +92,11 @@ void show_menu(SimulationManager* simManager) {
 }
 
 int main(int argc, char *argv[]) {
-	int sampleRate = 50;
-	int daemonize = 0;
-	int autostart = 0;
-    LOG_INFO << "Simulation Manager starting";
-	
+
+    int sampleRate = 50;
+    int daemonize = 0;
+    int autostart = 0;
+
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if ((arg == "-h") || (arg == "--help")) {
@@ -108,17 +113,18 @@ int main(int argc, char *argv[]) {
         }
 
         if ((arg == "-r") || (arg == "--rate")) {
-            istringstream ss(argv[i + 1]);            
+            istringstream ss(argv[i + 1]);
             if (!(ss >> sampleRate)) {
                 cerr << "Invalid sample rate: " << argv[i + 1] << '\n';
                 return 0;
             }
-            
         }
     }
 
-	SimulationManager simManager;
-	simManager.SetSampleRate(sampleRate);
+    SimulationManager simManager;
+    simManager.SetSampleRate(sampleRate);
+
+    LOG_INFO << "Simulation Manager starting";
 
     if (autostart == 1) {
         LOG_INFO << "Auto-starting simulation";
@@ -136,4 +142,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-

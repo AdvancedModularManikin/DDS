@@ -1,18 +1,11 @@
 
-
 #include <algorithm>
 
 #include <boost/algorithm/string.hpp>
 
 #include "AMM/DDS_Manager.h"
 
-extern "C" {
-#include "spi_proto.h"
-#include "binary_semaphore.h"
 #include "spi_remote.h"
-#include "spi_remote_host.h"
-}
-#include "spi_proto_master.h"
 
 #include "tinyxml2.h"
 
@@ -20,6 +13,7 @@ using namespace std;
 using namespace std::literals::string_literals;
 using namespace tinyxml2;
 using namespace AMM;
+using namespace AMM::Capability;
 
 // Daemonize by default
 int daemonize = 1;
@@ -53,8 +47,6 @@ static uint8_t bits = 8;
 static uint32_t speed = 1 << 23;
 static uint16_t delay;
 
-Publisher *command_publisher;
-Publisher *node_publisher;
 
 /*
  * the task has two modes: waiting and running.
@@ -105,16 +97,8 @@ void send_ivc_spi(unsigned char status) {
 
 int frame = 0;
 
-void PublishNodeData(std::string node, float dbl) {
-    AMM::Physiology::Node dataInstance;
-    dataInstance.nodepath(node);
-    dataInstance.dbl(dbl);
-    dataInstance.frame(frame);
-    node_publisher->write(&dataInstance);
-    frame++;
-}
 
-void ProcessConfig(const std::string configContent) {
+void ProcessConfig(const std::string &configContent) {
 
     tinyxml2::XMLDocument doc;
     doc.Parse(configContent.c_str());
@@ -189,7 +173,7 @@ class IVCListener : public ListenerInterface {
                 std::string scene = value.substr(loadScenarioPrefix.size());
                 boost::algorithm::to_lower(scene);
                 ostringstream static_filename;
-                static_filename << "mule1/module_configuration_static/" << scene << "_ivc_module.xml";
+                static_filename << "static/module_configuration_static/" << scene << "_ivc_module.xml";
                 std::ifstream ifs(static_filename.str());
                 std::string configContent((std::istreambuf_iterator<char>(ifs)),
                                           (std::istreambuf_iterator<char>()));
@@ -242,21 +226,12 @@ int main(int argc, char *argv[]) {
     command_sub_listener->SetUpstream(&ivcl);
     config_sub_listener->SetUpstream(&ivcl);
 
-    auto *pub_listener = new DDS_Listeners::PubListener();
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, &mgr->CommandType, command_sub_listener);
+    mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, &mgr->ConfigurationType, config_sub_listener);
 
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::commandTopic, AMM::DataTypes::getCommandType(), command_sub_listener);
-    mgr->InitializeReliableSubscriber(AMM::DataTypes::configurationTopic, AMM::DataTypes::getConfigurationType(),
-                                      config_sub_listener);
-
-    Publisher *command_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::commandTopic,
-                                                         AMM::DataTypes::getCommandType(), pub_listener);
-
-    Publisher *node_publisher = mgr->InitializeReliablePublisher(AMM::DataTypes::nodeTopic, AMM::DataTypes::getNodeType(),
-                                                      pub_listener);
 
     // Publish module configuration once we've set all our publishers and listeners
     // This announces that we're available for configuration
-
     mgr->PublishModuleConfiguration(
             mgr->module_id,
             nodeString,
@@ -264,7 +239,7 @@ int main(int argc, char *argv[]) {
             "ivc_module",
             "00001",
             "0.0.1",
-            mgr->GetCapabilitiesAsString("mule1/module_capabilities/ivc_module_capabilities.xml")
+            mgr->GetCapabilitiesAsString("static/module_capabilities/ivc_module_capabilities.xml")
     );
 
     while (1) {

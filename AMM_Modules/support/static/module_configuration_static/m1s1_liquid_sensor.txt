@@ -1,0 +1,9 @@
+[Scenario]m1s1=acs_scene1
+[Capability]monitor_level=true
+[Config_Data]sound_alarm=false
+[/Capability]
+[Capability]detect_button_press=true
+[Config_Data]button_message=Pain_General_9
+[/Capability]
+[Capability]heart_rate=true
+[/Capability]

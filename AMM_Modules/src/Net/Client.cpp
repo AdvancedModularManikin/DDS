@@ -15,9 +15,7 @@ void Client::SetClientType(std::string &clientType) {
     this->clientType = clientType;
 }
 
-void Client::SetId(std::string id) {
-    this->id = id;
-}
+void Client::SetId(std::string id) { this->id = id; }
 
 void Client::SetKeepHistory(bool historyflag) {
     this->keepHistory = historyflag;

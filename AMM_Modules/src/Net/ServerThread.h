@@ -9,19 +9,22 @@
 using namespace std;
 
 class ServerThread {
-  public:
+public:
     pthread_t tid;
 
-  private:
+private:
     static pthread_mutex_t mutex;
 
-  public:
+public:
     ServerThread();
+
     int Create(void *Callback, void *args);
+
     int Join();
 
     static int InitMutex();
+
     static int LockMutex(const string &identifier);
+
     static int UnlockMutex(const string &identifier);
 };
-

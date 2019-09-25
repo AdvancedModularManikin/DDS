@@ -1,35 +1,40 @@
 #pragma once
 
-#include <mutex>
-#include <thread>
 #include <ctime>
-#include <stdexcept>
+#include <mutex>
 #include <sstream>
+#include <stdexcept>
+#include <thread>
+#include <iostream>
+#include <fstream>
 
 // Boost dependencies
-#include <boost/assign/std/vector.hpp>
-#include <boost/assign/list_of.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/assign/list_of.hpp>
+#include <boost/assign/std/vector.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 
 // BioGears core
 #include <biogears/cdm/CommonDataModel.h>
 #include <biogears/engine/BioGearsPhysiologyEngine.h>
 
-#include <biogears/cdm/patient/SEPatient.h>
+#include <biogears/cdm/compartment/SECompartmentManager.h>
 #include <biogears/cdm/compartment/SECompartmentManager.h>
 #include <biogears/cdm/compartment/fluid/SEGasCompartment.h>
 #include <biogears/cdm/compartment/fluid/SELiquidCompartment.h>
-#include <biogears/cdm/compartment/SECompartmentManager.h>
+#include <biogears/cdm/patient/SEPatient.h>
 #include <biogears/cdm/system/physiology/SEBloodChemistrySystem.h>
 #include <biogears/cdm/system/physiology/SECardiovascularSystem.h>
 #include <biogears/cdm/system/physiology/SEEnergySystem.h>
 #include <biogears/cdm/system/physiology/SERespiratorySystem.h>
+#include <biogears/cdm/system/physiology/SERenalSystem.h>
 
 #include <biogears/cdm/compartment/SECompartmentManager.h>
 #include <biogears/cdm/engine/PhysiologyEngineTrack.h>
 #include <biogears/cdm/patient/actions/SEPainStimulus.h>
 #include <biogears/cdm/patient/actions/SESubstanceBolus.h>
+#include <biogears/cdm/patient/actions/SEHemorrhage.h>
 
 #include <biogears/cdm/substance/SESubstanceManager.h>
 #include <biogears/cdm/system/physiology/SEBloodChemistrySystem.h>
@@ -37,41 +42,37 @@
 #include <biogears/cdm/system/physiology/SEDrugSystem.h>
 #include <biogears/cdm/system/physiology/SENervousSystem.h>
 
-#include <biogears/cdm/substance/SESubstanceManager.h>
 #include <biogears/cdm/substance/SESubstance.h>
+#include <biogears/cdm/substance/SESubstanceManager.h>
 
-#include <biogears/cdm/utils/SEEventHandler.h>
 #include <biogears/cdm/engine/PhysiologyEngineTrack.h>
+#include <biogears/cdm/utils/SEEventHandler.h>
 
-#include <biogears/cdm/properties/SEScalarFraction.h>
-#include <biogears/cdm/properties/SEScalarFrequency.h>
-#include <biogears/cdm/properties/SEScalarMassPerVolume.h>
-#include <biogears/cdm/properties/SEScalarPressure.h>
-#include <biogears/cdm/properties/SEScalarTemperature.h>
-#include <biogears/cdm/properties/SEScalarTime.h>
-#include <biogears/cdm/properties/SEScalarVolume.h>
-#include <biogears/cdm/properties/SEScalarVolumePerTime.h>
 #include <biogears/cdm/properties/SEFunctionVolumeVsTime.h>
-#include <biogears/cdm/properties/SEScalarMass.h>
-#include <biogears/cdm/properties/SEScalarLength.h>
 #include <biogears/cdm/properties/SEScalarAmountPerVolume.h>
 #include <biogears/cdm/properties/SEScalarFraction.h>
 #include <biogears/cdm/properties/SEScalarFrequency.h>
+#include <biogears/cdm/properties/SEScalarLength.h>
+#include <biogears/cdm/properties/SEScalarMass.h>
 #include <biogears/cdm/properties/SEScalarMassPerVolume.h>
 #include <biogears/cdm/properties/SEScalarPressure.h>
 #include <biogears/cdm/properties/SEScalarTemperature.h>
 #include <biogears/cdm/properties/SEScalarTime.h>
 #include <biogears/cdm/properties/SEScalarVolume.h>
 #include <biogears/cdm/properties/SEScalarVolumePerTime.h>
+#include <biogears/cdm/properties/SEScalarOsmolality.h>
+#include <biogears/cdm/properties/SEScalarOsmolarity.h>
+#include <biogears/cdm/properties/SEScalarTypes.h>
 
+#include <biogears/cdm/patient/actions/SEPainStimulus.h>
+#include <biogears/cdm/patient/actions/SESubstanceBolus.h>
+#include <biogears/cdm/patient/actions/SESubstanceCompoundInfusion.h>
+#include <biogears/cdm/patient/actions/SESubstanceInfusion.h>
+#include <biogears/cdm/patient/assessments/SECompleteBloodCount.h>
 #include <biogears/cdm/patient/assessments/SEComprehensiveMetabolicPanel.h>
 #include <biogears/cdm/patient/assessments/SEPulmonaryFunctionTest.h>
-#include <biogears/cdm/patient/assessments/SECompleteBloodCount.h>
-#include <biogears/cdm/patient/actions/SESubstanceBolus.h>
-#include <biogears/cdm/patient/actions/SESubstanceInfusion.h>
-#include <biogears/cdm/patient/actions/SESubstanceCompoundInfusion.h>
+#include <biogears/cdm/patient/assessments/SEUrinalysis.h>
 #include <biogears/cdm/substance/SESubstanceCompound.h>
-#include <biogears/cdm/patient/actions/SEPainStimulus.h>
 #include <biogears/cdm/system/physiology/SEDrugSystem.h>
 #include <biogears/cdm/system/physiology/SEEnergySystem.h>
 
@@ -83,48 +84,17 @@
 #include <biogears/cdm/system/equipment/Anesthesia/actions/SEMaskLeak.h>
 #include <biogears/cdm/system/equipment/Anesthesia/actions/SEOxygenWallPortPressureLoss.h>
 
+#include <biogears/cdm/scenario/SEAdvanceTime.h>
 #include <biogears/cdm/scenario/SEScenario.h>
 #include <biogears/cdm/scenario/SEScenarioExec.h>
-#include <biogears/cdm/scenario/SEAdvanceTime.h>
 
-#include "AMMPubSubTypes.h"
+#include "AMM/DDS/AMMPubSubTypes.h"
 
 #include "AMM/BaseLogger.h"
 
-// #include <boost/stacktrace.hpp>
-#include <boost/exception/all.hpp>
+#include "AMM/Utility.h"
 
-// typedef boost::error_info<struct tag_stacktrace, boost::stacktrace::stacktrace> traced;
-
-namespace biogears{
 // Forward declare what we will use in our thread
-class SESubstance;
-
-class SEEnergySystem;
-
-class SEPainStimulus;
-
-class SEScenario;
-
-class SEAdvanceTime;
-
-class SEComprehensiveMetabolicPanel;
-
-class SEGasCompartment;
-
-class SECompleteBloodCount;
-
-class SEAnesthesiaMachineConfiguration;
-
-class SEAnesthesiaMachine;
-
-class SEHemorrhage;
-
-class SESubstanceCompoundInfusion;
-
-class PhysiologyEngine;
-}
-
 namespace AMM {
     class PhysiologyThread {
     public:
@@ -142,6 +112,10 @@ namespace AMM {
 
         bool ExecuteCommand(const std::string &cmd);
 
+        bool Execute(std::function<std::unique_ptr<biogears::PhysiologyEngine>(
+                std::unique_ptr < biogears::PhysiologyEngine > && )>
+                     func);
+
         void Shutdown();
 
         void StartSimulation();
@@ -158,29 +132,36 @@ namespace AMM {
 
         void SetVentilator(const std::string &ventilatorSettings);
 
+        void SetBVMMask(const std::string &ventilatorSettings);
+
         void SetIVPump(const std::string &pumpSettings);
 
         void SetPain(const std::string &painSettings);
 
+        void SetHemorrhage(const std::string &location, const std::string &hemorrhageSettings);
+
+        void SetLogging(bool log);
+        void SetLastFrame(int lastFrame);
+
         void Status();
 
         static std::map<std::string, double (PhysiologyThread::*)()> nodePathTable;
-        static std::vector<std::string> highFrequencyNodes;
+        static std::vector <std::string> highFrequencyNodes;
 
-        bool logging_enabled = false;
+        bool paralyzed = false;
+        bool paralyzedSent = false;
 
-        std::string getTimestampedFilename(const std::string &basePathname);
 
     private:
         bool LoadScenarioFile(const std::string &scenarioFile);
 
         void PopulateNodePathTable();
 
-        void PreloadSubstances();
-
-        void PreloadCompartments();
+        double GetLoggingStatus();
 
         double GetShutdownMessage();
+
+        double GetBloodLossPercentage();
 
         double GetHeartRate();
 
@@ -200,6 +181,8 @@ namespace AMM {
 
         double GetOxygenSaturation();
 
+        double GetRawRespirationRate();
+
         double GetRespirationRate();
 
         double GetCoreTemperature();
@@ -214,6 +197,7 @@ namespace AMM {
 
         double GetBUN();
 
+
         double GetCreatinineConcentration();
 
         double GetWhiteBloodCellCount();
@@ -221,8 +205,14 @@ namespace AMM {
         double GetRedBloodCellCount();
 
         double GetHemoglobinConcentration();
+        double GetOxyhemoglobinConcentration();
+        double GetCarbaminohemoglobinConcentration();
+        double GetOxyCarbaminohemoglobinConcentration();
+        double GetCarboxyhemoglobinConcentration();
 
         double GetHematocrit();
+
+        double GetRawBloodPH();
 
         double GetBloodPH();
 
@@ -258,6 +248,10 @@ namespace AMM {
 
         double GetRightLungVolume();
 
+        double GetLeftLungTidalVolume();
+
+        double GetRightLungTidalVolume();
+
         double GetLeftPleuralCavityVolume();
 
         double GetRightPleuralCavityVolume();
@@ -274,13 +268,25 @@ namespace AMM {
 
         double GetLactateConcentration();
 
+        double GetLactateConcentrationMMOL();
+
         double GetTotalBilirubin();
 
         double GetTotalProtein();
 
         double GetPainVisualAnalogueScale();
 
-	biogears::SESubstance *sodium;
+        double GetUrineSpecificGravity();
+
+        double GetUrineProductionRate();
+
+        double GetUrineOsmolality();
+
+        double GetUrineOsmolarity();
+
+        double GetBladderGlucose();
+
+        biogears::SESubstance *sodium;
         biogears::SESubstance *glucose;
         biogears::SESubstance *creatinine;
         biogears::SESubstance *calcium;
@@ -291,6 +297,11 @@ namespace AMM {
         biogears::SESubstance *N2;
         biogears::SESubstance *O2;
         biogears::SESubstance *CO;
+        biogears::SESubstance *Hb;
+        biogears::SESubstance *HbO2;
+        biogears::SESubstance *HbCO2;
+        biogears::SESubstance *HbCO;
+        biogears::SESubstance *HbO2CO2;
         biogears::SESubstance *potassium;
         biogears::SESubstance *chloride;
         biogears::SESubstance *lactate;
@@ -298,11 +309,40 @@ namespace AMM {
         const biogears::SEGasCompartment *carina;
         const biogears::SEGasCompartment *leftLung;
         const biogears::SEGasCompartment *rightLung;
-
+        const biogears::SELiquidCompartment *bladder;
 
     protected:
         std::mutex m_mutex;
-        bool m_runThread;
-        std::unique_ptr<biogears::PhysiologyEngine> m_pe;
+        bool running = false;
+        std::unique_ptr <biogears::PhysiologyEngine> m_pe;
+
+        double thresh = 1.0;
+
+        bool falling_L;
+        double lung_vol_L, new_min_L, new_max_L, min_lung_vol_L, max_lung_vol_L;
+        double chestrise_pct_L;
+        double leftLungTidalVol;
+
+        bool falling_R;
+        double lung_vol_R, new_min_R, new_max_R, min_lung_vol_R, max_lung_vol_R;
+        double chestrise_pct_R;
+        double rightLungTidalVol;
+
+        bool eventHandlerAttached = false;
+
+        double bloodPH = 0.0;
+        double rawBloodPH = 0.0;
+        double lactateConcentration = 0.0;
+        double lactateMMOL = 0.0;
+        double startingBloodVolume = 5423.53;
+        double currentBloodVolume = 0.0;
+        double rawRespirationRate = 0.0;
+
+        int lastFrame = 0;
+
+        // Log every 50th frame
+        int loggingFrequency = 50;
+
+        bool logging_enabled = false;
     };
 }

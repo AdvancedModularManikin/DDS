@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AMMConfiguration>
+    <scenario id="m1s2" name="ACS / Scene 2 / ER">
+        <versions>
+            <data name="scenario" value="1.0.0"/>
+            <data name="amm_core" value="0.0.1"/>
+            <data name="amm_specification" value="0.0.1"/>
+        </versions>
+        <capabilities>
+            <capability name="virtual_patient">
+                <configuration_data>
+                    <data name="scene" value="er_litter"/>
+                </configuration_data>
+            </capability>
+        </capabilities>
+    </scenario>
+</AMMConfiguration>

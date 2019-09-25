@@ -24,11 +24,12 @@ endmacro (DEFINE_FastRTPS_SOURCES)
 
 if (NOT FASTRTP_GEN_EXECUTABLE)
   find_program(FASTRTP_GEN_EXECUTABLE NAME fastrtpsgen
-    DOC "FastRTP TPS code generator"
+    DOC "FastRTPS code generator"
     PATH_SUFFIXES bin
   )
 endif()
 
+if (FASTRTP_GEN_EXECUTABLE)
 macro (FastRTPS_IDLGEN idlfilename)
   get_filename_component(it ${idlfilename} ABSOLUTE)
   get_filename_component(idlfilename ${idlfilename} NAME)
@@ -38,7 +39,15 @@ macro (FastRTPS_IDLGEN idlfilename)
           COMMAND ${FASTRTP_GEN_EXECUTABLE} 
           ARGS
           #-example x64Linux2.6gcc
-          -replace -d gen ${idlfilename}
+          -replace -d ${CMAKE_CURRENT_SOURCE_DIR}/src/AMM/DDS ${idlfilename}
           DEPENDS ${it}
   )
 endmacro (FastRTPS_IDLGEN)
+endif()
+
+# If fastrtpsgen is installed, we can do code generation.
+if (COMMAND FastRTPS_IDLGEN)
+    #FastRTPS_IDLGEN(${PROJECT_SOURCE_DIR}/../IDL/AMM.idl)
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/gen/)
+    add_custom_target(generate_from_idl COMMAND ${FASTRTP_GEN_EXECUTABLE} -replace -d ${CMAKE_CURRENT_SOURCE_DIR}/src/AMM/DDS ${PROJECT_SOURCE_DIR}/../IDL/AMM.idl)
+endif()

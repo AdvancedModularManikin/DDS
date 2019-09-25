@@ -1,16 +1,40 @@
 language: cpp
 dist: trusty
 sudo: required
+os: linux
 
+matrix:
+  include:
+    - env: COMPILER=g++-6 BUILD=Release STANDARD=14
+      compiler: gcc
+      addons:
+        apt:
+          update: true
+          sources:
+            - sourceline: 'ppa:mhier/libboost-latest'
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
+            - boost1.67
+            - libtinyxml2-dev
+            - openjdk-8-jdk-headless
+            - libtinyxml2-dev
+            - sqlite3
+            - libsqlite3-dev
+            - libcurl4-openssl-dev
+            
 before_install:
+  - export CC=gcc-6
+  - export CXX=g++-6
   - mkdir AMM_Modules/build && cd AMM_Modules/build
+  - chmod 755 ../../travis_scripts/*.sh  
+  - ../../travis_scripts/cmake.sh
   - ../../travis_scripts/fastrtps.sh
+  - ../../travis_scripts/rapidjson.sh
+  - ../../travis_scripts/pistache.sh
+  
 script:
-  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
+  - export CC=gcc-6
+  - export CXX=g++-6
+  - /usr/local/bin/cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release ..
   - make
-
-addons:
-  apt:
-    packages:
-      - libboost-all-dev
-      - libtinyxml2-dev

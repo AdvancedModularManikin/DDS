@@ -1,20 +1,25 @@
 #pragma once
 
-#include "AMM/DDS_Manager.h"
-
-#include "AMM/Listeners/DDS_Listeners.h"
-
-#include "AMM/Listeners/ListenerInterface.h"
-
-#include "AMM/PhysiologyThread.h"
-
-#include "AMM/BaseLogger.h"
-
 #include <chrono>
 #include <time.h>
 
 #include <mutex>
 #include <thread>
+
+#include "AMM/DDS_Manager.h"
+
+#include "AMM/Listeners/DDS_Listeners.h"
+
+#include "AMM/PhysiologyThread.h"
+
+#include "AMM/BaseLogger.h"
+#include "AMM/DDS_Log_Appender.h"
+
+#include <fastcdr/Cdr.h>
+#include <fastcdr/FastBuffer.h>
+
+#include <biogears/cdm/patient/actions/SEPainStimulus.h>
+#include <biogears/cdm/patient/actions/SESepsis.h>
 
 namespace AMM {
     class PhysiologyThread;
@@ -25,7 +30,7 @@ namespace AMM {
 
         virtual ~PhysiologyEngineManager() override = default;
 
-        AMM::PhysiologyThread *bg = new PhysiologyThread("logs/biogears.log");
+        PhysiologyThread *bg;
         std::string stateFile;
 
         void SetLogging(bool logging_enabled);
@@ -58,42 +63,47 @@ namespace AMM {
 
         void WriteNodeData(std::string node);
 
+        void WriteHighFrequencyNodeData(std::string node);
+
         void TickLoop();
 
         void AdvanceTimeTick();
 
         bool closed = false;
         bool paused = false;
+        bool running = false;
         int lastFrame = 0;
         bool logging_enabled = false;
 
-        std::string get_filename_date(void);
-
-        std::string get_random_string(size_t length);
-
-        void TestVentilator(const std::string &ventilatorSettings);
-
         void TestPump(const std::string &pumpSettings);
 
-        void TestPain(const std::string &painSettings);
+        void onNewNodeData(Physiology::Node n, SampleInfo_t *info) override;
 
-        void onNewNodeData(AMM::Physiology::Node n, SampleInfo_t *info) override;
+        void onNewHighFrequencyNodeData(Physiology::HighFrequencyNode n, SampleInfo_t *info) override;
 
-        void onNewTickData(AMM::Simulation::Tick ti, SampleInfo_t *info) override;
+        void onNewTickData(Simulation::Tick ti, SampleInfo_t *info) override;
 
-        void onNewCommandData(AMM::PatientAction::BioGears::Command cm, SampleInfo_t *info) override;
+        void onNewCommandData(Physiology::Command cm, SampleInfo_t *info) override;
 
-        void onNewInstrumentData(AMM::InstrumentData i, SampleInfo_t *info) override;
+        void onNewCommandData(PatientAction::BioGears::Command cm, SampleInfo_t *info) override;
 
-        void onNewPhysiologyModificationData(AMM::Physiology::Modification, SampleInfo_t *info) override;
+        void onNewInstrumentData(InstrumentData i, SampleInfo_t *info) override;
 
-        std::map<std::string, double (AMM::PhysiologyThread::*)()> *nodePathMap;
+        void onNewPhysiologyModificationData(Physiology::Modification, SampleInfo_t *info) override;
+
+        std::map<std::string, double (PhysiologyThread::*)()> *nodePathMap;
+
+        const std::map <std::string, std::string> &GetTissueResistorMap() const;
+
+        void BuildTissueResistorMap();
 
     protected:
         const char *nodeName = "AMM_PhysiologyEngine";
+        std::map<std::string, std::string> m_TissueResistorMap;
 
-        AMM::DDS_Manager *mgr = new AMM::DDS_Manager(nodeName);
+        DDS_Manager *mgr = new DDS_Manager(nodeName);
 
+        Publisher *hf_node_publisher;
         Publisher *node_publisher;
         Subscriber *tick_subscriber;
         Subscriber *command_subscriber;
@@ -101,8 +111,6 @@ namespace AMM {
         Subscriber *physmod_subscriber;
 
         std::mutex m_mutex;
-        bool m_runThread;
 
     };
-
 }
