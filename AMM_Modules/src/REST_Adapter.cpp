@@ -458,6 +458,9 @@ private:
         Routes::Get(router, "/module/guid/:guid",
                     Routes::bind(&DDSEndpoint::getModuleByGuid, this));
 
+        Routes::Get(router, "/modules/other",
+                    Routes::bind(&DDSEndpoint::getOtherModules, this));
+
         Routes::Get(router, "/shutdown",
                     Routes::bind(&DDSEndpoint::doShutdown, this));
 
@@ -874,6 +877,18 @@ private:
         writer.Int(otherCount);
         writer.EndObject();
 
+        response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
+        response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
+    }
+
+    void getOtherModules(const Rest::Request &request, Http::ResponseWriter response) {
+        StringBuffer s;
+        Writer<StringBuffer> writer(s);
+        writer.StartArray();
+        db << "SELECT DISTINCT module_name FROM module_capabilities where module_name NOT LIKE 'AMM_%'" >> [&](string module_name) {
+            writer.String(module_name.c_str());
+        };
+        writer.EndArray();
         response.headers().add<Http::Header::AccessControlAllowOrigin>("*");
         response.send(Http::Code::Ok, s.GetString(), MIME(Application, Json));
     }
