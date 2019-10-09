@@ -476,7 +476,7 @@ namespace AMM {
 
 // MCO2 - End Tidal Carbon Dioxide Fraction - unitless %
     double PhysiologyThread::GetEndTidalCarbonDioxideFraction() {
-        return (m_pe->GetRespiratorySystem()->GetEndTidalCarbonDioxideFraction() * 7.5);
+        return (m_pe->GetRespiratorySystem()->GetEndTidalCarbonDioxideFraction() * 762);
     }
 
 // SPO2 - Oxygen Saturation - unitless %
