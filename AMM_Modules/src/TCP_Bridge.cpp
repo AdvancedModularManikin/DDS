@@ -497,7 +497,7 @@ void DispatchRequest(Client *c, std::string const &request) {
             auto it = labNodes[str].begin();
             while (it != labNodes[str].end()) {
                 std::ostringstream messageOut;
-                messageOut << it->first << "=" << it->second << "|";
+                messageOut << it->first << "=" << it->second << ":" << str << "|";
                 Server::SendToClient(c, messageOut.str());
                 ++it;
             }
