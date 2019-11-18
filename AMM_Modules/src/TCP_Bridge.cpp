@@ -311,6 +311,9 @@ public:
                                       loadScenarioPrefix)) {
                 std::string scene = value.substr(loadScenarioPrefix.size());
                 sendConfigToAll(scene);
+                std::ostringstream messageOut;
+                messageOut << "ACT" << "=" << c.message();
+                s->SendToAll(messageOut.str());
             } else {
                 std::ostringstream messageOut;
                 messageOut << "ACT" << "=" << c.message();
