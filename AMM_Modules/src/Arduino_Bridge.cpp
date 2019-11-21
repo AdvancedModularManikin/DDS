@@ -39,6 +39,7 @@ using namespace tinyxml2;
 
 bool first_message = true;
 bool closed = false;
+bool initializing = true;
 
 std::string globalInboundBuffer;
 std::string requestPrefix = "[REQUEST]";
@@ -127,22 +128,27 @@ void readHandler() {
                 tinyxml2::XMLNode *mod = root->FirstChildElement("module");
                 tinyxml2::XMLElement *module = mod->ToElement();
 
-                std::string module_name = module->Attribute("name");
-                std::string manufacturer = module->Attribute("manufacturer");
-                std::string model = module->Attribute("model");
-                std::string serial_number = module->Attribute("serial_number");
-                std::string module_version = module->Attribute("module_version");
+                if (intializing) {
+                    LOG_INFO << "Module is initializing, so we'll publish the configuration.";
 
-                mgr->module_name = module_name;
-                mgr->PublishModuleConfiguration(
-                        mgr->module_id,
-                        module_name,
-                        manufacturer,
-                        model,
-                        serial_number,
-                        module_version,
-                        value
-                );
+                    std::string module_name = module->Attribute("name");
+                    std::string manufacturer = module->Attribute("manufacturer");
+                    std::string model = module->Attribute("model");
+                    std::string serial_number = module->Attribute("serial_number");
+                    std::string module_version = module->Attribute("module_version");
+
+                    mgr->module_name = module_name;
+                    mgr->PublishModuleConfiguration(
+                            mgr->module_id,
+                            module_name,
+                            manufacturer,
+                            model,
+                            serial_number,
+                            module_version,
+                            value
+                    );
+                    initializing = false;
+                }
 
                 subscribedTopics.clear();
                 publishedTopics.clear();
