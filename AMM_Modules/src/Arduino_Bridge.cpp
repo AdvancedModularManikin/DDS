@@ -128,7 +128,7 @@ void readHandler() {
                 tinyxml2::XMLNode *mod = root->FirstChildElement("module");
                 tinyxml2::XMLElement *module = mod->ToElement();
 
-                if (intializing) {
+                if (initializing) {
                     LOG_INFO << "Module is initializing, so we'll publish the configuration.";
 
                     std::string module_name = module->Attribute("name");
