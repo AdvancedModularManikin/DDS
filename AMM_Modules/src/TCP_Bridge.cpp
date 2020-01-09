@@ -311,12 +311,14 @@ public:
                                       loadScenarioPrefix)) {
                 std::string scene = value.substr(loadScenarioPrefix.size());
                 sendConfigToAll(scene);
+		LOG_INFO << "Sending LOAD SCENARIO message to all: " << c.message();
                 std::ostringstream messageOut;
-                messageOut << "ACT" << "=" << c.message();
+		messageOut << "ACT" << "=" << c.message();
                 s->SendToAll(messageOut.str());
             } else {
+	      LOG_INFO << "Sending other SYS message to all: " << c.message();
                 std::ostringstream messageOut;
-                messageOut << "ACT" << "=" << c.message();
+		messageOut << "ACT" << "=" << c.message();
                 s->SendToAll(messageOut.str());
             }
         } else {
